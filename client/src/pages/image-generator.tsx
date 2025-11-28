@@ -47,7 +47,11 @@ import {
   Bot,
   Crosshair,
   Sun,
-  Moon
+  Moon,
+  Filter,
+  Upload,
+  RefreshCcw,
+  LayoutGrid
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -74,6 +78,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 
 // Import generated images for the gallery
@@ -152,9 +157,11 @@ const REFINER_PRESETS = [
 ];
 
 export default function ImageGenerator() {
-  const [prompt, setPrompt] = useState("");
+  const [prompt, setPrompt] = useState("A futuristic city with neon lights and flying cars in cyberpunk style");
   const [status, setStatus] = useState<GenerationStatus>("idle");
   const [generations, setGenerations] = useState<GeneratedImage[]>([]);
+  const [filteredGenerations, setFilteredGenerations] = useState<GeneratedImage[]>([]);
+  const [activeFilter, setActiveFilter] = useState<string>("all");
   const [agents, setAgents] = useState<Agent[]>(AGENTS);
   const [progress, setProgress] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
@@ -180,6 +187,15 @@ export default function ImageGenerator() {
       textareaRef.current.style.height = textareaRef.current.scrollHeight + "px";
     }
   }, [prompt]);
+
+  // Filter generations
+  useEffect(() => {
+    if (activeFilter === "all") {
+      setFilteredGenerations(generations);
+    } else {
+      setFilteredGenerations(generations.filter(g => g.style === activeFilter));
+    }
+  }, [generations, activeFilter]);
 
   const handleGenerate = () => {
     if (!prompt.trim()) return;
@@ -301,21 +317,30 @@ export default function ImageGenerator() {
               
               {/* Main Input Wrapper */}
               <div className={cn(
-                "flex-1 bg-muted/40 border border-border rounded-xl transition-all duration-200 flex items-end p-2 gap-2 group focus-within:bg-background focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50 shadow-sm",
+                "flex-1 bg-muted/40 border border-border rounded-xl transition-all duration-200 flex items-end p-2 gap-2 group focus-within:bg-background shadow-sm",
                 prompt.trim().length > 0 && "bg-background border-muted-foreground/40"
               )}>
                 
-                {/* Reference Image Trigger */}
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-foreground rounded-lg shrink-0 mb-0.5">
-                        <ImagePlus className="h-4 w-4" />
+                {/* Reference Image Trigger with Popover */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-foreground rounded-lg shrink-0 mb-0.5">
+                      <ImagePlus className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent align="start" className="w-48 p-1">
+                    <div className="space-y-1">
+                      <Button variant="ghost" className="w-full justify-start h-9 text-sm font-normal">
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload Reference
                       </Button>
-                    </TooltipTrigger>
-                    <TooltipContent><p>Add reference image</p></TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                      <Button variant="ghost" className="w-full justify-start h-9 text-sm font-normal">
+                        <RefreshCcw className="mr-2 h-4 w-4" />
+                        Remix Image
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
 
                 {/* Textarea */}
                 <div className="flex-1 relative py-2">
@@ -325,7 +350,7 @@ export default function ImageGenerator() {
                     onChange={(e) => setPrompt(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Describe what you want to create..."
-                    className="w-full bg-transparent border-0 focus:ring-0 p-0 text-sm sm:text-base text-foreground placeholder:text-muted-foreground resize-none min-h-[24px] max-h-[120px] leading-relaxed"
+                    className="w-full bg-transparent border-0 focus:ring-0 p-0 text-sm sm:text-base text-foreground placeholder:text-muted-foreground resize-none min-h-[24px] max-h-[120px] leading-relaxed outline-none ring-0"
                     rows={1}
                   />
                 </div>
@@ -462,26 +487,24 @@ export default function ImageGenerator() {
                       </div>
                     </div>
 
-                    {/* AI Features */}
+                    {/* Number of Previews (Was Variations) */}
                     <div className="space-y-2">
-                      <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Options</label>
-                      <div className="flex gap-2">
-                         <Button 
-                           variant="outline" 
-                           size="sm" 
-                           onClick={() => setSettings({...settings, refiner: !settings.refiner})}
-                           className={cn("h-9 flex-1 text-[10px]", settings.refiner && "border-primary text-primary bg-primary/5")}
-                         >
-                           Refiner
-                         </Button>
-                         <Button 
-                           variant="outline" 
-                           size="sm" 
-                           onClick={() => setSettings({...settings, aiCuration: !settings.aiCuration})}
-                           className={cn("h-9 flex-1 text-[10px]", settings.aiCuration && "border-primary text-primary bg-primary/5")}
-                         >
-                           AI Fix
-                         </Button>
+                      <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Number of Previews</label>
+                      <div className="flex bg-background/50 rounded-lg p-1 border border-border/50 h-9">
+                        {["1", "2", "4"].map(v => (
+                          <button
+                            key={v}
+                            onClick={() => setSettings({...settings, variations: v})}
+                            className={cn(
+                              "flex-1 rounded flex items-center justify-center text-[10px] font-medium transition-all",
+                              settings.variations === v 
+                                ? "bg-background shadow-sm text-foreground" 
+                                : "text-muted-foreground hover:text-foreground"
+                            )}
+                          >
+                            {v}
+                          </button>
+                        ))}
                       </div>
                     </div>
 
@@ -549,8 +572,38 @@ export default function ImageGenerator() {
         </div>
 
         {/* SCROLLABLE GALLERY */}
-        <div className="flex-1 overflow-y-auto p-10">
-          {generations.length === 0 ? (
+        <div className="flex-1 overflow-y-auto p-6 md:p-10">
+          
+          {/* Gallery Filter Bar */}
+          {generations.length > 0 && (
+             <div className="max-w-[1800px] mx-auto mb-6 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+               <Button
+                 variant={activeFilter === "all" ? "default" : "outline"}
+                 size="sm"
+                 onClick={() => setActiveFilter("all")}
+                 className="rounded-full h-8 text-xs"
+               >
+                 All Generations
+               </Button>
+               <div className="w-px h-4 bg-border mx-1" />
+               {Array.from(new Set(generations.map(g => g.style))).map(style => (
+                 <Button
+                   key={style}
+                   variant={activeFilter === style ? "default" : "ghost"}
+                   size="sm"
+                   onClick={() => setActiveFilter(style)}
+                   className={cn(
+                     "rounded-full h-8 text-xs capitalize",
+                     activeFilter === style ? "" : "text-muted-foreground hover:text-foreground bg-muted/30"
+                   )}
+                 >
+                   {STYLE_PRESETS.find(s => s.id === style)?.name || style}
+                 </Button>
+               ))}
+             </div>
+          )}
+
+          {filteredGenerations.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center animate-fade-in max-w-xl mx-auto mt-[-100px]">
               <div className="w-40 h-40 bg-gradient-to-tr from-purple-500 to-pink-500 rounded-full blur-[80px] opacity-20 mb-8" />
               <h2 className="text-3xl font-bold mb-3 text-foreground">Start Creating</h2>
@@ -572,7 +625,7 @@ export default function ImageGenerator() {
             </div>
           ) : (
             <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6 mx-auto max-w-[1800px]">
-              {generations.map((gen) => (
+              {filteredGenerations.map((gen) => (
                 <div 
                   key={gen.id}
                   onClick={() => setSelectedImage(gen)}
