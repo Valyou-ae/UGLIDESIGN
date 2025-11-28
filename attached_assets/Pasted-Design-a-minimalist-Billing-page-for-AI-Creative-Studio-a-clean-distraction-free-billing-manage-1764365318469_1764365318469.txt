@@ -1,0 +1,514 @@
+Design a minimalist Billing page for "AI Creative Studio" - a clean, distraction-free billing management interface with focus on essential information and white space. Follow the sidebar layout from dashboard. Dark/light theme support. Minimal UI with subtle purple accent. Use Lucide icons sparingly - NO emojis.
+
+=== DESIGN PRINCIPLES ===
+- Maximum white space
+- Single column layout for content
+- No decorative elements
+- Subtle borders and dividers
+- Typography-focused hierarchy
+- Icons only where essential
+- Muted color palette
+- Clean card edges with minimal shadows
+
+=== PAGE STRUCTURE ===
+Full viewport height
+Layout: Fixed left sidebar (240px, narrower) + Main content area (centered)
+Background: #09090B (dark) / #FFFFFF (light)
+Content max-width: 680px, centered in main area
+
+=== LEFT SIDEBAR (Minimal) ===
+Width: 240px
+Background: #09090B (dark) / #FAFAFA (light)
+Border-right: 1px solid #1A1A1A (dark) / #F0F0F0 (light)
+Padding: 24px 16px
+
+Logo:
+- "Studio" - 18px, semibold, #FAFAFA
+- No icon, text only
+
+Navigation:
+- Vertical stack
+- Gap: 4px
+- Margin-top: 40px
+
+Nav items:
+Each item:
+- Padding: 10px 12px
+- Border-radius: 8px
+- Font: 14px, regular, #71717A
+- No icons (text only for minimal look)
+- Hover: bg #141414 (dark) / #F5F5F5 (light)
+- Active: bg #141414, text #FAFAFA
+
+Nav items list:
+- "Home"
+- "Create"
+- "Projects"
+- "Favorites"
+- Spacer (40px)
+- "Billing" - ACTIVE
+- "Settings"
+
+Sidebar footer:
+- Position: absolute bottom
+- Padding: 24px 16px
+- "1,523 credits" - 13px, #52525B
+- Small progress bar below, 4px height, #7C3AED fill
+
+=== MAIN CONTENT AREA ===
+Padding: 48px 40px
+Display: flex
+Justify-content: center
+
+Content container:
+- Max-width: 680px
+- Width: 100%
+
+=== PAGE HEADER ===
+Margin-bottom: 48px
+
+Title:
+- "Billing" - 32px, semibold, #FAFAFA (dark) / #18181B (light)
+- Letter-spacing: -0.5px
+
+Subtitle:
+- "Manage your subscription and payment" - 15px, #52525B
+- Margin-top: 8px
+
+=== SECTION 1: CURRENT PLAN ===
+Margin-bottom: 40px
+
+Section container:
+- Background: transparent
+- No border, no card style
+- Padding: 0
+
+Section header:
+- "Plan" - 11px, bold, #52525B, uppercase, letter-spacing: 1px
+- Margin-bottom: 16px
+
+Plan display:
+- Display: flex
+- Justify-content: space-between
+- Align-items: flex-start
+- Padding-bottom: 24px
+- Border-bottom: 1px solid #1A1A1A (dark) / #F0F0F0 (light)
+
+Left side:
+Plan name row:
+- "Pro" - 24px, semibold, #FAFAFA
+- Small dot separator, 4px, #52525B, margin 0 10px
+- "Active" - 14px, #52525B
+
+Plan details:
+- "2,000 credits per month" - 14px, #71717A
+- Margin-top: 4px
+
+Renewal info:
+- "Renews Jan 15, 2025" - 13px, #52525B
+- Margin-top: 12px
+
+Right side:
+Price:
+- "$29" - 28px, semibold, #FAFAFA
+- "/mo" - 16px, #52525B
+
+Action link:
+- "Change plan" - 13px, #71717A
+- Underline on hover
+- Margin-top: 8px
+
+=== SECTION 2: CREDITS ===
+Margin-bottom: 40px
+
+Section header:
+- "Credits" - 11px, bold, #52525B, uppercase, letter-spacing: 1px
+- Margin-bottom: 16px
+
+Credits display:
+- Padding-bottom: 24px
+- Border-bottom: 1px solid #1A1A1A (dark) / #F0F0F0 (light)
+
+Credits row:
+- Display: flex
+- Justify-content: space-between
+- Align-items: baseline
+
+Left:
+- "1,523" - 32px, semibold, #FAFAFA
+- "of 2,000" - 16px, #52525B, margin-left 8px
+
+Right:
+- "Buy credits" link - 13px, #71717A, underline on hover
+
+Progress bar:
+- Margin-top: 16px
+- Height: 4px
+- Background: #1A1A1A (dark) / #E5E5E5 (light)
+- Border-radius: 2px
+
+Progress fill:
+- Width: 76%
+- Background: #7C3AED
+- Border-radius: 2px
+
+Usage breakdown (minimal):
+- Margin-top: 16px
+- Display: flex
+- Gap: 24px
+
+Each breakdown item:
+- Font: 13px, #52525B
+- Format: "Images 823 · Mockups 456 · BG 244"
+- Single line, dot separated
+
+=== SECTION 3: PAYMENT ===
+Margin-bottom: 40px
+
+Section header:
+- "Payment method" - 11px, bold, #52525B, uppercase, letter-spacing: 1px
+- Margin-bottom: 16px
+
+Payment display:
+- Padding-bottom: 24px
+- Border-bottom: 1px solid #1A1A1A (dark) / #F0F0F0 (light)
+
+Card row:
+- Display: flex
+- Justify-content: space-between
+- Align-items: center
+
+Left:
+Card info:
+- "•••• 4242" - 16px, #FAFAFA
+- "Expires 12/26" - 13px, #52525B, margin-top 2px
+
+Right:
+- "Update" link - 13px, #71717A, underline on hover
+
+=== SECTION 4: BILLING HISTORY ===
+Margin-bottom: 40px
+
+Section header row:
+- Display: flex
+- Justify-content: space-between
+- Align-items: center
+- Margin-bottom: 16px
+
+Left:
+- "History" - 11px, bold, #52525B, uppercase, letter-spacing: 1px
+
+Right:
+- "Download all" link - 12px, #52525B, underline on hover
+
+Invoice list:
+- No table, simple rows
+- No borders between items
+
+Each invoice row:
+- Display: flex
+- Justify-content: space-between
+- Align-items: center
+- Padding: 12px 0
+
+Left side:
+- Description: "Pro Plan - Monthly" - 14px, #A1A1AA
+- Date: "Dec 15" - 13px, #52525B, margin-left 16px
+
+Right side:
+- Amount: "$29.00" - 14px, #A1A1AA
+- Download icon button - 16px, #52525B, margin-left 16px, hover #FAFAFA
+
+Show only last 5 invoices
+
+"View all invoices" link:
+- Margin-top: 8px
+- 13px, #52525B
+- Underline on hover
+
+=== SECTION 5: DANGER ZONE ===
+Margin-top: 60px
+Padding-top: 24px
+Border-top: 1px solid #1A1A1A (dark) / #F0F0F0 (light)
+
+Cancel subscription row:
+- Display: flex
+- Justify-content: space-between
+- Align-items: center
+
+Left:
+- "Cancel subscription" - 14px, #71717A
+
+Right:
+- "Cancel" link - 13px, #DC2626, underline on hover
+
+=== MODALS (Minimal Style) ===
+
+--- Change Plan Modal ---
+Overlay: rgba(0, 0, 0, 0.8)
+Modal:
+- Width: 400px
+- Background: #111111 (dark) / #FFFFFF (light)
+- Border: 1px solid #1A1A1A (dark) / #E5E5E5 (light)
+- Border-radius: 12px
+- Padding: 32px
+
+Header:
+- "Change plan" - 20px, semibold
+- No close X (click outside to close)
+
+Plan options (margin-top 24px):
+Each plan:
+- Padding: 16px 0
+- Border-bottom: 1px solid #1A1A1A
+- Display: flex
+- Justify-content: space-between
+- Cursor: pointer
+
+Plan content:
+Left:
+- Plan name - 15px, #FAFAFA
+- Credits - 13px, #52525B
+
+Right:
+- Price - 15px, #FAFAFA
+- Radio indicator (minimal circle)
+
+Plans:
+1. "Free" - "100 credits" - "$0"
+2. "Pro" - "2,000 credits" - "$29" (current, disabled)
+3. "Business" - "10,000 credits" - "$79"
+
+Action buttons (margin-top 24px):
+- Display: flex
+- Gap: 12px
+
+"Cancel" button:
+- bg transparent
+- text #71717A
+- padding: 12px 20px
+
+"Confirm" button:
+- bg #FAFAFA
+- text #18181B
+- padding: 12px 20px
+- border-radius: 8px
+
+--- Buy Credits Modal ---
+Width: 360px
+Same minimal style
+
+Header:
+- "Buy credits" - 20px, semibold
+
+Credit options:
+Simple list, no cards:
+- "500 credits — $19"
+- "1,000 credits — $35"
+- "2,500 credits — $79"
+
+Each row:
+- Padding: 14px 0
+- Border-bottom: 1px solid #1A1A1A
+- Cursor: pointer
+- Hover: text #FAFAFA
+
+Selected state:
+- Checkmark on right
+- Text: #FAFAFA
+
+Total:
+- Margin-top: 20px
+- "Total: $35" - 16px, semibold
+
+"Purchase" button:
+- Full width
+- bg #FAFAFA
+- text #18181B
+- padding: 14px
+- border-radius: 8px
+- margin-top: 16px
+
+--- Update Payment Modal ---
+Width: 380px
+
+Header:
+- "Update payment" - 20px, semibold
+
+Form fields (minimal):
+Each field:
+- Label: 12px, #52525B, margin-bottom 6px
+- Input: bg transparent, border-bottom 1px #2A2A30, padding 12px 0
+- No border-radius, no background
+- Focus: border-color #7C3AED
+
+Fields:
+- "Card number"
+- "Expiry" and "CVC" (side by side)
+- "Name on card"
+
+"Save" button:
+- Full width
+- bg #FAFAFA
+- text #18181B
+- margin-top 24px
+
+--- Cancel Subscription Modal ---
+Width: 400px
+
+Header:
+- "Cancel subscription" - 20px, semibold
+
+Message:
+- "Your Pro plan will remain active until Jan 15, 2025. After that, you'll be downgraded to Free." - 14px, #71717A
+- Margin-top: 16px
+- Line-height: 1.6
+
+Buttons (margin-top 24px):
+- "Keep subscription" - bg #FAFAFA, text #18181B
+- "Cancel anyway" - bg transparent, text #DC2626
+
+=== EMPTY/LOADING STATES ===
+
+Loading:
+- Simple pulsing lines
+- No skeleton cards
+- Just gray bars where text will be
+
+No payment method:
+- "No payment method" - 14px, #52525B
+- "Add one" link
+
+=== HOVER STATES ===
+- Links: Underline appears
+- No color changes
+- No background changes on rows
+- Subtle, minimal feedback
+
+=== FOCUS STATES ===
+- Simple outline: 2px solid #7C3AED
+- Offset: 2px
+- No glow effects
+
+=== RESPONSIVE BEHAVIOR ===
+
+Desktop (1200px+):
+- Centered content, max-width 680px
+- Full sidebar
+
+Laptop (900-1199px):
+- Same layout
+- Slightly less padding
+
+Tablet (600-899px):
+- Sidebar collapses to icons only (56px)
+- Content stays centered
+
+Mobile (<600px):
+- No sidebar (bottom nav with 4 items)
+- Full-width content
+- Padding: 24px 20px
+- Modals become bottom sheets
+
+=== COLOR TOKENS (Minimal Palette) ===
+
+Background: #09090B
+Surface: #111111
+Border: #1A1A1A
+Border Subtle: #141414
+
+Text Primary: #FAFAFA
+Text Secondary: #A1A1AA
+Text Muted: #71717A
+Text Subtle: #52525B
+
+Accent: #7C3AED (used sparingly)
+Error: #DC2626 (only for destructive actions)
+
+Light mode:
+Background: #FFFFFF
+Surface: #FAFAFA
+Border: #F0F0F0
+Border Subtle: #E5E5E5
+Text Primary: #18181B
+Text Secondary: #525252
+Text Muted: #71717A
+Text Subtle: #A1A1AA
+
+=== TYPOGRAPHY (Minimal) ===
+
+Font: Inter, system-ui, sans-serif
+
+Page title: 32px, semibold, -0.5px tracking
+Section value: 24-32px, semibold
+Body: 14-15px, regular
+Labels: 11px, bold, uppercase, 1px letter-spacing
+Links: 13px, regular
+Small text: 12-13px, regular
+
+Line heights:
+- Headings: 1.2
+- Body: 1.5
+
+=== SPACING SYSTEM ===
+
+Base unit: 8px
+- xs: 4px
+- sm: 8px
+- md: 16px
+- lg: 24px
+- xl: 40px
+- 2xl: 48px
+- 3xl: 60px
+
+Section spacing: 40px between sections
+Content padding: 48px vertical, 40px horizontal
+
+=== ICONS (Minimal Use) ===
+
+Only icons used:
+- Download (for invoices) - 16px
+- ChevronRight (for navigation hints) - 14px
+- Check (for selection states) - 14px
+
+No decorative icons
+No section header icons
+No button icons (text only)
+
+=== ANIMATIONS (Subtle) ===
+
+Duration: 150ms
+Easing: ease-out
+
+Transitions:
+- Opacity for hover states
+- Underline for links (width animation)
+- Modal: Fade in only, no scale
+
+No:
+- Scale effects
+- Bounce effects
+- Elaborate transitions
+- Loading spinners (use opacity pulse)
+
+=== MICRO-INTERACTIONS ===
+
+Links:
+- Underline slides in from left
+- 150ms duration
+
+Buttons:
+- Opacity: 0.9 on hover
+- Opacity: 0.7 on active
+
+Progress bar:
+- No animation on load
+- Static display
+
+=== ACCESSIBILITY ===
+
+- Focus visible outlines
+- Sufficient color contrast
+- Clear interactive states
+- Keyboard navigable
+- Screen reader friendly labels
