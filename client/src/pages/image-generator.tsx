@@ -329,9 +329,9 @@ export default function ImageGenerator() {
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="h-10 w-10 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-xl transition-all"
+                        className="h-10 w-10 text-muted-foreground hover:text-foreground bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-transparent hover:border-border/40"
                       >
-                        <ImagePlus className="h-6 w-6" />
+                        <ImageIconLucide className="h-5 w-5" strokeWidth={1.5} />
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent align="start" className="w-auto p-2">
@@ -362,7 +362,10 @@ export default function ImageGenerator() {
                     onChange={(e) => setPrompt(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Describe what you want to create..."
-                    className="w-full bg-transparent border-0 focus:ring-0 px-0 pt-[3px] text-sm sm:text-base text-foreground placeholder:text-muted-foreground/50 placeholder:italic resize-none min-h-[24px] max-h-[120px] leading-relaxed outline-none ring-0"
+                    className={cn(
+                      "w-full bg-transparent border-0 focus:ring-0 px-0 pt-[3px] text-sm sm:text-base placeholder:text-muted-foreground/50 placeholder:italic resize-none min-h-[24px] max-h-[120px] leading-relaxed outline-none ring-0",
+                      prompt === "A futuristic city with neon lights and flying cars in cyberpunk style" ? "text-muted-foreground italic" : "text-foreground"
+                    )}
                     rows={1}
                   />
                 </div>
@@ -488,7 +491,7 @@ export default function ImageGenerator() {
                         <DropdownMenuTrigger asChild>
                           <Button variant="outline" className="w-full justify-between h-12 text-xs bg-background/50 border-transparent hover:bg-background">
                             <div className="flex flex-col items-start gap-0.5 overflow-hidden">
-                              <span className="text-[10px] text-muted-foreground font-medium">Style Preset</span>
+                              <span className="text-[10px] text-muted-foreground font-medium"></span>
                               <span className="flex items-center gap-1.5 font-semibold truncate w-full">
                                 {STYLE_PRESETS.find(s => s.id === settings.style)?.icon && (
                                    <Sparkles className="h-3 w-3 text-primary" />
