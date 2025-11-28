@@ -10,6 +10,7 @@ import MockupGenerator from "@/pages/mockup-generator";
 import MyProjects from "@/pages/my-projects";
 import Favorites from "@/pages/favorites";
 import Billing from "@/pages/billing";
+import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -22,6 +23,7 @@ function Router() {
       <Route path="/projects" component={MyProjects} />
       <Route path="/favorites" component={Favorites} />
       <Route path="/billing" component={Billing} />
+      <Route path="/settings" component={Settings} />
       
       {/* Mock routes for sidebar navigation to just show home for now, or 404 */}
       <Route component={NotFound} />

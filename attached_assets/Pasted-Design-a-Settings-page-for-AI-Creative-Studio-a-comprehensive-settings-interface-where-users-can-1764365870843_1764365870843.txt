@@ -1,0 +1,1070 @@
+Design a Settings page for "AI Creative Studio" - a comprehensive settings interface where users can manage their account, preferences, appearance, notifications, privacy, and connected apps. Follow the sidebar layout from dashboard. Dark/light theme support. Clean, organized UI with purple accent color. Use Lucide icons throughout - NO emojis.
+
+=== PAGE STRUCTURE ===
+Full viewport height
+Layout: Fixed left sidebar (280px) + Main content area
+Background: #0A0A0B (dark) / #F8F8F8 (light)
+Main content: Scrollable
+
+=== LEFT SIDEBAR ===
+Width: 280px, full height, fixed
+Background: #111113 (dark) / #FFFFFF (light)
+Border-right: 1px solid #1F1F23 (dark) / #E4E4E7 (light)
+
+Same structure as dashboard BUT:
+- "Settings" nav item is ACTIVE (purple highlight #7C3AED)
+- Settings icon highlighted
+
+Sidebar navigation:
+
+Main section:
+- Home (LayoutGrid icon)
+- Image Generator (Wand2 icon)
+- Mockup Generator (ShoppingBag icon)
+- Background Remover (Scissors icon)
+- My Projects (FolderOpen icon)
+- Favorites (Star icon)
+
+Account section:
+- Settings (Settings icon) - ACTIVE
+- Billing (CreditCard icon)
+- Help & Support (HelpCircle icon)
+
+=== MAIN CONTENT AREA ===
+Display: flex
+Height: 100vh
+Overflow: hidden
+
+=== SETTINGS LAYOUT ===
+Two-panel layout:
+- Left: Settings navigation (260px)
+- Right: Settings content (flex: 1)
+
+=== LEFT PANEL: SETTINGS NAVIGATION ===
+Width: 260px
+Background: #0A0A0B (dark) / #F8F8F8 (light)
+Border-right: 1px solid #1F1F23 (dark) / #E4E4E7 (light)
+Padding: 32px 0
+Position: sticky
+Top: 0
+Height: 100vh
+Overflow-y: auto
+
+--- Header ---
+Padding: 0 24px
+Margin-bottom: 32px
+
+Title:
+- "Settings" - 24px, bold, #FAFAFA (dark) / #18181B (light)
+
+Search settings:
+- Margin-top: 16px
+- Search icon, 18px, left inside input
+- Placeholder: "Search settings..."
+- bg #111113 (dark) / #FFFFFF (light)
+- border: 1px solid #1F1F23 (dark) / #E4E4E7 (light)
+- border-radius: 10px
+- padding: 10px 12px 10px 40px
+- font: 14px
+
+--- Settings Nav Groups ---
+Margin-top: 8px
+
+Each nav group:
+- Margin-bottom: 24px
+
+Group label:
+- Padding: 0 24px
+- Font: 10px, bold, #52525B, uppercase, letter-spacing: 1px
+- Margin-bottom: 8px
+
+Nav items:
+Each item:
+- Display: flex
+- Align-items: center
+- Gap: 12px
+- Padding: 10px 24px
+- Font: 14px, #A1A1AA
+- Cursor: pointer
+- Transition: all 150ms
+- Border-left: 2px solid transparent
+
+Item states:
+- Hover: bg #111113 (dark) / #F4F4F5 (light), text #FAFAFA
+- Active: bg #111113, text #FAFAFA, border-left-color #7C3AED
+
+Item content:
+- Icon: 18px
+- Label text
+
+--- Group 1: Account ---
+Label: "ACCOUNT"
+
+Items:
+1. User icon - "Profile"
+2. Shield icon - "Security"
+3. Bell icon - "Notifications"
+4. Lock icon - "Privacy"
+
+--- Group 2: Preferences ---
+Label: "PREFERENCES"
+
+Items:
+5. Palette icon - "Appearance" - ACTIVE by default
+6. Sliders icon - "Generation Defaults"
+7. Keyboard icon - "Keyboard Shortcuts"
+8. Globe icon - "Language & Region"
+
+--- Group 3: Integrations ---
+Label: "INTEGRATIONS"
+
+Items:
+9. Plug icon - "Connected Apps"
+10. Key icon - "API Keys"
+11. Webhook icon - "Webhooks"
+
+--- Group 4: Data ---
+Label: "DATA & STORAGE"
+
+Items:
+12. HardDrive icon - "Storage"
+13. Download icon - "Export Data"
+14. Trash2 icon - "Delete Account" - text #DC2626
+
+=== RIGHT PANEL: SETTINGS CONTENT ===
+Flex: 1
+Padding: 32px 48px
+Overflow-y: auto
+Background: #09090B (dark) / #FFFFFF (light)
+
+Content container:
+- Max-width: 720px
+
+=== SETTINGS PAGE: PROFILE ===
+
+--- Page Header ---
+Margin-bottom: 32px
+
+Title:
+- "Profile" - 22px, semibold, #FAFAFA
+
+Description:
+- "Manage your personal information and public profile" - 14px, #71717A
+- Margin-top: 4px
+
+--- Section 1: Profile Photo ---
+Background: #111113 (dark) / #FFFFFF (light)
+Border: 1px solid #1F1F23 (dark) / #E4E4E7 (light)
+Border-radius: 16px
+Padding: 24px
+Margin-bottom: 24px
+
+Section header:
+- "Profile Photo" - 15px, semibold, #FAFAFA
+- Margin-bottom: 16px
+
+Photo row:
+- Display: flex
+- Align-items: center
+- Gap: 20px
+
+Avatar:
+- Width: 80px
+- Height: 80px
+- Border-radius: 9999px
+- Background: #1F1F25
+- Display: flex
+- Align-items: center
+- Justify-content: center
+- Overflow: hidden
+
+Avatar content:
+- If image: img tag, object-fit cover
+- If no image: User icon, 32px, #52525B
+
+Avatar actions:
+- Display: flex
+- Flex-direction: column
+- Gap: 8px
+
+"Upload photo" button:
+- Upload icon, 16px
+- "Upload photo" text
+- bg #1F1F25
+- border: 1px solid #2A2A30
+- padding: 10px 16px
+- border-radius: 10px
+- font: 13px, semibold
+
+"Remove" link:
+- "Remove photo" - 13px, #71717A
+- Hover: text #DC2626
+
+Photo requirements:
+- "JPG, PNG or GIF. Max 2MB." - 12px, #52525B
+- Margin-top: 4px
+
+--- Section 2: Basic Information ---
+Background: #111113 (dark) / #FFFFFF (light)
+Border: 1px solid #1F1F23 (dark) / #E4E4E7 (light)
+Border-radius: 16px
+Padding: 24px
+Margin-bottom: 24px
+
+Section header:
+- "Basic Information" - 15px, semibold, #FAFAFA
+- Margin-bottom: 20px
+
+Form fields:
+Display: flex
+Flex-direction: column
+Gap: 20px
+
+Each field:
+Label:
+- Font: 13px, medium, #A1A1AA
+- Margin-bottom: 8px
+
+Input:
+- Width: 100%
+- bg #1A1A1F (dark) / #F4F4F5 (light)
+- border: 1px solid #2A2A30 (dark) / #E4E4E7 (light)
+- border-radius: 10px
+- padding: 12px 16px
+- font: 14px, #FAFAFA (dark) / #18181B (light)
+- Transition: border-color 150ms
+
+Input focus:
+- border-color: #7C3AED
+- outline: none
+- box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15)
+
+Fields:
+
+Row 1 (2 columns, gap 16px):
+- "First Name" - value: "John"
+- "Last Name" - value: "Doe"
+
+Row 2:
+- "Display Name" - value: "johndoe"
+- Helper text: "This is how your name appears publicly" - 12px, #52525B
+
+Row 3:
+- "Email" - value: "john@example.com"
+- Verified badge: Check icon, "Verified", bg #16A34A/20, text #16A34A, 11px
+
+Row 4:
+- "Bio" - textarea
+- Placeholder: "Tell us about yourself..."
+- Min-height: 100px
+- Character count: "0 / 200" - 12px, #52525B, right-aligned
+
+--- Section 3: Social Links ---
+Background: #111113
+Border: 1px solid #1F1F23
+Border-radius: 16px
+Padding: 24px
+Margin-bottom: 24px
+
+Section header:
+- "Social Links" - 15px, semibold
+- "Optional" badge - 11px, #52525B, bg #1F1F25, rounded-full, padding 4px 8px
+- Margin-bottom: 20px
+
+Social fields:
+Each field:
+- Icon on left inside input
+- Placeholder with example URL
+
+Fields:
+1. Globe icon - "Website" - placeholder: "https://yourwebsite.com"
+2. Twitter icon - "Twitter" - placeholder: "https://twitter.com/username"
+3. Linkedin icon - "LinkedIn" - placeholder: "https://linkedin.com/in/username"
+4. Instagram icon - "Instagram" - placeholder: "https://instagram.com/username"
+
+"Add another link" button:
+- Plus icon, 16px
+- "Add link" text
+- Ghost button style
+- Margin-top: 12px
+
+--- Save Button ---
+Display: flex
+Justify-content: flex-end
+Gap: 12px
+Margin-top: 24px
+
+"Cancel" button:
+- Ghost style
+- "Cancel" text
+- padding: 12px 20px
+
+"Save changes" button:
+- bg #7C3AED
+- text white
+- padding: 12px 24px
+- border-radius: 10px
+- font: 14px, semibold
+- Hover: brightness 1.1
+
+=== SETTINGS PAGE: SECURITY ===
+
+--- Page Header ---
+Title: "Security"
+Description: "Manage your account security and authentication methods"
+
+--- Section 1: Password ---
+Card style same as profile sections
+
+Section header:
+- "Password" - 15px, semibold
+- Last changed: "Last changed 3 months ago" - 12px, #52525B
+
+Password row:
+- Display: flex
+- Justify-content: space-between
+- Align-items: center
+- Margin-top: 16px
+
+Left:
+- "••••••••••••" - 16px, #71717A, letter-spacing 2px
+
+Right:
+- "Change password" button - secondary style
+
+--- Section 2: Two-Factor Authentication ---
+Section header:
+- Shield icon, 20px, #16A34A
+- "Two-Factor Authentication" - 15px, semibold
+- Gap: 10px
+
+Status row:
+- Display: flex
+- Justify-content: space-between
+- Align-items: center
+- Margin-top: 16px
+
+Left:
+- "Add an extra layer of security to your account" - 14px, #A1A1AA
+
+Right:
+- Toggle switch
+- Width: 48px, Height: 26px
+- Off: bg #2A2A30
+- On: bg #16A34A
+
+When enabled, show:
+- "Authenticator app configured" - 13px, #16A34A
+- "Recovery codes: 8 remaining" - 12px, #71717A
+- "View recovery codes" link
+- "Reconfigure" link
+
+--- Section 3: Sessions ---
+Section header:
+- "Active Sessions" - 15px, semibold
+- "Sign out all" link on right - 13px, #DC2626
+
+Sessions list:
+Each session:
+- Padding: 16px 0
+- Border-bottom: 1px solid #1F1F23
+- Display: flex
+- Justify-content: space-between
+- Align-items: center
+
+Session info:
+- Device icon (Monitor/Smartphone), 20px
+- Device name: "MacBook Pro - Chrome" - 14px, #FAFAFA
+- Location & time: "San Francisco, CA · Active now" - 12px, #52525B
+- Or: "Last active 2 days ago"
+
+Current session badge:
+- "Current" - 10px, bg #7C3AED/20, text #7C3AED, rounded-full
+
+Session action:
+- "Sign out" link - 13px, #71717A
+- Hover: text #DC2626
+
+Sessions:
+1. Monitor icon - "MacBook Pro - Chrome" - "Current"
+2. Smartphone icon - "iPhone 15 - Safari" - "Last active 2h ago"
+3. Monitor icon - "Windows PC - Firefox" - "Last active 5 days ago"
+
+--- Section 4: Login History ---
+Section header:
+- "Recent Login Activity" - 15px, semibold
+
+Activity list:
+- Simple table style
+- Columns: Date, Location, Device, Status
+
+Rows:
+1. "Dec 15, 2:30 PM" - "San Francisco, CA" - "Chrome on Mac" - "Success" (green)
+2. "Dec 14, 9:15 AM" - "San Francisco, CA" - "Safari on iPhone" - "Success"
+3. "Dec 13, 11:00 PM" - "Unknown" - "Firefox on Windows" - "Blocked" (red)
+
+=== SETTINGS PAGE: NOTIFICATIONS ===
+
+--- Page Header ---
+Title: "Notifications"
+Description: "Choose what notifications you receive and how"
+
+--- Section 1: Email Notifications ---
+Section header:
+- Mail icon, 20px
+- "Email Notifications" - 15px, semibold
+
+Notification toggles:
+Each toggle row:
+- Display: flex
+- Justify-content: space-between
+- Align-items: center
+- Padding: 16px 0
+- Border-bottom: 1px solid #1F1F23
+
+Left:
+- Title: 14px, #FAFAFA
+- Description: 13px, #71717A
+
+Right:
+- Toggle switch
+
+Toggle rows:
+1. "Generation Complete" - "Get notified when your image generation is finished" - ON
+2. "Weekly Summary" - "Receive a weekly summary of your usage and credits" - ON
+3. "Product Updates" - "Learn about new features and improvements" - OFF
+4. "Tips & Tutorials" - "Get helpful tips to improve your creations" - OFF
+5. "Marketing" - "Receive promotional offers and announcements" - OFF
+
+--- Section 2: Push Notifications ---
+Section header:
+- Bell icon, 20px
+- "Push Notifications" - 15px, semibold
+
+Enable push row:
+- "Enable push notifications" - 14px
+- Toggle switch
+- Description: "Receive notifications in your browser"
+
+When enabled:
+- Same toggle list as email but for push
+
+--- Section 3: Notification Schedule ---
+Section header:
+- Clock icon, 20px
+- "Quiet Hours" - 15px, semibold
+
+Schedule row:
+- "Pause notifications during quiet hours" toggle
+- Time range selector: "10:00 PM" to "8:00 AM"
+- Timezone: "Pacific Time (PT)"
+
+=== SETTINGS PAGE: PRIVACY ===
+
+--- Page Header ---
+Title: "Privacy"
+Description: "Control your privacy settings and data"
+
+--- Section 1: Profile Visibility ---
+Section header:
+- Eye icon, 20px
+- "Profile Visibility" - 15px, semibold
+
+Radio options:
+Each option:
+- Radio button
+- Label: 14px, #FAFAFA
+- Description: 13px, #71717A
+- Padding: 12px 0
+
+Options:
+1. "Public" - "Anyone can view your profile and public creations"
+2. "Private" - "Only you can see your profile" - SELECTED
+3. "Hidden" - "Your profile is completely hidden from search"
+
+--- Section 2: Data Collection ---
+Section header:
+- Database icon, 20px
+- "Data Collection" - 15px, semibold
+
+Toggle rows:
+1. "Usage Analytics" - "Help improve the product with anonymous usage data" - ON
+2. "Personalization" - "Allow personalized recommendations based on your activity" - ON
+3. "Third-party Analytics" - "Share data with analytics partners" - OFF
+
+--- Section 3: Content Visibility ---
+Section header:
+- Image icon, 20px
+- "Content Visibility" - 15px, semibold
+
+Toggle rows:
+1. "Show creations in public gallery" - OFF
+2. "Allow others to remix my public creations" - OFF
+3. "Display usage stats on profile" - ON
+
+=== SETTINGS PAGE: APPEARANCE ===
+
+--- Page Header ---
+Title: "Appearance"
+Description: "Customize how AI Creative Studio looks"
+
+--- Section 1: Theme ---
+Section header:
+- Palette icon, 20px
+- "Theme" - 15px, semibold
+
+Theme selector:
+- Display: flex
+- Gap: 16px
+- Margin-top: 16px
+
+Theme option cards:
+Each card:
+- Width: 140px
+- Border: 2px solid #2A2A30
+- Border-radius: 12px
+- Padding: 4px
+- Cursor: pointer
+- Transition: all 200ms
+
+Selected state:
+- Border-color: #7C3AED
+- Box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15)
+
+Card content:
+Preview area:
+- Height: 80px
+- Border-radius: 8px
+- Background: Theme preview colors
+
+Label:
+- Text-align: center
+- Padding: 12px
+- Font: 13px, semibold
+
+Cards:
+1. "Light" - Preview: Light gray/white UI mockup
+2. "Dark" - Preview: Dark UI mockup - SELECTED
+3. "System" - Preview: Half light/half dark with sun/moon icon
+
+--- Section 2: Accent Color ---
+Section header:
+- Paintbrush icon, 20px
+- "Accent Color" - 15px, semibold
+
+Color picker:
+- Display: flex
+- Gap: 12px
+- Margin-top: 16px
+
+Color options:
+Each color:
+- Width: 36px
+- Height: 36px
+- Border-radius: 9999px
+- Cursor: pointer
+- Transition: transform 150ms
+- Hover: scale 1.1
+
+Selected state:
+- Ring: 2px solid white
+- Box-shadow: 0 0 0 3px (color with opacity)
+
+Colors:
+1. #7C3AED - Purple (default)
+2. #3B82F6 - Blue
+3. #10B981 - Green
+4. #F59E0B - Amber
+5. #EC4899 - Pink
+6. #EF4444 - Red
+7. #FAFAFA - White/Gray
+
+Custom color:
+- Plus icon in circle
+- Opens color picker
+
+--- Section 3: Font Size ---
+Section header:
+- Type icon, 20px
+- "Font Size" - 15px, semibold
+
+Size slider:
+- Margin-top: 16px
+- Range: "Small" to "Large"
+- Default: "Medium" (center)
+
+Slider track:
+- Height: 6px
+- bg #1F1F25
+- border-radius: 9999px
+
+Slider thumb:
+- Width: 20px
+- Height: 20px
+- bg #FAFAFA
+- border-radius: 9999px
+- box-shadow
+
+Size labels:
+- Display: flex
+- Justify-content: space-between
+- Margin-top: 8px
+- Font: 12px, #52525B
+
+Labels: "Small", "Medium", "Large"
+
+Preview text:
+- Margin-top: 16px
+- bg #1A1A1F
+- padding: 16px
+- border-radius: 10px
+- "This is a preview of your selected font size" - size varies
+
+--- Section 4: Density ---
+Section header:
+- LayoutGrid icon, 20px
+- "Interface Density" - 15px, semibold
+
+Density options:
+- Display: flex
+- Gap: 12px
+- Margin-top: 16px
+
+Options:
+Each option:
+- Padding: 12px 20px
+- Border: 1px solid #2A2A30
+- Border-radius: 10px
+- Font: 13px
+- Cursor: pointer
+
+Selected:
+- bg #7C3AED/20
+- border-color: #7C3AED
+- text: #C4B5FD
+
+Options:
+1. "Compact" - Tighter spacing
+2. "Comfortable" - Default spacing - SELECTED
+3. "Spacious" - More breathing room
+
+--- Section 5: Sidebar ---
+Section header:
+- PanelLeft icon, 20px
+- "Sidebar" - 15px, semibold
+
+Toggle rows:
+1. "Collapse sidebar by default" - OFF
+2. "Show icon labels" - ON
+3. "Show notification badges" - ON
+
+=== SETTINGS PAGE: GENERATION DEFAULTS ===
+
+--- Page Header ---
+Title: "Generation Defaults"
+Description: "Set default values for new generations"
+
+--- Section 1: Image Generation Defaults ---
+Section header:
+- Wand2 icon, 20px
+- "Image Generation" - 15px, semibold
+
+Default settings form:
+
+Style dropdown:
+- Label: "Default Style"
+- Options: Auto, Photorealistic, Cinematic, Anime, etc.
+- Default: "Auto"
+
+Quality dropdown:
+- Label: "Default Quality"
+- Options: Draft, Standard, Premium, Ultra
+- Default: "Standard"
+
+Aspect ratio:
+- Label: "Default Aspect Ratio"
+- Visual selector (same as generation page)
+- Default: "1:1"
+
+Variations:
+- Label: "Default Variations"
+- Segmented: 1, 2, 4
+- Default: 4
+
+Refiner toggle:
+- Label: "Enable Master Refiner by default"
+- Toggle switch
+- Default: ON
+
+AI Curation toggle:
+- Label: "Enable AI Curation by default"
+- Toggle switch
+- Default: ON
+
+--- Section 2: Mockup Generation Defaults ---
+Section header:
+- ShoppingBag icon, 20px
+- "Mockup Generation" - 15px, semibold
+
+Default settings:
+- Default category: Dropdown
+- Default quality mode: Fast / Pro
+- Default model ethnicity: Dropdown
+- Default model age: Dropdown
+
+--- Section 3: Auto-Save ---
+Section header:
+- Save icon, 20px
+- "Auto-Save" - 15px, semibold
+
+Toggle rows:
+1. "Auto-save generations to Projects" - ON
+2. "Auto-download completed generations" - OFF
+3. "Save generation settings for next session" - ON
+
+=== SETTINGS PAGE: KEYBOARD SHORTCUTS ===
+
+--- Page Header ---
+Title: "Keyboard Shortcuts"
+Description: "View and customize keyboard shortcuts"
+
+--- Section 1: Enable/Disable ---
+Master toggle:
+- "Enable keyboard shortcuts" - Toggle ON
+
+--- Section 2: Shortcuts List ---
+Grouped by category
+
+Each shortcut row:
+- Display: flex
+- Justify-content: space-between
+- Align-items: center
+- Padding: 12px 0
+- Border-bottom: 1px solid #1F1F23
+
+Left:
+- Action name: 14px, #FAFAFA
+
+Right:
+- Key combination badges
+- Each key: bg #1F1F25, border 1px #2A2A30, rounded-6px, padding 4px 8px, font: 12px mono
+
+"Edit" button on hover:
+- Pencil icon
+- Opens edit modal
+
+--- Group: General ---
+1. "Open search" - Cmd + K
+2. "New generation" - Cmd + N
+3. "Open settings" - Cmd + ,
+4. "Go to home" - G then H
+
+--- Group: Generation ---
+1. "Generate image" - Cmd + Enter
+2. "Open style selector" - S
+3. "Toggle settings panel" - Tab
+4. "Cancel generation" - Esc
+
+--- Group: Gallery ---
+1. "Next image" - Arrow Right
+2. "Previous image" - Arrow Left
+3. "Download image" - Cmd + S
+4. "Toggle favorite" - F
+5. "Delete image" - Delete
+
+--- Group: Navigation ---
+1. "Go to Projects" - G then P
+2. "Go to Favorites" - G then F
+3. "Go to Settings" - G then S
+
+Reset button:
+- "Reset to defaults" link
+- Margin-top: 24px
+
+=== SETTINGS PAGE: CONNECTED APPS ===
+
+--- Page Header ---
+Title: "Connected Apps"
+Description: "Manage third-party apps connected to your account"
+
+--- Section 1: Connected Apps List ---
+Each app card:
+- Background: #111113
+- Border: 1px solid #1F1F23
+- Border-radius: 14px
+- Padding: 20px
+- Margin-bottom: 16px
+- Display: flex
+- Align-items: center
+- Gap: 16px
+
+App icon:
+- Width: 48px
+- Height: 48px
+- Border-radius: 12px
+- Background: App brand color
+
+App info:
+- Flex: 1
+
+App name:
+- 15px, semibold, #FAFAFA
+
+App permissions:
+- 13px, #71717A
+- "Can access: Projects, Generations"
+
+Connected date:
+- 12px, #52525B
+- "Connected Dec 10, 2024"
+
+App actions:
+- "Manage" button - secondary
+- "Disconnect" link - text #DC2626
+
+Connected apps:
+1. Google Drive icon - "Google Drive" - "Can access: Export, Backup"
+2. Dropbox icon - "Dropbox" - "Can access: Export"
+3. Slack icon - "Slack" - "Can access: Notifications"
+4. Zapier icon - "Zapier" - "Can access: Webhooks, Generations"
+
+--- Section 2: Available Apps ---
+Section header:
+- "Available Integrations" - 15px, semibold
+- Margin-top: 32px
+
+Apps grid (2 columns):
+Each app:
+- Background: #111113
+- Border: 1px solid #1F1F23
+- Border-radius: 14px
+- Padding: 20px
+- Display: flex
+- Flex-direction: column
+- Align-items: center
+- Text-align: center
+- Cursor: pointer
+- Hover: border-color #2A2A30
+
+App icon: 40px
+App name: 14px, semibold, margin-top 12px
+"Connect" button: 13px, margin-top 12px
+
+Available apps:
+- Notion, Figma, Canva, Adobe Creative Cloud, Shopify, Etsy
+
+=== SETTINGS PAGE: API KEYS ===
+
+--- Page Header ---
+Title: "API Keys"
+Description: "Manage API keys for programmatic access"
+
+--- Section 1: API Keys List ---
+Each key card:
+- Background: #111113
+- Border: 1px solid #1F1F23
+- Border-radius: 14px
+- Padding: 20px
+- Margin-bottom: 16px
+
+Key header row:
+- Key name: "Production Key" - 15px, semibold
+- Status badge: "Active" - bg #16A34A/20, text #16A34A, 11px
+
+Key value row:
+- Masked: "sk-xxxx...xxxx" - 14px, mono, #71717A
+- Copy button: Copy icon
+- Show/Hide toggle: Eye/EyeOff icon
+
+Key info:
+- Created: "Dec 1, 2024"
+- Last used: "2 hours ago"
+- Permissions: "Full access"
+
+Key actions:
+- "Regenerate" link - #F59E0B
+- "Delete" link - #DC2626
+
+--- Section 2: Create New Key ---
+"Create new API key" button:
+- Plus icon
+- Primary style
+- Opens modal
+
+--- Create Key Modal ---
+Fields:
+- Key name: "e.g., Production, Development"
+- Permissions: Checkboxes for Read, Write, Delete
+- Expiration: Never, 30 days, 90 days, 1 year
+
+=== SETTINGS PAGE: STORAGE ===
+
+--- Page Header ---
+Title: "Storage"
+Description: "Manage your storage usage and clean up files"
+
+--- Section 1: Storage Usage ---
+Usage display:
+- "2.4 GB" - 48px, bold, #FAFAFA
+- "of 10 GB used" - 18px, #52525B
+
+Progress bar:
+- Height: 8px
+- Width: 100%
+- bg #1F1F25
+- Fill: 24%, #7C3AED
+
+Usage breakdown:
+- Display: flex
+- Gap: 24px
+- Margin-top: 24px
+
+Each category:
+- Color dot, 8px
+- Category name, 14px
+- Size, 14px, #71717A
+
+Categories:
+1. Purple dot - "Images" - "1.8 GB"
+2. Indigo dot - "Mockups" - "420 MB"
+3. Pink dot - "BG Removed" - "180 MB"
+4. Gray dot - "Other" - "20 MB"
+
+--- Section 2: Cleanup ---
+Section header:
+- Trash2 icon, 20px
+- "Free Up Space" - 15px, semibold
+
+Cleanup options:
+Each option:
+- Checkbox
+- Label and size
+- Preview count
+
+Options:
+1. "Delete items in trash" - "124 items · 340 MB"
+2. "Remove duplicate files" - "23 items · 89 MB"
+3. "Clear generation cache" - "1.2 GB"
+
+"Clean up" button:
+- "Free up X MB" - primary button
+
+=== SETTINGS PAGE: DELETE ACCOUNT ===
+
+--- Page Header ---
+Title: "Delete Account"
+Description: "Permanently delete your account and all data"
+
+--- Warning Section ---
+Background: #DC2626/10
+Border: 1px solid #DC2626/30
+Border-radius: 14px
+Padding: 24px
+
+Warning content:
+- AlertTriangle icon, 24px, #DC2626
+- "This action cannot be undone" - 16px, semibold, #FAFAFA
+- Warning list:
+
+List items:
+- X icon, #DC2626
+- Text, 14px, #E4E4E7
+
+Items:
+- "All your projects and creations will be permanently deleted"
+- "Your subscription will be cancelled immediately"
+- "You will lose access to all purchased credits"
+- "Your username will become available to others"
+
+--- Confirmation Section ---
+"To confirm, type your email address below:"
+
+Input field:
+- Placeholder: "john@example.com"
+
+"Delete my account" button:
+- bg #DC2626
+- text white
+- Disabled until email matches
+- Full width
+
+=== GLOBAL ELEMENTS ===
+
+--- Success Toast ---
+- CheckCircle icon, #16A34A
+- "Settings saved successfully"
+
+--- Error Toast ---
+- AlertCircle icon, #DC2626
+- "Failed to save settings. Please try again."
+
+--- Unsaved Changes Bar ---
+Position: sticky bottom
+Background: #111113
+Border-top: 1px solid #1F1F23
+Padding: 16px 24px
+Display: flex
+Justify-content: space-between
+Align-items: center
+
+Left:
+- "You have unsaved changes" - 14px, #F59E0B
+
+Right:
+- "Discard" button - ghost
+- "Save changes" button - primary
+
+=== RESPONSIVE BEHAVIOR ===
+
+Desktop (1200px+):
+- Full two-panel layout
+- Settings nav: 260px
+- Content: flex
+
+Laptop (900-1199px):
+- Settings nav: 220px
+- Content: Narrower
+
+Tablet (600-899px):
+- Settings nav: Hidden (hamburger menu)
+- Full-width content
+- Settings nav as slide-over
+
+Mobile (<600px):
+- Settings nav: Full-screen list
+- Back button to return
+- Content: Full width, stacked
+
+=== COLOR TOKENS ===
+
+Background Base: #09090B
+Background Card: #111113
+Surface: #1A1A1F
+Border: #1F1F23
+Border Hover: #2A2A30
+
+Text Primary: #FAFAFA
+Text Secondary: #A1A1AA
+Text Muted: #71717A
+
+Primary: #7C3AED
+Success: #16A34A
+Warning: #F59E0B
+Error: #DC2626
+
+=== TYPOGRAPHY ===
+
+Page title: 22px, semibold
+Section headers: 15px, semibold
+Labels: 13px, medium
+Body: 14px, regular
+Helper text: 12-13px, regular, #52525B
+Nav labels: 10px, bold, uppercase
+
+=== ICONS USED (Lucide) ===
+
+Navigation: User, Shield, Bell, Lock, Palette, Sliders, Keyboard, Globe, Plug, Key, Webhook, HardDrive, Download, Trash2, Settings
+Sections: Mail, Clock, Eye, Database, Image, Type, LayoutGrid, PanelLeft, Wand2, ShoppingBag, Save, Paintbrush
+Actions: Upload, Plus, Pencil, Copy, Check, X, AlertTriangle, AlertCircle, CheckCircle, ChevronDown
+Devices: Monitor, Smartphone
+Social: Globe, Twitter, Linkedin, Instagram
