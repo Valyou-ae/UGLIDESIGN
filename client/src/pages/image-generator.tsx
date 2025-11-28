@@ -47,9 +47,7 @@ import {
   Bot,
   Crosshair,
   Sun,
-  Moon,
-  ArrowUp,
-  Send
+  Moon
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -295,15 +293,15 @@ export default function ImageGenerator() {
       <main className="flex-1 flex flex-col relative h-full overflow-hidden bg-background text-foreground">
         
         {/* TOP SECTION: PROMPT BAR (Minimalistic) */}
-        <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border px-6 py-6 transition-all">
-          <div className="max-w-[1800px] mx-auto w-full space-y-4">
+        <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border px-6 py-4 transition-all">
+          <div className="max-w-5xl mx-auto w-full space-y-4">
             
             {/* Prompt Input & Controls */}
             <div className="flex items-end gap-3">
               
               {/* Main Input Wrapper */}
               <div className={cn(
-                "flex-1 bg-muted/40 border border-border rounded-xl transition-all duration-200 flex items-end p-3 gap-3 group focus-within:bg-background focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50 shadow-sm",
+                "flex-1 bg-muted/40 border border-border rounded-xl transition-all duration-200 flex items-end p-2 gap-2 group focus-within:bg-background focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50 shadow-sm",
                 prompt.trim().length > 0 && "bg-background border-muted-foreground/40"
               )}>
                 
@@ -311,8 +309,8 @@ export default function ImageGenerator() {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-10 w-10 text-muted-foreground hover:text-foreground rounded-lg shrink-0 mb-0.5">
-                        <ImagePlus className="h-5 w-5" />
+                      <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-foreground rounded-lg shrink-0 mb-0.5">
+                        <ImagePlus className="h-4 w-4" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent><p>Add reference image</p></TooltipContent>
@@ -320,55 +318,26 @@ export default function ImageGenerator() {
                 </TooltipProvider>
 
                 {/* Textarea */}
-                <div className="flex-1 relative py-2.5">
+                <div className="flex-1 relative py-2">
                   <textarea
                     ref={textareaRef}
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Describe what you want to create..."
-                    className="w-full bg-transparent border-0 focus:ring-0 p-0 text-lg text-foreground placeholder:text-muted-foreground resize-none min-h-[28px] max-h-[120px] leading-relaxed"
+                    className="w-full bg-transparent border-0 focus:ring-0 p-0 text-sm sm:text-base text-foreground placeholder:text-muted-foreground resize-none min-h-[24px] max-h-[120px] leading-relaxed"
                     rows={1}
                   />
                 </div>
 
                 {/* Right Side Actions inside Input */}
-                <div className="flex items-center gap-2 mb-0.5 shrink-0">
-                  
-                  {/* Generate Button (Icon only, visible when typing) */}
-                  <AnimatePresence>
-                    {prompt.trim().length > 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.8, width: 0 }}
-                        animate={{ opacity: 1, scale: 1, width: "auto" }}
-                        exit={{ opacity: 0, scale: 0.8, width: 0 }}
-                        className="overflow-hidden mr-1"
-                      >
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button 
-                                onClick={handleGenerate}
-                                disabled={status === "generating"}
-                                size="icon"
-                                className={cn(
-                                  "h-9 w-9 rounded-lg shadow-sm transition-all",
-                                  status === "generating" ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground hover:bg-primary/90"
-                                )}
-                              >
-                                {status === "generating" ? (
-                                  <RefreshCw className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  <ArrowUp className="h-5 w-5" />
-                                )}
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Imagine</p></TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                <div className="flex items-center gap-1 mb-0.5 shrink-0">
+                  <div className={cn(
+                    "text-[10px] font-medium mr-2 transition-colors select-none",
+                    prompt.length > 1800 ? "text-amber-500" : "text-muted-foreground/50"
+                  )}>
+                    {prompt.length}/2000
+                  </div>
 
                   <TooltipProvider>
                     <Tooltip>
@@ -377,9 +346,9 @@ export default function ImageGenerator() {
                           variant={showSettings ? "secondary" : "ghost"} 
                           size="icon" 
                           onClick={() => setShowSettings(!showSettings)}
-                          className={cn("h-9 w-9 rounded-lg transition-all", showSettings && "bg-muted text-foreground")}
+                          className={cn("h-8 w-8 rounded-lg transition-all", showSettings && "bg-muted text-foreground")}
                         >
-                          <SlidersHorizontal className="h-5 w-5" />
+                          <SlidersHorizontal className="h-4 w-4" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent><p>Settings</p></TooltipContent>
@@ -388,6 +357,25 @@ export default function ImageGenerator() {
                 </div>
               </div>
 
+              {/* Generate Button - Standard Style */}
+              <Button 
+                onClick={handleGenerate}
+                disabled={status === "generating" || !prompt.trim()}
+                size="lg"
+                className="h-[54px] px-8 rounded-xl font-semibold shadow-md shrink-0"
+              >
+                {status === "generating" ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Imagine
+                  </>
+                )}
+              </Button>
             </div>
 
             {/* Settings Panel (Inline Expandable) */}
@@ -399,32 +387,32 @@ export default function ImageGenerator() {
                   exit={{ height: 0, opacity: 0, y: -10 }}
                   className="overflow-hidden"
                 >
-                  <div className="bg-muted/30 border border-border rounded-xl p-6 grid grid-cols-2 md:grid-cols-5 gap-6 shadow-inner">
+                  <div className="bg-muted/30 border border-border rounded-xl p-4 grid grid-cols-2 md:grid-cols-4 gap-4 shadow-inner">
                     
                     {/* Style */}
-                    <div className="space-y-3">
-                      <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Style</label>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Style</label>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="outline" className="w-full justify-between h-10 text-sm bg-background/50 border-border/60">
+                          <Button variant="outline" className="w-full justify-between h-9 text-xs bg-background/50">
                             <span className="flex items-center gap-2 truncate">
                               {STYLE_PRESETS.find(s => s.id === settings.style)?.icon && (
-                                 <Sparkles className="h-4 w-4 text-primary" />
+                                 <Sparkles className="h-3 w-3 text-primary" />
                               )}
                               {STYLE_PRESETS.find(s => s.id === settings.style)?.name}
                             </span>
-                            <ChevronDown className="h-4 w-4 opacity-50" />
+                            <ChevronDown className="h-3 w-3 opacity-50" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="w-[200px]">
+                        <DropdownMenuContent align="start" className="w-[180px]">
                           {STYLE_PRESETS.map(style => (
                             <DropdownMenuItem 
                               key={style.id}
                               onClick={() => setSettings({...settings, style: style.id})}
-                              className="text-sm cursor-pointer py-2"
+                              className="text-xs cursor-pointer"
                             >
                               <div className="flex items-center gap-2">
-                                <style.icon className="h-4 w-4" />
+                                <style.icon className="h-3.5 w-3.5" />
                                 {style.name}
                               </div>
                             </DropdownMenuItem>
@@ -434,17 +422,17 @@ export default function ImageGenerator() {
                     </div>
 
                     {/* Quality */}
-                    <div className="space-y-3">
-                      <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Quality</label>
-                      <div className="flex bg-background/50 rounded-lg p-1 border border-border/60 h-10">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Quality</label>
+                      <div className="flex bg-background/50 rounded-lg p-1 border border-border/50 h-9">
                         {QUALITY_PRESETS.map(q => (
                           <button
                             key={q.id}
                             onClick={() => setSettings({...settings, quality: q.id})}
                             className={cn(
-                              "flex-1 rounded-md flex items-center justify-center text-[11px] font-medium transition-all",
+                              "flex-1 rounded flex items-center justify-center text-[10px] font-medium transition-all",
                               settings.quality === q.id 
-                                ? "bg-background shadow-sm text-foreground border border-border/50" 
+                                ? "bg-background shadow-sm text-foreground" 
                                 : "text-muted-foreground hover:text-foreground"
                             )}
                           >
@@ -455,62 +443,35 @@ export default function ImageGenerator() {
                     </div>
 
                     {/* Aspect Ratio */}
-                    <div className="space-y-3">
-                      <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Ratio</label>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Ratio</label>
                       <div className="flex gap-1.5">
                         {ASPECT_RATIOS.map(r => (
-                          <TooltipProvider key={r.id}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button
-                                  onClick={() => setSettings({...settings, aspectRatio: r.id})}
-                                  className={cn(
-                                    "h-10 w-10 rounded-lg flex items-center justify-center border transition-all",
-                                    settings.aspectRatio === r.id 
-                                      ? "bg-primary/10 border-primary text-primary" 
-                                      : "bg-background/50 border-border/60 text-muted-foreground hover:border-border hover:text-foreground"
-                                  )}
-                                >
-                                  <r.icon className="h-5 w-5" />
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent><p>{r.tooltip}</p></TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Variations */}
-                    <div className="space-y-3">
-                      <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Variations</label>
-                      <div className="flex bg-background/50 rounded-lg p-1 border border-border/60 h-10">
-                        {["1", "2", "4"].map(v => (
                           <button
-                            key={v}
-                            onClick={() => setSettings({...settings, variations: v})}
+                            key={r.id}
+                            onClick={() => setSettings({...settings, aspectRatio: r.id})}
                             className={cn(
-                              "flex-1 rounded-md flex items-center justify-center text-sm font-medium transition-all",
-                              settings.variations === v 
-                                ? "bg-background shadow-sm text-foreground border border-border/50" 
-                                : "text-muted-foreground hover:text-foreground"
+                              "h-9 w-9 rounded-md flex items-center justify-center border transition-all",
+                              settings.aspectRatio === r.id 
+                                ? "bg-primary/10 border-primary text-primary" 
+                                : "bg-background/50 border-border/50 text-muted-foreground hover:border-border hover:text-foreground"
                             )}
                           >
-                            {v}
+                            <r.icon className="h-4 w-4" />
                           </button>
                         ))}
                       </div>
                     </div>
 
                     {/* AI Features */}
-                    <div className="space-y-3">
-                      <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Options</label>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Options</label>
                       <div className="flex gap-2">
                          <Button 
                            variant="outline" 
                            size="sm" 
                            onClick={() => setSettings({...settings, refiner: !settings.refiner})}
-                           className={cn("h-10 flex-1 text-xs border-border/60 bg-background/50", settings.refiner && "border-primary text-primary bg-primary/5")}
+                           className={cn("h-9 flex-1 text-[10px]", settings.refiner && "border-primary text-primary bg-primary/5")}
                          >
                            Refiner
                          </Button>
@@ -518,7 +479,7 @@ export default function ImageGenerator() {
                            variant="outline" 
                            size="sm" 
                            onClick={() => setSettings({...settings, aiCuration: !settings.aiCuration})}
-                           className={cn("h-10 flex-1 text-xs border-border/60 bg-background/50", settings.aiCuration && "border-primary text-primary bg-primary/5")}
+                           className={cn("h-9 flex-1 text-[10px]", settings.aiCuration && "border-primary text-primary bg-primary/5")}
                          >
                            AI Fix
                          </Button>
@@ -587,3 +548,163 @@ export default function ImageGenerator() {
 
           </div>
         </div>
+
+        {/* SCROLLABLE GALLERY */}
+        <div className="flex-1 overflow-y-auto p-10">
+          {generations.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center text-center animate-fade-in max-w-xl mx-auto mt-[-100px]">
+              <div className="w-40 h-40 bg-gradient-to-tr from-purple-500 to-pink-500 rounded-full blur-[80px] opacity-20 mb-8" />
+              <h2 className="text-3xl font-bold mb-3 text-foreground">Start Creating</h2>
+              <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
+                Enter a prompt above to unleash the power of our 5-agent AI system.
+              </p>
+              
+              <div className="flex flex-wrap justify-center gap-3">
+                {["Futuristic city with neon lights", "Oil painting of a cat king", "Cyberpunk street food stall"].map(p => (
+                  <button 
+                    key={p}
+                    onClick={() => setPrompt(p)}
+                    className="px-4 py-2 bg-muted hover:bg-muted/80 border border-border rounded-full text-sm text-muted-foreground hover:text-foreground transition-all"
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6 mx-auto max-w-[1800px]">
+              {generations.map((gen) => (
+                <div 
+                  key={gen.id}
+                  onClick={() => setSelectedImage(gen)}
+                  className="break-inside-avoid mb-6 relative group rounded-xl overflow-hidden cursor-pointer bg-card border border-border hover:border-primary/50 hover:shadow-xl transition-all hover:scale-[1.02]"
+                >
+                  <img src={gen.src} alt={gen.prompt} className="w-full h-auto object-cover" />
+                  
+                  {/* Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-5">
+                    <p className="text-white text-sm line-clamp-2 mb-4 font-medium leading-relaxed">{gen.prompt}</p>
+                    
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" className="h-8 px-3 text-xs bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg">
+                        <Download className="h-3.5 w-3.5 mr-1.5" />
+                        Download
+                      </Button>
+                      <div className="flex items-center gap-1 ml-auto">
+                        <Button size="icon" className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg">
+                          <RefreshCw className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button size="icon" className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg">
+                          <MoreHorizontal className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Lightbox Modal */}
+        <AnimatePresence>
+          {selectedImage && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-md flex items-center justify-center p-6"
+              onClick={() => setSelectedImage(null)}
+            >
+              <div 
+                className="w-full max-w-7xl h-[85vh] bg-card rounded-2xl overflow-hidden flex border border-border shadow-2xl"
+                onClick={e => e.stopPropagation()}
+              >
+                {/* Left: Image */}
+                <div className="flex-1 bg-muted/20 flex items-center justify-center p-8 relative group">
+                  <img 
+                    src={selectedImage.src} 
+                    alt={selectedImage.prompt} 
+                    className="max-w-full max-h-full object-contain shadow-2xl rounded-lg" 
+                  />
+                  <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                     <Button size="icon" className="rounded-full bg-black/50 text-white border-0 hover:bg-black/70">
+                       <Maximize2 className="h-4 w-4" />
+                     </Button>
+                  </div>
+                </div>
+
+                {/* Right: Details */}
+                <div className="w-[400px] bg-card border-l border-border flex flex-col">
+                  <div className="p-6 border-b border-border flex justify-between items-center">
+                    <h3 className="font-bold text-foreground">Image Details</h3>
+                    <Button variant="ghost" size="icon" onClick={() => setSelectedImage(null)} className="text-muted-foreground hover:text-foreground">
+                      <X className="h-5 w-5" />
+                    </Button>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                    {/* Actions */}
+                    <div className="grid grid-cols-4 gap-2">
+                      {[
+                        { icon: Download, label: "Save" },
+                        { icon: RefreshCw, label: "Vary" },
+                        { icon: Edit, label: "Edit" },
+                        { icon: Star, label: "Like" }
+                      ].map((action, i) => (
+                        <Button key={i} variant="ghost" className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border">
+                          <action.icon className="h-5 w-5" />
+                          <span className="text-[10px]">{action.label}</span>
+                        </Button>
+                      ))}
+                    </div>
+
+                    {/* Prompt */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Prompt</label>
+                      <div className="bg-muted/30 rounded-xl p-4 text-sm text-muted-foreground leading-relaxed border border-border relative group">
+                        {selectedImage.prompt}
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => {
+                             navigator.clipboard.writeText(selectedImage.prompt);
+                             toast({ title: "Copied" });
+                          }}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Details */}
+                    <div className="space-y-4">
+                      <div className="flex justify-between py-2 border-b border-border">
+                        <span className="text-xs text-muted-foreground">Style</span>
+                        <span className="text-xs font-medium text-foreground capitalize">{selectedImage.style}</span>
+                      </div>
+                      <div className="flex justify-between py-2 border-b border-border">
+                        <span className="text-xs text-muted-foreground">Dimensions</span>
+                        <span className="text-xs font-medium text-foreground">1024 × 1024</span>
+                      </div>
+                      <div className="flex justify-between py-2 border-b border-border">
+                        <span className="text-xs text-muted-foreground">Model</span>
+                        <span className="text-xs font-medium text-foreground">V5.2</span>
+                      </div>
+                      <div className="flex justify-between py-2 border-b border-border">
+                        <span className="text-xs text-muted-foreground">Seed</span>
+                        <span className="text-xs font-medium text-foreground font-mono">82739103</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+      </main>
+    </div>
+  );
+}
