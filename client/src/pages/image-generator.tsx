@@ -292,183 +292,127 @@ export default function ImageGenerator() {
       
       <main className="flex-1 flex flex-col relative h-full overflow-hidden bg-background text-foreground">
         
-        {/* TOP SECTION: PROMPT BAR (Hero) */}
-        <div className="sticky top-0 z-50 bg-background border-b border-border/50 px-10 py-6 shadow-xl">
-          
-          {/* Header Row */}
-          <div className="flex justify-between items-center mb-5">
-            <div className="flex items-center gap-3">
-              <Wand2 className="h-6 w-6 text-primary" />
-              <h1 className="text-2xl font-bold text-foreground">Image Generator</h1>
-            </div>
+        {/* TOP SECTION: PROMPT BAR (Minimalistic) */}
+        <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border px-6 py-4 transition-all">
+          <div className="max-w-5xl mx-auto w-full space-y-4">
             
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" className="text-muted-foreground hover:text-foreground hover:bg-muted/50 h-8 text-[13px] gap-2">
-                <BookOpen className="h-4 w-4" />
-                Style Library
-              </Button>
-              <Button variant="ghost" className="text-muted-foreground hover:text-foreground hover:bg-muted/50 h-8 text-[13px] gap-2">
-                <Keyboard className="h-4 w-4" />
-                Shortcuts
-              </Button>
-              <div className="flex items-center gap-2 bg-muted/50 rounded-full px-3.5 py-1.5">
-                <Zap className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
-                <span className="text-[13px] font-semibold text-foreground">1,523</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Main Prompt Container */}
-          <div className={cn(
-            "bg-muted/20 border-2 rounded-[20px] p-1.5 transition-all duration-200 flex items-start gap-3 group focus-within:bg-card focus-within:border-primary focus-within:shadow-[0_0_0_4px_rgba(124,58,237,0.15)]",
-            prompt.trim().length > 0 ? "border-muted-foreground/30" : "border-border"
-          )}>
-            
-            {/* Left: Reference Image Button */}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button className="h-12 w-12 bg-muted hover:bg-muted/80 rounded-xl flex items-center justify-center transition-colors flex-shrink-0 mt-0.5">
-                    <ImagePlus className="h-5 w-5 text-muted-foreground group-hover:text-foreground" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent><p>Add reference image (optional)</p></TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            {/* Center: Prompt Input */}
-            <div className="flex-1 flex flex-col gap-1 py-1 relative">
-              <textarea
-                ref={textareaRef}
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Describe what you want to create..."
-                className="w-full bg-transparent border-0 focus:ring-0 p-0 text-[16px] text-foreground placeholder:text-muted-foreground resize-none min-h-[48px] max-h-[140px] leading-relaxed"
-                rows={1}
-              />
+            {/* Prompt Input & Controls */}
+            <div className="flex items-end gap-3">
+              
+              {/* Main Input Wrapper */}
               <div className={cn(
-                "self-end text-[11px] font-medium transition-colors",
-                prompt.length > 1800 ? "text-amber-500" : "text-muted-foreground"
+                "flex-1 bg-muted/40 border border-border rounded-xl transition-all duration-200 flex items-end p-2 gap-2 group focus-within:bg-background focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50 shadow-sm",
+                prompt.trim().length > 0 && "bg-background border-muted-foreground/40"
               )}>
-                {prompt.length} / 2000
-              </div>
-            </div>
-
-            {/* Right: Controls Column */}
-            <div className="flex flex-col gap-2 items-end">
-              {/* Top Row: Settings */}
-              <div className="flex items-center gap-2">
-                {/* Quick Settings Pills */}
-                <div className="flex items-center gap-2 mr-1">
-                  <button 
-                    onClick={() => setShowSettings(!showSettings)}
-                    className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted hover:bg-muted/80 text-[10px] font-medium text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {STYLE_PRESETS.find(s => s.id === settings.style)?.icon && (
-                       <span className="text-primary"><Sparkles className="h-3 w-3" /></span>
-                    )}
-                    {STYLE_PRESETS.find(s => s.id === settings.style)?.name || "Style"}
-                  </button>
-                  <button 
-                    onClick={() => setShowSettings(!showSettings)}
-                    className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted hover:bg-muted/80 text-[10px] font-medium text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <span className="text-primary"><Zap className="h-3 w-3" /></span>
-                    {QUALITY_PRESETS.find(q => q.id === settings.quality)?.name || "Standard"}
-                  </button>
-                </div>
-
+                
+                {/* Reference Image Trigger */}
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <button 
-                        onClick={() => setShowSettings(!showSettings)}
-                        className={cn(
-                          "h-11 w-11 rounded-xl flex items-center justify-center transition-colors",
-                          showSettings ? "bg-primary text-white" : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
-                        )}
-                      >
-                        <SlidersHorizontal className="h-5 w-5" />
-                      </button>
+                      <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-foreground rounded-lg shrink-0 mb-0.5">
+                        <ImagePlus className="h-4 w-4" />
+                      </Button>
                     </TooltipTrigger>
-                    <TooltipContent><p>Generation Settings</p></TooltipContent>
+                    <TooltipContent><p>Add reference image</p></TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-              </div>
 
-              {/* Bottom Row: Generate */}
-              <div className="flex flex-col items-center gap-1">
-                <Button 
-                  onClick={handleGenerate}
-                  disabled={status === "generating" || !prompt.trim()}
-                  className={cn(
-                    "h-auto py-3.5 px-7 rounded-xl font-bold text-[15px] transition-all duration-200 min-w-[140px] shadow-lg hover:translate-y-[-2px] active:scale-98",
-                    status === "generating" 
-                      ? "bg-primary opacity-90 cursor-wait" 
-                      : "bg-gradient-to-br from-purple-600 to-purple-700 hover:brightness-110 text-white"
-                  )}
-                >
-                  {status === "generating" ? (
-                    <div className="flex items-center gap-2">
-                      <RefreshCw className="h-4.5 w-4.5 animate-spin" />
-                      <span>Creating...</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="h-4.5 w-4.5" />
-                      <span>Imagine</span>
-                    </div>
-                  )}
-                </Button>
-                <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                  <div className="flex items-center justify-center h-3 w-3 rounded-[3px] bg-muted border border-border">⌘</div>
-                  <span>Enter</span>
+                {/* Textarea */}
+                <div className="flex-1 relative py-2">
+                  <textarea
+                    ref={textareaRef}
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Describe what you want to create..."
+                    className="w-full bg-transparent border-0 focus:ring-0 p-0 text-sm sm:text-base text-foreground placeholder:text-muted-foreground resize-none min-h-[24px] max-h-[120px] leading-relaxed"
+                    rows={1}
+                  />
+                </div>
+
+                {/* Right Side Actions inside Input */}
+                <div className="flex items-center gap-1 mb-0.5 shrink-0">
+                  <div className={cn(
+                    "text-[10px] font-medium mr-2 transition-colors select-none",
+                    prompt.length > 1800 ? "text-amber-500" : "text-muted-foreground/50"
+                  )}>
+                    {prompt.length}/2000
+                  </div>
+
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant={showSettings ? "secondary" : "ghost"} 
+                          size="icon" 
+                          onClick={() => setShowSettings(!showSettings)}
+                          className={cn("h-8 w-8 rounded-lg transition-all", showSettings && "bg-muted text-foreground")}
+                        >
+                          <SlidersHorizontal className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent><p>Settings</p></TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Settings Panel (Expandable) */}
-          <AnimatePresence>
-            {showSettings && (
-              <motion.div
-                initial={{ height: 0, opacity: 0, marginTop: 0 }}
-                animate={{ height: "auto", opacity: 1, marginTop: 16 }}
-                exit={{ height: 0, opacity: 0, marginTop: 0 }}
-                className="overflow-hidden bg-card border-t border-border rounded-b-xl"
+              {/* Generate Button - Standard Style */}
+              <Button 
+                onClick={handleGenerate}
+                disabled={status === "generating" || !prompt.trim()}
+                size="lg"
+                className="h-[54px] px-8 rounded-xl font-semibold shadow-md shrink-0"
               >
-                <div className="py-6">
-                  {/* Row 1: Main Settings Grid */}
-                  <div className="grid grid-cols-5 gap-6">
+                {status === "generating" ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Imagine
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {/* Settings Panel (Inline Expandable) */}
+            <AnimatePresence>
+              {showSettings && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0, y: -10 }}
+                  animate={{ height: "auto", opacity: 1, y: 0 }}
+                  exit={{ height: 0, opacity: 0, y: -10 }}
+                  className="overflow-hidden"
+                >
+                  <div className="bg-muted/30 border border-border rounded-xl p-4 grid grid-cols-2 md:grid-cols-4 gap-4 shadow-inner">
                     
-                    {/* Column 1: Style */}
-                    <div className="space-y-2.5">
-                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Style</label>
+                    {/* Style */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Style</label>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <button className="w-full h-[46px] bg-muted/30 border border-border hover:border-border/80 rounded-xl px-3.5 flex items-center justify-between text-[13px] text-foreground transition-colors">
-                            <div className="flex items-center gap-2">
+                          <Button variant="outline" className="w-full justify-between h-9 text-xs bg-background/50">
+                            <span className="flex items-center gap-2 truncate">
                               {STYLE_PRESETS.find(s => s.id === settings.style)?.icon && (
-                                 <span className="text-primary"><Sparkles className="h-4 w-4" /></span>
+                                 <Sparkles className="h-3 w-3 text-primary" />
                               )}
                               {STYLE_PRESETS.find(s => s.id === settings.style)?.name}
-                            </div>
-                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                          </button>
+                            </span>
+                            <ChevronDown className="h-3 w-3 opacity-50" />
+                          </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="w-[200px] bg-popover border-border text-popover-foreground max-h-[300px] overflow-y-auto p-1.5">
+                        <DropdownMenuContent align="start" className="w-[180px]">
                           {STYLE_PRESETS.map(style => (
                             <DropdownMenuItem 
                               key={style.id}
                               onClick={() => setSettings({...settings, style: style.id})}
-                              className={cn(
-                                "px-3 py-2.5 rounded-lg cursor-pointer text-[13px]",
-                                settings.style === style.id ? "bg-primary/20 text-primary" : "hover:bg-muted"
-                              )}
+                              className="text-xs cursor-pointer"
                             >
                               <div className="flex items-center gap-2">
-                                <style.icon className="h-4 w-4" />
+                                <style.icon className="h-3.5 w-3.5" />
                                 {style.name}
                               </div>
                             </DropdownMenuItem>
@@ -477,234 +421,132 @@ export default function ImageGenerator() {
                       </DropdownMenu>
                     </div>
 
-                    {/* Column 2: Quality */}
-                    <div className="space-y-2.5">
-                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Quality</label>
-                      <div className="flex bg-muted/30 rounded-[10px] p-1 border border-border">
+                    {/* Quality */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Quality</label>
+                      <div className="flex bg-background/50 rounded-lg p-1 border border-border/50 h-9">
                         {QUALITY_PRESETS.map(q => (
-                          <TooltipProvider key={q.id}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button
-                                  onClick={() => setSettings({...settings, quality: q.id})}
-                                  className={cn(
-                                    "flex-1 h-[38px] rounded-lg flex items-center justify-center gap-1.5 text-[12px] font-medium transition-all",
-                                    settings.quality === q.id 
-                                      ? "bg-primary text-white shadow-sm" 
-                                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                                  )}
-                                >
-                                  <q.icon className="h-3.5 w-3.5" />
-                                  <span className="hidden xl:inline">{q.name}</span>
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent><p>{q.tooltip}</p></TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Column 3: Aspect Ratio */}
-                    <div className="space-y-2.5">
-                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Ratio</label>
-                      <div className="flex gap-2">
-                        {ASPECT_RATIOS.map(r => (
-                          <TooltipProvider key={r.id}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button
-                                  onClick={() => setSettings({...settings, aspectRatio: r.id})}
-                                  className={cn(
-                                    "h-[42px] w-[42px] rounded-lg flex items-center justify-center border transition-all",
-                                    settings.aspectRatio === r.id 
-                                      ? "bg-primary/20 border-primary text-primary" 
-                                      : "bg-muted/30 border-border text-muted-foreground hover:border-border/80 hover:text-foreground"
-                                  )}
-                                >
-                                  <r.icon className="h-5 w-5" />
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent><p>{r.tooltip}</p></TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Column 4: Variations */}
-                    <div className="space-y-2.5">
-                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Variations</label>
-                      <div className="flex bg-muted/30 rounded-[10px] p-1 border border-border">
-                        {["1", "2", "4"].map(v => (
                           <button
-                            key={v}
-                            onClick={() => setSettings({...settings, variations: v})}
+                            key={q.id}
+                            onClick={() => setSettings({...settings, quality: q.id})}
                             className={cn(
-                              "flex-1 h-[38px] rounded-lg flex items-center justify-center text-[12px] font-medium transition-all",
-                              settings.variations === v 
-                                ? "bg-primary text-white shadow-sm" 
-                                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                              "flex-1 rounded flex items-center justify-center text-[10px] font-medium transition-all",
+                              settings.quality === q.id 
+                                ? "bg-background shadow-sm text-foreground" 
+                                : "text-muted-foreground hover:text-foreground"
                             )}
                           >
-                            {v}
+                            {q.name}
                           </button>
                         ))}
                       </div>
                     </div>
 
-                    {/* Column 5: Refiner */}
-                    <div className="space-y-2.5">
-                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Enhance</label>
-                      <div className="flex flex-col gap-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[13px] font-medium text-muted-foreground">Master Refiner</span>
-                          <Switch 
-                            checked={settings.refiner}
-                            onCheckedChange={(c) => setSettings({...settings, refiner: c})}
-                            className="data-[state=checked]:bg-primary"
-                          />
-                        </div>
-                        {settings.refiner && (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <button className="w-full h-[36px] bg-muted/30 border border-border hover:border-border/80 rounded-lg px-3 flex items-center justify-between text-[12px] text-foreground transition-colors">
-                                <div className="flex items-center gap-2">
-                                  <SlidersHorizontal className="h-3.5 w-3.5 text-primary" />
-                                  {REFINER_PRESETS.find(p => p.id === settings.refinerPreset)?.name}
-                                </div>
-                                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-                              </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="start" className="w-[160px] bg-popover border-border text-popover-foreground">
-                              {REFINER_PRESETS.map(preset => (
-                                <DropdownMenuItem 
-                                  key={preset.id}
-                                  onClick={() => setSettings({...settings, refinerPreset: preset.id})}
-                                  className={cn(
-                                    "px-3 py-2 rounded-md cursor-pointer text-[12px]",
-                                    settings.refinerPreset === preset.id ? "bg-primary/20 text-primary" : "hover:bg-muted"
-                                  )}
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <preset.icon className="h-3.5 w-3.5" />
-                                    {preset.name}
-                                  </div>
-                                </DropdownMenuItem>
-                              ))}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        )}
-                      </div>
-                    </div>
-
-                  </div>
-
-                  {/* Row 2: AI Features */}
-                  <div className="mt-5 pt-5 border-t border-border flex items-center gap-4">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">AI Features</span>
-                    
-                    <div className="flex items-center gap-3">
-                      <button 
-                        onClick={() => setSettings({...settings, aiCuration: !settings.aiCuration})}
-                        className={cn(
-                          "flex items-center gap-2 px-4 py-2.5 rounded-full border text-[13px] font-medium transition-all",
-                          settings.aiCuration 
-                            ? "bg-primary/10 border-primary text-primary" 
-                            : "bg-muted/30 border-border text-muted-foreground hover:border-border/80"
-                        )}
-                      >
-                        <BrainCircuit className="h-4 w-4" />
-                        AI Curation
-                      </button>
-                      
-                      <button 
-                        onClick={() => setSettings({...settings, autoOptimize: !settings.autoOptimize})}
-                        className={cn(
-                          "flex items-center gap-2 px-4 py-2.5 rounded-full border text-[13px] font-medium transition-all",
-                          settings.autoOptimize 
-                            ? "bg-primary/10 border-primary text-primary" 
-                            : "bg-muted/30 border-border text-muted-foreground hover:border-border/80"
-                        )}
-                      >
-                        <Target className="h-4 w-4" />
-                        Auto Optimize
-                      </button>
-
-                      <button className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-muted/30 border border-border text-muted-foreground text-[13px] font-medium hover:border-border/80 transition-all ml-auto">
-                        <BookOpen className="h-4 w-4" />
-                        Knowledge Base
-                        <ChevronDown className="h-3.5 w-3.5 -rotate-90" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* AI Agents Status Bar (During Generation) */}
-          <AnimatePresence>
-            {status === "generating" && (
-              <motion.div
-                initial={{ height: 0, opacity: 0, marginBottom: 0 }}
-                animate={{ height: "auto", opacity: 1, marginBottom: 20 }}
-                exit={{ height: 0, opacity: 0, marginBottom: 0 }}
-                className="bg-card border-b border-border -mx-10 px-10 py-5 overflow-hidden relative"
-              >
-                <div className="flex flex-col items-center gap-4">
-                  <div className="flex items-center justify-center gap-0">
-                    {agents.map((agent, i) => (
-                      <div key={agent.id} className="flex items-center">
-                        {/* Node */}
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className={cn(
-                                "relative w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 z-10",
-                                agent.status === "working" 
-                                  ? `bg-primary shadow-[0_0_20px_rgba(124,58,237,0.5)] scale-110 text-white` 
-                                  : agent.status === "complete" 
-                                    ? "bg-green-600 text-white" 
-                                    : "bg-muted border-2 border-border text-muted-foreground"
-                              )}>
-                                {agent.status === "working" && (
-                                  <div className="absolute inset-0 rounded-full border-2 border-white opacity-50 animate-ping" />
-                                )}
-                                <agent.icon className={cn(
-                                  "h-5 w-5 transition-colors"
-                                )} />
-                                
-                                {/* Label */}
-                                <div className="absolute -bottom-6 whitespace-nowrap text-[10px] font-bold uppercase text-muted-foreground">
-                                  {agent.name.split(" ")[0]}
-                                </div>
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent><p>{agent.name} - {agent.message}</p></TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-
-                        {/* Connecting Line */}
-                        {i < agents.length - 1 && (
-                          <div className="w-[60px] h-[3px] bg-muted -mx-[1px] relative overflow-hidden">
-                            {agent.status === "complete" && (
-                              <motion.div 
-                                initial={{ width: 0 }}
-                                animate={{ width: "100%" }}
-                                className="h-full bg-primary"
-                              />
+                    {/* Aspect Ratio */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Ratio</label>
+                      <div className="flex gap-1.5">
+                        {ASPECT_RATIOS.map(r => (
+                          <button
+                            key={r.id}
+                            onClick={() => setSettings({...settings, aspectRatio: r.id})}
+                            className={cn(
+                              "h-9 w-9 rounded-md flex items-center justify-center border transition-all",
+                              settings.aspectRatio === r.id 
+                                ? "bg-primary/10 border-primary text-primary" 
+                                : "bg-background/50 border-border/50 text-muted-foreground hover:border-border hover:text-foreground"
                             )}
-                          </div>
-                        )}
+                          >
+                            <r.icon className="h-4 w-4" />
+                          </button>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                    </div>
 
+                    {/* AI Features */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Options</label>
+                      <div className="flex gap-2">
+                         <Button 
+                           variant="outline" 
+                           size="sm" 
+                           onClick={() => setSettings({...settings, refiner: !settings.refiner})}
+                           className={cn("h-9 flex-1 text-[10px]", settings.refiner && "border-primary text-primary bg-primary/5")}
+                         >
+                           Refiner
+                         </Button>
+                         <Button 
+                           variant="outline" 
+                           size="sm" 
+                           onClick={() => setSettings({...settings, aiCuration: !settings.aiCuration})}
+                           className={cn("h-9 flex-1 text-[10px]", settings.aiCuration && "border-primary text-primary bg-primary/5")}
+                         >
+                           AI Fix
+                         </Button>
+                      </div>
+                    </div>
+
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* AI Agents Status Bar (During Generation) */}
+            <AnimatePresence>
+              {status === "generating" && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="bg-muted/30 border border-border rounded-xl p-4 overflow-hidden relative"
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="flex items-center justify-center gap-1">
+                      {agents.map((agent, i) => (
+                        <div key={agent.id} className="flex items-center">
+                          {/* Node */}
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className={cn(
+                                  "relative w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 z-10",
+                                  agent.status === "working" 
+                                    ? `bg-primary shadow-lg scale-110 text-white` 
+                                    : agent.status === "complete" 
+                                      ? "bg-green-500 text-white" 
+                                      : "bg-muted border border-border text-muted-foreground"
+                                )}>
+                                  <agent.icon className="h-3.5 w-3.5" />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent><p>{agent.name}</p></TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+
+                          {/* Connecting Line */}
+                          {i < agents.length - 1 && (
+                            <div className="w-8 h-0.5 bg-border -mx-1 relative overflow-hidden">
+                              {agent.status === "complete" && (
+                                <motion.div 
+                                  initial={{ width: 0 }}
+                                  animate={{ width: "100%" }}
+                                  className="h-full bg-primary"
+                                />
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground font-medium animate-pulse mt-2">
+                      {agents.find(a => a.status === "working")?.message || "Initializing..."}
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+          </div>
         </div>
 
         {/* SCROLLABLE GALLERY */}
