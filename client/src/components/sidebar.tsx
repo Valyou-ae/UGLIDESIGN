@@ -11,16 +11,22 @@ import {
   CreditCard, 
   HelpCircle,
   ChevronRight,
+  ChevronLeft,
   Sun,
-  Moon,
-  Check
+  Moon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-function ThemeToggle() {
+function ThemeToggle({ collapsed }: { collapsed: boolean }) {
   // Mock theme toggle for now, usually this would be from next-themes or similar
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
@@ -29,6 +35,17 @@ function ThemeToggle() {
     setTheme(newTheme);
     document.documentElement.classList.toggle("dark");
   };
+
+  if (collapsed) {
+    return (
+      <div 
+        onClick={toggleTheme}
+        className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-200 dark:bg-zinc-800 cursor-pointer mx-auto hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors"
+      >
+        {theme === "light" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      </div>
+    );
+  }
 
   return (
     <div 
@@ -51,8 +68,13 @@ function ThemeToggle() {
   );
 }
 
-export function Sidebar() {
+interface SidebarProps {
+  className?: string;
+}
+
+export function Sidebar({ className }: SidebarProps) {
   const [location] = useLocation();
+  const [collapsed, setCollapsed] = useState(false);
 
   const navigation = [
     { name: "Home", icon: Home, href: "/", count: null },
@@ -70,119 +92,199 @@ export function Sidebar() {
   ];
 
   return (
-    <aside className="fixed left-0 top-0 z-40 h-screen w-[280px] border-r bg-sidebar transition-transform hidden lg:flex flex-col px-4 py-6">
+    <aside 
+      className={cn(
+        "relative h-screen border-r bg-sidebar transition-all duration-300 ease-in-out flex flex-col z-40",
+        collapsed ? "w-[80px]" : "w-[280px]",
+        className
+      )}
+    >
+      {/* Collapse Toggle */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setCollapsed(!collapsed)}
+        className="absolute -right-3 top-8 h-6 w-6 rounded-full border bg-background shadow-md hover:bg-accent text-muted-foreground z-50 hidden lg:flex"
+      >
+        {collapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
+      </Button>
+
       {/* Header / Logo */}
-      <div className="flex items-center gap-3 px-2 pb-6 border-b border-sidebar-border/50">
-        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
+      <div className={cn("flex items-center gap-3 px-4 py-6 h-[88px]", collapsed ? "justify-center px-2" : "")}>
+        <div className="h-10 w-10 min-w-[40px] rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
           <div className="h-5 w-5 bg-white/20 rounded-md backdrop-blur-sm" />
         </div>
-        <div className="flex flex-col">
-          <span className="font-bold text-sidebar-foreground">AI Creative Studio</span>
-          <span className="text-[11px] text-muted-foreground font-medium">Pro Plan</span>
-        </div>
+        {!collapsed && (
+          <div className="flex flex-col overflow-hidden animate-fade-in whitespace-nowrap">
+            <span className="font-bold text-sidebar-foreground text-lg">AI Studio</span>
+            <span className="text-[11px] text-muted-foreground font-medium">Pro Plan</span>
+          </div>
+        )}
       </div>
 
       {/* User Profile */}
-      <div className="mt-6 p-3 rounded-xl bg-sidebar-accent/50 border border-sidebar-border/50 flex items-center gap-3 cursor-pointer hover:bg-sidebar-accent transition-colors group">
-        <div className="relative">
+      <div className={cn(
+        "mx-3 mb-6 p-2 rounded-xl flex items-center gap-3 cursor-pointer hover:bg-sidebar-accent transition-colors group overflow-hidden",
+        collapsed ? "justify-center bg-transparent" : "bg-sidebar-accent/50 border border-sidebar-border/50"
+      )}>
+        <div className="relative flex-shrink-0">
           <div className="absolute -inset-0.5 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full opacity-70 group-hover:opacity-100 transition-opacity" />
           <Avatar className="h-9 w-9 border-2 border-sidebar relative">
             <AvatarImage src="https://github.com/shadcn.png" />
             <AvatarFallback>JD</AvatarFallback>
           </Avatar>
         </div>
-        <div className="flex-1 overflow-hidden">
-          <p className="text-sm font-semibold truncate text-sidebar-foreground">John Doe</p>
-          <p className="text-xs text-muted-foreground truncate">john@example.com</p>
-        </div>
-        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        {!collapsed && (
+          <div className="flex-1 overflow-hidden animate-fade-in">
+            <p className="text-sm font-semibold truncate text-sidebar-foreground">John Doe</p>
+            <p className="text-xs text-muted-foreground truncate">john@example.com</p>
+          </div>
+        )}
+        {!collapsed && <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto" />}
       </div>
 
       {/* Navigation */}
-      <div className="mt-8 flex-1 overflow-y-auto no-scrollbar">
-        <div className="mb-2 px-3 text-[11px] font-bold text-muted-foreground tracking-widest">WORKSPACE</div>
+      <div className="flex-1 overflow-y-auto no-scrollbar px-3">
+        {!collapsed && <div className="mb-2 px-3 text-[11px] font-bold text-muted-foreground tracking-widest animate-fade-in">WORKSPACE</div>}
         <nav className="space-y-1">
-          {navigation.map((item) => (
-            <Link key={item.name} href={item.href}>
-              <div
-                className={cn(
-                  "flex items-center gap-3 px-3.5 py-3 rounded-lg text-sm font-medium transition-all cursor-pointer group relative",
-                  location === item.href 
-                    ? "text-primary bg-primary/5" 
-                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
-                )}
-              >
-                {location === item.href && (
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 bg-primary rounded-r-full" />
-                )}
-                <item.icon className={cn("h-5 w-5", location === item.href ? "text-primary" : "text-sidebar-foreground/50 group-hover:text-sidebar-foreground")} />
-                <span className="flex-1">{item.name}</span>
-                {item.badge && (
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                    {item.badge}
-                  </span>
-                )}
-                {item.count && (
-                  <span className="text-xs text-muted-foreground group-hover:text-sidebar-foreground">
-                    {item.count}
-                  </span>
-                )}
-              </div>
-            </Link>
-          ))}
+          {navigation.map((item) => {
+            const isActive = location === item.href;
+            return (
+              <TooltipProvider key={item.name} delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link href={item.href}>
+                      <div
+                        className={cn(
+                          "flex items-center gap-3 rounded-lg font-medium transition-all cursor-pointer group relative select-none",
+                          collapsed ? "justify-center w-10 h-10 mx-auto p-0" : "px-3.5 py-3 text-sm",
+                          isActive 
+                            ? "text-primary bg-primary/5" 
+                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                        )}
+                      >
+                        {isActive && !collapsed && (
+                          <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 bg-primary rounded-r-full" />
+                        )}
+                        <item.icon className={cn("h-5 w-5 flex-shrink-0", isActive ? "text-primary" : "text-sidebar-foreground/50 group-hover:text-sidebar-foreground")} />
+                        
+                        {!collapsed && (
+                          <>
+                            <span className="flex-1 truncate">{item.name}</span>
+                            {item.badge && (
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary whitespace-nowrap">
+                                {item.badge}
+                              </span>
+                            )}
+                            {item.count && (
+                              <span className="text-xs text-muted-foreground group-hover:text-sidebar-foreground">
+                                {item.count}
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </Link>
+                  </TooltipTrigger>
+                  {collapsed && <TooltipContent side="right"><p>{item.name}</p></TooltipContent>}
+                </Tooltip>
+              </TooltipProvider>
+            );
+          })}
         </nav>
 
         <Separator className="my-6 bg-sidebar-border/60" />
 
-        <div className="mb-2 px-3 text-[11px] font-bold text-muted-foreground tracking-widest">ACCOUNT</div>
+        {!collapsed && <div className="mb-2 px-3 text-[11px] font-bold text-muted-foreground tracking-widest animate-fade-in">ACCOUNT</div>}
         <nav className="space-y-1">
           {account.map((item) => (
-            <Link key={item.name} href={item.href}>
-              <div className="flex items-center gap-3 px-3.5 py-3 rounded-lg text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors cursor-pointer">
-                <item.icon className="h-5 w-5 text-sidebar-foreground/50" />
-                <span>{item.name}</span>
-              </div>
-            </Link>
+            <TooltipProvider key={item.name} delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href={item.href}>
+                    <div className={cn(
+                      "flex items-center gap-3 rounded-lg font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors cursor-pointer select-none",
+                      collapsed ? "justify-center w-10 h-10 mx-auto p-0" : "px-3.5 py-3 text-sm"
+                    )}>
+                      <item.icon className="h-5 w-5 text-sidebar-foreground/50 flex-shrink-0" />
+                      {!collapsed && <span>{item.name}</span>}
+                    </div>
+                  </Link>
+                </TooltipTrigger>
+                {collapsed && <TooltipContent side="right"><p>{item.name}</p></TooltipContent>}
+              </Tooltip>
+            </TooltipProvider>
           ))}
         </nav>
       </div>
 
       {/* Footer */}
-      <div className="pt-4 mt-auto">
-        <div className="flex items-center gap-4 mb-4 px-2">
-          <div className="relative h-12 w-12 flex items-center justify-center">
-            <svg className="h-full w-full -rotate-90" viewBox="0 0 36 36">
-              <path
-                className="text-sidebar-accent"
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="3"
-              />
-              <path
-                className="text-primary drop-shadow-md"
-                strokeDasharray="76, 100"
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="3"
-                strokeLinecap="round"
-              />
-            </svg>
-            <span className="absolute text-[10px] font-bold text-sidebar-foreground">76%</span>
-          </div>
-          <div className="flex-1">
-            <div className="flex items-baseline gap-1">
-              <span className="text-lg font-bold text-sidebar-foreground">1,523</span>
-              <span className="text-[10px] text-muted-foreground">/ 2,000</span>
+      <div className={cn("pt-4 mt-auto px-3 pb-6", collapsed ? "flex flex-col items-center" : "")}>
+        {!collapsed ? (
+          <div className="flex items-center gap-4 mb-4 px-2 animate-fade-in">
+            <div className="relative h-12 w-12 flex items-center justify-center">
+              <svg className="h-full w-full -rotate-90" viewBox="0 0 36 36">
+                <path
+                  className="text-sidebar-accent"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                />
+                <path
+                  className="text-primary drop-shadow-md"
+                  strokeDasharray="76, 100"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                />
+              </svg>
+              <span className="absolute text-[10px] font-bold text-sidebar-foreground">76%</span>
             </div>
-            <Button size="sm" className="h-7 text-[10px] rounded-full w-full mt-1 bg-primary hover:bg-primary/90 text-white border-0">
-              Upgrade Plan
-            </Button>
+            <div className="flex-1 overflow-hidden">
+              <div className="flex items-baseline gap-1">
+                <span className="text-lg font-bold text-sidebar-foreground">1.5k</span>
+                <span className="text-[10px] text-muted-foreground">/ 2k</span>
+              </div>
+              <Button size="sm" className="h-7 text-[10px] rounded-full w-full mt-1 bg-primary hover:bg-primary/90 text-white border-0">
+                Upgrade
+              </Button>
+            </div>
           </div>
-        </div>
+        ) : (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="relative h-10 w-10 mb-4 flex items-center justify-center cursor-pointer">
+                  <svg className="h-full w-full -rotate-90" viewBox="0 0 36 36">
+                    <path
+                      className="text-sidebar-accent"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                    />
+                    <path
+                      className="text-primary"
+                      strokeDasharray="76, 100"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <span className="absolute text-[9px] font-bold text-sidebar-foreground">76%</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="right"><p>1,523 / 2,000 credits</p></TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
         
-        <ThemeToggle />
+        <ThemeToggle collapsed={collapsed} />
       </div>
     </aside>
   );
