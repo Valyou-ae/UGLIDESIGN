@@ -17,6 +17,7 @@ import {
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 
 // Assets
 import project1 from "@assets/generated_images/abstract_creative_digital_art_of_a_beach_sunset_with_geometric_overlays.png";
@@ -33,16 +34,17 @@ interface ModuleCardProps {
   badge?: string;
   badgeCount?: string;
   delay?: number;
+  href?: string;
 }
 
-function ModuleCard({ title, description, icon: Icon, gradient, circleColor, badge, badgeCount, delay = 0 }: ModuleCardProps) {
-  return (
+function ModuleCard({ title, description, icon: Icon, gradient, circleColor, badge, badgeCount, delay = 0, href }: ModuleCardProps) {
+  const content = (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay }}
       className={cn(
-        "relative overflow-hidden rounded-[24px] p-7 min-h-[220px] cursor-pointer group transition-all duration-500",
+        "relative overflow-hidden rounded-[24px] p-7 min-h-[220px] cursor-pointer group transition-all duration-500 h-full",
         gradient
       )}
       whileHover={{ y: -4, scale: 1.01 }}
@@ -83,6 +85,12 @@ function ModuleCard({ title, description, icon: Icon, gradient, circleColor, bad
       </div>
     </motion.div>
   );
+
+  if (href) {
+    return <Link href={href} className="block h-full">{content}</Link>;
+  }
+
+  return content;
 }
 
 function StatCard({ icon: Icon, value, label, trend, colorClass, delay }: any) {
@@ -165,6 +173,7 @@ export function BentoGrid() {
           circleColor="#A855F7"
           badgeCount="5 AI Agents"
           delay={0.1}
+          href="/image-gen"
         />
         <ModuleCard 
           title="Mockup Generator" 
@@ -174,6 +183,7 @@ export function BentoGrid() {
           circleColor="#60A5FA"
           badge="50+ Products"
           delay={0.2}
+          href="/mockup"
         />
         <ModuleCard 
           title="Background Remover" 
@@ -183,6 +193,7 @@ export function BentoGrid() {
           circleColor="#F472B6"
           badge="Instant"
           delay={0.3}
+          href="/bg-remover"
         />
       </div>
 
