@@ -7,6 +7,7 @@ import Home from "@/pages/home";
 import ImageGenerator from "@/pages/image-generator";
 import BackgroundRemover from "@/pages/background-remover";
 import MockupGenerator from "@/pages/mockup-generator";
+import MyProjects from "@/pages/my-projects";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -16,9 +17,9 @@ function Router() {
       <Route path="/image-gen" component={ImageGenerator} />
       <Route path="/bg-remover" component={BackgroundRemover} />
       <Route path="/mockup" component={MockupGenerator} />
+      <Route path="/projects" component={MyProjects} />
       
       {/* Mock routes for sidebar navigation to just show home for now, or 404 */}
-      <Route path="/projects" component={Home} />
       <Route path="/favorites" component={Home} />
       <Route component={NotFound} />
     </Switch>
