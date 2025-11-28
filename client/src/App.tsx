@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Home from "@/pages/home";
+import Discover from "@/pages/discover";
 import ImageGenerator from "@/pages/image-generator";
 import BackgroundRemover from "@/pages/background-remover";
 import MockupGenerator from "@/pages/mockup-generator";
@@ -18,6 +19,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/discover" component={Discover} />
       <Route path="/image-gen" component={ImageGenerator} />
       <Route path="/bg-remover" component={BackgroundRemover} />
       <Route path="/mockup" component={MockupGenerator} />

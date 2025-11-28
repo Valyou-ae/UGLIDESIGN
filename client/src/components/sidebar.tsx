@@ -13,7 +13,8 @@ import {
   ChevronRight,
   ChevronLeft,
   Sun,
-  Moon
+  Moon,
+  Compass
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -78,6 +79,7 @@ export function Sidebar({ className }: SidebarProps) {
 
   const navigation = [
     { name: "Home", icon: Home, href: "/", count: null },
+    { name: "Discover", icon: Compass, href: "/discover", badge: "New" },
     { name: "Image Generator", icon: ImageIcon, href: "/image-gen", badge: "5 agents" },
     { name: "Mockup Generator", icon: Shirt, href: "/mockup", badge: "New" },
     { name: "Background Remover", icon: Scissors, href: "/bg-remover", count: null },
@@ -149,6 +151,8 @@ export function Sidebar({ className }: SidebarProps) {
         <nav className="space-y-1">
           {navigation.map((item) => {
             const isActive = location === item.href;
+            const isDiscover = item.name === "Discover";
+            
             return (
               <TooltipProvider key={item.name} delayDuration={0}>
                 <Tooltip>
@@ -160,19 +164,35 @@ export function Sidebar({ className }: SidebarProps) {
                           collapsed ? "justify-center w-10 h-10 mx-auto p-0" : "px-3.5 py-3 text-sm",
                           isActive 
                             ? "text-primary bg-primary/5" 
-                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground",
+                          // Special styling for Discover when active
+                          isActive && isDiscover && "bg-gradient-to-r from-[#7C3AED]/15 to-[#EC4899]/15 text-[#FAFAFA] border-l-[3px] border-l-transparent border-image-[linear-gradient(180deg,#7C3AED,#EC4899)] border-image-slice-1"
                         )}
+                        style={isActive && isDiscover ? { borderImageSource: 'linear-gradient(180deg, #7C3AED, #EC4899)', borderImageSlice: 1, borderLeftWidth: '3px', borderStyle: 'solid', borderTop: 'none', borderRight: 'none', borderBottom: 'none' } : {}}
                       >
-                        {isActive && !collapsed && (
+                        {isActive && !collapsed && !isDiscover && (
                           <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 bg-primary rounded-r-full" />
                         )}
-                        <item.icon className={cn("h-5 w-5 flex-shrink-0", isActive ? "text-primary" : "text-sidebar-foreground/50 group-hover:text-sidebar-foreground")} />
+                        
+                        <item.icon 
+                          className={cn(
+                            "h-5 w-5 flex-shrink-0", 
+                            isActive ? "text-primary" : "text-sidebar-foreground/50 group-hover:text-sidebar-foreground",
+                            isDiscover && isActive && "text-[#7C3AED]" // Fallback or gradient if possible via style
+                          )} 
+                          style={isDiscover && isActive ? { color: '#7C3AED' } : {}}
+                        />
                         
                         {!collapsed && (
                           <>
-                            <span className="flex-1 truncate">{item.name}</span>
+                            <span className={cn("flex-1 truncate", isDiscover && isActive && "font-semibold")}>{item.name}</span>
                             {item.badge && (
-                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary whitespace-nowrap">
+                              <span className={cn(
+                                "text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap",
+                                isDiscover 
+                                  ? "bg-gradient-to-r from-[#7C3AED] to-[#EC4899] text-white"
+                                  : "bg-primary/10 text-primary"
+                              )}>
                                 {item.badge}
                               </span>
                             )}
