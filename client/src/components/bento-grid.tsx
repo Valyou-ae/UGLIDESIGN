@@ -1,0 +1,299 @@
+import { 
+  Sparkles, 
+  Shirt, 
+  Scissors, 
+  ArrowRight, 
+  Image as ImageIcon, 
+  Clock, 
+  TrendingUp, 
+  Zap, 
+  Plus, 
+  Upload, 
+  Layers, 
+  Link as LinkIcon, 
+  Shuffle,
+  RefreshCw
+} from "lucide-react";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+
+// Assets
+import project1 from "@assets/generated_images/abstract_creative_digital_art_of_a_beach_sunset_with_geometric_overlays.png";
+import project2 from "@assets/generated_images/minimalist_logo_design_sketch_with_geometric_shapes.png";
+import project3 from "@assets/generated_images/cyberpunk_neon_cityscape_with_futuristic_purple_and_blue_tones.png";
+import suggestionImg from "@assets/generated_images/vintage_polaroid_photo_effect_with_warm_tones.png";
+
+interface ModuleCardProps {
+  title: string;
+  description: string;
+  icon: React.ElementType;
+  gradient: string;
+  circleColor: string;
+  badge?: string;
+  badgeCount?: string;
+  delay?: number;
+}
+
+function ModuleCard({ title, description, icon: Icon, gradient, circleColor, badge, badgeCount, delay = 0 }: ModuleCardProps) {
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay }}
+      className={cn(
+        "relative overflow-hidden rounded-[24px] p-7 min-h-[220px] cursor-pointer group transition-all duration-500",
+        gradient
+      )}
+      whileHover={{ y: -4, scale: 1.01 }}
+    >
+      {/* Decorative Circle */}
+      <div 
+        className="absolute -top-20 -right-20 w-[240px] h-[240px] rounded-full blur-3xl opacity-40 transition-transform duration-700 group-hover:scale-110"
+        style={{ backgroundColor: circleColor }}
+      />
+
+      {/* Badge */}
+      {(badge || badgeCount) && (
+        <div className="absolute top-7 right-7">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/10 shadow-sm">
+            <span className="text-[11px] font-medium text-white">
+              {badge || badgeCount}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Content */}
+      <div className="relative h-full flex flex-col justify-end z-10">
+        <div className="mb-auto">
+          <div className="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-6 border border-white/10 shadow-inner">
+            <Icon className="h-6 w-6 text-white" />
+          </div>
+        </div>
+        
+        <h3 className="text-xl font-bold text-white mb-1 tracking-tight">{title}</h3>
+        <p className="text-sm text-white/80 font-medium">{description}</p>
+        
+        <div className="absolute bottom-0 right-0 opacity-0 transform translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+          <div className="h-10 w-10 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
+            <ArrowRight className="h-5 w-5 text-white" />
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function StatCard({ icon: Icon, value, label, trend, colorClass, delay }: any) {
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3, delay }}
+      className="bg-sidebar-accent/40 border border-sidebar-border/50 rounded-2xl p-5 flex flex-col hover:bg-sidebar-accent/60 transition-colors"
+    >
+      <div className="flex justify-between items-start mb-3">
+        <div className={cn("h-8 w-8 rounded-full flex items-center justify-center", colorClass)}>
+          <Icon className="h-4 w-4" />
+        </div>
+        <span className="inline-flex items-center text-[10px] font-medium text-green-600 bg-green-500/10 px-1.5 py-0.5 rounded-md">
+          {trend}
+        </span>
+      </div>
+      <div className="mt-auto">
+        <div className="text-2xl font-bold text-foreground tracking-tight">{value}</div>
+        <div className="text-xs text-muted-foreground font-medium mt-0.5">{label}</div>
+      </div>
+    </motion.div>
+  );
+}
+
+function QuickAction({ icon: Icon, label }: any) {
+  return (
+    <div className="group flex items-center justify-between p-3.5 bg-card border border-sidebar-border/50 rounded-xl cursor-pointer hover:shadow-md hover:border-green-500/30 transition-all duration-300">
+      <div className="flex items-center gap-3">
+        <div className="h-8 w-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center group-hover:bg-green-50 dark:group-hover:bg-green-900/20 transition-colors">
+          <Icon className="h-4 w-4 text-muted-foreground group-hover:text-green-600 transition-colors" />
+        </div>
+        <span className="text-sm font-medium text-foreground/80 group-hover:text-foreground transition-colors">{label}</span>
+      </div>
+      <ArrowRight className="h-4 w-4 text-muted-foreground/50 transform -translate-x-2 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+    </div>
+  );
+}
+
+function ProjectCard({ image, title, time, type, delay }: any) {
+  const colors = {
+    image: "border-purple-500/50 hover:shadow-purple-500/20",
+    mockup: "border-blue-500/50 hover:shadow-blue-500/20",
+    bg: "border-pink-500/50 hover:shadow-pink-500/20",
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5, delay }}
+      className={cn(
+        "group relative aspect-square rounded-2xl overflow-hidden border border-border cursor-pointer hover:border-2 transition-all duration-300 hover:shadow-lg",
+        colors[type as keyof typeof colors]
+      )}
+    >
+      <img src={image} alt={title} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
+      
+      <div className="absolute bottom-0 left-0 p-4 w-full">
+        <h4 className="text-sm font-semibold text-white truncate">{title}</h4>
+        <p className="text-[10px] text-white/70">{time}</p>
+      </div>
+    </motion.div>
+  );
+}
+
+export function BentoGrid() {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-10">
+      
+      {/* ROW 1: Modules */}
+      <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <ModuleCard 
+          title="Image Generator" 
+          description="Create stunning visuals with AI"
+          icon={Sparkles}
+          gradient="bg-gradient-to-br from-purple-600 to-purple-800"
+          circleColor="#A855F7"
+          badgeCount="5 AI Agents"
+          delay={0.1}
+        />
+        <ModuleCard 
+          title="Mockup Generator" 
+          description="Professional product mockups"
+          icon={Shirt}
+          gradient="bg-gradient-to-br from-blue-500 to-blue-700"
+          circleColor="#60A5FA"
+          badge="50+ Products"
+          delay={0.2}
+        />
+        <ModuleCard 
+          title="Background Remover" 
+          description="Remove backgrounds in seconds"
+          icon={Scissors}
+          gradient="bg-gradient-to-br from-pink-500 to-pink-700"
+          circleColor="#F472B6"
+          badge="Instant"
+          delay={0.3}
+        />
+      </div>
+
+      {/* ROW 2 */}
+      <div className="lg:col-span-2 bg-card border border-sidebar-border/50 rounded-[24px] p-7 shadow-sm">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-bold text-foreground">This Month's Stats</h2>
+          <Button variant="outline" size="sm" className="h-8 text-xs rounded-full border-border">
+            December 2024 <ArrowRight className="ml-2 h-3 w-3 rotate-90" />
+          </Button>
+        </div>
+        
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <StatCard 
+            icon={ImageIcon} 
+            value="247" 
+            label="Images Created" 
+            trend="↑ 12%" 
+            colorClass="bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400"
+            delay={0.4}
+          />
+          <StatCard 
+            icon={Shirt} 
+            value="89" 
+            label="Mockups Gen" 
+            trend="↑ 8%" 
+            colorClass="bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+            delay={0.5}
+          />
+          <StatCard 
+            icon={Scissors} 
+            value="156" 
+            label="BG Removed" 
+            trend="↑ 23%" 
+            colorClass="bg-pink-100 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400"
+            delay={0.6}
+          />
+          <StatCard 
+            icon={Clock} 
+            value="12.5h" 
+            label="Time Saved" 
+            trend="↑ 15%" 
+            colorClass="bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
+            delay={0.7}
+          />
+        </div>
+      </div>
+
+      <div className="lg:col-span-1 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/10 dark:to-emerald-950/10 border border-green-200/50 dark:border-green-900/20 rounded-[24px] p-6">
+        <div className="flex items-center gap-2 mb-5">
+          <Zap className="h-5 w-5 text-green-600" />
+          <h2 className="text-lg font-bold text-foreground">Quick Actions</h2>
+        </div>
+        
+        <div className="space-y-2.5">
+          <QuickAction icon={Plus} label="Start New Project" />
+          <QuickAction icon={Upload} label="Upload Design" />
+          <QuickAction icon={Layers} label="Batch Process" />
+          <QuickAction icon={LinkIcon} label="Import from URL" />
+          <QuickAction icon={Shuffle} label="Random Prompt" />
+        </div>
+      </div>
+
+      {/* ROW 3 */}
+      <div className="lg:col-span-2 bg-card border border-sidebar-border/50 rounded-[24px] p-7 shadow-sm">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-bold text-foreground">Recent Work</h2>
+          <a href="#" className="text-sm font-medium text-primary hover:underline">View All →</a>
+        </div>
+        
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <ProjectCard image={project1} title="Beach Sunset" time="2h ago" type="image" delay={0.5} />
+          <ProjectCard image={project2} title="Tech Logo" time="4h ago" type="mockup" delay={0.6} />
+          <ProjectCard image={project3} title="Neon City" time="Yesterday" type="bg" delay={0.7} />
+          <ProjectCard image={suggestionImg} title="Vintage Photo" time="Yesterday" type="image" delay={0.8} />
+          {/* Reuse images for demo */}
+          <ProjectCard image={project3} title="Cyberpunk Char" time="2 days ago" type="image" delay={0.9} />
+          <ProjectCard image={project1} title="Abstract Wave" time="3 days ago" type="bg" delay={1.0} />
+        </div>
+      </div>
+
+      <div className="lg:col-span-1 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/10 dark:to-orange-950/10 border border-amber-200/50 dark:border-amber-900/20 rounded-[24px] p-6">
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-amber-500 animate-pulse" />
+            <h2 className="text-lg font-bold text-foreground">AI Suggestions</h2>
+          </div>
+          <Button size="icon" variant="ghost" className="h-8 w-8 text-amber-600 hover:bg-amber-100 dark:hover:bg-amber-900/40 rounded-full">
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="space-y-3">
+          {[
+            { badge: "Trending", text: "A cyberpunk cityscape at night with neon signs...", type: "trending" },
+            { badge: "For You", text: "Minimalist logo design with geometric shapes...", type: "foryou" },
+            { badge: "Popular", text: "Vintage polaroid photo effect with warm tones...", type: "popular" },
+          ].map((item, i) => (
+            <div key={i} className="group bg-card border border-sidebar-border/50 p-4 rounded-xl cursor-pointer hover:border-l-4 hover:border-l-amber-500 hover:translate-x-1 transition-all duration-300 shadow-sm">
+              <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 mb-2">
+                {item.badge}
+              </span>
+              <p className="text-sm text-foreground/80 line-clamp-2 group-hover:text-foreground">{item.text}</p>
+              <div className="h-0 overflow-hidden group-hover:h-5 transition-all duration-300">
+                <span className="text-xs font-medium text-amber-600 mt-2 inline-block">Use Prompt →</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+    </div>
+  );
+}
