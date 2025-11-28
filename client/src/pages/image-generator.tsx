@@ -294,7 +294,7 @@ export default function ImageGenerator() {
         
         {/* TOP SECTION: PROMPT BAR (Minimalistic) */}
         <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border px-6 py-4 transition-all">
-          <div className="max-w-5xl mx-auto w-full space-y-4">
+          <div className="max-w-[1800px] mx-auto w-full space-y-4">
             
             {/* Prompt Input & Controls */}
             <div className="flex items-end gap-3">
@@ -332,12 +332,30 @@ export default function ImageGenerator() {
 
                 {/* Right Side Actions inside Input */}
                 <div className="flex items-center gap-1 mb-0.5 shrink-0">
-                  <div className={cn(
-                    "text-[10px] font-medium mr-2 transition-colors select-none",
-                    prompt.length > 1800 ? "text-amber-500" : "text-muted-foreground/50"
-                  )}>
-                    {prompt.length}/2000
-                  </div>
+                  {/* Generate Button (Visible only when typing) */}
+                  <AnimatePresence>
+                    {prompt.trim().length > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.8, width: 0 }}
+                        animate={{ opacity: 1, scale: 1, width: "auto" }}
+                        exit={{ opacity: 0, scale: 0.8, width: 0 }}
+                        className="overflow-hidden mr-1"
+                      >
+                        <Button 
+                          onClick={handleGenerate}
+                          disabled={status === "generating"}
+                          size="icon"
+                          className="h-8 w-8 rounded-lg bg-primary hover:bg-primary/90 text-white shadow-sm"
+                        >
+                          {status === "generating" ? (
+                            <RefreshCw className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Sparkles className="h-4 w-4 fill-white" />
+                          )}
+                        </Button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                   <TooltipProvider>
                     <Tooltip>
@@ -357,25 +375,6 @@ export default function ImageGenerator() {
                 </div>
               </div>
 
-              {/* Generate Button - Standard Style */}
-              <Button 
-                onClick={handleGenerate}
-                disabled={status === "generating" || !prompt.trim()}
-                size="lg"
-                className="h-[54px] px-8 rounded-xl font-semibold shadow-md shrink-0"
-              >
-                {status === "generating" ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    Imagine
-                  </>
-                )}
-              </Button>
             </div>
 
             {/* Settings Panel (Inline Expandable) */}
