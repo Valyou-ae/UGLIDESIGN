@@ -329,9 +329,9 @@ export default function ImageGenerator() {
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="h-14 w-14 text-muted-foreground hover:text-foreground bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-transparent hover:border-border/40"
+                        className="h-10 w-10 text-muted-foreground hover:text-foreground bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-transparent hover:border-border/40"
                       >
-                        <ImageIconLucide className="h-8 w-8" strokeWidth={1.5} />
+                        <ImageIconLucide className="h-5 w-5" strokeWidth={1.5} />
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent align="start" className="w-auto p-2">
