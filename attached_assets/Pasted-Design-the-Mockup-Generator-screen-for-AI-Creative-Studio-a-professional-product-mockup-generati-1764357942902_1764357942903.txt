@@ -1,0 +1,440 @@
+Design the Mockup Generator screen for "AI Creative Studio" - a professional product mockup generation tool for print-on-demand businesses. Follow the sidebar + bento grid layout from dashboard. Dark/light theme support. Premium, professional UI with indigo accent color.
+
+=== PAGE STRUCTURE ===
+Full viewport, no main scroll
+Layout: Fixed left sidebar (280px, same as dashboard) + Main content area
+Background: #FAFAFA (light) / #09090B (dark)
+
+=== LEFT SIDEBAR (Same as Dashboard) ===
+Width: 280px, full height, fixed
+Background: #FFFFFF (light) / #18181B (dark)
+Border-right: 1px solid #E4E4E7 (light) / #27272A (dark)
+
+Sidebar content same as dashboard BUT:
+- "Mockup Generator" nav item is now ACTIVE (indigo highlight #4F46E5, left border 3px)
+- Badge next to item: "50+ Products" in indigo
+
+=== MAIN CONTENT AREA ===
+Two-state layout:
+1. Journey Selection (initial state)
+2. Step-by-Step Wizard (after journey selected)
+
+=== STATE 1: JOURNEY SELECTION ===
+
+Centered container, max-width 800px, vertical center
+
+Header:
+- "Welcome to Mockup Generator" - 32px, bold, #18181B (dark: #FAFAFA)
+- "Choose your print method to get started" - 16px, #71717A
+- Margin-bottom: 48px
+
+Journey Cards (2 cards side by side, 24px gap):
+
+--- Card 1: Direct-to-Garment (DTG) ---
+Background: #FFFFFF (dark: #18181B)
+Border: 2px solid #E4E4E7 (dark: #27272A)
+Border-radius: 24px
+Padding: 40px
+Cursor: pointer
+Transition: all 300ms
+
+Hover state:
+- Border-color: #4F46E5
+- Transform: translateY(-8px)
+- Box-shadow: 0 20px 40px rgba(79, 70, 229, 0.15)
+
+Content:
+- Icon container: 64px, bg #EEF2FF, rounded-xl, centered
+- Icon: Shirt icon, 32px, #4F46E5
+- Title: "Direct-to-Garment (DTG)" - 22px, bold, margin-top 24px
+- Description: "For designs placed on a specific area of a product, like a logo on the chest of a t-shirt or a graphic on a tote bag." - 14px, #71717A, margin-top 12px
+- CTA: "Choose DTG →" - 14px, bold, #4F46E5, margin-top 24px, hover underline
+
+--- Card 2: All-Over Print (AOP) ---
+Same structure as Card 1 but:
+- Icon container: bg #F3E8FF
+- Icon: Grid/BoxSelect pattern icon, 32px, #9333EA
+- Title: "All-Over Print (AOP)"
+- Description: "For seamless patterns that cover the entire surface of a product, like leggings, backpacks, or custom-cut apparel."
+- CTA: "Choose AOP →" - #9333EA
+- Hover border: #9333EA
+- Badge on card: "Pro" - 11px, #F59E0B bg, white text, absolute top-right
+
+=== STATE 2: STEP-BY-STEP WIZARD ===
+
+--- Top Progress Bar ---
+Full width, padding 24px 40px
+Background: #FFFFFF (dark: #18181B)
+Border-bottom: 1px solid #E4E4E7
+
+Progress tracker (horizontal stepper):
+- Horizontal line connecting all steps
+- 8 steps for DTG / 9 steps for AOP
+
+Each step node:
+- Circle: 36px diameter
+- Icon inside: 18px
+- Connected by line
+
+Step states:
+- Completed: bg #4F46E5, white icon, line #4F46E5
+- Current: bg #4F46E5, white icon, ring 4px #4F46E5/30
+- Upcoming: bg #E4E4E7, #71717A icon, line #E4E4E7
+
+Step labels below circles:
+- 10px, uppercase, bold
+- Current: #4F46E5
+- Others: #A1A1AA
+
+Steps for DTG journey:
+1. Upload (Cloud icon)
+2. Product (ShoppingBag icon)
+3. Platform (Building icon)
+4. Style (Sparkles icon)
+5. Scene (MapPin icon)
+6. Colors (Palette icon)
+7. Angles (Camera icon)
+8. Generate (Wand icon)
+
+Steps for AOP journey (adds "Seamless" after Upload):
+1. Upload
+2. Seamless (Repeat icon) - Extra step
+3. Product
+4. Platform
+5. Style
+6. Scene
+7. Colors
+8. Angles
+9. Generate
+
+--- Main Content Card ---
+Background: #FFFFFF (dark: #18181B)
+Border: 1px solid #E4E4E7 (dark: #27272A)
+Border-radius: 20px
+Margin: 24px 40px
+Flex: 1
+Overflow: hidden
+Display: flex flex-col
+
+Content area: flex-1, overflow-y auto, padding 32px
+Footer: Fixed bottom, border-top
+
+=== STEP SCREENS ===
+
+--- STEP 1: UPLOAD ---
+Centered content, max-width 600px
+
+Upload zone:
+- Dashed border 2px, #E4E4E7
+- Border-radius: 20px
+- Padding: 64px
+- Text-align: center
+
+Content:
+- Cloud upload icon, 64px, #4F46E5
+- "Drag & drop your design" - 20px, bold
+- "or click to browse" - 14px, #71717A
+- "PNG recommended • Max 20MB" - 12px, #A1A1AA, margin-top 16px
+
+Drag-over state:
+- Border: solid #4F46E5
+- Background: #EEF2FF
+
+After upload - Preview:
+- Image preview with aspect ratio maintained
+- File info: name, size, dimensions
+- "Change file" link
+
+--- STEP 2: SEAMLESS (AOP only) ---
+Header: "Make Your Design Seamless"
+Subheader: "Convert your design into a tileable pattern"
+
+Grid of 4 seamless variations:
+- Each card shows pattern preview
+- Quality score badge
+- "Recommended" badge on best option
+- Radio selection
+
+Pattern scale slider:
+- Label: "Pattern Scale"
+- Range: 1-100
+- Visual preview updates in real-time
+
+--- STEP 3: PRODUCT & MODEL ---
+3-Column layout
+
+Column 1 - Category tabs (vertical):
+- "Men's Clothing" (active)
+- "Women's Clothing"
+- "Kids' Clothing"
+- "Accessories"
+- "Home & Living"
+
+Below tabs - Subcategory list:
+- "T-shirts"
+- "Long Sleeves"
+- "Sweatshirts"
+- "Hoodies"
+- "Tank Tops"
+- etc.
+
+Column 2 - Product grid:
+Header: "Choose Product"
+Product cards:
+- Brand name (bold)
+- Product name (small)
+- Checkmark when selected
+- Selected: bg #4F46E5, white text
+
+Column 3 - Model configuration:
+Header: "Configure Model"
+Disabled until product selected
+
+Options (chip selectors):
+
+Age Group:
+- "Young Adult" "Adult" "Senior"
+
+Gender:
+- "Female" "Male" "Non-Binary"
+
+Ethnicity:
+- "White" "Black" "Asian" "Hispanic" "Diverse"
+
+Model Size:
+- "Small" "Medium" "Large" "X-Large"
+
+Summary card:
+- "A size Medium Adult Asian Female"
+- bg #F4F4F5, rounded-lg
+
+--- STEP 4: PLATFORM ---
+Header: "Select E-Commerce Platform"
+Subheader: "Optimize mockups for your marketplace"
+
+Platform grid (3x2):
+
+Each platform card:
+- Logo/icon
+- Platform name
+- "Optimized for..." description
+- Selection indicator
+
+Platforms:
+1. Amazon (orange accent)
+2. Etsy (orange accent)
+3. Shopify (green accent)
+4. WooCommerce (purple accent)
+5. eBay (blue accent)
+6. General Purpose (gray)
+
+Selected state:
+- Border: 2px #4F46E5
+- Checkmark badge
+
+--- STEP 5: BRAND STYLE ---
+Header: "Choose Brand Archetype"
+Subheader: "Define the mood and aesthetic of your photoshoot"
+
+Style cards grid (3 columns):
+
+Each style card:
+- Mood image/gradient background
+- Style name
+- Description
+- Tags (e.g., "Minimal", "Clean", "Modern")
+
+Styles:
+1. "Minimalist Luxury" - Clean, high-end, subtle
+2. "Urban Street" - Gritty, authentic, street style
+3. "Natural Organic" - Earthy, sustainable, outdoor
+4. "Bold & Vibrant" - Colorful, energetic, playful
+5. "Dark & Moody" - Dramatic, editorial, high contrast
+6. "Vintage Retro" - Nostalgic, warm, classic
+7. "Tech Modern" - Sleek, futuristic, innovative
+8. "Bohemian" - Free-spirited, artistic, eclectic
+
+--- STEP 6: SCENE / ENVIRONMENT ---
+Header: "Describe the Scene"
+Subheader: "Set the environment for your photoshoot"
+
+Quick presets (horizontal scroll):
+- "Studio White"
+- "Urban Street"
+- "Nature Outdoor"
+- "Home Interior"
+- "Beach/Ocean"
+- "City Night"
+
+Custom prompt textarea:
+- Large textarea
+- Placeholder: "Describe the environment in detail... e.g., 'A sunlit loft apartment with exposed brick walls, wooden floors, and large windows with natural light streaming in'"
+- Character count
+
+AI suggestions:
+- Sparkle icon
+- "✨ Try: Modern coffee shop with warm lighting"
+- Click to apply
+
+--- STEP 7: COLORS ---
+Header: "Select Product Colors"
+Subheader: "Choose which colors to generate mockups for"
+
+Color grid:
+- Available colors from selected product
+- Each color as circle with hex
+- Multi-select enabled
+- Selected: ring 3px #4F46E5
+
+Quick actions:
+- "Select All"
+- "Clear All"
+
+Color preview:
+- Shows product silhouette in selected color
+- Animated transition between colors
+
+Selected summary:
+- "3 colors selected" badge
+
+--- STEP 8: CAMERA ANGLES ---
+Header: "Choose Camera Angles"
+Subheader: "Select the perspectives for your photoshoot"
+
+Angle cards (2-column grid):
+
+Each angle card:
+- Icon representing angle
+- Angle name
+- Description
+- "Recommended" badge on key angles
+- Checkbox selection
+
+Angles:
+1. "Front View" ⭐ Recommended - "Direct frontal shot - the hero image"
+2. "Three-Quarter" ⭐ Recommended - "45° angle to show dimension and fit"
+3. "Side Profile" - "90° side view to showcase silhouette"
+4. "Close-up" ⭐ Recommended - "Detailed shot of design and fabric"
+5. "Size Chart" (Amazon only) - "Graphic for Amazon listings"
+
+Quick packs:
+- "Standard Pack (2)" button - Front + Three-Quarter
+- "Full Collection (4)" button - All angles
+
+Calculation display:
+- bg #18181B, text white, rounded-lg
+- "3 Angles × 4 Colors = 12 Total Mockups"
+
+--- STEP 9: GENERATE ---
+
+Pre-generation view:
+- Centered content
+- "Ready to Generate Photoshoot" - 24px, bold
+- Summary card with all selections
+
+Mode toggle:
+- Segmented control
+- "⚡ Fast" - Quick generation
+- "✨ Pro" - Higher quality (requires API key)
+
+Generation summary:
+- Total mockups count
+- Estimated time
+- Mode selected
+
+Generate button:
+- Large, centered
+- Gradient #4F46E5 to #6366F1
+- "✨ Generate X Mockups"
+- Icon: Wand
+
+Loading state:
+- Spinner animation
+- "Generating..." with stage name
+- Progress percentage
+- Skeleton cards for previews
+
+Results view:
+- Grid of generated mockups (3 columns)
+- Each result card:
+  - Image preview
+  - Color badge
+  - Angle badge
+  - Hover actions: Zoom, Download, Copy
+  - Refinement input: "Refine this shot..."
+  - For AOP: Pattern scale slider
+
+Results header:
+- "X Mockups Ready"
+- Seed number display
+- Actions: "Download ZIP", "Start Over"
+
+--- FOOTER NAVIGATION ---
+Background: #F4F4F5 (dark: #27272A)
+Padding: 16px 24px
+Border-top: 1px solid #E4E4E7
+
+Left: "← Back" button (ghost style)
+Right: "Next Step →" button (primary, #4F46E5)
+
+Keyboard hints:
+- "Enter Next • Esc Back"
+- 12px, #A1A1AA
+
+Disabled states:
+- Back disabled on step 1
+- Next disabled until step requirements met
+
+=== MODALS ===
+
+--- Image Zoom Modal ---
+Full screen overlay
+Black background 95%
+Centered image, max dimensions
+Close X button top-right
+Download button bottom
+
+--- API Key Modal ---
+Centered card
+Warning icon
+"API Key Required" title
+Description text
+"Select API Key" button
+
+=== MICRO-INTERACTIONS ===
+- Step circles fill with progress animation
+- Product cards lift on hover
+- Color circles pulse when selected
+- Angle cards have checkbox animation
+- Generate button has shimmer effect
+- Results fade in staggered
+- Refinement input expands on focus
+
+=== RESPONSIVE BEHAVIOR ===
+Desktop (1440px+): Full layout
+Laptop (1024-1439px): Narrower content, 2-column grids
+Tablet (768-1023px): Single column, collapsible sidebar
+Mobile (<768px): Full-width, bottom navigation, sheet-based selectors
+
+=== COLOR TOKENS (Indigo Theme) ===
+Primary: #4F46E5
+Primary Light: #6366F1
+Primary Lighter: #EEF2FF
+Primary Dark: #4338CA
+Secondary Purple: #9333EA (for AOP)
+Success: #16A34A
+Warning: #F59E0B
+Error: #DC2626
+
+=== PRODUCT CATEGORIES ===
+Men's Clothing: T-shirts, Long Sleeves, Sweatshirts, Hoodies, Tank Tops, Sportswear, Bottoms, Swimwear, Shoes
+Women's Clothing: T-shirts, Long Sleeves, Sweatshirts, Hoodies, Tank Tops, Skirts & Dresses, Sportswear, Bottoms, Swimwear, Shoes
+Kids' Clothing: T-shirts, Long Sleeves, Sweatshirts, Baby Clothing, Sportswear, Bottoms
+Accessories: Phone Cases, Bags, Socks, Hats, Baby Accessories, Mouse Pads, Pets, Jewelry, Kitchen Accessories
+Home & Living: Mugs, Candles, Bottles & Tumblers, Canvas, Posters, Towels, Blankets, Pillows & Covers
+
+=== TYPOGRAPHY ===
+Headings: Inter, bold
+Body: Inter, regular
+Step labels: Inter, 10px, uppercase, bold
+Badges: Inter, 11px, bold
