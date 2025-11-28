@@ -69,12 +69,25 @@ export default function BackgroundRemover() {
   const [processingStage, setProcessingStage] = useState("");
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup interval on unmount
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, []);
 
   // Mock processing simulation
   const processImage = () => {
+    if (state === "processing") return; // Prevent double clicks
+    
     setState("processing");
     setProgress(0);
     setProcessingStage("Analyzing image...");
+
+    // Clear any existing interval
+    if (intervalRef.current) clearInterval(intervalRef.current);
 
     const stages = [
       { pct: 20, text: "Detecting subject..." },
@@ -85,9 +98,9 @@ export default function BackgroundRemover() {
 
     let currentStage = 0;
 
-    const interval = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       if (currentStage >= stages.length) {
-        clearInterval(interval);
+        if (intervalRef.current) clearInterval(intervalRef.current);
         setState("complete");
         toast({
           title: "Background removed!",
@@ -109,8 +122,7 @@ export default function BackgroundRemover() {
       const reader = new FileReader();
       reader.onload = (event) => {
         setSelectedImage(event.target?.result as string);
-        // Auto start processing for demo
-        // processImage(); // Let's make it manual for better UX as per brief
+        // We don't auto-start processing anymore to give user control
       };
       reader.readAsDataURL(file);
     }
@@ -118,9 +130,11 @@ export default function BackgroundRemover() {
 
   const handleSampleSelect = (img: string) => {
     setSelectedImage(img);
+    setState("idle"); // Ensure we reset state if a new sample is picked
   };
 
   const reset = () => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
     setState("idle");
     setSelectedImage(null);
     setProgress(0);
@@ -146,7 +160,7 @@ export default function BackgroundRemover() {
                   <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-pink-500 to-pink-600 bg-clip-text text-transparent">
                     Background Remover
                   </h1>
-                  <Scissors className="h-6 w-6 text-pink-600 animate-[cut_2s_ease-in-out_infinite]" />
+                  <Scissors className="h-6 w-6 text-pink-600 animate-cut" />
                 </div>
                 <Badge className="bg-pink-600 hover:bg-pink-700 text-white rounded-full px-2 py-0.5 text-[11px]">
                   Instant
@@ -479,7 +493,7 @@ export default function BackgroundRemover() {
               
               <div className="mb-8 relative inline-block">
                 <div className="absolute inset-0 bg-pink-500/20 blur-xl rounded-full animate-pulse" />
-                <Scissors className="h-16 w-16 text-pink-500 relative z-10 animate-[spin_3s_linear_infinite]" />
+                <Scissors className="h-16 w-16 text-pink-500 relative z-10 animate-cut" />
               </div>
               
               <h3 className="text-xl font-bold mb-2">{processingStage}</h3>
