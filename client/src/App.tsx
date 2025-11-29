@@ -14,6 +14,8 @@ import Billing from "@/pages/billing";
 import Settings from "@/pages/settings";
 import HelpSupport from "@/pages/help-support";
 import Login from "@/pages/login";
+import ForgotPassword from "@/pages/forgot-password";
+import Signup from "@/pages/signup";
 import Profile from "@/pages/profile";
 import NotFound from "@/pages/not-found";
 import NewProject from "@/pages/new-project";
@@ -28,6 +30,8 @@ function Router() {
       <Route path="/" component={Login} />
       <Route path="/home" component={Home} />
       <Route path="/login" component={Login} />
+      <Route path="/forgot-password" component={ForgotPassword} />
+      <Route path="/signup" component={Signup} />
       <Route path="/profile" component={Profile} />
       <Route path="/discover" component={Discover} />
       <Route path="/image-gen" component={ImageGenerator} />
