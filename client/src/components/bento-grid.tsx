@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { 
   Sparkles, 
   Shirt, 
@@ -36,6 +37,18 @@ interface ModuleCardProps {
   delay?: number;
   href?: string;
 }
+
+const SUGGESTIONS_POOL = [
+  { badge: "Trending", text: "A cyberpunk cityscape at night with neon signs...", fullText: "A cyberpunk cityscape at night with neon signs, flying cars, rain reflecting on the streets, cinematic lighting, highly detailed, 8k resolution" },
+  { badge: "For You", text: "Minimalist logo design with geometric shapes...", fullText: "Minimalist logo design with geometric shapes, vector art, flat design, clean lines, professional, corporate identity, white background" },
+  { badge: "Popular", text: "Vintage polaroid photo effect with warm tones...", fullText: "Vintage polaroid photo effect with warm tones, nostalgic atmosphere, grain, scratch textures, emotional, candid shot" },
+  { badge: "Featured", text: "Abstract fluid art with gold and marble...", fullText: "Abstract fluid art with gold and marble textures, swirling colors, luxury aesthetic, high contrast, macro photography" },
+  { badge: "New", text: "Isometric 3D room design with plants...", fullText: "Isometric 3D room design with plants, cozy atmosphere, soft lighting, pastel colors, blender render, cute style" },
+  { badge: "Hot", text: "Synthwave sunset over a grid landscape...", fullText: "Synthwave sunset over a grid landscape, retro 80s style, mountains in background, chrome typography, purple and orange gradient" },
+  { badge: "Creative", text: "Surreal double exposure of forest and bear...", fullText: "Surreal double exposure of forest and bear silhouette, nature photography, misty trees, wildlife art, monochromatic" },
+  { badge: "Style", text: "Pop art portrait in Lichtenstein style...", fullText: "Pop art portrait in Lichtenstein style, comic book dots, bold outlines, primary colors, speech bubble, retro comic" },
+  { badge: "Decor", text: "Boho chic living room interior design...", fullText: "Boho chic living room interior design, macrame wall hanging, plants, rattan furniture, warm sunlight, cozy texture" },
+];
 
 function ModuleCard({ title, description, icon: Icon, gradient, circleColor, badge, badgeCount, delay = 0, href }: ModuleCardProps) {
   const content = (
@@ -166,6 +179,20 @@ function ProjectCard({ image, title, time, type, delay }: any) {
 }
 
 export function BentoGrid() {
+  const [suggestions, setSuggestions] = useState(SUGGESTIONS_POOL.slice(0, 3));
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefreshSuggestions = () => {
+    setIsRefreshing(true);
+    
+    // Shuffle and pick 3 random suggestions
+    const shuffled = [...SUGGESTIONS_POOL].sort(() => 0.5 - Math.random());
+    setSuggestions(shuffled.slice(0, 3));
+
+    // Add a small delay for the animation
+    setTimeout(() => setIsRefreshing(false), 500);
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-10">
       
@@ -255,26 +282,29 @@ export function BentoGrid() {
             <Sparkles className="h-5 w-5 text-amber-500 animate-pulse" />
             <h2 className="text-lg font-bold text-foreground">AI Suggestions</h2>
           </div>
-          <Button size="icon" variant="ghost" className="h-8 w-8 text-amber-600 hover:bg-amber-100 dark:hover:bg-amber-900/40 rounded-full">
-            <RefreshCw className="h-4 w-4" />
+          <Button 
+            size="icon" 
+            variant="ghost" 
+            className="h-8 w-8 text-amber-600 hover:bg-amber-100 dark:hover:bg-amber-900/40 rounded-full"
+            onClick={handleRefreshSuggestions}
+          >
+            <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
           </Button>
         </div>
 
         <div className="space-y-3">
-          {[
-            { badge: "Trending", text: "A cyberpunk cityscape at night with neon signs...", type: "trending" },
-            { badge: "For You", text: "Minimalist logo design with geometric shapes...", type: "foryou" },
-            { badge: "Popular", text: "Vintage polaroid photo effect with warm tones...", type: "popular" },
-          ].map((item, i) => (
-            <div key={i} className="group bg-card border border-sidebar-border/50 p-4 rounded-xl cursor-pointer hover:border-l-4 hover:border-l-amber-500 hover:translate-x-1 transition-all duration-300 shadow-sm">
-              <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 mb-2">
-                {item.badge}
-              </span>
-              <p className="text-sm text-foreground/80 line-clamp-2 group-hover:text-foreground">{item.text}</p>
-              <div className="h-0 overflow-hidden group-hover:h-5 transition-all duration-300">
-                <span className="text-xs font-medium text-amber-600 mt-2 inline-block">Use Prompt →</span>
+          {suggestions.map((item, i) => (
+            <Link key={i} href={`/image-gen?prompt=${encodeURIComponent(item.fullText)}`}>
+              <div className="group bg-card border border-sidebar-border/50 p-4 rounded-xl cursor-pointer hover:border-l-4 hover:border-l-amber-500 hover:translate-x-1 transition-all duration-300 shadow-sm h-full">
+                <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 mb-2">
+                  {item.badge}
+                </span>
+                <p className="text-sm text-foreground/80 line-clamp-2 group-hover:text-foreground">{item.text}</p>
+                <div className="h-0 overflow-hidden group-hover:h-5 transition-all duration-300">
+                  <span className="text-xs font-medium text-amber-600 mt-2 inline-block">Use Prompt →</span>
+                </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

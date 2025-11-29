@@ -181,6 +181,15 @@ export default function ImageGenerator() {
   const { toast } = useToast();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Initialize prompt from URL if available
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const promptParam = searchParams.get('prompt');
+    if (promptParam) {
+      setPrompt(promptParam);
+    }
+  }, []);
+
   // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
