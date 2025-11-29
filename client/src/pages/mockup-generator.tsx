@@ -32,7 +32,18 @@ import {
   ChevronDown,
   Menu,
   Tag,
-  Layers
+  Layers,
+  Footprints,
+  Smartphone,
+  Laptop,
+  Monitor,
+  Image as ImageIcon,
+  StickyNote,
+  Utensils,
+  BookOpen,
+  Smile,
+  Scissors,
+  LayoutGrid
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -377,8 +388,8 @@ export default function MockupGenerator() {
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
                           {/* Categories */}
                           <div className="lg:col-span-3 border-r border-border pr-6 flex flex-col gap-6">
-                            <div className="flex items-center gap-2 text-foreground mb-2">
-                              <Menu className="h-4 w-4 text-indigo-600" />
+                            <div className="flex items-center gap-2 text-foreground mb-4">
+                              <LayoutGrid className="h-4 w-4 text-indigo-600" />
                               <h3 className="text-lg font-bold">Select Category</h3>
                             </div>
 
@@ -411,16 +422,68 @@ export default function MockupGenerator() {
                                     { name: "Embroidered shirts", icon: Tag },
                                     { name: "3/4 sleeve shirts", icon: Shirt },
                                     { name: "Long sleeve shirts", icon: Shirt },
-                                    { name: "Dresses", icon: Layers }, // Placeholder
+                                    { name: "Dresses", icon: Layers }, 
                                     { name: "Knitwear", icon: Grid },
                                     { name: "Jackets", icon: Layers },
                                     { name: "Hoodies", icon: Cloud },
                                     { name: "Sweatshirts", icon: Shirt },
                                   ]
                                 },
-                                { name: "Kids' Clothing", icon: User, items: [] }, 
-                                { name: "Accessories", icon: ShoppingBag, items: [] },
-                                { name: "Home & Living", icon: Coffee, items: [] }
+                                { 
+                                  name: "Kids' Clothing", 
+                                  icon: User, 
+                                  items: [
+                                    { name: "T-shirts", icon: Shirt },
+                                    { name: "All-over shirts", icon: Grid },
+                                    { name: "3/4 sleeve shirts", icon: Shirt },
+                                    { name: "Long sleeve shirts", icon: Shirt },
+                                    { name: "Hoodies", icon: Cloud },
+                                    { name: "Sweatshirts", icon: Shirt },
+                                    { name: "Hats", icon: Smile }, // Using Smile as placeholder for kids/fun
+                                    { name: "Leggings", icon: Layers },
+                                    { name: "Baby bodysuits", icon: User },
+                                  ] 
+                                }, 
+                                { 
+                                  name: "Accessories", 
+                                  icon: ShoppingBag, 
+                                  items: [
+                                    { name: "Tote bags", icon: ShoppingBag },
+                                    { name: "Duffle bags", icon: ShoppingBag },
+                                    { name: "Drawstring bags", icon: ShoppingBag },
+                                    { name: "Backpacks", icon: ShoppingBag },
+                                    { name: "Handbags", icon: ShoppingBag },
+                                    { name: "Flip flops", icon: Footprints },
+                                    { name: "Shoes", icon: Footprints },
+                                    { name: "Socks", icon: Footprints },
+                                    { name: "Phone cases", icon: Smartphone },
+                                    { name: "Laptop cases", icon: Laptop },
+                                    { name: "Mouse pads", icon: Monitor },
+                                    { name: "Face masks", icon: Smile },
+                                  ] 
+                                },
+                                { 
+                                  name: "Home & Living", 
+                                  icon: Coffee, 
+                                  items: [
+                                    { name: "Wall art", icon: ImageIcon },
+                                    { name: "Posters", icon: StickyNote },
+                                    { name: "Framed posters", icon: ImageIcon },
+                                    { name: "Blankets", icon: Layers },
+                                    { name: "Pillow cases", icon: Layers },
+                                    { name: "Magnets", icon: StickyNote },
+                                    { name: "Tableware", icon: Utensils },
+                                    { name: "Water bottles", icon: Coffee },
+                                    { name: "Mugs", icon: Coffee },
+                                    { name: "Tumblers", icon: Coffee },
+                                    { name: "Coasters", icon: Coffee },
+                                    { name: "Postcards", icon: StickyNote },
+                                    { name: "Notebooks", icon: BookOpen },
+                                    { name: "Stickers", icon: StickyNote },
+                                    { name: "Aprons", icon: Scissors },
+                                    { name: "Towels", icon: Layers },
+                                  ] 
+                                }
                               ].map((cat) => {
                                 const isExpanded = expandedCategory === cat.name;
                                 return (
