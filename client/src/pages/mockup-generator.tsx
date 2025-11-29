@@ -74,8 +74,8 @@ export default function MockupGenerator() {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [environmentPrompt, setEnvironmentPrompt] = useState("");
   const [selectedColors, setSelectedColors] = useState<string[]>(["White"]);
+  const [selectedSizes, setSelectedSizes] = useState<string[]>(["L"]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [customColor, setCustomColor] = useState("#ffffff");
   const [generatedMockups, setGeneratedMockups] = useState<string[]>([]);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [generationStage, setGenerationStage] = useState("");
@@ -422,6 +422,43 @@ export default function MockupGenerator() {
                               </h3>
                               
                               <div className="space-y-6 bg-card/50 rounded-xl p-1">
+                                {/* Size Selection */}
+                                <div className="space-y-3">
+                                  <div className="flex items-center justify-between">
+                                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Size</label>
+                                    <span className="text-[10px] font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full dark:bg-indigo-900/30 dark:text-indigo-400">
+                                      {selectedSizes.length} Selected
+                                    </span>
+                                  </div>
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {["XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"].map((size) => {
+                                      const isSelected = selectedSizes.includes(size);
+                                      return (
+                                        <button
+                                          key={size}
+                                          onClick={() => {
+                                            if (isSelected) {
+                                              setSelectedSizes(selectedSizes.filter(s => s !== size));
+                                            } else {
+                                              setSelectedSizes([...selectedSizes, size]);
+                                            }
+                                          }}
+                                          className={cn(
+                                            "h-9 min-w-[36px] px-2 rounded-lg text-xs font-medium border transition-all",
+                                            isSelected 
+                                              ? "bg-indigo-600 border-indigo-600 text-white shadow-sm" 
+                                              : "bg-background border-border text-muted-foreground hover:border-indigo-300 hover:text-foreground"
+                                          )}
+                                        >
+                                          {size}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+
+                                <Separator />
+
                                 {/* Color Selection */}
                                 <div className="space-y-3">
                                   <div className="flex items-center justify-between">
@@ -468,58 +505,10 @@ export default function MockupGenerator() {
                                         </div>
                                       );
                                     })}
-                                    
-                                    {/* Custom Color Button */}
-                                    <div className="relative aspect-square rounded-lg border-2 border-dashed border-border hover:border-indigo-500 cursor-pointer transition-colors flex items-center justify-center group">
-                                      <input 
-                                        type="color" 
-                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                                        value={customColor}
-                                        onChange={(e) => {
-                                          const newColor = e.target.value;
-                                          setCustomColor(newColor);
-                                          if (!selectedColors.includes("Custom")) {
-                                            setSelectedColors([...selectedColors, "Custom"]);
-                                          }
-                                        }}
-                                      />
-                                      <Plus className="h-4 w-4 text-muted-foreground group-hover:text-indigo-500" />
-                                      {selectedColors.includes("Custom") && (
-                                        <div 
-                                          className="absolute inset-0 m-2 rounded-full border shadow-sm pointer-events-none"
-                                          style={{ backgroundColor: customColor }}
-                                        />
-                                      )}
-                                    </div>
                                   </div>
                                 </div>
 
                                 <Separator />
-
-                                {/* Gender Selection */}
-                                <div className="space-y-3">
-                                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Model</label>
-                                  <div className="grid grid-cols-3 gap-2">
-                                    {[
-                                      { label: "Female", icon: User, active: true },
-                                      { label: "Male", icon: User, active: false },
-                                      { label: "Uni", icon: Users, active: false }
-                                    ].map((opt) => (
-                                      <button
-                                        key={opt.label}
-                                        className={cn(
-                                          "flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-lg border text-xs font-medium transition-all",
-                                          opt.active
-                                            ? "bg-indigo-50 border-indigo-600 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-300"
-                                            : "bg-background border-border text-muted-foreground hover:border-indigo-300 hover:text-foreground"
-                                        )}
-                                      >
-                                        <opt.icon className={cn("h-4 w-4", opt.active ? "text-indigo-600" : "text-muted-foreground")} />
-                                        {opt.label}
-                                      </button>
-                                    ))}
-                                  </div>
-                                </div>
 
                                 {/* Ethnicity Selection */}
                                 <div className="space-y-3">
