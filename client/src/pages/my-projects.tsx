@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { 
   Search, 
   Plus, 
@@ -44,6 +45,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 
@@ -64,6 +75,7 @@ const PROJECTS = [
 ];
 
 export default function MyProjects() {
+  const [, setLocation] = useLocation();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
@@ -73,8 +85,51 @@ export default function MyProjects() {
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [projects, setProjects] = useState(PROJECTS);
   const [quickViewProject, setQuickViewProject] = useState<typeof PROJECTS[0] | null>(null);
+  const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
   
   const { toast } = useToast();
+
+  const handleOpenProject = (project: typeof PROJECTS[0]) => {
+    if (project.type === "image") {
+      setLocation(`/image-gen?prompt=${encodeURIComponent(project.name)}`);
+    } else if (project.type === "mockup") {
+      setLocation(`/mockup?journey=DTG&restore=true`);
+    } else if (project.type === "bg-removed") {
+      setLocation(`/bg-remover?image=${encodeURIComponent(project.src)}&restore=true`);
+    }
+    setQuickViewProject(null);
+  };
+
+  const handleDownload = (project: typeof PROJECTS[0]) => {
+    const link = document.createElement('a');
+    link.href = project.src;
+    link.download = `${project.name.replace(/\s+/g, '_')}.jpg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast({
+      title: "Download started",
+      description: `Downloading ${project.name}...`,
+    });
+  };
+
+  const handleDeleteClick = () => {
+    if (quickViewProject) {
+      setProjectToDelete(quickViewProject.id);
+    }
+  };
+
+  const confirmDelete = () => {
+    if (projectToDelete) {
+      setProjects(projects.filter(p => p.id !== projectToDelete));
+      setQuickViewProject(null);
+      setProjectToDelete(null);
+      toast({
+        title: "Project deleted",
+        description: "The project has been permanently removed.",
+      });
+    }
+  };
 
   const toggleSelection = (id: string) => {
     if (selectedItems.includes(id)) {
@@ -650,15 +705,27 @@ export default function MyProjects() {
 
                   <div className="p-6 border-t border-[#E4E4E7] dark:border-[#27272A] bg-[#F9FAFB] dark:bg-[#18181B]">
                     <div className="grid grid-cols-2 gap-3 mb-3">
-                      <Button className="w-full bg-[#18181B] dark:bg-white text-white dark:text-black hover:opacity-90">
+                      <Button 
+                        className="w-full bg-[#18181B] dark:bg-white text-white dark:text-black hover:opacity-90"
+                        onClick={() => quickViewProject && handleOpenProject(quickViewProject)}
+                      >
                         Open Project
                       </Button>
-                      <Button variant="outline" className="w-full">
+                      <Button 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={() => quickViewProject && handleDownload(quickViewProject)}
+                      >
                         <Download className="h-4 w-4 mr-2" /> Download
                       </Button>
                     </div>
                     <div className="flex justify-center">
-                      <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        onClick={handleDeleteClick}
+                      >
                         <Trash2 className="h-4 w-4 mr-2" /> Delete Project
                       </Button>
                     </div>
@@ -668,6 +735,23 @@ export default function MyProjects() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        <AlertDialog open={!!projectToDelete} onOpenChange={(open) => !open && setProjectToDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the project and remove the data from our servers.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700 text-white focus:ring-red-600">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
       </main>
     </div>
