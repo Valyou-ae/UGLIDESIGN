@@ -42,12 +42,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 
@@ -63,10 +62,9 @@ type ProcessingState = "idle" | "uploading" | "processing" | "complete" | "error
 type ViewMode = "single" | "batch";
 
 export default function BackgroundRemover() {
-  const [selectedImages, setSelectedImages] = useState<string[]>([]);
-  const [urlDialogOpen, setUrlDialogOpen] = useState(false);
-  const [urlInput, setUrlInput] = useState("");
+  const [viewMode, setViewMode] = useState<ViewMode>("single");
   const [state, setState] = useState<ProcessingState>("idle");
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
   const [processingStage, setProcessingStage] = useState("");
   const { toast } = useToast();
@@ -119,40 +117,26 @@ export default function BackgroundRemover() {
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      Array.from(e.target.files).forEach(file => {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          if (event.target?.result) {
-            setSelectedImages(prev => [...prev, event.target!.result as string]);
-          }
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-  };
-
-  const handleUrlImport = () => {
-    if (urlInput) {
-      setSelectedImages(prev => [...prev, urlInput]);
-      setUrlDialogOpen(false);
-      setUrlInput("");
-      toast({
-        title: "Image Imported",
-        description: "Successfully imported from URL.",
-      });
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setSelectedImage(event.target?.result as string);
+        // We don't auto-start processing anymore to give user control
+      };
+      reader.readAsDataURL(file);
     }
   };
 
   const handleSampleSelect = (img: string) => {
-    setSelectedImages([img]);
+    setSelectedImage(img);
     setState("idle"); // Ensure we reset state if a new sample is picked
   };
 
   const reset = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     setState("idle");
-    setSelectedImages([]);
+    setSelectedImage(null);
     setProgress(0);
   };
 
@@ -207,7 +191,7 @@ export default function BackgroundRemover() {
           <div className="flex-1 flex flex-col">
             
             {/* STATE 1: EMPTY / UPLOAD STATE */}
-            {selectedImages.length === 0 && (
+            {!selectedImage && (
               <div className="flex-1 flex flex-col items-center justify-center animate-fade-in py-10">
                 <div className="w-full max-w-[700px]">
                   
@@ -221,7 +205,6 @@ export default function BackgroundRemover() {
                       ref={fileInputRef}
                       className="hidden" 
                       accept="image/png, image/jpeg, image/webp, image/gif"
-                      multiple
                       onChange={handleFileSelect}
                     />
                     
@@ -230,50 +213,55 @@ export default function BackgroundRemover() {
                       <Upload className="h-20 w-20 text-pink-500 relative z-10 transition-transform duration-500 group-hover:-translate-y-2" />
                     </div>
                     
-                    <h2 className="text-2xl font-bold text-foreground mb-2">Drag & drop images</h2>
+                    <h2 className="text-2xl font-bold text-foreground mb-2">Drag & drop an image</h2>
                     <p className="text-lg text-muted-foreground mb-4">or click to upload</p>
                     <p className="text-sm text-muted-foreground/60 uppercase tracking-wider font-medium">
-                      PNG, JPG, JPEG, WEBP, GIF • Single or Batch
+                      PNG, JPG, JPEG, WEBP, GIF
                     </p>
                   </div>
 
                   {/* Quick Options Row */}
-                  <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
                     <button 
-                      onClick={() => fileInputRef.current?.click()}
-                      className="flex flex-col items-start p-5 rounded-2xl bg-muted/30 border border-transparent hover:border-pink-500/30 hover:bg-card transition-all hover:-translate-y-0.5"
+                      onClick={() => setViewMode("single")}
+                      className={cn(
+                        "flex flex-col items-start p-5 rounded-2xl border transition-all hover:-translate-y-0.5",
+                        viewMode === "single" 
+                          ? "bg-card border-pink-500 shadow-md shadow-pink-500/5" 
+                          : "bg-muted/30 border-transparent hover:border-pink-500/30 hover:bg-card"
+                      )}
                     >
                       <div className="p-2 rounded-lg bg-pink-100 dark:bg-pink-900/20 text-pink-600 mb-3">
-                        <Layers className="h-6 w-6" />
+                        <ImageIcon className="h-6 w-6" />
                       </div>
-                      <span className="text-sm font-semibold mb-1">Upload Image(s)</span>
-                      <span className="text-xs text-muted-foreground">Single or batch processing</span>
+                      <span className="text-sm font-semibold mb-1">Single Image</span>
+                      <span className="text-xs text-muted-foreground">Remove one background</span>
                     </button>
 
-                    <Dialog open={urlDialogOpen} onOpenChange={setUrlDialogOpen}>
-                      <DialogTrigger asChild>
-                        <button className="flex flex-col items-start p-5 rounded-2xl bg-muted/30 border border-transparent hover:border-pink-500/30 hover:bg-card transition-all hover:-translate-y-0.5 w-full text-left">
-                          <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/20 text-purple-600 mb-3">
-                            <LinkIcon className="h-6 w-6" />
-                          </div>
-                          <span className="text-sm font-semibold mb-1">Import from URL</span>
-                          <span className="text-xs text-muted-foreground">Paste image link</span>
-                        </button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Import Image from URL</DialogTitle>
-                        </DialogHeader>
-                        <div className="flex gap-2 mt-4">
-                          <Input 
-                            placeholder="https://example.com/image.png" 
-                            value={urlInput}
-                            onChange={(e) => setUrlInput(e.target.value)}
-                          />
-                          <Button onClick={handleUrlImport}>Import</Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                    <button 
+                      onClick={() => setViewMode("batch")}
+                      className={cn(
+                        "flex flex-col items-start p-5 rounded-2xl border transition-all hover:-translate-y-0.5 relative overflow-hidden",
+                        viewMode === "batch"
+                          ? "bg-card border-pink-500 shadow-md shadow-pink-500/5"
+                          : "bg-muted/30 border-transparent hover:border-pink-500/30 hover:bg-card"
+                      )}
+                    >
+                      <div className="absolute top-3 right-3 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500 text-white">Pro</div>
+                      <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20 text-blue-600 mb-3">
+                        <Layers className="h-6 w-6" />
+                      </div>
+                      <span className="text-sm font-semibold mb-1">Batch Process</span>
+                      <span className="text-xs text-muted-foreground">Process multiple images</span>
+                    </button>
+
+                    <button className="flex flex-col items-start p-5 rounded-2xl bg-muted/30 border border-transparent hover:border-pink-500/30 hover:bg-card transition-all hover:-translate-y-0.5">
+                      <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/20 text-purple-600 mb-3">
+                        <LinkIcon className="h-6 w-6" />
+                      </div>
+                      <span className="text-sm font-semibold mb-1">Import from URL</span>
+                      <span className="text-xs text-muted-foreground">Paste image link</span>
+                    </button>
                   </div>
 
                   {/* Sample Images Row */}
@@ -297,138 +285,111 @@ export default function BackgroundRemover() {
             )}
 
             {/* STATE 2: PROCESSING / RESULTS STATE */}
-            {selectedImages.length > 0 && (
+            {selectedImage && (
               <div className="flex-1 flex flex-col animate-fade-in">
                 
-                {/* If Single Image */}
-                {selectedImages.length === 1 && (
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full min-h-[500px]">
-                    
-                    {/* Column 1: Original Image */}
-                    <div className="bg-card border border-border rounded-[20px] overflow-hidden flex flex-col">
-                      <div className="p-4 lg:p-5 border-b border-border">
-                        <h3 className="text-sm font-semibold">Original</h3>
-                      </div>
-                      <div className="flex-1 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbC1vcGFjaXR5PSIwLjEiPjxyZWN0IHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iIzAwMCIvPjxyZWN0IHg9IjEwIiB5PSIxMCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjMDAwIi8+PC9zdmc+')] bg-repeat p-4 flex items-center justify-center">
-                        <img src={selectedImages[0]} alt="Original" className="max-h-full max-w-full object-contain shadow-lg rounded-lg" />
-                      </div>
-                      <div className="p-3 px-5 bg-muted/30 border-t border-border">
-                        <p className="text-xs text-muted-foreground font-mono">original.jpg • Ready</p>
-                      </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full min-h-[500px]">
+                  
+                  {/* Column 1: Original Image */}
+                  <div className="bg-card border border-border rounded-[20px] overflow-hidden flex flex-col">
+                    <div className="p-4 lg:p-5 border-b border-border">
+                      <h3 className="text-sm font-semibold">Original</h3>
                     </div>
-
-                    {/* Column 2: Alpha Mask */}
-                    <div className="bg-card border border-border rounded-[20px] overflow-hidden flex flex-col">
-                      <div className="p-4 lg:p-5 border-b border-border flex items-center justify-between">
-                        <h3 className="text-sm font-semibold">Alpha Mask</h3>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <Info className="h-4 w-4 text-muted-foreground" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>White = Keep, Black = Remove</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                      <div className="flex-1 bg-black p-4 flex items-center justify-center relative">
-                        {state === "complete" ? (
-                          <img src={selectedImages[0]} alt="Mask" className="max-h-full max-w-full object-contain shadow-lg rounded-lg grayscale contrast-200 brightness-125" />
-                        ) : (
-                          <div className="flex flex-col items-center gap-4 text-muted-foreground">
-                            {state === "processing" ? (
-                              <>
-                                <div className="h-12 w-12 rounded-full border-4 border-pink-500/30 border-t-pink-500 animate-spin" />
-                                <p className="text-sm animate-pulse">{processingStage}</p>
-                              </>
-                            ) : (
-                              <>
-                                <div className="h-16 w-16 rounded-full border-2 border-dashed border-muted-foreground/30 flex items-center justify-center">
-                                  <ImageIcon className="h-8 w-8 opacity-30" />
-                                </div>
-                                <p className="text-sm opacity-50">Mask will appear here</p>
-                              </>
-                            )}
-                          </div>
-                        )}
-                      </div>
+                    <div className="flex-1 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbC1vcGFjaXR5PSIwLjEiPjxyZWN0IHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iIzAwMCIvPjxyZWN0IHg9IjEwIiB5PSIxMCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjMDAwIi8+PC9zdmc+')] bg-repeat p-4 flex items-center justify-center">
+                      <img src={selectedImage} alt="Original" className="max-h-full max-w-full object-contain shadow-lg rounded-lg" />
                     </div>
-
-                    {/* Column 3: Final Output */}
-                    <div className="bg-card border border-border rounded-[20px] overflow-hidden flex flex-col">
-                      <div className="p-4 lg:p-5 border-b border-border flex items-center justify-between">
-                        <h3 className="text-sm font-semibold">Final Output</h3>
-                        {state === "complete" && <Sparkles className="h-4 w-4 text-pink-500 animate-pulse" />}
-                      </div>
-                      <div className="flex-1 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbC1vcGFjaXR5PSIwLjEiPjxyZWN0IHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iIzAwMCIvPjxyZWN0IHg9IjEwIiB5PSIxMCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjMDAwIi8+PC9zdmc+')] bg-repeat p-4 flex items-center justify-center relative">
-                        {state === "complete" ? (
-                          <>
-                            <img src={selectedImages[0]} alt="Final" className="max-h-full max-w-full object-contain shadow-lg rounded-lg" />
-                            <motion.div 
-                              initial={{ opacity: 0, scale: 0.8 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              className="absolute bottom-6 right-6 bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1.5"
-                            >
-                              <Check className="h-3.5 w-3.5" />
-                              Removed!
-                            </motion.div>
-                          </>
-                        ) : (
-                          <div className="flex flex-col items-center gap-4 text-muted-foreground">
-                            {state === "processing" ? (
-                              <>
-                                <Wand2 className="h-8 w-8 text-pink-500 animate-pulse" />
-                                <p className="text-sm">Applying magic...</p>
-                              </>
-                            ) : (
-                              <>
-                                <div className="h-16 w-16 rounded-full border-2 border-dashed border-muted-foreground/30 flex items-center justify-center">
-                                  <Scissors className="h-8 w-8 opacity-30" />
-                                </div>
-                                <p className="text-sm opacity-50">Result will appear here</p>
-                              </>
-                            )}
-                          </div>
-                        )}
-                      </div>
+                    <div className="p-3 px-5 bg-muted/30 border-t border-border">
+                      <p className="text-xs text-muted-foreground font-mono">photo.jpg • 2.4 MB • 1024×1024</p>
                     </div>
-
                   </div>
-                )}
 
-                {/* If Batch Images */}
-                {selectedImages.length > 1 && (
-                  <div className="flex-1 flex flex-col">
-                    <div className="flex items-center justify-between mb-6">
-                      <h2 className="text-xl font-bold">Batch Processing ({selectedImages.length} images)</h2>
-                      <Button onClick={processImage} disabled={state === "processing" || state === "complete"}>
-                        {state === "processing" ? "Processing..." : "Process All"}
-                      </Button>
+                  {/* Column 2: Alpha Mask */}
+                  <div className="bg-card border border-border rounded-[20px] overflow-hidden flex flex-col">
+                    <div className="p-4 lg:p-5 border-b border-border flex items-center justify-between">
+                      <h3 className="text-sm font-semibold">Alpha Mask</h3>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Info className="h-4 w-4 text-muted-foreground" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>White = Keep, Black = Remove</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {selectedImages.map((img, idx) => (
-                        <div key={idx} className="relative aspect-square bg-card border rounded-xl overflow-hidden">
-                          <img src={img} className="w-full h-full object-cover" />
-                          {state === "complete" && (
-                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                              <Check className="text-green-500 h-8 w-8" />
-                            </div>
+                    <div className="flex-1 bg-black p-4 flex items-center justify-center relative">
+                      {state === "complete" ? (
+                        <img src={selectedImage} alt="Mask" className="max-h-full max-w-full object-contain shadow-lg rounded-lg grayscale contrast-200 brightness-125" />
+                      ) : (
+                        <div className="flex flex-col items-center gap-4 text-muted-foreground">
+                          {state === "processing" ? (
+                            <>
+                              <div className="h-12 w-12 rounded-full border-4 border-pink-500/30 border-t-pink-500 animate-spin" />
+                              <p className="text-sm animate-pulse">{processingStage}</p>
+                            </>
+                          ) : (
+                            <>
+                              <div className="h-16 w-16 rounded-full border-2 border-dashed border-muted-foreground/30 flex items-center justify-center">
+                                <ImageIcon className="h-8 w-8 opacity-30" />
+                              </div>
+                              <p className="text-sm opacity-50">Mask will appear here</p>
+                            </>
                           )}
                         </div>
-                      ))}
+                      )}
                     </div>
                   </div>
-                )}
 
-                {/* Action Bar (Only for single view or general reset) */}
+                  {/* Column 3: Final Output */}
+                  <div className="bg-card border border-border rounded-[20px] overflow-hidden flex flex-col">
+                    <div className="p-4 lg:p-5 border-b border-border flex items-center justify-between">
+                      <h3 className="text-sm font-semibold">Final Output</h3>
+                      {state === "complete" && <Sparkles className="h-4 w-4 text-pink-500 animate-pulse" />}
+                    </div>
+                    <div className="flex-1 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbC1vcGFjaXR5PSIwLjEiPjxyZWN0IHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iIzAwMCIvPjxyZWN0IHg9IjEwIiB5PSIxMCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjMDAwIi8+PC9zdmc+')] bg-repeat p-4 flex items-center justify-center relative">
+                      {state === "complete" ? (
+                        <>
+                          <img src={selectedImage} alt="Final" className="max-h-full max-w-full object-contain shadow-lg rounded-lg" />
+                          <motion.div 
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="absolute bottom-6 right-6 bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1.5"
+                          >
+                            <Check className="h-3.5 w-3.5" />
+                            Removed!
+                          </motion.div>
+                        </>
+                      ) : (
+                        <div className="flex flex-col items-center gap-4 text-muted-foreground">
+                          {state === "processing" ? (
+                            <>
+                              <Wand2 className="h-8 w-8 text-pink-500 animate-pulse" />
+                              <p className="text-sm">Applying magic...</p>
+                            </>
+                          ) : (
+                            <>
+                              <div className="h-16 w-16 rounded-full border-2 border-dashed border-muted-foreground/30 flex items-center justify-center">
+                                <Scissors className="h-8 w-8 opacity-30" />
+                              </div>
+                              <p className="text-sm opacity-50">Result will appear here</p>
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Action Bar */}
                 <div className="mt-6 bg-card border border-border rounded-[16px] p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
                   <div className="flex items-center gap-3 w-full sm:w-auto">
                     <Button variant="ghost" onClick={reset} className="text-muted-foreground hover:text-foreground">
                       <RotateCcw className="h-4 w-4 mr-2" />
                       Start Over
                     </Button>
-                    {state === "complete" && selectedImages.length === 1 && (
+                    {state === "complete" && (
                       <Button variant="ghost" onClick={processImage} className="text-muted-foreground hover:text-foreground">
                         <RefreshCw className="h-4 w-4 mr-2" />
                         Re-process
@@ -437,7 +398,7 @@ export default function BackgroundRemover() {
                   </div>
 
                   <div className="flex items-center gap-4 w-full sm:w-auto justify-center">
-                    {state !== "complete" && state !== "processing" && selectedImages.length === 1 && (
+                    {state !== "complete" && state !== "processing" && (
                       <Button 
                         onClick={processImage}
                         className="h-12 px-8 rounded-[12px] bg-gradient-to-r from-[#7C3AED] to-[#9333EA] hover:brightness-110 hover:shadow-lg hover:shadow-purple-600/20 text-white font-bold transition-all hover:-translate-y-[1px]"
@@ -464,7 +425,7 @@ export default function BackgroundRemover() {
                   </div>
 
                   <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-                    {state === "complete" && selectedImages.length === 1 && (
+                    {state === "complete" && (
                       <>
                         <Button variant="outline" size="icon" className="rounded-full">
                           <Copy className="h-4 w-4" />
