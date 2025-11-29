@@ -669,7 +669,7 @@ export default function ImageGenerator() {
              </div>
           )}
 
-          {filteredGenerations.length === 0 ? (
+          {filteredGenerations.length === 0 && status !== "generating" ? (
             <div className="h-full flex flex-col items-center justify-center text-center animate-fade-in max-w-xl mx-auto mt-[-100px]">
               <div className="w-40 h-40 bg-gradient-to-tr from-purple-500 to-pink-500 rounded-full blur-[80px] opacity-20 mb-8" />
               <h2 className="text-3xl font-bold mb-3 text-foreground">Start Creating</h2>
@@ -691,6 +691,28 @@ export default function ImageGenerator() {
             </div>
           ) : (
             <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6 mx-auto max-w-[1800px]">
+              {/* Loading State Card */}
+              {status === "generating" && (
+                <div className="break-inside-avoid mb-6 relative group rounded-xl overflow-hidden bg-card border border-border shadow-xl animate-in fade-in zoom-in duration-300">
+                  <div className="w-full aspect-square bg-gradient-to-br from-[#7C3AED] via-purple-600 to-[#9333EA] animate-pulse flex flex-col items-center justify-center relative overflow-hidden">
+                    <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48ZyBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTAgMzhoNDB2MmgtNDB6Ii8+PHBhdGggZD0iTTAgMGg0MHYyaC00MHoiLz48cGF0aCBkPSJNMCAwdjQwaDJWMHoiLz48cGF0aCBkPSJNMzggMHY0MGgyVjB6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
+                    <Sparkles className="h-12 w-12 text-white animate-spin-slow duration-[3s]" />
+                    <p className="text-white/90 font-medium mt-4 text-sm animate-pulse">Generating masterpiece...</p>
+                  </div>
+                  <div className="p-5 space-y-3 bg-card">
+                    <div className="h-4 bg-muted rounded w-3/4 animate-pulse" />
+                    <div className="h-3 bg-muted rounded w-1/2 animate-pulse" />
+                    <div className="pt-2 flex items-center justify-between">
+                       <div className="h-8 w-20 bg-muted rounded animate-pulse" />
+                       <div className="flex gap-1">
+                         <div className="h-8 w-8 bg-muted rounded animate-pulse" />
+                         <div className="h-8 w-8 bg-muted rounded animate-pulse" />
+                       </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               {filteredGenerations.map((gen) => (
                 <div 
                   key={gen.id}
