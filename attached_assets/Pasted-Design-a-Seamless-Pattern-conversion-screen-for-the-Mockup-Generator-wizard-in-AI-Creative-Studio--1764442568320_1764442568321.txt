@@ -1,0 +1,776 @@
+Design a Seamless Pattern conversion screen for the Mockup Generator wizard in "AI Creative Studio". This screen is ONLY shown in the AOP (All-Over Print) journey as Step 2 of 9. Users see their uploaded image analyzed and converted into seamless tileable patterns using multiple methods. They select their preferred variation and adjust the pattern scale. Follow the established wizard layout. Dark/light theme support. Use Lucide icons - NO emojis.
+
+=== PAGE STRUCTURE ===
+Full viewport height
+Layout: Fixed left sidebar (280px) + Main wizard content area
+Background: #0A0A0B (dark) / #F8F8F8 (light)
+
+=== LEFT SIDEBAR ===
+Same as other mockup generator screens
+- "Mockup Generator" nav item ACTIVE (indigo highlight #4F46E5)
+
+=== MAIN CONTENT AREA ===
+Display: flex
+Flex-direction: column
+Height: 100vh
+Overflow: hidden
+
+=== TOP: WIZARD PROGRESS BAR ===
+Position: sticky
+Top: 0
+Background: #111113 (dark) / #FFFFFF (light)
+Border-bottom: 1px solid #1F1F23 (dark) / #E4E4E7 (light)
+Padding: 20px 40px
+Z-index: 50
+
+--- Progress Steps ---
+Display: flex
+Justify-content: space-between
+Align-items: center
+Position: relative
+
+Progress line background:
+- Position: absolute
+- Height: 4px
+- Background: #1F1F25 (dark) / #E2E8F0 (light)
+- Top: 50%
+- Transform: translateY(-50%)
+- Width: 100%
+- Z-index: -1
+
+Progress line fill:
+- Position: absolute
+- Height: 4px
+- Background: #4F46E5
+- Top: 50%
+- Transform: translateY(-50%)
+- Width: Based on current step percentage (Step 2 of 9 = ~12.5%)
+- Z-index: -1
+- Transition: width 300ms
+
+AOP Steps (9 total):
+1. Upload (Upload icon) - Completed
+2. Seamless (Repeat icon) - CURRENT ACTIVE
+3. Product (ShoppingBag icon) - Upcoming
+4. Platform (Building2 icon) - Upcoming
+5. Style (Sparkles icon) - Upcoming
+6. Angles (Camera icon) - Upcoming
+7. Scene (MapPin icon) - Upcoming
+8. Colors (Palette icon) - Upcoming
+9. Generate (Wand2 icon) - Upcoming
+
+Each step node:
+- Circle: 32px diameter
+- Icon inside: 16px
+- Label below: 10px, bold, uppercase
+
+Step states:
+- Completed: bg #4F46E5, border #4F46E5, icon white
+- Current: bg #4F46E5, border #4F46E5, icon white
+- Upcoming: bg white (light) / #1F1F25 (dark), border #D1D5DB (light) / #3A3A40 (dark), icon #9CA3AF
+
+Tooltip on hover for Seamless step:
+- "Convert your design into a seamless pattern for AOP."
+
+=== MIDDLE: SEAMLESS CONTENT ===
+Flex: 1
+Overflow-y: auto
+Padding: 24px
+Animation: fade-in on phase change
+
+=== PHASE 1: ANALYZING STATE ===
+Shows when phase === 'analyzing'
+
+Container:
+- Display: flex
+- Flex-direction: column
+- Align-items: center
+- Justify-content: center
+- Height: 100%
+- Text-align: center
+- Padding: 32px
+
+Spinner:
+- Loader2 icon from Lucide
+- Width: 48px
+- Height: 48px
+- Color: #4F46E5
+- Animation: spin (rotate 360deg, 1s linear infinite)
+- Margin-bottom: 16px
+
+Title:
+- "Analyzing your image..." - 16px, medium, #334155 (light) / #E2E8F0 (dark)
+
+Description:
+- "Recommending the best methods." - 14px, #64748B (light) / #94A3B8 (dark)
+
+=== PHASE 2: GENERATING STATE ===
+Shows when phase === 'generating'
+
+Same layout as analyzing state but with different text:
+
+Title:
+- "Running pattern lab..." - 16px, medium, #334155 (light) / #E2E8F0 (dark)
+
+Description:
+- "Generating deterministic variations." - 14px, #64748B (light) / #94A3B8 (dark)
+
+=== PHASE 3: SELECTING STATE ===
+Shows when phase === 'selecting'
+
+Container:
+- Display: flex
+- Flex-direction: column
+- Gap: 24px
+- Animation: fade-in
+
+--- Info Banner (Shows when analysis exists) ---
+Background: #EEF2FF (light) / #4F46E5/10 (dark)
+Border: 1px solid #C7D2FE (light) / #4F46E5/30 (dark)
+Border-radius: 12px
+Padding: 16px
+
+Content:
+- Display: flex
+- Align-items: flex-start
+- Gap: 12px
+
+Icon:
+- Info icon from Lucide
+- Width: 20px
+- Height: 20px
+- Color: #4F46E5
+- Margin-top: 2px
+- Flex-shrink: 0
+
+Text content:
+
+Title:
+- "Pattern Lab" - 16px, bold, #312E81 (light) / #E0E7FF (dark)
+- Margin-bottom: 4px
+
+Description:
+- "We analyzed your image and generated several options. The best methods are marked with a ⭐. Select your favorite pattern to continue."
+- Font: 12px, #4338CA (light) / #A5B4FC (dark)
+
+=== VARIATIONS GRID ===
+
+Grid container:
+- Display: grid
+- Grid-template-columns: repeat(2, 1fr) default
+- At md breakpoint: repeat(3, 1fr)
+- At lg breakpoint: repeat(5, 1fr)
+- Gap: 16px
+
+=== VARIATION CARDS (5 Total Methods) ===
+
+5 Seamless Methods from project:
+1. "Offset & Blend" (id: offset_blend)
+2. "Mirror Symmetry" (id: mirror)
+3. "Graph-Cut (N/A)" (id: graph_cut) - Not implemented
+4. "Edge Average (N/A)" (id: edge_average) - Not implemented
+5. "AI Enhanced" (id: ai_enhanced) - Requires API key
+
+=== REGULAR VARIATION CARD ===
+For methods: offset_blend, mirror, graph_cut, edge_average
+
+Card container:
+- Position: relative
+- Border-radius: 12px
+- Overflow: hidden
+- Border: 4px solid transparent
+- Transition: all 200ms
+- Cursor: pointer (when not loading/error)
+
+Unselected state:
+- Border-color: transparent
+- Hover: border-color #C7D2FE (light) / #4F46E5/30 (dark)
+- Hover: box-shadow 0 8px 24px rgba(0,0,0,0.1)
+
+Selected state:
+- Border-color: #4F46E5
+- Box-shadow: 0 12px 32px rgba(79, 70, 229, 0.25)
+- Transform: scale(1.05)
+
+Loading state:
+- Cursor: not-allowed
+
+Error state:
+- Cursor: not-allowed
+
+--- Card Pattern Preview ---
+Aspect-ratio: 1/1 (square)
+Background-color: #F1F5F9 (light) / #1F1F25 (dark)
+
+When variation has URL (pattern generated):
+- Background-image: url(variation.url)
+- Background-size: 33.33% (shows 3x3 tile preview)
+- Background-repeat: repeat
+
+--- Loading Overlay ---
+Shows when variation.isLoading === true
+
+Container:
+- Position: absolute
+- Inset: 0
+- Background: rgba(255, 255, 255, 0.7) (light) / rgba(0, 0, 0, 0.7) (dark)
+- Display: flex
+- Align-items: center
+- Justify-content: center
+
+Spinner:
+- Loader2 icon
+- Width: 32px
+- Height: 32px
+- Color: #4F46E5
+- Animation: spin
+
+--- Error Overlay ---
+Shows when variation.error exists
+
+Container:
+- Position: absolute
+- Inset: 0
+- Background: #FEF2F2 (light) / #DC2626/20 (dark)
+- Display: flex
+- Flex-direction: column
+- Align-items: center
+- Justify-content: center
+- Text-align: center
+- Padding: 8px
+
+Icon:
+- AlertTriangle icon from Lucide
+- Width: 24px
+- Height: 24px
+- Color: #DC2626
+- Margin-bottom: 4px
+
+Error text:
+- variation.error message
+- Font: 12px, semibold, #DC2626
+
+--- Download Button (On Hover) ---
+Shows on hover when variation has URL and no loading/error
+
+Position: absolute
+Top: 8px
+Left: 8px
+Padding: 6px
+Background: rgba(255, 255, 255, 0.8) (light) / rgba(0, 0, 0, 0.8) (dark)
+Border-radius: 9999px
+Box-shadow: 0 2px 8px rgba(0,0,0,0.1)
+Opacity: 0 (default), 1 (on card hover)
+Transition: opacity 200ms
+Z-index: 10
+Cursor: pointer
+
+Download icon:
+- Download icon from Lucide
+- Width: 16px
+- Height: 16px
+- Color: #334155 (light) / #E2E8F0 (dark)
+
+Hover state:
+- Background: white (light) / #000000 (dark)
+
+Action:
+- Downloads the pattern file with name: seamless_{method_name}.png
+
+--- Name Label (Bottom Gradient) ---
+Position: absolute
+Bottom: 0
+Left: 0
+Right: 0
+Background: linear-gradient to top, rgba(0,0,0,0.8), transparent
+Padding: 8px
+Padding-top: 16px
+
+Text:
+- variation.name
+- Font: 12px, bold, white
+- Text-overflow: ellipsis
+- White-space: nowrap
+- Overflow: hidden
+
+--- Recommended Badge ---
+Shows when variation.isRecommended === true AND not loading AND not error
+
+Position: absolute
+Top: 8px
+Right: 8px
+Background: #FACC15 (yellow-400)
+Color: #713F12 (yellow-900)
+Font: 12px, bold
+Padding: 2px 6px
+Border-radius: 4px
+Box-shadow: 0 2px 8px rgba(0,0,0,0.15)
+Display: flex
+Align-items: center
+Gap: 4px
+
+Icon:
+- Star icon from Lucide
+- Width: 12px
+- Height: 12px
+
+Text: "Best"
+
+--- Selection Overlay ---
+Shows when variation is selected (selectedVariationId === variation.id)
+
+Container:
+- Position: absolute
+- Inset: 0
+- Background: rgba(79, 70, 229, 0.3)
+- Display: flex
+- Align-items: center
+- Justify-content: center
+
+Icon:
+- CheckCircle2 icon from Lucide
+- Width: 48px
+- Height: 48px
+- Color: white
+- Filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3))
+
+=== AI ENHANCED CARD (Special State) ===
+Shows when method === 'ai_enhanced' AND no URL AND no error AND not loading
+
+This is a placeholder card prompting user to generate AI pattern
+
+Card container:
+- Position: relative
+- Border-radius: 12px
+- Border: 4px dashed #CBD5E1 (light) / #3A3A40 (dark)
+- Background: #F8FAFC (light) / #1F1F25 (dark)
+- Display: flex
+- Flex-direction: column
+- Align-items: center
+- Justify-content: center
+- Text-align: center
+- Padding: 16px
+- Aspect-ratio: 1/1
+
+Name label (same position as other cards):
+- Position: absolute
+- Bottom: 0
+- Left: 0
+- Right: 0
+- Background: linear-gradient to top, rgba(0,0,0,0.8), transparent
+- Padding: 8px
+- variation.name ("AI Enhanced")
+- Font: 12px, bold, white
+
+Description:
+- variation.description ("Creative AI-generated pattern (slower)")
+- Font: 12px, #64748B (light) / #94A3B8 (dark)
+- Margin-bottom: 12px
+
+Generate button:
+- Background: #9333EA (purple-600)
+- Color: white
+- Font: 12px, bold
+- Padding: 8px 16px
+- Border-radius: 8px
+- Display: flex
+- Align-items: center
+- Gap: 8px
+- Hover: bg #7E22CE (purple-700)
+- Transition: background 150ms
+
+Button content:
+- Sparkles icon, 16px
+- "Generate" text
+
+API key notice (shows when apiKeySet === false):
+- "API Key required"
+- Font: 10px, #94A3B8 (light) / #52525B (dark)
+- Margin-top: 8px
+
+=== LIVE PREVIEW & SCALE SECTION ===
+Shows when selectedVariation exists (a pattern is selected)
+
+Container:
+- Background: #F8FAFC (light) / #1F1F25 (dark)
+- Border: 2px solid #E2E8F0 (light) / #2A2A30 (dark)
+- Border-radius: 12px
+- Padding: 16px
+
+--- Section Header ---
+Display: flex
+Justify-content: space-between
+Align-items: center
+Margin-bottom: 8px
+
+Title:
+- "Live Preview & Scale" - 14px, bold, #1E293B (light) / #F1F5F9 (dark)
+
+Download link:
+- Display: flex
+- Align-items: center
+- Gap: 8px
+- Font: 12px, bold
+- Color: #4F46E5
+- Hover: color #4338CA
+- Cursor: pointer
+
+Download content:
+- Download icon, 16px
+- "Download Texture" text
+
+Action: Downloads selected pattern file
+
+--- Preview Grid ---
+Display: grid
+Grid-template-columns: 1fr (mobile), repeat(2, 1fr) at md breakpoint
+Gap: 24px
+
+--- Left: Pattern Preview ---
+Aspect-ratio: 1/1 (square)
+Border-radius: 8px
+Border: 2px solid #CBD5E1 (light) / #3A3A40 (dark)
+Box-shadow: inset 0 2px 8px rgba(0,0,0,0.1)
+Background-color: #F1F5F9 (light) / #1A1A1F (dark)
+
+Pattern display:
+- Background-image: url(selectedVariation.url)
+- Background-size: {101 - scale}% (inverse scale for visual effect)
+- Background-repeat: repeat
+
+Scale behavior:
+- When scale = 1: Pattern tiles appear large (100% size)
+- When scale = 50: Pattern tiles appear medium (51% size)
+- When scale = 100: Pattern tiles appear small (1% size)
+
+--- Right: Controls ---
+Display: flex
+Flex-direction: column
+Gap: 12px
+
+--- Pattern Scale Control ---
+Background: white (light) / #111113 (dark)
+Border: 1px solid #E2E8F0 (light) / #2A2A30 (dark)
+Border-radius: 8px
+Padding: 12px
+
+Label:
+- Display: flex
+- Align-items: center
+- Gap: 8px
+- Font: 12px, bold, #334155 (light) / #E2E8F0 (dark)
+- Margin-bottom: 8px
+
+Label content:
+- Ruler icon from Lucide, 16px
+- "Pattern Scale" text
+
+Slider:
+- Width: 100%
+- Height: 8px
+- Background: #E2E8F0 (light) / #2A2A30 (dark)
+- Border-radius: 8px
+- Appearance: none
+- Cursor: pointer
+- Accent-color: #4F46E5
+
+Slider attributes:
+- type: range
+- min: 1
+- max: 100
+- value: scale (default 50)
+- onChange: updates scale state
+
+Slider labels:
+- Display: flex
+- Justify-content: space-between
+- Font: 10px, #64748B (light) / #71717A (dark)
+- Margin-top: 4px
+
+Labels: "Small" (left), "Large" (right)
+
+--- Quality Metrics (Conditional) ---
+Shows when selectedVariation.qualityMetrics exists
+
+Background: white (light) / #111113 (dark)
+Border: 1px solid #E2E8F0 (light) / #2A2A30 (dark)
+Border-radius: 8px
+Padding: 12px
+
+Title:
+- "Quality Metrics" - 12px, bold, #334155 (light) / #E2E8F0 (dark)
+- Margin-bottom: 8px
+
+--- Quality Bar Component ---
+For each metric (primarily showing Overall Score)
+
+Label row:
+- Display: flex
+- Justify-content: space-between
+- Font: 12px
+- Margin-bottom: 4px
+
+Label text (left):
+- If highlight: font-bold, #1E293B (light) / #F1F5F9 (dark)
+- Else: #475569 (light) / #94A3B8 (dark)
+
+Value text (right):
+- Same styling as label
+- Format: "{Math.round(value)}/100"
+
+Progress bar:
+- Width: 100%
+- Height: 6px
+- Background: #E2E8F0 (light) / #2A2A30 (dark)
+- Border-radius: 9999px
+- Overflow: hidden
+
+Progress fill:
+- Height: 100%
+- Width: {value}%
+- Transition: width 300ms
+- Color based on value:
+  - value >= 85: #22C55E (green-500)
+  - value >= 70: #EAB308 (yellow-500)
+  - value < 70: #EF4444 (red-500)
+
+--- Quality Issues (Conditional) ---
+Shows when selectedVariation.qualityMetrics.issues.length > 0
+
+Container:
+- Background: #FEF9C3 (yellow-100) (light) / #F59E0B/10 (dark)
+- Padding: 4px
+- Border-radius: 4px
+- Margin-top: 8px
+
+Text:
+- "Notes: " + issues.join(', ')
+- Font: 10px, #854D0E (yellow-800) (light) / #FCD34D (dark)
+
+=== SPECIAL CASE: ORIGINAL IMAGE IS SEAMLESS ===
+When uploaded image is detected as already seamless
+
+Behavior:
+- Skip analysis and generating phases
+- Show single variation card: "Original (Seamless)"
+- Auto-select this variation
+- Description: "Your uploaded image was detected as already seamless."
+- Show quality metrics from seamless check
+- isRecommended: true (show "Best" badge)
+
+=== BOTTOM: NAVIGATION FOOTER ===
+Background: #F8FAFC (light) / #111113 (dark)
+Border-top: 1px solid #E2E8F0 (light) / #1F1F23 (dark)
+Padding: 12px 24px
+Flex-shrink: 0
+
+--- Footer Content ---
+Display: flex
+Flex-direction: column
+Gap: 8px
+
+--- Button Row ---
+Display: flex
+Justify-content: space-between
+Align-items: center
+
+Back button:
+- Display: flex
+- Align-items: center
+- Gap: 8px
+- Padding: 8px 16px
+- Border-radius: 8px
+- Font: 14px, medium
+- ChevronLeft icon, 16px
+- "Back" text
+- Color: #475569 (light) / #A1A1AA (dark)
+- Hover: bg #E2E8F0 (light) / #1F1F25 (dark)
+
+Next button:
+- Display: flex
+- Align-items: center
+- Gap: 8px
+- Padding: 10px 24px
+- Border-radius: 8px
+- Font: 14px, bold
+- Box-shadow: sm
+- "Next Step" text
+- ChevronRight icon, 16px
+
+Enabled state:
+- Background: #4F46E5
+- Color: white
+- Hover: bg #4338CA
+
+Disabled state (no variation selected):
+- Background: #E2E8F0 (light) / #1F1F25 (dark)
+- Color: #94A3B8 (light) / #52525B (dark)
+- Pointer-events: none
+
+--- Keyboard Hints ---
+Display: flex
+Justify-content: center
+Gap: 8px
+Font: 12px, #94A3B8 (light) / #52525B (dark)
+
+Kbd elements:
+- Background: #E2E8F0 (light) / #1F1F25 (dark)
+- Padding: 2px 8px
+- Border-radius: 4px
+- Color: #64748B (light) / #71717A (dark)
+
+Content:
+- "Enter" kbd + "Next" text
+- "•" separator
+- "Esc" kbd + "Back" text
+
+=== VALIDATION LOGIC ===
+
+Next button enabled when:
+- selectedSeamlessVariation exists (a variation file is selected with size > 0)
+
+Next button disabled when:
+- No variation selected
+- Selected variation has no file or file size is 0
+
+=== STATE MANAGEMENT ===
+
+State variables:
+- designImage: File (uploaded image from Step 1)
+- selectedSeamlessVariation: File | null (selected pattern file)
+- patternScale: number (1-100, default 50)
+- apiKeySet: boolean (for AI Enhanced method)
+
+Local component state:
+- phase: 'analyzing' | 'generating' | 'selecting'
+- analysis: ImageAnalysis | null
+- variations: SeamlessVariation[]
+- selectedVariationId: string | null
+- scale: number (1-100, default 50)
+
+Selection behavior:
+- Click on variation card sets selectedVariationId
+- When selectedVariationId changes, updates global state:
+  - selectedSeamlessVariation = selected variation's file
+  - patternScale = current scale value
+
+Auto-selection:
+- After generation, automatically select the highest quality variation
+- Sort by qualityScore descending, pick first without error
+
+=== KEYBOARD NAVIGATION ===
+
+Enter key:
+- If validation passes (variation selected), proceed to next step (Product)
+
+Escape key:
+- Go back to previous step (Upload)
+
+=== RESPONSIVE BEHAVIOR ===
+
+Desktop/Large (lg breakpoint):
+- 5-column grid for variations
+
+Laptop (md breakpoint):
+- 3-column grid for variations
+- 2-column grid for preview section
+
+Tablet/Mobile:
+- 2-column grid for variations
+- Single column for preview section
+
+=== ANIMATIONS ===
+
+Phase transitions:
+- Fade-in animation on content change
+- Opacity: 0 to 1, duration 200ms
+
+Spinner:
+- Continuous rotation
+- 360deg per 1 second
+- Linear timing
+
+Card selection:
+- Scale transition: 1 to 1.05
+- Duration: 200ms
+- Ease timing
+
+=== COLOR TOKENS ===
+
+Light Mode:
+- Background: #F8FAFC
+- Card: #FFFFFF
+- Card Selected: border #4F46E5
+- Border: #E2E8F0
+- Text Primary: #1E293B
+- Text Secondary: #475569
+- Text Muted: #64748B
+- Primary: #4F46E5
+- Primary Light: #EEF2FF
+- AI Purple: #9333EA
+- Warning: #FACC15
+- Error: #DC2626
+- Success: #22C55E
+
+Dark Mode:
+- Background: #0A0A0B
+- Card: #111113
+- Surface: #1A1A1F
+- Border: #2A2A30
+- Text Primary: #F1F5F9
+- Text Secondary: #94A3B8
+- Text Muted: #71717A
+- Primary: #4F46E5
+- Primary Light: rgba(79, 70, 229, 0.1)
+- AI Purple: #9333EA
+- Warning: #FACC15
+- Error: #DC2626
+- Success: #22C55E
+
+=== TYPOGRAPHY ===
+
+Phase title: 16px, medium
+Phase description: 14px, regular
+Info banner title: 16px, bold
+Info banner description: 12px, regular
+Card name: 12px, bold
+Section title: 14px, bold
+Slider label: 12px, bold
+Quality metrics: 12px, regular
+Badge: 12px, bold
+Kbd: 12px, regular
+
+=== ICONS USED (Lucide) ===
+
+Progress bar:
+- Upload, Repeat, ShoppingBag, Building2, Sparkles, Camera, MapPin, Palette, Wand2
+
+Phases:
+- Loader2 (spinning loader)
+
+Info banner:
+- Info
+
+Variation cards:
+- Star (recommended badge)
+- Download (download button)
+- AlertTriangle (error state)
+- CheckCircle2 (selected overlay)
+- Sparkles (AI generate button)
+
+Controls:
+- Ruler (pattern scale)
+
+Navigation:
+- ChevronLeft (Back)
+- ChevronRight (Next)
+
+=== 5 SEAMLESS METHODS (Exact from Project) ===
+
+| ID | Name | Status | Description |
+|----|------|--------|-------------|
+| offset_blend | Offset & Blend | Working | Reliable for general textures and photographs |
+| mirror | Mirror Symmetry | Working | Good for creating symmetric patterns |
+| graph_cut | Graph-Cut (N/A) | Not Implemented | Optimal for complex, irregular patterns |
+| edge_average | Edge Average (N/A) | Not Implemented | Fast method for simple, smooth textures |
+| ai_enhanced | AI Enhanced | Requires API | Creative AI-generated pattern (slower) |

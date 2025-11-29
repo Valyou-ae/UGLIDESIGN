@@ -59,7 +59,13 @@ import {
   View,
   Combine,
   Search,
-  Maximize2
+  Maximize2,
+  Loader2,
+  Info,
+  AlertTriangle,
+  Star,
+  CheckCircle2,
+  Ruler
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -116,6 +122,11 @@ export default function MockupGenerator() {
   const [selectedColors, setSelectedColors] = useState<string[]>(["White"]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>(["L"]);
   const [selectedAngles, setSelectedAngles] = useState<string[]>(["front"]);
+  // Seamless Pattern State
+  const [seamlessPhase, setSeamlessPhase] = useState<'analyzing' | 'generating' | 'selecting'>('analyzing');
+  const [seamlessVariations, setSeamlessVariations] = useState<any[]>([]);
+  const [selectedVariationId, setSelectedVariationId] = useState<string | null>(null);
+  const [patternScale, setPatternScale] = useState(50);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedMockups, setGeneratedMockups] = useState<string[]>([]);
   const [generationProgress, setGenerationProgress] = useState(0);
@@ -126,6 +137,30 @@ export default function MockupGenerator() {
 
   const steps = journey === "AOP" ? AOP_STEPS : DTG_STEPS;
   const currentStep = steps[currentStepIndex];
+
+  // Mock effect to simulate analyzing phase
+  useEffect(() => {
+    if (currentStep === "seamless" && seamlessPhase === 'analyzing') {
+      const timer = setTimeout(() => {
+        setSeamlessPhase('generating');
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+    
+    if (currentStep === "seamless" && seamlessPhase === 'generating') {
+      const timer = setTimeout(() => {
+        setSeamlessPhase('selecting');
+        setSeamlessVariations([
+          { id: 'offset_blend', name: 'Offset & Blend', description: 'Classic seamless tile', url: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=300&q=80', isRecommended: true },
+          { id: 'mirror', name: 'Mirror Symmetry', description: 'Kaleidoscopic effect', url: 'https://images.unsplash.com/photo-1548586196-aa5803b77379?auto=format&fit=crop&w=300&q=80', isRecommended: false },
+          { id: 'graph_cut', name: 'Graph-Cut', description: 'Advanced texture synthesis', url: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=300&q=80', isRecommended: false },
+          { id: 'edge_average', name: 'Edge Average', description: 'Smooth edge blending', url: 'https://images.unsplash.com/photo-1550684847-75bdda21cc95?auto=format&fit=crop&w=300&q=80', isRecommended: false },
+          { id: 'ai_enhanced', name: 'AI Enhanced', description: 'Creative AI-generated pattern (slower)', url: '', isRecommended: false },
+        ]);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [currentStep, seamlessPhase]);
 
   // Cleanup interval on unmount
   useEffect(() => {
@@ -777,13 +812,206 @@ export default function MockupGenerator() {
                       )}
 
                       {currentStep === "seamless" && (
-                        <div className="flex flex-col items-center justify-center h-full text-center">
-                           <div className="h-20 w-20 bg-muted rounded-full flex items-center justify-center mb-4">
-                             <Repeat className="h-10 w-10 text-muted-foreground" />
-                           </div>
-                           <h2 className="text-2xl font-bold mb-2">Seamless Pattern</h2>
-                           <p className="text-muted-foreground">Upload or generate your seamless pattern here.</p>
-                           <Button onClick={handleNext} className="mt-4">Next Step</Button>
+                        <div className="h-full flex flex-col overflow-hidden animate-fade-in">
+                          {/* Phase 1 & 2: Loading States */}
+                          {(seamlessPhase === 'analyzing' || seamlessPhase === 'generating') && (
+                            <div className="flex flex-col items-center justify-center h-full text-center p-8">
+                              <Loader2 className="h-12 w-12 text-indigo-600 animate-spin mb-4" />
+                              <h2 className="text-lg font-medium text-foreground mb-1">
+                                {seamlessPhase === 'analyzing' ? "Analyzing your image..." : "Running pattern lab..."}
+                              </h2>
+                              <p className="text-sm text-muted-foreground">
+                                {seamlessPhase === 'analyzing' ? "Recommending the best methods." : "Generating deterministic variations."}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Phase 3: Selecting Variation */}
+                          {seamlessPhase === 'selecting' && (
+                            <div className="flex-1 flex flex-col overflow-hidden">
+                              {/* Info Banner */}
+                              <div className="bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-200 dark:border-indigo-900/30 rounded-xl p-4 mb-6 shrink-0">
+                                <div className="flex items-start gap-3">
+                                  <Info className="h-5 w-5 text-indigo-600 mt-0.5 flex-shrink-0" />
+                                  <div>
+                                    <h3 className="text-base font-bold text-indigo-900 dark:text-indigo-100 mb-1">Pattern Lab</h3>
+                                    <p className="text-xs text-indigo-700 dark:text-indigo-300 leading-relaxed">
+                                      We analyzed your image and generated several options. The best methods are marked with a <span className="inline-flex items-center"><Star className="h-2.5 w-2.5 mx-0.5 fill-current" /></span>. Select your favorite pattern to continue.
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                                {/* Variations Grid */}
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+                                  {seamlessVariations.map((variation) => {
+                                    const isSelected = selectedVariationId === variation.id;
+                                    const isAi = variation.id === 'ai_enhanced';
+                                    
+                                    if (isAi) {
+                                      return (
+                                        <div 
+                                          key={variation.id}
+                                          className="relative aspect-square rounded-xl border-4 border-dashed border-border bg-card/50 flex flex-col items-center justify-center text-center p-4 group cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors"
+                                        >
+                                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 pt-4">
+                                            <span className="text-xs font-bold text-white block truncate">{variation.name}</span>
+                                          </div>
+                                          <p className="text-xs text-muted-foreground mb-3">{variation.description}</p>
+                                          <Button size="sm" className="h-7 text-[10px] bg-purple-600 hover:bg-purple-700 text-white gap-1.5">
+                                            <Sparkles className="h-3 w-3" />
+                                            Generate
+                                          </Button>
+                                          <span className="text-[10px] text-muted-foreground mt-2">API Key required</span>
+                                        </div>
+                                      );
+                                    }
+
+                                    return (
+                                      <div
+                                        key={variation.id}
+                                        onClick={() => setSelectedVariationId(variation.id)}
+                                        className={cn(
+                                          "relative aspect-square rounded-xl overflow-hidden border-4 transition-all duration-200 cursor-pointer group",
+                                          isSelected 
+                                            ? "border-indigo-600 shadow-lg shadow-indigo-500/25 scale-105 z-10" 
+                                            : "border-transparent hover:border-indigo-200 dark:hover:border-indigo-800 hover:shadow-lg"
+                                        )}
+                                      >
+                                        {/* Pattern Preview */}
+                                        <div 
+                                          className="w-full h-full bg-muted"
+                                          style={{
+                                            backgroundImage: `url(${variation.url})`,
+                                            backgroundSize: '33.33%',
+                                            backgroundRepeat: 'repeat'
+                                          }}
+                                        />
+                                        
+                                        {/* Name Label */}
+                                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 pt-4">
+                                          <span className="text-xs font-bold text-white block truncate">{variation.name}</span>
+                                        </div>
+
+                                        {/* Recommended Badge */}
+                                        {variation.isRecommended && (
+                                          <div className="absolute top-2 right-2 bg-yellow-400 text-yellow-900 text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 shadow-sm">
+                                            <Star className="h-3 w-3 fill-current" />
+                                            Best
+                                          </div>
+                                        )}
+
+                                        {/* Selection Overlay */}
+                                        {isSelected && (
+                                          <div className="absolute inset-0 bg-indigo-600/30 flex items-center justify-center backdrop-blur-[1px]">
+                                            <CheckCircle2 className="h-12 w-12 text-white drop-shadow-md" />
+                                          </div>
+                                        )}
+
+                                        {/* Download Button (Hover) */}
+                                        {!isSelected && (
+                                          <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button className="p-1.5 bg-white/80 dark:bg-black/80 hover:bg-white dark:hover:bg-black rounded-full shadow-sm backdrop-blur-sm text-foreground transition-colors">
+                                              <Download className="h-4 w-4" />
+                                            </button>
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+
+                                {/* Live Preview & Scale */}
+                                {selectedVariationId && (
+                                  <div className="bg-card border-2 border-border rounded-xl p-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                    <div className="flex justify-between items-center mb-3">
+                                      <h3 className="text-sm font-bold text-foreground">Live Preview & Scale</h3>
+                                      <button className="flex items-center gap-2 text-xs font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors">
+                                        <Download className="h-4 w-4" />
+                                        Download Texture
+                                      </button>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                      {/* Left: Preview */}
+                                      <div 
+                                        className="aspect-square rounded-lg border-2 border-border shadow-inner bg-muted w-full"
+                                        style={{
+                                          backgroundImage: `url(${seamlessVariations.find(v => v.id === selectedVariationId)?.url})`,
+                                          backgroundSize: `${101 - patternScale}%`,
+                                          backgroundRepeat: 'repeat'
+                                        }}
+                                      />
+
+                                      {/* Right: Controls */}
+                                      <div className="flex flex-col gap-3">
+                                        <div className="bg-background border border-border rounded-lg p-4">
+                                          <div className="flex items-center gap-2 mb-3">
+                                            <Ruler className="h-4 w-4 text-muted-foreground" />
+                                            <span className="text-xs font-bold text-foreground">Pattern Scale</span>
+                                          </div>
+                                          
+                                          <Slider 
+                                            value={[patternScale]}
+                                            onValueChange={(val) => setPatternScale(val[0])}
+                                            min={1}
+                                            max={100}
+                                            step={1}
+                                            className="py-2"
+                                          />
+                                          
+                                          <div className="flex justify-between text-[10px] text-muted-foreground mt-2 font-medium">
+                                            <span>Small</span>
+                                            <span>Large</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Footer Navigation */}
+                              <div className="mt-6 pt-6 border-t border-border flex flex-col gap-2 shrink-0">
+                                <div className="flex items-center justify-between">
+                                    <Button
+                                        variant="ghost"
+                                        onClick={handleBack}
+                                        className="gap-2 pl-2 pr-4 text-muted-foreground hover:text-foreground"
+                                    >
+                                        <ChevronLeft className="h-4 w-4" />
+                                        Back
+                                    </Button>
+                                    <Button
+                                        onClick={handleNext}
+                                        disabled={!selectedVariationId}
+                                        className={cn(
+                                            "gap-2 px-6 transition-all",
+                                            selectedVariationId
+                                                ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm hover:shadow-indigo-500/20 hover:-translate-y-0.5" 
+                                                : "bg-muted text-muted-foreground opacity-50 cursor-not-allowed"
+                                        )}
+                                    >
+                                        Next Step
+                                        <ChevronRight className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                                
+                                <div className="flex justify-center gap-2 text-xs text-muted-foreground opacity-60">
+                                    <span className="flex items-center gap-1">
+                                        <kbd className="bg-muted px-1.5 py-0.5 rounded border border-border font-mono text-[10px]">Enter</kbd> 
+                                        Next
+                                    </span>
+                                    <span className="mx-1">•</span>
+                                    <span className="flex items-center gap-1">
+                                        <kbd className="bg-muted px-1.5 py-0.5 rounded border border-border font-mono text-[10px]">Esc</kbd> 
+                                        Back
+                                    </span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
 
