@@ -248,39 +248,7 @@ export function BentoGrid() {
         </div>
       </div>
 
-      <div className="lg:col-span-1 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/10 dark:to-emerald-950/10 border border-green-200/50 dark:border-green-900/20 rounded-[24px] p-6">
-        <div className="flex items-center gap-2 mb-5">
-          <Zap className="h-5 w-5 text-green-600" />
-          <h2 className="text-lg font-bold text-foreground">Quick Actions</h2>
-        </div>
-        
-        <div className="space-y-2.5">
-          <QuickAction icon={Plus} label="Start New Project" href="/new-project" />
-          <QuickAction icon={Upload} label="Upload Design" href="/upload-design" />
-          <QuickAction icon={Layers} label="Batch Process" href="/batch-process" />
-          <QuickAction icon={LinkIcon} label="Import from URL" href="/import-url" />
-          <QuickAction icon={Shuffle} label="Random Prompt" href="/random-prompt" />
-        </div>
-      </div>
-
-      {/* ROW 3 */}
-      <div className="lg:col-span-2 bg-card border border-sidebar-border/50 rounded-[24px] p-7 shadow-sm">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-bold text-foreground">Recent Work</h2>
-          <a href="#" className="text-sm font-medium text-primary hover:underline">View All →</a>
-        </div>
-        
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <ProjectCard image={project1} title="Beach Sunset" time="2h ago" type="image" delay={0.5} />
-          <ProjectCard image={project2} title="Tech Logo" time="4h ago" type="mockup" delay={0.6} />
-          <ProjectCard image={project3} title="Neon City" time="Yesterday" type="bg" delay={0.7} />
-          <ProjectCard image={suggestionImg} title="Vintage Photo" time="Yesterday" type="image" delay={0.8} />
-          {/* Reuse images for demo */}
-          <ProjectCard image={project3} title="Cyberpunk Char" time="2 days ago" type="image" delay={0.9} />
-          <ProjectCard image={project1} title="Abstract Wave" time="3 days ago" type="bg" delay={1.0} />
-        </div>
-      </div>
-
+      {/* AI Suggestions (Moved from Row 3 to Row 2) */}
       <div className="lg:col-span-1 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/10 dark:to-orange-950/10 border border-amber-200/50 dark:border-amber-900/20 rounded-[24px] p-6">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
@@ -310,6 +278,25 @@ export function BentoGrid() {
           ))}
         </div>
       </div>
+
+      {/* ROW 3: Recent Work (Full Width) */}
+      <div className="lg:col-span-3 bg-card border border-sidebar-border/50 rounded-[24px] p-7 shadow-sm">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-bold text-foreground">Recent Work</h2>
+          <a href="#" className="text-sm font-medium text-primary hover:underline">View All →</a>
+        </div>
+        
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <ProjectCard image={project1} title="Beach Sunset" time="2h ago" type="image" delay={0.5} />
+          <ProjectCard image={project2} title="Tech Logo" time="4h ago" type="mockup" delay={0.6} />
+          <ProjectCard image={project3} title="Neon City" time="Yesterday" type="bg" delay={0.7} />
+          <ProjectCard image={suggestionImg} title="Vintage Photo" time="Yesterday" type="image" delay={0.8} />
+          {/* Reuse images for demo */}
+          <ProjectCard image={project3} title="Cyberpunk Char" time="2 days ago" type="image" delay={0.9} />
+          <ProjectCard image={project1} title="Abstract Wave" time="3 days ago" type="bg" delay={1.0} />
+        </div>
+      </div>
+
 
     </div>
   );
