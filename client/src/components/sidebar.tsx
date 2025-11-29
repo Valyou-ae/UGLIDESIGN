@@ -125,25 +125,27 @@ export function Sidebar({ className }: SidebarProps) {
       </div>
 
       {/* User Profile */}
-      <div className={cn(
-        "mx-3 mb-6 p-2 rounded-xl flex items-center gap-3 cursor-pointer hover:bg-sidebar-accent transition-colors group overflow-hidden",
-        collapsed ? "justify-center bg-transparent" : "bg-sidebar-accent/50 border border-sidebar-border/50"
-      )}>
-        <div className="relative flex-shrink-0">
-          <div className="absolute -inset-0.5 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full opacity-70 group-hover:opacity-100 transition-opacity" />
-          <Avatar className="h-9 w-9 border-2 border-sidebar relative">
-            <AvatarImage src="https://github.com/shadcn.png" />
-            <AvatarFallback>JD</AvatarFallback>
-          </Avatar>
-        </div>
-        {!collapsed && (
-          <div className="flex-1 overflow-hidden animate-fade-in">
-            <p className="text-sm font-semibold truncate text-sidebar-foreground">John Doe</p>
-            <p className="text-xs text-muted-foreground truncate">john@example.com</p>
+      <Link href="/profile">
+        <div className={cn(
+          "mx-3 mb-6 p-2 rounded-xl flex items-center gap-3 cursor-pointer hover:bg-sidebar-accent transition-colors group overflow-hidden",
+          collapsed ? "justify-center bg-transparent" : "bg-sidebar-accent/50 border border-sidebar-border/50"
+        )}>
+          <div className="relative flex-shrink-0">
+            <div className="absolute -inset-0.5 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full opacity-70 group-hover:opacity-100 transition-opacity" />
+            <Avatar className="h-9 w-9 border-2 border-sidebar relative">
+              <AvatarImage src="https://github.com/shadcn.png" />
+              <AvatarFallback>JD</AvatarFallback>
+            </Avatar>
           </div>
-        )}
-        {!collapsed && <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto" />}
-      </div>
+          {!collapsed && (
+            <div className="flex-1 overflow-hidden animate-fade-in">
+              <p className="text-sm font-semibold truncate text-sidebar-foreground">John Doe</p>
+              <p className="text-xs text-muted-foreground truncate">john@example.com</p>
+            </div>
+          )}
+          {!collapsed && <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto" />}
+        </div>
+      </Link>
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto no-scrollbar px-3">

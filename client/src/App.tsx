@@ -14,6 +14,7 @@ import Billing from "@/pages/billing";
 import Settings from "@/pages/settings";
 import HelpSupport from "@/pages/help-support";
 import Login from "@/pages/login";
+import Profile from "@/pages/profile";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -21,6 +22,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/login" component={Login} />
+      <Route path="/profile" component={Profile} />
       <Route path="/discover" component={Discover} />
       <Route path="/image-gen" component={ImageGenerator} />
       <Route path="/bg-remover" component={BackgroundRemover} />
