@@ -117,8 +117,8 @@ function StatCard({ icon: Icon, value, label, trend, colorClass, delay }: any) {
   );
 }
 
-function QuickAction({ icon: Icon, label }: any) {
-  return (
+function QuickAction({ icon: Icon, label, href }: any) {
+  const content = (
     <div className="group flex items-center justify-between p-3.5 bg-card border border-sidebar-border/50 rounded-xl cursor-pointer hover:shadow-md hover:border-green-500/30 transition-all duration-300">
       <div className="flex items-center gap-3">
         <div className="h-8 w-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center group-hover:bg-green-50 dark:group-hover:bg-green-900/20 transition-colors">
@@ -129,6 +129,12 @@ function QuickAction({ icon: Icon, label }: any) {
       <ArrowRight className="h-4 w-4 text-muted-foreground/50 transform -translate-x-2 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
     </div>
   );
+
+  if (href) {
+    return <Link href={href}>{content}</Link>;
+  }
+
+  return content;
 }
 
 function ProjectCard({ image, title, time, type, delay }: any) {
@@ -249,11 +255,11 @@ export function BentoGrid() {
         </div>
         
         <div className="space-y-2.5">
-          <QuickAction icon={Plus} label="Start New Project" />
-          <QuickAction icon={Upload} label="Upload Design" />
-          <QuickAction icon={Layers} label="Batch Process" />
-          <QuickAction icon={LinkIcon} label="Import from URL" />
-          <QuickAction icon={Shuffle} label="Random Prompt" />
+          <QuickAction icon={Plus} label="Start New Project" href="/new-project" />
+          <QuickAction icon={Upload} label="Upload Design" href="/upload-design" />
+          <QuickAction icon={Layers} label="Batch Process" href="/batch-process" />
+          <QuickAction icon={LinkIcon} label="Import from URL" href="/import-url" />
+          <QuickAction icon={Shuffle} label="Random Prompt" href="/random-prompt" />
         </div>
       </div>
 
