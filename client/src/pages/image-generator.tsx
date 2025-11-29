@@ -333,6 +333,15 @@ export default function ImageGenerator() {
     }
   }, []);
 
+  // Helper function to get progress text
+  const getProgressText = (prog: number) => {
+    if (prog < 20) return "Initializing AI Agents...";
+    if (prog < 40) return "Analyzing prompt structure...";
+    if (prog < 60) return "Synthesizing visual elements...";
+    if (prog < 80) return "Refining details and textures...";
+    return "Final polishing...";
+  };
+
   return (
     <div className="h-screen bg-background flex font-sans text-foreground overflow-hidden">
       <Sidebar className="hidden md:flex border-r border-border/50" />
@@ -732,7 +741,7 @@ export default function ImageGenerator() {
                     {/* Progress Bar & Percentage */}
                     <div className="w-3/4 mt-3 space-y-1.5">
                       <div className="flex justify-between items-center px-1">
-                        <span className="text-[10px] font-medium text-white/80">Processing</span>
+                        <span className="text-[10px] font-medium text-white/80">{getProgressText(progress)}</span>
                         <span className="text-[10px] font-bold text-white">{progress}%</span>
                       </div>
                       <div className="h-1.5 w-full bg-black/20 rounded-full overflow-hidden backdrop-blur-sm">
@@ -777,6 +786,12 @@ export default function ImageGenerator() {
                         Download
                       </Button>
                       <div className="flex items-center gap-1 ml-auto">
+                        <Button size="icon" className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg">
+                          <RefreshCw className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button size="icon" className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg">
+                          <MoreHorizontal className="h-3.5 w-3.5" />
+                        </Button>
                         <Button 
                           size="icon" 
                           className="h-8 w-8 bg-white/10 hover:bg-red-500/20 text-white hover:text-red-400 border-0 backdrop-blur-md rounded-lg transition-colors"
@@ -786,12 +801,6 @@ export default function ImageGenerator() {
                           }}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button size="icon" className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg">
-                          <RefreshCw className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button size="icon" className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg">
-                          <MoreHorizontal className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                     </div>
