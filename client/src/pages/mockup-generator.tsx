@@ -28,7 +28,11 @@ import {
   Users,
   UserCheck,
   Plus,
-  Check as CheckIcon
+  Check as CheckIcon,
+  ChevronDown,
+  Menu,
+  Tag,
+  Layers
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -371,24 +375,66 @@ export default function MockupGenerator() {
                       {currentStep === "product" && (
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
                           {/* Categories */}
-                          <div className="lg:col-span-3 border-r border-border pr-6 space-y-6">
-                            <div className="space-y-1">
-                              {["Men's Clothing", "Women's Clothing", "Kids' Clothing", "Accessories", "Home & Living"].map((cat, i) => (
-                                <button 
-                                  key={cat}
-                                  className={cn(
-                                    "w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                                    i === 0 ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400" : "text-muted-foreground hover:bg-muted"
-                                  )}
-                                >
-                                  {cat}
-                                </button>
-                              ))}
+                          <div className="lg:col-span-3 border-r border-border pr-6 flex flex-col gap-6">
+                            <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                              <Menu className="h-4 w-4" />
+                              <span className="text-xs font-bold uppercase tracking-wider">Select Category</span>
                             </div>
-                            <div className="space-y-1 pl-2 border-l-2 border-border ml-2">
-                              {["T-shirts", "Long Sleeves", "Sweatshirts", "Hoodies", "Tank Tops"].map(sub => (
-                                <button key={sub} className="w-full text-left px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                                  {sub}
+
+                            <div className="space-y-1">
+                              {/* Men's Clothing Category - Expanded by default */}
+                              <div className="space-y-1">
+                                <button 
+                                  className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-300 transition-colors"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <User className="h-4 w-4" />
+                                    Men's Clothing
+                                  </div>
+                                  <ChevronDown className="h-4 w-4 opacity-50" />
+                                </button>
+
+                                {/* Sub items */}
+                                <div className="pl-4 space-y-0.5 pt-1">
+                                  {[
+                                    { name: "T-shirts", icon: Shirt },
+                                    { name: "Polo shirts", icon: Shirt },
+                                    { name: "Tank tops", icon: Shirt },
+                                    { name: "3/4 sleeve shirts", icon: Shirt },
+                                    { name: "Long sleeve shirts", icon: Shirt },
+                                    { name: "Embroidered shirts", icon: Tag },
+                                    { name: "Jackets & vests", icon: Layers },
+                                    { name: "Hoodies", icon: Cloud }, // Using Cloud as placeholder for Hoodie "fluffiness" or shape
+                                    { name: "Sweatshirts", icon: Shirt },
+                                    { name: "Knitwear", icon: Grid },
+                                  ].map((item) => (
+                                    <button 
+                                      key={item.name}
+                                      className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-[13px] text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors group"
+                                    >
+                                      <item.icon className="h-3.5 w-3.5 opacity-70 group-hover:opacity-100 group-hover:text-indigo-600 transition-colors" />
+                                      {item.name}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+
+                              {/* Other Categories (Collapsed) */}
+                              {[
+                                { name: "Women's Clothing", icon: User },
+                                { name: "Kids' Clothing", icon: User }, // Using User as generic placeholder
+                                { name: "Accessories", icon: ShoppingBag },
+                                { name: "Home & Living", icon: Coffee }
+                              ].map((cat) => (
+                                <button 
+                                  key={cat.name}
+                                  className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <cat.icon className="h-4 w-4" />
+                                    {cat.name}
+                                  </div>
+                                  <ChevronRight className="h-4 w-4 opacity-30" />
                                 </button>
                               ))}
                             </div>
