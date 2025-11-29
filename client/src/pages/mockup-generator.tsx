@@ -23,12 +23,16 @@ import {
   Sun,
   Trees,
   Coffee,
-  Dumbbell
+  Dumbbell,
+  User,
+  Users,
+  UserCheck
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sidebar } from "@/components/sidebar";
+import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
@@ -407,55 +411,86 @@ export default function MockupGenerator() {
 
                           {/* Model Config */}
                           <div className="lg:col-span-3 border-l border-border pl-6">
-                            <h3 className="text-lg font-bold mb-4">Configuration</h3>
-                            <div className="space-y-8">
-                              {/* Color Selection */}
-                              <div className="space-y-3">
-                                <label className="text-xs font-bold text-muted-foreground uppercase">Product Color</label>
-                                <div className="grid grid-cols-4 gap-3">
-                                  {[
-                                    { name: "White", class: "bg-white border-gray-200" },
-                                    { name: "Black", class: "bg-black border-black" },
-                                    { name: "Heather Grey", class: "bg-zinc-400 border-zinc-400" },
-                                    { name: "Navy", class: "bg-blue-900 border-blue-900" },
-                                    { name: "Red", class: "bg-red-600 border-red-600" },
-                                    { name: "Forest", class: "bg-green-800 border-green-800" },
-                                    { name: "Royal", class: "bg-blue-600 border-blue-600" },
-                                    { name: "Maroon", class: "bg-red-900 border-red-900" },
-                                  ].map((color, i) => (
-                                    <div 
-                                      key={color.name}
-                                      className="flex flex-col items-center gap-1 cursor-pointer group"
-                                    >
-                                      <div className={cn(
-                                        "h-8 w-8 rounded-full border-2 shadow-sm transition-transform group-hover:scale-110",
-                                        color.class,
-                                        i === 0 ? "ring-2 ring-indigo-600 ring-offset-2 dark:ring-offset-background" : ""
-                                      )} />
-                                      <span className="text-[10px] text-muted-foreground">{color.name}</span>
-                                    </div>
-                                  ))}
+                            <div className="sticky top-6">
+                              <h3 className="text-lg font-bold mb-5 flex items-center gap-2">
+                                <Sparkles className="h-4 w-4 text-indigo-600" />
+                                Configuration
+                              </h3>
+                              
+                              <div className="space-y-6 bg-card/50 rounded-xl p-1">
+                                {/* Color Selection */}
+                                <div className="space-y-3">
+                                  <div className="flex items-center justify-between">
+                                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Color</label>
+                                    <span className="text-[10px] font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full dark:bg-indigo-900/30 dark:text-indigo-400">White</span>
+                                  </div>
+                                  <div className="grid grid-cols-4 gap-2">
+                                    {[
+                                      { name: "White", class: "bg-white border-gray-200" },
+                                      { name: "Black", class: "bg-black border-black" },
+                                      { name: "Grey", class: "bg-zinc-400 border-zinc-400" },
+                                      { name: "Navy", class: "bg-blue-900 border-blue-900" },
+                                      { name: "Red", class: "bg-red-600 border-red-600" },
+                                      { name: "Forest", class: "bg-green-800 border-green-800" },
+                                      { name: "Royal", class: "bg-blue-600 border-blue-600" },
+                                      { name: "Maroon", class: "bg-red-900 border-red-900" },
+                                    ].map((color, i) => (
+                                      <div 
+                                        key={color.name}
+                                        className="group relative aspect-square rounded-lg border cursor-pointer transition-all hover:border-indigo-500 flex items-center justify-center"
+                                      >
+                                        <div className={cn(
+                                          "h-6 w-6 rounded-full border shadow-sm transition-transform group-hover:scale-110",
+                                          color.class,
+                                          i === 0 ? "ring-2 ring-indigo-600 ring-offset-2 dark:ring-offset-background scale-110" : ""
+                                        )} />
+                                      </div>
+                                    ))}
+                                  </div>
                                 </div>
-                              </div>
 
-                              <div className="space-y-2">
-                                <label className="text-xs font-bold text-muted-foreground uppercase">Gender</label>
-                                <div className="flex flex-wrap gap-2">
-                                  {["Female", "Male", "Non-Binary"].map(opt => (
-                                    <Badge key={opt} variant="outline" className="cursor-pointer hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-colors">
-                                      {opt}
-                                    </Badge>
-                                  ))}
+                                <Separator />
+
+                                {/* Gender Selection */}
+                                <div className="space-y-3">
+                                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Model</label>
+                                  <div className="grid grid-cols-3 gap-2">
+                                    {[
+                                      { label: "Female", icon: User, active: true },
+                                      { label: "Male", icon: User, active: false },
+                                      { label: "Uni", icon: Users, active: false }
+                                    ].map((opt) => (
+                                      <button
+                                        key={opt.label}
+                                        className={cn(
+                                          "flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-lg border text-xs font-medium transition-all",
+                                          opt.active
+                                            ? "bg-indigo-50 border-indigo-600 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-300"
+                                            : "bg-background border-border text-muted-foreground hover:border-indigo-300 hover:text-foreground"
+                                        )}
+                                      >
+                                        <opt.icon className={cn("h-4 w-4", opt.active ? "text-indigo-600" : "text-muted-foreground")} />
+                                        {opt.label}
+                                      </button>
+                                    ))}
+                                  </div>
                                 </div>
-                              </div>
-                              <div className="space-y-2">
-                                <label className="text-xs font-bold text-muted-foreground uppercase">Ethnicity</label>
-                                <div className="flex flex-wrap gap-2">
-                                  {["White", "Black", "Asian", "Hispanic", "Diverse"].map(opt => (
-                                    <Badge key={opt} variant="outline" className="cursor-pointer hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-colors">
-                                      {opt}
-                                    </Badge>
-                                  ))}
+
+                                {/* Ethnicity Selection */}
+                                <div className="space-y-3">
+                                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Ethnicity</label>
+                                  <Select defaultValue="diverse">
+                                    <SelectTrigger className="w-full h-10 rounded-lg border-border bg-background text-sm">
+                                      <SelectValue placeholder="Select ethnicity" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="diverse">Diverse (Random)</SelectItem>
+                                      <SelectItem value="white">White / Caucasian</SelectItem>
+                                      <SelectItem value="black">Black / African Descent</SelectItem>
+                                      <SelectItem value="asian">Asian</SelectItem>
+                                      <SelectItem value="hispanic">Hispanic / Latino</SelectItem>
+                                    </SelectContent>
+                                  </Select>
                                 </div>
                               </div>
                             </div>
