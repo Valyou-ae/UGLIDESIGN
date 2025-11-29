@@ -82,6 +82,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 
@@ -746,42 +752,61 @@ export default function MockupGenerator() {
                                       {selectedColors.length} Selected
                                     </span>
                                   </div>
-                                  <div className="grid grid-cols-5 gap-2">
+                                  <div className="grid grid-cols-8 gap-1.5">
                                     {[
                                       { name: "White", class: "bg-white border-gray-200" },
                                       { name: "Black", class: "bg-black border-black" },
-                                      { name: "Grey", class: "bg-zinc-400 border-zinc-400" },
-                                      { name: "Navy", class: "bg-blue-900 border-blue-900" },
-                                      { name: "Red", class: "bg-red-600 border-red-600" },
-                                      { name: "Forest", class: "bg-green-800 border-green-800" },
-                                      { name: "Royal", class: "bg-blue-600 border-blue-600" },
-                                      { name: "Maroon", class: "bg-red-900 border-red-900" },
-                                      { name: "Yellow", class: "bg-yellow-400 border-yellow-400" },
+                                      { name: "Sport Grey", class: "bg-[#9E9E9E] border-gray-400" },
+                                      { name: "Dark Heather", class: "bg-[#545454] border-gray-600" },
+                                      { name: "Charcoal", class: "bg-[#424242] border-gray-700" },
+                                      { name: "Navy", class: "bg-[#1A237E] border-blue-900" },
+                                      { name: "Royal", class: "bg-[#0D47A1] border-blue-700" },
+                                      { name: "Light Blue", class: "bg-[#ADD8E6] border-blue-200" },
+                                      { name: "Red", class: "bg-[#D32F2F] border-red-600" },
+                                      { name: "Cardinal", class: "bg-[#880E4F] border-red-900" },
+                                      { name: "Maroon", class: "bg-[#4A148C] border-purple-900" },
+                                      { name: "Orange", class: "bg-[#F57C00] border-orange-600" },
+                                      { name: "Gold", class: "bg-[#FBC02D] border-yellow-500" },
+                                      { name: "Yellow", class: "bg-[#FFEB3B] border-yellow-400" },
+                                      { name: "Irish Green", class: "bg-[#388E3C] border-green-600" },
+                                      { name: "Military Green", class: "bg-[#558B2F] border-green-700" },
+                                      { name: "Forest", class: "bg-[#1B5E20] border-green-900" },
+                                      { name: "Purple", class: "bg-[#7B1FA2] border-purple-700" },
+                                      { name: "Light Pink", class: "bg-[#F8BBD0] border-pink-200" },
+                                      { name: "Sand", class: "bg-[#F5F5DC] border-stone-200" },
                                     ].map((color) => {
                                       const isSelected = selectedColors.includes(color.name);
                                       return (
-                                        <div 
-                                          key={color.name}
-                                          onClick={() => {
-                                            if (isSelected) {
-                                              setSelectedColors(selectedColors.filter(c => c !== color.name));
-                                            } else {
-                                              setSelectedColors([...selectedColors, color.name]);
-                                            }
-                                          }}
-                                          className="group relative aspect-square rounded-lg border cursor-pointer transition-all hover:border-indigo-500 flex items-center justify-center"
-                                        >
-                                          <div className={cn(
-                                            "h-6 w-6 rounded-full border shadow-sm transition-transform group-hover:scale-110",
-                                            color.class,
-                                            isSelected ? "ring-2 ring-indigo-600 ring-offset-2 dark:ring-offset-background scale-110" : ""
-                                          )} />
-                                          {isSelected && (
-                                            <div className="absolute -top-1 -right-1 bg-indigo-600 rounded-full p-0.5 border-2 border-background">
-                                              <CheckIcon className="h-2 w-2 text-white" />
-                                            </div>
-                                          )}
-                                        </div>
+                                        <TooltipProvider key={color.name}>
+                                          <Tooltip delayDuration={0}>
+                                            <TooltipTrigger asChild>
+                                              <div 
+                                                onClick={() => {
+                                                  if (isSelected) {
+                                                    setSelectedColors(selectedColors.filter(c => c !== color.name));
+                                                  } else {
+                                                    setSelectedColors([...selectedColors, color.name]);
+                                                  }
+                                                }}
+                                                className="group relative h-6 w-6 rounded-full border cursor-pointer transition-all hover:scale-110 flex items-center justify-center"
+                                              >
+                                                <div className={cn(
+                                                  "h-full w-full rounded-full border shadow-sm",
+                                                  color.class,
+                                                  isSelected ? "ring-2 ring-indigo-600 ring-offset-1 dark:ring-offset-background" : ""
+                                                )} />
+                                                {isSelected && (
+                                                  <div className="absolute -top-0.5 -right-0.5 bg-indigo-600 rounded-full p-[1px] border border-background z-10">
+                                                    <CheckIcon className="h-1.5 w-1.5 text-white" />
+                                                  </div>
+                                                )}
+                                              </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent side="bottom" className="text-[10px] px-2 py-1">
+                                              <p>{color.name}</p>
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
                                       );
                                     })}
                                   </div>
