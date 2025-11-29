@@ -619,59 +619,7 @@ export default function ImageGenerator() {
             </AnimatePresence>
 
             {/* AI Agents Status Bar (During Generation) */}
-            <AnimatePresence>
-              {status === "generating" && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="bg-muted/30 border border-border rounded-xl p-4 overflow-hidden relative"
-                >
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="flex items-center justify-center gap-1">
-                      {agents.map((agent, i) => (
-                        <div key={agent.id} className="flex items-center">
-                          {/* Node */}
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div className={cn(
-                                  "relative w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 z-10",
-                                  agent.status === "working" 
-                                    ? `bg-primary shadow-lg scale-110 text-white` 
-                                    : agent.status === "complete" 
-                                      ? "bg-green-500 text-white" 
-                                      : "bg-muted border border-border text-muted-foreground"
-                                )}>
-                                  <agent.icon className="h-3.5 w-3.5" />
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent><p>{agent.name}</p></TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-
-                          {/* Connecting Line */}
-                          {i < agents.length - 1 && (
-                            <div className="w-8 h-0.5 bg-border -mx-1 relative overflow-hidden">
-                              {agent.status === "complete" && (
-                                <motion.div 
-                                  initial={{ width: 0 }}
-                                  animate={{ width: "100%" }}
-                                  className="h-full bg-primary"
-                                />
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                    <p className="text-xs text-muted-foreground font-medium animate-pulse mt-2">
-                      {getProgressText(progress)} <span className="opacity-70">({progress}%)</span>
-                    </p>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* Removed as per user request */}
 
           </div>
         </div>
