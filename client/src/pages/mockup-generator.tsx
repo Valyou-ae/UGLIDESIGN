@@ -497,7 +497,7 @@ export default function MockupGenerator() {
                               <Button 
                                 size="lg" 
                                 onClick={handleGenerate}
-                                className="h-14 px-10 text-lg rounded-[12px] bg-gradient-to-r from-[#7C3AED] to-[#9333EA] hover:brightness-110 shadow-lg shadow-purple-600/20 transition-all hover:-translate-y-[1px]"
+                                className="h-14 px-10 text-lg rounded-[12px] bg-gradient-to-r from-[#7C3AED] to-[#EC4899] hover:brightness-110 shadow-lg shadow-purple-600/20 transition-all hover:-translate-y-[1px]"
                               >
                                 <Wand2 className="mr-2 h-5 w-5" />
                                 Generate 12 Mockups

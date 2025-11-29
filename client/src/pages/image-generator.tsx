@@ -385,7 +385,7 @@ export default function ImageGenerator() {
                           onClick={handleGenerate}
                           disabled={status === "generating"}
                           size="icon"
-                          className="h-9 w-9 rounded-lg bg-gradient-to-r from-[#7C3AED] to-[#9333EA] hover:brightness-110 text-white shadow-sm transition-all"
+                          className="h-9 w-9 rounded-lg bg-gradient-to-r from-[#7C3AED] to-[#EC4899] hover:brightness-110 text-white shadow-sm transition-all"
                         >
                           {status === "generating" ? (
                             <RefreshCw className="h-4 w-4 animate-spin" />
