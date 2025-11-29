@@ -666,7 +666,7 @@ export default function ImageGenerator() {
                       ))}
                     </div>
                     <p className="text-xs text-muted-foreground font-medium animate-pulse mt-2">
-                      {agents.find(a => a.status === "working")?.message || "Initializing..."}
+                      {getProgressText(progress)} <span className="opacity-70">({progress}%)</span>
                     </p>
                   </div>
                 </motion.div>
