@@ -150,31 +150,42 @@ function QuickAction({ icon: Icon, label, href }: any) {
   return content;
 }
 
-function ProjectCard({ image, title, time, type, delay }: any) {
+function ProjectCard({ image, title, time, type, delay, prompt, journey, restoreImage }: any) {
   const colors = {
     image: "border-purple-500/50 hover:shadow-purple-500/20",
     mockup: "border-blue-500/50 hover:shadow-blue-500/20",
     bg: "border-pink-500/50 hover:shadow-pink-500/20",
   };
 
+  let linkHref = "#";
+  if (type === "image") {
+    linkHref = `/image-gen?prompt=${encodeURIComponent(prompt || title)}`;
+  } else if (type === "mockup") {
+    linkHref = `/mockup?journey=${journey || 'DTG'}&restore=true`;
+  } else if (type === "bg") {
+    linkHref = `/bg-remover?image=${encodeURIComponent(restoreImage || image)}&restore=true`;
+  }
+
   return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5, delay }}
-      className={cn(
-        "group relative aspect-square rounded-2xl overflow-hidden border border-border cursor-pointer hover:border-2 transition-all duration-300 hover:shadow-lg",
-        colors[type as keyof typeof colors]
-      )}
-    >
-      <img src={image} alt={title} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
-      
-      <div className="absolute bottom-0 left-0 p-4 w-full">
-        <h4 className="text-sm font-semibold text-white truncate">{title}</h4>
-        <p className="text-[10px] text-white/70">{time}</p>
-      </div>
-    </motion.div>
+    <Link href={linkHref}>
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay }}
+        className={cn(
+          "group relative aspect-square rounded-2xl overflow-hidden border border-border cursor-pointer hover:border-2 transition-all duration-300 hover:shadow-lg",
+          colors[type as keyof typeof colors]
+        )}
+      >
+        <img src={image} alt={title} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
+        
+        <div className="absolute bottom-0 left-0 p-4 w-full">
+          <h4 className="text-sm font-semibold text-white truncate">{title}</h4>
+          <p className="text-[10px] text-white/70">{time}</p>
+        </div>
+      </motion.div>
+    </Link>
   );
 }
 
@@ -317,13 +328,13 @@ export function BentoGrid() {
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <ProjectCard image={project1} title="Beach Sunset" time="2h ago" type="image" delay={0.5} />
-          <ProjectCard image={project2} title="Tech Logo" time="4h ago" type="mockup" delay={0.6} />
-          <ProjectCard image={project3} title="Neon City" time="Yesterday" type="bg" delay={0.7} />
-          <ProjectCard image={suggestionImg} title="Vintage Photo" time="Yesterday" type="image" delay={0.8} />
+          <ProjectCard image={project1} title="Beach Sunset" time="2h ago" type="image" delay={0.5} prompt="Abstract creative digital art of a beach sunset with geometric overlays" />
+          <ProjectCard image={project2} title="Tech Logo" time="4h ago" type="mockup" delay={0.6} journey="DTG" />
+          <ProjectCard image={project3} title="Neon City" time="Yesterday" type="bg" delay={0.7} restoreImage={project3} />
+          <ProjectCard image={suggestionImg} title="Vintage Photo" time="Yesterday" type="image" delay={0.8} prompt="Vintage polaroid photo effect with warm tones" />
           {/* Reuse images for demo */}
-          <ProjectCard image={project3} title="Cyberpunk Char" time="2 days ago" type="image" delay={0.9} />
-          <ProjectCard image={project1} title="Abstract Wave" time="3 days ago" type="bg" delay={1.0} />
+          <ProjectCard image={project3} title="Cyberpunk Char" time="2 days ago" type="image" delay={0.9} prompt="Cyberpunk character concept art" />
+          <ProjectCard image={project1} title="Abstract Wave" time="3 days ago" type="bg" delay={1.0} restoreImage={project1} />
         </div>
       </div>
 

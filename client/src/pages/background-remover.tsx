@@ -87,6 +87,18 @@ export default function BackgroundRemover() {
     };
   }, []);
 
+  // Restore state from URL
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const restore = searchParams.get('restore');
+    const imageParam = searchParams.get('image');
+
+    if (restore === 'true' && imageParam) {
+      setSelectedImages([imageParam]);
+      setState("complete");
+    }
+  }, []);
+
   // Mock processing simulation
   const processImage = () => {
     if (state === "processing") return; // Prevent double clicks
