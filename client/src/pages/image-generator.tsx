@@ -79,6 +79,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 
@@ -167,6 +177,7 @@ export default function ImageGenerator() {
   const [progress, setProgress] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
   const [selectedImage, setSelectedImage] = useState<GeneratedImage | null>(null);
+  const [imageToDelete, setImageToDelete] = useState<GeneratedImage | null>(null);
   const [settings, setSettings] = useState({
     style: "auto",
     quality: "standard",
@@ -271,6 +282,16 @@ export default function ImageGenerator() {
       setAgents(AGENTS.map(a => ({ ...a, status: "idle" })));
       setProgress(0);
     }, 3000);
+  };
+
+  const handleDeleteConfirm = (id: string) => {
+    setGenerations(prev => prev.filter(g => g.id !== id));
+    setImageToDelete(null);
+    toast({
+      title: "Image Deleted",
+      description: "The image has been permanently removed.",
+      className: "bg-red-50 border-red-200 text-red-800 dark:bg-red-900/20 dark:border-red-900/50 dark:text-red-400",
+    });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -756,6 +777,16 @@ export default function ImageGenerator() {
                         Download
                       </Button>
                       <div className="flex items-center gap-1 ml-auto">
+                        <Button 
+                          size="icon" 
+                          className="h-8 w-8 bg-white/10 hover:bg-red-500/20 text-white hover:text-red-400 border-0 backdrop-blur-md rounded-lg transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setImageToDelete(gen);
+                          }}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
                         <Button size="icon" className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg">
                           <RefreshCw className="h-3.5 w-3.5" />
                         </Button>
@@ -870,6 +901,27 @@ export default function ImageGenerator() {
         </AnimatePresence>
 
       </main>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!imageToDelete} onOpenChange={(open) => !open && setImageToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the generated image from your gallery.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => imageToDelete && handleDeleteConfirm(imageToDelete.id)}
+              className="bg-red-600 hover:bg-red-700 text-white focus:ring-red-600"
+            >
+              Delete Forever
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
