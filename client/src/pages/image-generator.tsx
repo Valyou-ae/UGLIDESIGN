@@ -698,6 +698,22 @@ export default function ImageGenerator() {
                     <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48ZyBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTAgMzhoNDB2MmgtNDB6Ii8+PHBhdGggZD0iTTAgMGg0MHYyaC00MHoiLz48cGF0aCBkPSJNMCAwdjQwaDJWMHoiLz48cGF0aCBkPSJNMzggMHY0MGgyVjB6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
                     <Sparkles className="h-12 w-12 text-white animate-spin-slow duration-[3s]" />
                     <p className="text-white/90 font-medium mt-4 text-sm animate-pulse">Generating masterpiece...</p>
+                    
+                    {/* Progress Bar & Percentage */}
+                    <div className="w-3/4 mt-3 space-y-1.5">
+                      <div className="flex justify-between items-center px-1">
+                        <span className="text-[10px] font-medium text-white/80">Processing</span>
+                        <span className="text-[10px] font-bold text-white">{progress}%</span>
+                      </div>
+                      <div className="h-1.5 w-full bg-black/20 rounded-full overflow-hidden backdrop-blur-sm">
+                        <motion.div 
+                          className="h-full bg-white/90 rounded-full"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${progress}%` }}
+                          transition={{ type: "spring", stiffness: 50, damping: 20 }}
+                        />
+                      </div>
+                    </div>
                   </div>
                   <div className="p-5 space-y-3 bg-card">
                     <div className="h-4 bg-muted rounded w-3/4 animate-pulse" />
