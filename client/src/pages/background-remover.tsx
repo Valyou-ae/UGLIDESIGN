@@ -163,6 +163,15 @@ export default function BackgroundRemover() {
     });
   };
 
+  const downloadImage = (url: string, filename: string) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const reset = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     setState("idle");
@@ -515,7 +524,9 @@ export default function BackgroundRemover() {
                           <DropdownMenuContent align="end" className="w-56">
                             <DropdownMenuLabel>Download Options</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => {
+                                selectedImages.forEach((img, i) => downloadImage(img, `removed_bg_${i}.png`));
+                            }}>
                               <div className="flex flex-col gap-0.5">
                                 <span className="font-medium">{selectedImages.length > 1 ? "ZIP Archive" : "PNG (Transparent)"}</span>
                                 <span className="text-xs text-muted-foreground">Recommended for web</span>

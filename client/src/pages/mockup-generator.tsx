@@ -141,6 +141,15 @@ export default function MockupGenerator() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  const downloadImage = (url: string, filename: string) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const steps = journey === "AOP" ? AOP_STEPS : DTG_STEPS;
   const currentStep = steps[currentStepIndex];
 
@@ -1406,7 +1415,10 @@ export default function MockupGenerator() {
                                 </div>
                                 <div className="flex gap-3">
                                   <Button variant="outline">Start Over</Button>
-                                  <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                                  <Button 
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                                    onClick={() => generatedMockups.forEach((img, i) => downloadImage(img, `mockup_${i}.png`))}
+                                  >
                                     <Download className="mr-2 h-4 w-4" />
                                     Download ZIP
                                   </Button>
@@ -1421,7 +1433,12 @@ export default function MockupGenerator() {
                                       <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full">
                                         <Maximize className="h-4 w-4" />
                                       </Button>
-                                      <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full">
+                                      <Button 
+                                        size="icon" 
+                                        variant="secondary" 
+                                        className="h-8 w-8 rounded-full"
+                                        onClick={() => downloadImage(img, `mockup_${i}.png`)}
+                                      >
                                         <Download className="h-4 w-4" />
                                       </Button>
                                     </div>
@@ -1438,7 +1455,12 @@ export default function MockupGenerator() {
                                       <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full">
                                         <Maximize className="h-4 w-4" />
                                       </Button>
-                                      <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full">
+                                      <Button 
+                                        size="icon" 
+                                        variant="secondary" 
+                                        className="h-8 w-8 rounded-full"
+                                        onClick={() => downloadImage(img, `mockup_side_${i}.png`)}
+                                      >
                                         <Download className="h-4 w-4" />
                                       </Button>
                                     </div>

@@ -109,6 +109,7 @@ type GeneratedImage = {
   aspectRatio: string;
   timestamp: string;
   isNew?: boolean;
+  isFavorite?: boolean;
 };
 
 type Agent = {
@@ -192,6 +193,19 @@ export default function ImageGenerator() {
   const { toast } = useToast();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  const downloadImage = (url: string, filename: string) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const toggleFavorite = (id: string) => {
+    setGenerations(prev => prev.map(g => g.id === id ? { ...g, isFavorite: !g.isFavorite } : g));
+  };
+
   // Initialize prompt from URL if available
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -213,6 +227,8 @@ export default function ImageGenerator() {
   useEffect(() => {
     if (activeFilter === "all") {
       setFilteredGenerations(generations);
+    } else if (activeFilter === "favorites") {
+      setFilteredGenerations(generations.filter(g => g.isFavorite));
     } else {
       setFilteredGenerations(generations.filter(g => g.style === activeFilter));
     }
@@ -265,7 +281,8 @@ export default function ImageGenerator() {
       style: settings.style,
       aspectRatio: settings.aspectRatio,
       timestamp: "Just now",
-      isNew: true
+      isNew: true,
+      isFavorite: false
     };
     
     setGenerations(prev => [newImage, ...prev]);
@@ -311,7 +328,8 @@ export default function ImageGenerator() {
           prompt: "Oil painting portrait of a young woman with flowers in her hair",
           style: "oil",
           aspectRatio: "1:1",
-          timestamp: "2 hours ago"
+          timestamp: "2 hours ago",
+          isFavorite: false
         },
         {
           id: "2",
@@ -319,7 +337,8 @@ export default function ImageGenerator() {
           prompt: "Epic fantasy landscape with mountains and a dragon flying",
           style: "fantasy",
           aspectRatio: "16:9",
-          timestamp: "5 hours ago"
+          timestamp: "5 hours ago",
+          isFavorite: true
         },
         {
           id: "3",
@@ -327,7 +346,8 @@ export default function ImageGenerator() {
           prompt: "Sci-fi spaceship landing on an alien planet with two moons",
           style: "scifi",
           aspectRatio: "16:9",
-          timestamp: "1 day ago"
+          timestamp: "1 day ago",
+          isFavorite: false
         }
       ]);
     }
@@ -638,6 +658,15 @@ export default function ImageGenerator() {
                >
                  All Generations
                </Button>
+               <Button
+                 variant={activeFilter === "favorites" ? "default" : "outline"}
+                 size="sm"
+                 onClick={() => setActiveFilter("favorites")}
+                 className="rounded-full h-8 text-xs gap-1.5"
+               >
+                 <Star className="h-3.5 w-3.5" />
+                 Favorites
+               </Button>
                <div className="w-px h-4 bg-border mx-1" />
                {Array.from(new Set(generations.map(g => g.style))).map(style => (
                  <Button
@@ -729,13 +758,27 @@ export default function ImageGenerator() {
                     <p className="text-white text-sm line-clamp-2 mb-4 font-medium leading-relaxed">{gen.prompt}</p>
                     
                     <div className="flex items-center gap-2">
-                      <Button size="sm" className="h-8 px-3 text-xs bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg">
+                      <Button 
+                        size="sm" 
+                        className="h-8 px-3 text-xs bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          downloadImage(gen.src, `generated_${gen.id}.png`);
+                        }}
+                      >
                         <Download className="h-3.5 w-3.5 mr-1.5" />
                         Download
                       </Button>
                       <div className="flex items-center gap-1 ml-auto">
-                        <Button size="icon" className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg">
-                          <RefreshCw className="h-3.5 w-3.5" />
+                        <Button 
+                          size="icon" 
+                          className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(gen.id);
+                          }}
+                        >
+                          <Star className={cn("h-3.5 w-3.5", gen.isFavorite && "fill-yellow-400 text-yellow-400")} />
                         </Button>
                         <Button size="icon" className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg">
                           <MoreHorizontal className="h-3.5 w-3.5" />
@@ -799,17 +842,48 @@ export default function ImageGenerator() {
                   <div className="flex-1 overflow-y-auto p-6 space-y-8">
                     {/* Actions */}
                     <div className="grid grid-cols-4 gap-2">
-                      {[
-                        { icon: Download, label: "Save" },
-                        { icon: RefreshCw, label: "Vary" },
-                        { icon: Edit, label: "Edit" },
-                        { icon: Star, label: "Like" }
-                      ].map((action, i) => (
-                        <Button key={i} variant="ghost" className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border">
-                          <action.icon className="h-5 w-5" />
-                          <span className="text-[10px]">{action.label}</span>
-                        </Button>
-                      ))}
+                      <Button 
+                        variant="ghost" 
+                        className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
+                        onClick={() => downloadImage(selectedImage.src, `generated_${selectedImage.id}.png`)}
+                      >
+                        <Download className="h-5 w-5" />
+                        <span className="text-[10px]">Save</span>
+                      </Button>
+                      
+                      <Button 
+                        variant="ghost" 
+                        className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
+                      >
+                        <RefreshCw className="h-5 w-5" />
+                        <span className="text-[10px]">Vary</span>
+                      </Button>
+
+                      <Button 
+                        variant="ghost" 
+                        className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
+                        onClick={() => {
+                          setPrompt(selectedImage.prompt);
+                          setSelectedImage(null);
+                        }}
+                      >
+                        <Edit className="h-5 w-5" />
+                        <span className="text-[10px]">Edit</span>
+                      </Button>
+
+                      <Button 
+                        variant="ghost" 
+                        className={cn(
+                          "flex flex-col h-16 gap-1 rounded-xl border border-border",
+                          selectedImage.isFavorite 
+                            ? "bg-yellow-50 border-yellow-200 text-yellow-600 hover:bg-yellow-100" 
+                            : "bg-muted/30 hover:bg-muted text-foreground"
+                        )}
+                        onClick={() => toggleFavorite(selectedImage.id)}
+                      >
+                        <Star className={cn("h-5 w-5", selectedImage.isFavorite && "fill-current")} />
+                        <span className="text-[10px]">Like</span>
+                      </Button>
                     </div>
 
                     {/* Prompt */}
