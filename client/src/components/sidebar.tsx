@@ -268,7 +268,7 @@ export function Sidebar({ className }: SidebarProps) {
                 <span className="text-lg font-bold text-sidebar-foreground">1.5k</span>
                 <span className="text-[10px] text-muted-foreground">/ 2k</span>
               </div>
-              <Button size="sm" className="h-7 text-[10px] rounded-full w-full mt-1 bg-gradient-to-r from-[#7C3AED] to-[#EC4899] hover:brightness-110 text-white border-0 shadow-md shadow-purple-500/20 transition-all">
+              <Button size="sm" className="h-7 text-[10px] rounded-full w-full mt-1 bg-primary hover:bg-primary/90 text-white border-0">
                 Upgrade
               </Button>
             </div>

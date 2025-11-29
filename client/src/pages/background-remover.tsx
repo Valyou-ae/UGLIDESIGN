@@ -401,7 +401,7 @@ export default function BackgroundRemover() {
                     {state !== "complete" && state !== "processing" && (
                       <Button 
                         onClick={processImage}
-                        className="h-12 px-8 rounded-[12px] bg-gradient-to-r from-[#7C3AED] to-[#EC4899] hover:brightness-110 hover:shadow-lg hover:shadow-purple-600/20 text-white font-bold transition-all hover:-translate-y-[1px]"
+                        className="h-12 px-8 rounded-[12px] bg-gradient-to-r from-[#7C3AED] to-[#9333EA] hover:brightness-110 hover:shadow-lg hover:shadow-purple-600/20 text-white font-bold transition-all hover:-translate-y-[1px]"
                       >
                         <Scissors className="h-5 w-5 mr-2" />
                         Remove Background

@@ -41,7 +41,7 @@ export function TopBar() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button 
-              className="h-10 px-5 bg-gradient-to-r from-[#7C3AED] to-[#EC4899] hover:brightness-110 text-white font-semibold rounded-[10px] shadow-lg shadow-purple-600/20 transition-all hover:-translate-y-[1px]"
+              className="h-10 px-5 bg-gradient-to-r from-[#7C3AED] to-[#9333EA] hover:brightness-110 text-white font-semibold rounded-[10px] shadow-lg shadow-purple-600/20 transition-all hover:-translate-y-[1px]"
             >
               <Plus className="h-4 w-4 mr-2" />
               New Project
