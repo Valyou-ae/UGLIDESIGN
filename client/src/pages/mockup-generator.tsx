@@ -162,9 +162,34 @@ export default function MockupGenerator() {
       <main className="flex-1 h-screen overflow-y-auto relative flex flex-col">
         {/* State 1: Journey Selection */}
         {!journey ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 animate-fade-in">
-            <div className="max-w-[800px] w-full text-center">
-              <h1 className="text-4xl font-bold text-foreground mb-4">Welcome to Mockup Generator</h1>
+          <div className="flex-1 flex flex-col animate-fade-in relative">
+            {/* Header with USPs */}
+            <div className="w-full p-8 flex justify-between items-start">
+              <div className="flex items-center text-[13px] text-muted-foreground">
+                <span>Home</span>
+                <span className="mx-2">/</span>
+                <span>Mockup Generator</span>
+              </div>
+              
+              <div className="hidden lg:flex items-center gap-8">
+                <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
+                  <Sparkles className="h-3.5 w-3.5 text-indigo-500" />
+                  <span>Photorealistic 8K</span>
+                </div>
+                <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
+                  <Grid className="h-3.5 w-3.5 text-purple-500" />
+                  <span>Smart 3D Mapping</span>
+                </div>
+                <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
+                  <Camera className="h-3.5 w-3.5 text-pink-500" />
+                  <span>Multi-Angle Studio</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-1 flex flex-col items-center justify-center p-8 -mt-20">
+              <div className="max-w-[800px] w-full text-center">
+                <h1 className="text-4xl font-bold text-foreground mb-4">Welcome to Mockup Generator</h1>
               <p className="text-lg text-muted-foreground mb-12">Choose your print method to get started</p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -205,6 +230,7 @@ export default function MockupGenerator() {
               </div>
             </div>
           </div>
+        </div>
         ) : (
           // State 2: Step-by-Step Wizard
           <div className="flex-1 flex flex-col h-full">
