@@ -130,9 +130,9 @@ export default function Login() {
             <div className="grid grid-cols-1 gap-4">
               <Button 
                 variant="outline" 
-                className="h-12 rounded-xl border-input bg-background hover:bg-accent hover:text-accent-foreground w-full opacity-50 cursor-not-allowed"
-                onClick={(e) => e.preventDefault()}
-                disabled={true}
+                className="h-12 rounded-xl border-input bg-background hover:bg-accent hover:text-accent-foreground w-full"
+                onClick={handleGoogleLogin}
+                disabled={isLoading}
               >
                 <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
                   <path
@@ -152,7 +152,7 @@ export default function Login() {
                     fill="#EA4335"
                   />
                 </svg>
-                Google (Disabled)
+                Google
               </Button>
             </div>
 
