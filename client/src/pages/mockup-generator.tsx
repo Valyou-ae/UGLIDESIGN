@@ -54,15 +54,13 @@ type WizardStep =
   | "upload" 
   | "seamless" 
   | "product" 
-  | "platform" 
   | "style" 
   | "scene" 
-  | "colors" 
   | "angles" 
   | "generate";
 
-const DTG_STEPS: WizardStep[] = ["upload", "product", "platform", "style", "scene", "colors", "angles", "generate"];
-const AOP_STEPS: WizardStep[] = ["upload", "seamless", "product", "platform", "style", "scene", "colors", "angles", "generate"];
+const DTG_STEPS: WizardStep[] = ["upload", "product", "style", "scene", "angles", "generate"];
+const AOP_STEPS: WizardStep[] = ["upload", "seamless", "product", "style", "scene", "angles", "generate"];
 
 export default function MockupGenerator() {
   const [journey, setJourney] = useState<JourneyType>(null);
@@ -277,10 +275,8 @@ export default function MockupGenerator() {
                       upload: Cloud,
                       seamless: Repeat,
                       product: ShoppingBag,
-                      platform: Building,
                       style: Sparkles,
                       scene: MapPin,
-                      colors: Palette,
                       angles: Camera,
                       generate: Wand2
                     };
@@ -411,8 +407,37 @@ export default function MockupGenerator() {
 
                           {/* Model Config */}
                           <div className="lg:col-span-3 border-l border-border pl-6">
-                            <h3 className="text-lg font-bold mb-4">Configure Model</h3>
-                            <div className="space-y-6">
+                            <h3 className="text-lg font-bold mb-4">Configuration</h3>
+                            <div className="space-y-8">
+                              {/* Color Selection */}
+                              <div className="space-y-3">
+                                <label className="text-xs font-bold text-muted-foreground uppercase">Product Color</label>
+                                <div className="grid grid-cols-4 gap-3">
+                                  {[
+                                    { name: "White", class: "bg-white border-gray-200" },
+                                    { name: "Black", class: "bg-black border-black" },
+                                    { name: "Heather Grey", class: "bg-zinc-400 border-zinc-400" },
+                                    { name: "Navy", class: "bg-blue-900 border-blue-900" },
+                                    { name: "Red", class: "bg-red-600 border-red-600" },
+                                    { name: "Forest", class: "bg-green-800 border-green-800" },
+                                    { name: "Royal", class: "bg-blue-600 border-blue-600" },
+                                    { name: "Maroon", class: "bg-red-900 border-red-900" },
+                                  ].map((color, i) => (
+                                    <div 
+                                      key={color.name}
+                                      className="flex flex-col items-center gap-1 cursor-pointer group"
+                                    >
+                                      <div className={cn(
+                                        "h-8 w-8 rounded-full border-2 shadow-sm transition-transform group-hover:scale-110",
+                                        color.class,
+                                        i === 0 ? "ring-2 ring-indigo-600 ring-offset-2 dark:ring-offset-background" : ""
+                                      )} />
+                                      <span className="text-[10px] text-muted-foreground">{color.name}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+
                               <div className="space-y-2">
                                 <label className="text-xs font-bold text-muted-foreground uppercase">Gender</label>
                                 <div className="flex flex-wrap gap-2">
@@ -439,7 +464,7 @@ export default function MockupGenerator() {
                       )}
 
                       {/* Placeholder for other steps to keep code concise */}
-                      {["platform", "seamless", "colors", "angles"].includes(currentStep) && (
+                      {["seamless", "angles"].includes(currentStep) && (
                         <div className="flex flex-col items-center justify-center h-full text-center">
                           <div className="h-20 w-20 bg-muted rounded-full flex items-center justify-center mb-4">
                             <Wand2 className="h-10 w-10 text-muted-foreground" />
