@@ -184,6 +184,21 @@ export default function MockupGenerator() {
     };
   }, []);
 
+  // Restore state from URL
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const restore = searchParams.get('restore');
+    const journeyParam = searchParams.get('journey') as JourneyType;
+
+    if (restore === 'true' && journeyParam) {
+      setJourney(journeyParam);
+      // Fast forward to result
+      setUploadedImage("https://images.unsplash.com/photo-1529374255404-311a2a4f1fd9?auto=format&fit=crop&w=1000&q=80"); // Mock restored upload
+      setGeneratedMockups([moodMinimal, moodUrban, moodNatural, moodBold]);
+      setCurrentStepIndex(journeyParam === "AOP" ? AOP_STEPS.length - 1 : DTG_STEPS.length - 1);
+    }
+  }, []);
+
   const handleJourneySelect = (type: JourneyType) => {
     setJourney(type);
     setCurrentStepIndex(0);
