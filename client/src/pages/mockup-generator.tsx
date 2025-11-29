@@ -43,7 +43,18 @@ import {
   BookOpen,
   Smile,
   Scissors,
-  LayoutGrid
+  LayoutGrid,
+  Briefcase,
+  Heart,
+  Baby,
+  Award,
+  MoveHorizontal,
+  Wind,
+  Umbrella,
+  Shield,
+  Watch,
+  Frame,
+  Timer
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -400,53 +411,53 @@ export default function MockupGenerator() {
                                   icon: User,
                                   items: [
                                     { name: "T-shirts", icon: Shirt },
-                                    { name: "Polo shirts", icon: Shirt },
-                                    { name: "Tank tops", icon: Shirt },
-                                    { name: "3/4 sleeve shirts", icon: Shirt },
-                                    { name: "Long sleeve shirts", icon: Shirt },
+                                    { name: "Polo shirts", icon: Award },
+                                    { name: "Tank tops", icon: Sun },
+                                    { name: "3/4 sleeve shirts", icon: MoveHorizontal },
+                                    { name: "Long sleeve shirts", icon: Wind },
                                     { name: "Embroidered shirts", icon: Tag },
-                                    { name: "Jackets & vests", icon: Layers },
+                                    { name: "Jackets & vests", icon: Shield },
                                     { name: "Hoodies", icon: Cloud },
-                                    { name: "Sweatshirts", icon: Shirt },
+                                    { name: "Sweatshirts", icon: Layers },
                                     { name: "Knitwear", icon: Grid },
                                   ]
                                 },
                                 { 
                                   name: "Women's Clothing", 
-                                  icon: User,
+                                  icon: Heart,
                                   items: [
                                     { name: "T-shirts", icon: Shirt },
-                                    { name: "Polo shirts", icon: Shirt },
-                                    { name: "Tank tops", icon: Shirt },
-                                    { name: "Crop tops", icon: Shirt },
+                                    { name: "Polo shirts", icon: Award },
+                                    { name: "Tank tops", icon: Sun },
+                                    { name: "Crop tops", icon: Scissors },
                                     { name: "Embroidered shirts", icon: Tag },
-                                    { name: "3/4 sleeve shirts", icon: Shirt },
-                                    { name: "Long sleeve shirts", icon: Shirt },
-                                    { name: "Dresses", icon: Layers }, 
+                                    { name: "3/4 sleeve shirts", icon: MoveHorizontal },
+                                    { name: "Long sleeve shirts", icon: Wind },
+                                    { name: "Dresses", icon: Umbrella }, 
                                     { name: "Knitwear", icon: Grid },
-                                    { name: "Jackets", icon: Layers },
+                                    { name: "Jackets", icon: Shield },
                                     { name: "Hoodies", icon: Cloud },
-                                    { name: "Sweatshirts", icon: Shirt },
+                                    { name: "Sweatshirts", icon: Layers },
                                   ]
                                 },
                                 { 
                                   name: "Kids' Clothing", 
-                                  icon: User, 
+                                  icon: Smile, 
                                   items: [
                                     { name: "T-shirts", icon: Shirt },
                                     { name: "All-over shirts", icon: Grid },
-                                    { name: "3/4 sleeve shirts", icon: Shirt },
-                                    { name: "Long sleeve shirts", icon: Shirt },
+                                    { name: "3/4 sleeve shirts", icon: MoveHorizontal },
+                                    { name: "Long sleeve shirts", icon: Wind },
                                     { name: "Hoodies", icon: Cloud },
-                                    { name: "Sweatshirts", icon: Shirt },
-                                    { name: "Hats", icon: Smile }, // Using Smile as placeholder for kids/fun
+                                    { name: "Sweatshirts", icon: Layers },
+                                    { name: "Hats", icon: Smile }, 
                                     { name: "Leggings", icon: Layers },
-                                    { name: "Baby bodysuits", icon: User },
+                                    { name: "Baby bodysuits", icon: Baby },
                                   ] 
                                 }, 
                                 { 
                                   name: "Accessories", 
-                                  icon: ShoppingBag, 
+                                  icon: Watch, 
                                   items: [
                                     { name: "Tote bags", icon: ShoppingBag },
                                     { name: "Duffle bags", icon: ShoppingBag },
@@ -466,9 +477,9 @@ export default function MockupGenerator() {
                                   name: "Home & Living", 
                                   icon: Coffee, 
                                   items: [
-                                    { name: "Wall art", icon: ImageIcon },
+                                    { name: "Wall art", icon: Frame },
                                     { name: "Posters", icon: StickyNote },
-                                    { name: "Framed posters", icon: ImageIcon },
+                                    { name: "Framed posters", icon: Frame },
                                     { name: "Blankets", icon: Layers },
                                     { name: "Pillow cases", icon: Layers },
                                     { name: "Magnets", icon: StickyNote },
@@ -556,11 +567,11 @@ export default function MockupGenerator() {
 
                           {/* Model Config */}
                           <div className="lg:col-span-3 border-l border-border pl-6">
+                            <div className="flex items-center gap-2 text-foreground mb-4">
+                              <Sparkles className="h-4 w-4 text-indigo-600" />
+                              <h3 className="text-lg font-bold">Configuration</h3>
+                            </div>
                             <div className="sticky top-6">
-                              <div className="flex items-center gap-2 text-foreground mb-4">
-                                <Sparkles className="h-4 w-4 text-indigo-600" />
-                                <h3 className="text-lg font-bold">Configuration</h3>
-                              </div>
                               
                               <div className="space-y-6 bg-card/50 rounded-xl p-1">
                                 {/* Size Selection */}
