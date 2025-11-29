@@ -79,6 +79,7 @@ import moodMinimal from "@assets/generated_images/mood_image_for_minimalist_luxu
 import moodUrban from "@assets/generated_images/mood_image_for_urban_street_style.png";
 import moodNatural from "@assets/generated_images/mood_image_for_natural_organic_style.png";
 import moodBold from "@assets/generated_images/mood_image_for_bold_vibrant_style.png";
+import tshirtMockup from "@assets/tshirt_mockup.png";
 
 // Types
 type JourneyType = "DTG" | "AOP" | null;
@@ -411,7 +412,7 @@ export default function MockupGenerator() {
                                   name: "Men's Clothing", 
                                   icon: User,
                                   items: [
-                                    { name: "T-shirts", icon: Shirt },
+                                    { name: "T-shirts", icon: Shirt, image: tshirtMockup },
                                     { name: "Polo shirts", icon: Award },
                                     { name: "Tank tops", icon: Sun },
                                     { name: "3/4 sleeve shirts", icon: MoveHorizontal },
@@ -427,7 +428,7 @@ export default function MockupGenerator() {
                                   name: "Women's Clothing", 
                                   icon: Heart,
                                   items: [
-                                    { name: "T-shirts", icon: Shirt },
+                                    { name: "T-shirts", icon: Shirt, image: tshirtMockup },
                                     { name: "Polo shirts", icon: Award },
                                     { name: "Tank tops", icon: Sun },
                                     { name: "Crop tops", icon: Scissors },
@@ -445,7 +446,7 @@ export default function MockupGenerator() {
                                   name: "Kids' Clothing", 
                                   icon: Smile, 
                                   items: [
-                                    { name: "T-shirts", icon: Shirt },
+                                    { name: "T-shirts", icon: Shirt, image: tshirtMockup },
                                     { name: "All-over shirts", icon: Grid },
                                     { name: "3/4 sleeve shirts", icon: MoveHorizontal },
                                     { name: "Long sleeve shirts", icon: Wind },
@@ -612,30 +613,54 @@ export default function MockupGenerator() {
                                     { name: "Towels", icon: Layers },
                                   ] 
                                 }
-                              ].find(c => c.name === activeCategory)?.items.map((item) => {
+                              ].find(c => c.name === activeCategory)?.items.map((item: any) => {
                                 const isSelected = selectedProductType === item.name;
                                 return (
                                   <div 
                                     key={item.name} 
                                     onClick={() => setSelectedProductType(item.name)}
                                     className={cn(
-                                      "group relative border rounded-xl p-4 cursor-pointer transition-all flex flex-col items-center justify-center text-center gap-3 h-[140px]",
+                                      "group relative border rounded-xl p-2 cursor-pointer transition-all flex flex-col items-center justify-center text-center gap-2 h-[180px] overflow-hidden",
                                       isSelected 
                                         ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 shadow-sm" 
                                         : "border-border hover:border-indigo-300 hover:shadow-md bg-card"
                                     )}
                                   >
-                                    <div className={cn(
-                                      "h-12 w-12 rounded-full flex items-center justify-center transition-colors",
-                                      isSelected ? "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-300" : "bg-muted text-muted-foreground group-hover:text-indigo-600 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/20"
-                                    )}>
-                                      <item.icon className="h-6 w-6" />
-                                    </div>
-                                    <p className={cn("font-medium text-sm", isSelected ? "text-indigo-700 dark:text-indigo-300" : "text-foreground")}>{item.name}</p>
+                                    {item.image ? (
+                                      <div className="w-full h-full absolute inset-0">
+                                        <img 
+                                          src={item.image} 
+                                          alt={item.name} 
+                                          className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" 
+                                        />
+                                        <div className={cn(
+                                          "absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex flex-col justify-end pb-3 px-2 transition-opacity",
+                                          isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                                        )}>
+                                          <p className="font-medium text-sm text-white truncate w-full drop-shadow-md">{item.name}</p>
+                                        </div>
+                                        {/* Always show name if not selected and not hovering (fallback for mobile/glance) */}
+                                        {!isSelected && (
+                                          <div className="absolute bottom-0 inset-x-0 bg-white/90 dark:bg-black/80 py-2 backdrop-blur-sm group-hover:opacity-0 transition-opacity">
+                                            <p className="font-medium text-xs text-foreground truncate">{item.name}</p>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <>
+                                        <div className={cn(
+                                          "h-12 w-12 rounded-full flex items-center justify-center transition-colors",
+                                          isSelected ? "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-300" : "bg-muted text-muted-foreground group-hover:text-indigo-600 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/20"
+                                        )}>
+                                          <item.icon className="h-6 w-6" />
+                                        </div>
+                                        <p className={cn("font-medium text-sm", isSelected ? "text-indigo-700 dark:text-indigo-300" : "text-foreground")}>{item.name}</p>
+                                      </>
+                                    )}
                                     
                                     {isSelected && (
-                                      <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-indigo-600 text-white flex items-center justify-center">
-                                        <Check className="h-3 w-3" />
+                                      <div className="absolute top-2 right-2 h-6 w-6 rounded-full bg-indigo-600 text-white flex items-center justify-center z-10 shadow-sm">
+                                        <Check className="h-3.5 w-3.5" />
                                       </div>
                                     )}
                                   </div>
