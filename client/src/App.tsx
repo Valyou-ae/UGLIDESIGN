@@ -16,6 +16,11 @@ import HelpSupport from "@/pages/help-support";
 import Login from "@/pages/login";
 import Profile from "@/pages/profile";
 import NotFound from "@/pages/not-found";
+import NewProject from "@/pages/new-project";
+import UploadDesign from "@/pages/upload-design";
+import BatchProcess from "@/pages/batch-process";
+import ImportUrl from "@/pages/import-url";
+import RandomPrompt from "@/pages/random-prompt";
 
 function Router() {
   return (
@@ -32,6 +37,13 @@ function Router() {
       <Route path="/billing" component={Billing} />
       <Route path="/settings" component={Settings} />
       <Route path="/help" component={HelpSupport} />
+      
+      {/* Quick Action Routes */}
+      <Route path="/new-project" component={NewProject} />
+      <Route path="/upload-design" component={UploadDesign} />
+      <Route path="/batch-process" component={BatchProcess} />
+      <Route path="/import-url" component={ImportUrl} />
+      <Route path="/random-prompt" component={RandomPrompt} />
       
       {/* Mock routes for sidebar navigation to just show home for now, or 404 */}
       <Route component={NotFound} />
