@@ -66,14 +66,14 @@ export default function Login() {
             <img src={logo} alt="Logo" className="h-24 mb-8 object-contain drop-shadow-2xl" />
             
             <h1 className="text-5xl font-bold text-white mb-6 leading-tight">
-              Unleash your <br />
+              Where Ideas <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-                creative potential
+                Come to Life
               </span>
             </h1>
             
             <p className="text-lg text-zinc-400 leading-relaxed">
-              Join thousands of creators using AI Studio to generate stunning visuals, mockups, and designs in seconds.
+              AI-powered creative studio for images, product mockups, and background removal. Ugly name. Gorgeous results.
             </p>
           </motion.div>
 
