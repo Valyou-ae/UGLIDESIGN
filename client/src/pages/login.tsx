@@ -7,10 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { motion } from "framer-motion";
+import { useToast } from "@/hooks/use-toast";
 import logo from "@assets/minimal-modern-wordmark-logo-text-ugli-i_7VuJ3CXPRueyRNWmv9BnCw_YaTvFRB9TpS_XzP-6PzYkA-removebg-preview_1764450493822.png";
 
 export default function Login() {
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -22,8 +24,17 @@ export default function Login() {
     
     // Simulate API call
     setTimeout(() => {
-      setIsLoading(false);
-      setLocation("/home");
+      if (email === "team@ugli.design" && password === "ugli@design") {
+        setIsLoading(false);
+        setLocation("/home");
+      } else {
+        setIsLoading(false);
+        toast({
+          variant: "destructive",
+          title: "Invalid credentials",
+          description: "Please check your email and password.",
+        });
+      }
     }, 1500);
   };
 
