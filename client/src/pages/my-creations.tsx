@@ -242,7 +242,7 @@ export default function MyCreations() {
         <div className="flex flex-col h-full p-8 md:px-10 md:py-8 overflow-y-auto pb-24 md:pb-8">
           
           {/* PAGE HEADER & CONTROLS - COMPACT MOBILE */}
-          <div className="flex flex-col gap-4 mb-6 flex-shrink-0">
+          <div className="flex flex-col gap-3 mb-4 flex-shrink-0">
             {/* Title Row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -253,7 +253,7 @@ export default function MyCreations() {
             </div>
 
             {/* Controls Row - Unified */}
-            <div className="grid grid-cols-[1fr_auto_auto] gap-2">
+            <div className="grid grid-cols-[1fr_auto_auto] gap-1.5">
               {/* Search */}
               <div className={cn(
                 "flex items-center bg-white dark:bg-[#1F1F25] rounded-lg border border-[#E4E4E7] dark:border-transparent overflow-hidden h-10",
