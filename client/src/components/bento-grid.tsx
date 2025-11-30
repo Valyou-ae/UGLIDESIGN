@@ -13,12 +13,22 @@ import {
   Layers, 
   Link as LinkIcon, 
   Shuffle,
-  RefreshCw
+  RefreshCw,
+  Calendar as CalendarIcon,
+  ChevronLeft
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
 
 // Assets
 import project1 from "@assets/generated_images/abstract_creative_digital_art_of_a_beach_sunset_with_geometric_overlays.png";
@@ -189,6 +199,92 @@ function ProjectCard({ image, title, time, type, delay, prompt, journey, restore
   );
 }
 
+function DateRangeSelector() {
+  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [label, setLabel] = useState("December 2024");
+  const [isOpen, setIsOpen] = useState(false);
+  const [view, setView] = useState<"presets" | "calendar">("presets");
+
+  const handleSelectPreset = (preset: string) => {
+    setLabel(preset);
+    setIsOpen(false);
+  };
+
+  const handleDateSelect = (d: Date | undefined) => {
+    setDate(d);
+    if (d) setLabel(format(d, "MMM dd, yyyy"));
+    setIsOpen(false);
+  };
+
+  return (
+    <Popover open={isOpen} onOpenChange={(open) => {
+      setIsOpen(open);
+      if (!open) setView("presets");
+    }}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" className="h-7 text-[10px] px-2 rounded-full border-border">
+          {label} <ArrowRight className="ml-1.5 h-2.5 w-2.5 rotate-90" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="end">
+        {view === "presets" ? (
+          <div className="flex flex-col p-1 min-w-[160px]">
+            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+              Select Date Range
+            </div>
+            <Separator className="mb-1" />
+            {[
+              "Today",
+              "Last 7 Days",
+              "Last 15 Days",
+              "This Month"
+            ].map((preset) => (
+              <Button
+                key={preset}
+                variant="ghost"
+                className="justify-start h-8 text-xs font-medium"
+                onClick={() => handleSelectPreset(preset)}
+              >
+                {preset}
+              </Button>
+            ))}
+            <Separator className="my-1" />
+            <Button
+              variant="ghost"
+              className="justify-start h-8 text-xs font-medium text-primary"
+              onClick={() => setView("calendar")}
+            >
+              <CalendarIcon className="mr-2 h-3 w-3" />
+              Custom Date...
+            </Button>
+          </div>
+        ) : (
+          <div className="p-2">
+            <div className="flex items-center gap-2 mb-2">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-6 w-6" 
+                onClick={() => setView("presets")}
+              >
+                <ChevronLeft className="h-3 w-3" />
+              </Button>
+              <span className="text-xs font-semibold">Select Date</span>
+            </div>
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={handleDateSelect}
+              initialFocus
+              className="rounded-md border shadow-sm"
+            />
+          </div>
+        )}
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 export function BentoGrid() {
   const [suggestions, setSuggestions] = useState(SUGGESTIONS_POOL.slice(0, 3));
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -245,9 +341,7 @@ export function BentoGrid() {
       <div className="lg:col-span-2 bg-card border border-sidebar-border/50 rounded-[20px] p-5 shadow-sm flex flex-col">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-2">
           <h2 className="text-base font-bold text-foreground">This Month's Stats</h2>
-          <Button variant="outline" size="sm" className="h-7 text-[10px] px-2 rounded-full border-border">
-            December 2024 <ArrowRight className="ml-1.5 h-2.5 w-2.5 rotate-90" />
-          </Button>
+          <DateRangeSelector />
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 flex-1">
