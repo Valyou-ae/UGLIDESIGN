@@ -57,22 +57,22 @@ function ModuleCard({ title, description, icon: Icon, gradient, circleColor, bad
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay }}
       className={cn(
-        "relative overflow-hidden rounded-[20px] p-5 md:p-6 min-h-[140px] md:min-h-[180px] cursor-pointer group transition-all duration-500 h-full",
+        "relative overflow-hidden rounded-[24px] p-5 md:p-7 min-h-[160px] md:min-h-[220px] cursor-pointer group transition-all duration-500 h-full",
         gradient
       )}
       whileHover={{ y: -4, scale: 1.01 }}
     >
       {/* Decorative Circle */}
       <div 
-        className="absolute -top-20 -right-20 w-[200px] h-[200px] rounded-full blur-3xl opacity-40 transition-transform duration-700 group-hover:scale-110"
+        className="absolute -top-20 -right-20 w-[240px] h-[240px] rounded-full blur-3xl opacity-40 transition-transform duration-700 group-hover:scale-110"
         style={{ backgroundColor: circleColor }}
       />
 
       {/* Badge */}
       {(badge || badgeCount) && (
-        <div className="absolute top-5 right-5">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/10 shadow-sm">
-            <span className="text-[10px] font-medium text-white">
+        <div className="absolute top-7 right-7">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/10 shadow-sm">
+            <span className="text-[11px] font-medium text-white">
               {badge || badgeCount}
             </span>
           </div>
@@ -82,17 +82,17 @@ function ModuleCard({ title, description, icon: Icon, gradient, circleColor, bad
       {/* Content */}
       <div className="relative h-full flex flex-col justify-end z-10">
         <div className="mb-auto">
-          <div className="h-10 w-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-4 border border-white/10 shadow-inner">
-            <Icon className="h-5 w-5 text-white" />
+          <div className="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-6 border border-white/10 shadow-inner">
+            <Icon className="h-6 w-6 text-white" />
           </div>
         </div>
         
-        <h3 className="text-lg font-bold text-white mb-0.5 tracking-tight">{title}</h3>
-        <p className="text-xs text-white/80 font-medium">{description}</p>
+        <h3 className="text-xl font-bold text-white mb-1 tracking-tight">{title}</h3>
+        <p className="text-sm text-white/80 font-medium">{description}</p>
         
         <div className="absolute bottom-0 right-0 opacity-0 transform translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-          <div className="h-8 w-8 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
-            <ArrowRight className="h-4 w-4 text-white" />
+          <div className="h-10 w-10 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
+            <ArrowRight className="h-5 w-5 text-white" />
           </div>
         </div>
       </div>
@@ -112,19 +112,19 @@ function StatCard({ icon: Icon, value, label, trend, colorClass, delay }: any) {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3, delay }}
-      className="bg-sidebar-accent/40 border border-sidebar-border/50 rounded-xl p-4 flex flex-col hover:bg-sidebar-accent/60 transition-colors h-full"
+      className="bg-sidebar-accent/40 border border-sidebar-border/50 rounded-2xl p-5 flex flex-col hover:bg-sidebar-accent/60 transition-colors"
     >
-      <div className="flex justify-between items-start mb-2">
-        <div className={cn("h-7 w-7 rounded-full flex items-center justify-center", colorClass)}>
-          <Icon className="h-3.5 w-3.5" />
+      <div className="flex justify-between items-start mb-3">
+        <div className={cn("h-8 w-8 rounded-full flex items-center justify-center", colorClass)}>
+          <Icon className="h-4 w-4" />
         </div>
-        <span className="inline-flex items-center text-[9px] font-medium text-green-600 bg-green-500/10 px-1.5 py-0.5 rounded-md">
+        <span className="inline-flex items-center text-[10px] font-medium text-green-600 bg-green-500/10 px-1.5 py-0.5 rounded-md">
           {trend}
         </span>
       </div>
       <div className="mt-auto">
-        <div className="text-xl font-bold text-foreground tracking-tight">{value}</div>
-        <div className="text-[10px] text-muted-foreground font-medium mt-0.5">{label}</div>
+        <div className="text-2xl font-bold text-foreground tracking-tight">{value}</div>
+        <div className="text-xs text-muted-foreground font-medium mt-0.5">{label}</div>
       </div>
     </motion.div>
   );
@@ -242,15 +242,15 @@ export function BentoGrid() {
       </div>
 
       {/* ROW 2 */}
-      <div className="lg:col-span-2 bg-card border border-sidebar-border/50 rounded-[20px] p-5 shadow-sm flex flex-col">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-2">
-          <h2 className="text-base font-bold text-foreground">This Month's Stats</h2>
-          <Button variant="outline" size="sm" className="h-7 text-[10px] px-2 rounded-full border-border">
-            December 2024 <ArrowRight className="ml-1.5 h-2.5 w-2.5 rotate-90" />
+      <div className="lg:col-span-2 bg-card border border-sidebar-border/50 rounded-[24px] p-5 md:p-7 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
+          <h2 className="text-lg font-bold text-foreground">This Month's Stats</h2>
+          <Button variant="outline" size="sm" className="h-8 text-xs rounded-full border-border">
+            December 2024 <ArrowRight className="ml-2 h-3 w-3 rotate-90" />
           </Button>
         </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 flex-1">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <StatCard 
             icon={ImageIcon} 
             value="247" 
@@ -287,32 +287,32 @@ export function BentoGrid() {
       </div>
 
       {/* AI Suggestions (Moved from Row 3 to Row 2) */}
-      <div className="lg:col-span-1 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/10 dark:to-orange-950/10 border border-amber-200/50 dark:border-amber-900/20 rounded-[20px] p-5">
-        <div className="flex items-center justify-between mb-4">
+      <div className="lg:col-span-1 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/10 dark:to-orange-950/10 border border-amber-200/50 dark:border-amber-900/20 rounded-[24px] p-6">
+        <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-amber-500 animate-pulse" />
-            <h2 className="text-base font-bold text-foreground">AI Suggestions</h2>
+            <Sparkles className="h-5 w-5 text-amber-500 animate-pulse" />
+            <h2 className="text-lg font-bold text-foreground">AI Suggestions</h2>
           </div>
           <Button 
             size="icon" 
             variant="ghost" 
-            className="h-7 w-7 text-amber-600 hover:bg-amber-100 dark:hover:bg-amber-900/40 rounded-full"
+            className="h-8 w-8 text-amber-600 hover:bg-amber-100 dark:hover:bg-amber-900/40 rounded-full"
             onClick={handleRefreshSuggestions}
           >
-            <RefreshCw className={cn("h-3.5 w-3.5", isRefreshing && "animate-spin")} />
+            <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
           </Button>
         </div>
 
-        <div className="space-y-2.5">
+        <div className="space-y-3">
           {suggestions.map((item, i) => (
             <Link key={i} href={`/image-gen?prompt=${encodeURIComponent(item.fullText)}`}>
-              <div className="group bg-card border border-sidebar-border/50 p-3 rounded-xl cursor-pointer hover:border-l-4 hover:border-l-amber-500 hover:translate-x-1 transition-all duration-300 shadow-sm h-full">
-                <span className="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 mb-1.5">
+              <div className="group bg-card border border-sidebar-border/50 p-4 rounded-xl cursor-pointer hover:border-l-4 hover:border-l-amber-500 hover:translate-x-1 transition-all duration-300 shadow-sm h-full">
+                <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 mb-2">
                   {item.badge}
                 </span>
-                <p className="text-xs text-foreground/80 line-clamp-2 group-hover:text-foreground leading-relaxed">{item.text}</p>
-                <div className="h-0 overflow-hidden group-hover:h-4 transition-all duration-300">
-                  <span className="text-[10px] font-medium text-amber-600 mt-1 inline-block">Use Prompt →</span>
+                <p className="text-sm text-foreground/80 line-clamp-2 group-hover:text-foreground">{item.text}</p>
+                <div className="h-0 overflow-hidden group-hover:h-5 transition-all duration-300">
+                  <span className="text-xs font-medium text-amber-600 mt-2 inline-block">Use Prompt →</span>
                 </div>
               </div>
             </Link>
@@ -321,13 +321,13 @@ export function BentoGrid() {
       </div>
 
       {/* ROW 3: Recent Work (Full Width) */}
-      <div className="lg:col-span-3 bg-card border border-sidebar-border/50 rounded-[20px] p-5 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-bold text-foreground">Recent Work</h2>
-          <a href="#" className="text-xs font-medium text-primary hover:underline">View All →</a>
+      <div className="lg:col-span-3 bg-card border border-sidebar-border/50 rounded-[24px] p-7 shadow-sm">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-bold text-foreground">Recent Work</h2>
+          <a href="#" className="text-sm font-medium text-primary hover:underline">View All →</a>
         </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <ProjectCard image={project1} title="Beach Sunset" time="2h ago" type="image" delay={0.5} prompt="Abstract creative digital art of a beach sunset with geometric overlays" />
           <ProjectCard image={project2} title="Tech Logo" time="4h ago" type="mockup" delay={0.6} journey="DTG" />
           <ProjectCard image={project3} title="Neon City" time="Yesterday" type="bg" delay={0.7} restoreImage={project3} />
