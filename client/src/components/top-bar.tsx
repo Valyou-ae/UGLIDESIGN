@@ -1,5 +1,46 @@
-import { Bell, Search } from "lucide-react";
+import { Bell, Search, CheckCircle2, Info, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
+const NOTIFICATIONS = [
+  {
+    id: 1,
+    title: "Image Generation Complete",
+    description: "Your 'Cyberpunk City' generation is ready.",
+    time: "2m ago",
+    read: false,
+    icon: Sparkles,
+    color: "text-purple-500",
+    bg: "bg-purple-500/10",
+  },
+  {
+    id: 2,
+    title: "New Feature Available",
+    description: "Try out the new Mockup Generator tool!",
+    time: "1h ago",
+    read: false,
+    icon: Info,
+    color: "text-blue-500",
+    bg: "bg-blue-500/10",
+  },
+  {
+    id: 3,
+    title: "Subscription Renewed",
+    description: "Your Pro plan has been successfully renewed.",
+    time: "1d ago",
+    read: true,
+    icon: CheckCircle2,
+    color: "text-green-500",
+    bg: "bg-green-500/10",
+  },
+];
 
 export function TopBar() {
   return (
@@ -14,10 +55,58 @@ export function TopBar() {
       </div>
 
       <div className="flex items-center gap-6">
-        <div className="relative cursor-pointer hover:bg-sidebar-accent p-2 rounded-full transition-colors">
-          <Bell className="h-5 w-5 text-muted-foreground" />
-          <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 border-2 border-background" />
-        </div>
+        <Popover>
+          <PopoverTrigger asChild>
+            <button className="relative cursor-pointer hover:bg-sidebar-accent p-2 rounded-full transition-colors outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+              <Bell className="h-5 w-5 text-muted-foreground" />
+              <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 border-2 border-background" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80 p-0" align="end">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+              <h4 className="font-semibold text-sm">Notifications</h4>
+              <Button variant="ghost" size="sm" className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground">
+                Mark all as read
+              </Button>
+            </div>
+            <ScrollArea className="h-[300px]">
+              <div className="flex flex-col">
+                {NOTIFICATIONS.map((notification) => (
+                  <button
+                    key={notification.id}
+                    className={cn(
+                      "flex items-start gap-3 px-4 py-3 text-left hover:bg-muted/50 transition-colors border-b border-border/50 last:border-0",
+                      !notification.read && "bg-muted/20"
+                    )}
+                  >
+                    <div className={cn("mt-1 h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0", notification.bg)}>
+                      <notification.icon className={cn("h-4 w-4", notification.color)} />
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      <p className={cn("text-sm font-medium leading-none", !notification.read && "font-semibold")}>
+                        {notification.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground line-clamp-2">
+                        {notification.description}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground pt-1">
+                        {notification.time}
+                      </p>
+                    </div>
+                    {!notification.read && (
+                      <div className="h-2 w-2 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </ScrollArea>
+            <div className="p-2 border-t border-border">
+              <Button variant="ghost" size="sm" className="w-full text-xs justify-center h-8">
+                View all notifications
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
 
         <div className="relative hidden md:block group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
