@@ -57,7 +57,7 @@ function ModuleCard({ title, description, icon: Icon, gradient, circleColor, bad
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay }}
       className={cn(
-        "relative overflow-hidden rounded-[24px] p-7 min-h-[220px] cursor-pointer group transition-all duration-500 h-full",
+        "relative overflow-hidden rounded-[24px] p-5 md:p-7 min-h-[160px] md:min-h-[220px] cursor-pointer group transition-all duration-500 h-full",
         gradient
       )}
       whileHover={{ y: -4, scale: 1.01 }}
@@ -250,7 +250,7 @@ export function BentoGrid() {
           </Button>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <StatCard 
             icon={ImageIcon} 
             value="247" 
