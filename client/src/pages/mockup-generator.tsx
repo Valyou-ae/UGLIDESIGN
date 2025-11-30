@@ -279,9 +279,9 @@ export default function MockupGenerator() {
       <main className="flex-1 h-screen overflow-y-auto relative flex flex-col pb-20 md:pb-0">
         {/* State 1: Journey Selection */}
         {!journey ? (
-          <div className="p-8 lg:p-10 max-w-[1400px] mx-auto min-h-full flex flex-col animate-fade-in">
+          <div className="p-4 md:p-8 lg:p-10 max-w-[1400px] mx-auto min-h-full flex flex-col animate-fade-in">
             {/* Header with USPs */}
-            <div className="mb-8">
+            <div className="mb-6 md:mb-8">
               <div className="flex items-center text-[13px] text-muted-foreground mb-2">
                 <span>Home</span>
                 <span className="mx-2">/</span>
@@ -291,17 +291,17 @@ export default function MockupGenerator() {
               <div className="flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-16 mb-1">
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2">
-                    <h1 className="text-3xl font-bold tracking-tight text-indigo-600">
+                    <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-indigo-600">
                       Mockup Generator
                     </h1>
-                    <Shirt className="h-6 w-6 text-indigo-600 animate-cut" />
+                    <Shirt className="h-5 w-5 md:h-6 md:w-6 text-indigo-600 animate-cut" />
                   </div>
                   <Badge className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-2 py-0.5 text-[11px]">
                     Professional
                   </Badge>
                 </div>
 
-                <div className="flex items-center gap-8 opacity-0 lg:opacity-100 animate-fade-in">
+                <div className="flex items-center gap-8 opacity-0 lg:opacity-100 animate-fade-in hidden lg:flex">
                   <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
                     <Sparkles className="h-3.5 w-3.5 text-indigo-500" />
                     <span>Photorealistic 8K</span>
@@ -316,27 +316,27 @@ export default function MockupGenerator() {
                   </div>
                 </div>
               </div>
-              <p className="text-[15px] text-muted-foreground mt-2">
+              <p className="text-sm md:text-[15px] text-muted-foreground mt-2">
                 Create professional product photos in seconds without a photoshoot
               </p>
             </div>
 
             <div className="flex-1 flex flex-col items-center justify-center">
-              <div className="max-w-[800px] w-full text-center mb-12">
-                <p className="text-lg text-muted-foreground">Choose your print method to get started</p>
+              <div className="max-w-[800px] w-full text-center mb-8 md:mb-12">
+                <p className="text-base md:text-lg text-muted-foreground">Choose your print method to get started</p>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-[900px]">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full max-w-[900px]">
                 {/* DTG Card */}
                 <div 
                   onClick={() => handleJourneySelect("DTG")}
-                  className="bg-card border-2 border-border rounded-[24px] p-10 text-left cursor-pointer transition-all duration-300 hover:border-indigo-600 hover:-translate-y-2 hover:shadow-2xl hover:shadow-indigo-500/15 group"
+                  className="bg-card border-2 border-border rounded-[24px] p-6 md:p-10 text-left cursor-pointer transition-all duration-300 hover:border-indigo-600 hover:-translate-y-2 hover:shadow-2xl hover:shadow-indigo-500/15 group"
                 >
-                  <div className="h-16 w-16 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                    <Shirt className="h-8 w-8 text-indigo-600" />
+                  <div className="h-12 w-12 md:h-16 md:w-16 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center mb-4 md:mb-6 group-hover:scale-110 transition-transform">
+                    <Shirt className="h-6 w-6 md:h-8 md:w-8 text-indigo-600" />
                   </div>
-                  <h3 className="text-2xl font-bold text-foreground mb-3">Direct-to-Garment (DTG)</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+                  <h3 className="text-xl md:text-2xl font-bold text-foreground mb-2 md:mb-3">Direct-to-Garment (DTG)</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-4 md:mb-6">
                     For designs placed on a specific area of a product, like a logo on the chest of a t-shirt or a graphic on a tote bag.
                   </p>
                   <span className="text-sm font-bold text-indigo-600 group-hover:underline flex items-center">
@@ -347,14 +347,14 @@ export default function MockupGenerator() {
                 {/* AOP Card */}
                 <div 
                   onClick={() => handleJourneySelect("AOP")}
-                  className="bg-card border-2 border-border rounded-[24px] p-10 text-left cursor-pointer transition-all duration-300 hover:border-purple-600 hover:-translate-y-2 hover:shadow-2xl hover:shadow-purple-500/15 group relative overflow-hidden"
+                  className="bg-card border-2 border-border rounded-[24px] p-6 md:p-10 text-left cursor-pointer transition-all duration-300 hover:border-purple-600 hover:-translate-y-2 hover:shadow-2xl hover:shadow-purple-500/15 group relative overflow-hidden"
                 >
-                  <Badge className="absolute top-6 right-6 bg-amber-500 text-white hover:bg-amber-600 text-[11px]">Pro</Badge>
-                  <div className="h-16 w-16 rounded-xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                    <Grid className="h-8 w-8 text-purple-600" />
+                  <Badge className="absolute top-4 right-4 md:top-6 md:right-6 bg-amber-500 text-white hover:bg-amber-600 text-[11px]">Pro</Badge>
+                  <div className="h-12 w-12 md:h-16 md:w-16 rounded-xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center mb-4 md:mb-6 group-hover:scale-110 transition-transform">
+                    <Grid className="h-6 w-6 md:h-8 md:w-8 text-purple-600" />
                   </div>
-                  <h3 className="text-2xl font-bold text-foreground mb-3">All-Over Print (AOP)</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+                  <h3 className="text-xl md:text-2xl font-bold text-foreground mb-2 md:mb-3">All-Over Print (AOP)</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-4 md:mb-6">
                     For seamless patterns that cover the entire surface of a product, like leggings, backpacks, or custom-cut apparel.
                   </p>
                   <span className="text-sm font-bold text-purple-600 group-hover:underline flex items-center">
@@ -368,7 +368,7 @@ export default function MockupGenerator() {
           // State 2: Step-by-Step Wizard
           <div className="flex-1 flex flex-col h-full">
             {/* Top Progress Bar */}
-            <div className="bg-card border-b border-border px-10 py-6">
+            <div className="bg-card border-b border-border px-4 md:px-10 py-4 md:py-6">
               <div className="max-w-[1000px] mx-auto">
                 <div className="relative flex justify-between items-center">
                   {/* Connecting Line */}
@@ -407,7 +407,7 @@ export default function MockupGenerator() {
                           <StepIcon className="h-4 w-4" />
                         </div>
                         <span className={cn(
-                          "text-[10px] font-bold uppercase tracking-wider transition-colors",
+                          "text-[8px] md:text-[10px] font-bold uppercase tracking-wider transition-colors text-center",
                           isCurrent ? "text-indigo-600" : "text-muted-foreground"
                         )}>
                           {step}
@@ -420,10 +420,10 @@ export default function MockupGenerator() {
             </div>
 
             {/* Main Content Card */}
-            <div className="flex-1 p-6 lg:p-10 overflow-hidden flex flex-col">
+            <div className="flex-1 p-4 lg:p-10 overflow-hidden flex flex-col">
               <div className="flex-1 bg-card border border-border rounded-[20px] shadow-sm overflow-hidden flex flex-col relative max-w-[1400px] mx-auto w-full">
                 
-                <div className="flex-1 overflow-y-auto p-8 lg:p-12 scroll-smooth">
+                <div className="flex-1 overflow-y-auto p-5 md:p-8 lg:p-12 scroll-smooth">
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={currentStep}
@@ -438,7 +438,7 @@ export default function MockupGenerator() {
                         <div className="flex flex-col items-center justify-center h-full max-w-[600px] mx-auto text-center">
                           {!uploadedImage ? (
                             <div 
-                              className="w-full border-2 border-dashed border-border rounded-[20px] p-16 hover:border-indigo-600 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-all cursor-pointer group"
+                              className="w-full border-2 border-dashed border-border rounded-[20px] p-8 md:p-16 hover:border-indigo-600 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-all cursor-pointer group"
                               onClick={() => fileInputRef.current?.click()}
                             >
                               <input 
@@ -448,10 +448,10 @@ export default function MockupGenerator() {
                                 accept="image/*"
                                 onChange={handleFileUpload}
                               />
-                              <div className="h-20 w-20 bg-indigo-50 dark:bg-indigo-900/20 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
-                                <Cloud className="h-10 w-10 text-indigo-600" />
+                              <div className="h-16 w-16 md:h-20 md:w-20 bg-indigo-50 dark:bg-indigo-900/20 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+                                <Cloud className="h-8 w-8 md:h-10 md:w-10 text-indigo-600" />
                               </div>
-                              <h2 className="text-2xl font-bold text-foreground mb-2">Drag & drop your design</h2>
+                              <h2 className="text-xl md:text-2xl font-bold text-foreground mb-2">Drag & drop your design</h2>
                               <p className="text-sm text-muted-foreground mb-4">or click to browse</p>
                               <Badge variant="outline" className="text-xs text-muted-foreground">PNG recommended • Max 20MB</Badge>
                             </div>
