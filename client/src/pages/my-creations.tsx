@@ -24,6 +24,8 @@ import {
   StarOff,
   CheckSquare,
   ArrowUpDown,
+  Maximize2, 
+  RefreshCw,
   Calendar,
   Clock
 } from "lucide-react";
@@ -76,6 +78,7 @@ export default function MyCreations() {
   const [items, setItems] = useState(ITEMS);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<typeof ITEMS[0] | null>(null);
   const { toast } = useToast();
 
   const toggleSelection = (id: string) => {
@@ -86,7 +89,19 @@ export default function MyCreations() {
     }
   };
 
+  const toggleFavorite = (id: string) => {
+    setItems(prev => prev.map(item => item.id === id ? { ...item, favorite: !item.favorite } : item));
+    if (selectedItem && selectedItem.id === id) {
+      setSelectedItem(prev => prev ? { ...prev, favorite: !prev.favorite } : null);
+    }
+  };
+
   const handleAction = (action: string, item: typeof ITEMS[0]) => {
+    if (action === "Open") {
+      setSelectedItem(item);
+      return;
+    }
+
     if (action === "Delete") {
       setItemToDelete(item.id);
       setDeleteDialogOpen(true);
@@ -619,6 +634,145 @@ export default function MyCreations() {
 
         </div>
       </main>
+
+      {/* Lightbox Modal */}
+      <AnimatePresence>
+        {selectedItem && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-md flex items-center justify-center p-6"
+            onClick={() => setSelectedItem(null)}
+          >
+            <div 
+              className="w-full max-w-7xl h-[85vh] bg-card rounded-2xl overflow-hidden flex border border-border shadow-2xl"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Left: Image */}
+              <div className="flex-1 bg-muted/20 flex items-center justify-center p-8 relative group">
+                <img 
+                  src={selectedItem.src} 
+                  alt={selectedItem.name} 
+                  className="max-w-full max-h-full object-contain shadow-2xl rounded-lg" 
+                />
+                <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                   <Button size="icon" className="rounded-full bg-black/50 text-white border-0 hover:bg-black/70">
+                     <Maximize2 className="h-4 w-4" />
+                   </Button>
+                </div>
+              </div>
+
+              {/* Right: Details */}
+              <div className="w-[400px] bg-card border-l border-border flex flex-col">
+                <div className="p-6 border-b border-border flex justify-between items-center">
+                  <h3 className="font-bold text-foreground">Creation Details</h3>
+                  <Button variant="ghost" size="icon" onClick={() => setSelectedItem(null)} className="text-muted-foreground hover:text-foreground">
+                    <X className="h-5 w-5" />
+                  </Button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                  {/* Actions */}
+                  <div className="grid grid-cols-4 gap-2">
+                    <Button 
+                      variant="ghost" 
+                      className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
+                      onClick={() => handleAction("Download", selectedItem)}
+                    >
+                      <Download className="h-5 w-5" />
+                      <span className="text-[10px]">Save</span>
+                    </Button>
+                    
+                    <Button 
+                      variant="ghost" 
+                      className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
+                      onClick={() => handleAction("Duplicate", selectedItem)}
+                    >
+                      <RefreshCw className="h-5 w-5" />
+                      <span className="text-[10px]">Vary</span>
+                    </Button>
+
+                    <Button 
+                      variant="ghost" 
+                      className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
+                      onClick={() => handleAction("Edit", selectedItem)}
+                    >
+                      <Pencil className="h-5 w-5" />
+                      <span className="text-[10px]">Edit</span>
+                    </Button>
+
+                    <Button 
+                      variant="ghost" 
+                      className={cn(
+                        "flex flex-col h-16 gap-1 rounded-xl border border-border",
+                        selectedItem.favorite 
+                          ? "bg-yellow-50 border-yellow-200 text-yellow-600 hover:bg-yellow-100" 
+                          : "bg-muted/30 hover:bg-muted text-foreground"
+                      )}
+                      onClick={() => toggleFavorite(selectedItem.id)}
+                    >
+                      <Star className={cn("h-5 w-5", selectedItem.favorite && "fill-current")} />
+                      <span className="text-[10px]">Like</span>
+                    </Button>
+                  </div>
+
+                  {/* Info */}
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Name</label>
+                    <div className="bg-muted/30 rounded-xl p-4 text-sm text-foreground font-medium border border-border relative group">
+                      {selectedItem.name}
+                      <Button 
+                        size="icon" 
+                        variant="ghost" 
+                        className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => {
+                           navigator.clipboard.writeText(selectedItem.name);
+                           toast({ title: "Copied" });
+                        }}
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Details */}
+                  <div className="space-y-4">
+                    <div className="flex justify-between py-2 border-b border-border">
+                      <span className="text-xs text-muted-foreground">Type</span>
+                      <Badge variant="outline" className="uppercase">{selectedItem.type.replace("-", " ")}</Badge>
+                    </div>
+                    <div className="flex justify-between py-2 border-b border-border">
+                      <span className="text-xs text-muted-foreground">Dimensions</span>
+                      <span className="text-xs font-medium text-foreground">{selectedItem.dimensions}</span>
+                    </div>
+                    <div className="flex justify-between py-2 border-b border-border">
+                      <span className="text-xs text-muted-foreground">Size</span>
+                      <span className="text-xs font-medium text-foreground font-mono">{selectedItem.size}</span>
+                    </div>
+                    <div className="flex justify-between py-2 border-b border-border">
+                      <span className="text-xs text-muted-foreground">Date Created</span>
+                      <span className="text-xs font-medium text-foreground">{selectedItem.date} at {selectedItem.time}</span>
+                    </div>
+                  </div>
+
+                  {/* Tags */}
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Tags</label>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedItem.tags.map(tag => (
+                        <span key={tag} className="px-2.5 py-1 rounded-md bg-muted/50 border border-border text-xs text-muted-foreground">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-[#18181B] border-[#2A2A30] text-[#FAFAFA]">
