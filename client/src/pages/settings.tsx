@@ -31,10 +31,7 @@ import {
   Command,
   AlertTriangle,
   FileText,
-  FolderArchive,
-  Facebook,
-  Video,
-  Megaphone
+  FolderArchive
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -90,6 +87,8 @@ export default function Settings() {
       label: "INTEGRATIONS",
       items: [
         { name: "Connected Apps", icon: Plug },
+        { name: "API Keys", icon: Key },
+        { name: "Webhooks", icon: Webhook },
       ]
     },
     {
@@ -114,8 +113,6 @@ export default function Settings() {
         return <PrivacySettings />;
       case "Appearance":
         return <AppearanceSettings />;
-      case "Connected Apps":
-        return <ConnectedAppsSettings />;
       case "Generation Defaults":
         return <GenerationDefaultsSettings />;
       case "Keyboard Shortcuts":
@@ -196,42 +193,6 @@ export default function Settings() {
         </div>
       </main>
     </div>
-  );
-}
-
-function ConnectedAppsSettings() {
-  return (
-    <motion.div 
-      initial={{ opacity: 0, y: 10 }} 
-      animate={{ opacity: 1, y: 0 }} 
-      transition={{ duration: 0.3 }}
-    >
-      <div className="mb-8">
-        <h2 className="text-[22px] font-semibold text-[#18181B] dark:text-[#FAFAFA]">Connected Apps</h2>
-        <p className="text-sm text-[#71717A] mt-1">Manage your integrations with external services</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {[
-          { name: "Shopify", icon: ShoppingBag, color: "#95BF47" },
-          { name: "Meta", icon: Facebook, color: "#0668E1" },
-          { name: "TikTok", icon: Video, color: "#000000" },
-          { name: "Google Ads", icon: Megaphone, color: "#4285F4" }
-        ].map((app) => (
-          <div key={app.name} className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 flex items-center gap-4 opacity-75 hover:opacity-100 transition-opacity">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${app.color}15` }}>
-              <app.icon className="h-6 w-6" style={{ color: app.color }} />
-            </div>
-            <div>
-              <h3 className="text-[15px] font-semibold text-[#18181B] dark:text-[#FAFAFA]">{app.name}</h3>
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-[#F4F4F5] dark:bg-[#1F1F25] text-[#71717A] border border-[#E4E4E7] dark:border-[#2A2A30] mt-1">
-                Coming Soon
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </motion.div>
   );
 }
 
