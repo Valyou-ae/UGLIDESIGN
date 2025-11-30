@@ -195,7 +195,7 @@ export default function BackgroundRemover() {
     <div className="min-h-screen bg-background flex font-sans text-foreground overflow-hidden">
       <Sidebar />
       
-      <main className="flex-1 h-screen overflow-y-auto relative">
+      <main className="flex-1 h-screen overflow-y-auto relative pb-20 md:pb-0">
         <div className="p-8 lg:p-10 max-w-[1400px] mx-auto min-h-full flex flex-col">
           
           {/* Header */}
