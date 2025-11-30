@@ -43,19 +43,19 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 
-// Mock Data for Favorites
-const FAVORITES = [
-  { id: "1", name: "Golden Hour Portrait", type: "image", date: "Dec 15, 2024", time: "2:30 PM", size: "2.4 MB", dimensions: "1024×1024", src: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?q=80&w=1000&auto=format&fit=crop", tags: ["Cinematic", "Premium"] },
-  { id: "2", name: "Neon Cyberpunk City", type: "image", date: "Dec 14, 2024", time: "10:15 AM", size: "3.1 MB", dimensions: "1024×1024", src: "https://images.unsplash.com/photo-1580584126903-c17d41830450?q=80&w=1000&auto=format&fit=crop", tags: ["Sci-Fi", "Vibrant"] },
-  { id: "3", name: "Minimalist Logo Mockup", type: "mockup", date: "Dec 12, 2024", time: "4:45 PM", size: "1.8 MB", dimensions: "2000×2000", src: "https://images.unsplash.com/photo-1507133750069-69d3cdad863a?q=80&w=1000&auto=format&fit=crop", tags: ["Clean", "Branding"] },
-  { id: "4", name: "Product Transparent BG", type: "bg-removed", date: "Dec 10, 2024", time: "11:20 AM", size: "1.2 MB", dimensions: "800×800", src: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1000&auto=format&fit=crop", tags: ["E-commerce"] },
-  { id: "5", name: "Abstract Fluid Art", type: "image", date: "Dec 08, 2024", time: "9:00 AM", size: "4.5 MB", dimensions: "1024×1024", src: "https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=1000&auto=format&fit=crop", tags: ["Abstract", "Colorful"] },
-  { id: "6", name: "T-Shirt Design Mockup", type: "mockup", date: "Dec 05, 2024", time: "3:30 PM", size: "3.8 MB", dimensions: "2400×2400", src: "https://images.unsplash.com/photo-1529374255404-311a2a4f1fd9?q=80&w=1000&auto=format&fit=crop", tags: ["Apparel", "Streetwear"] },
-  { id: "7", name: "Fantasy Dragon", type: "image", date: "Dec 03, 2024", time: "1:15 PM", size: "2.9 MB", dimensions: "1024×1024", src: "https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=1000&auto=format&fit=crop", tags: ["Fantasy", "Epic"] },
-  { id: "8", name: "Headshot Portrait", type: "bg-removed", date: "Nov 28, 2024", time: "10:00 AM", size: "1.5 MB", dimensions: "1000×1000", src: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1000&auto=format&fit=crop", tags: ["Professional"] },
+// Mock Data for My Creations
+const ITEMS = [
+  { id: "1", name: "Golden Hour Portrait", type: "image", date: "Dec 15, 2024", time: "2:30 PM", size: "2.4 MB", dimensions: "1024×1024", src: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?q=80&w=1000&auto=format&fit=crop", tags: ["Cinematic", "Premium"], favorite: true },
+  { id: "2", name: "Neon Cyberpunk City", type: "image", date: "Dec 14, 2024", time: "10:15 AM", size: "3.1 MB", dimensions: "1024×1024", src: "https://images.unsplash.com/photo-1580584126903-c17d41830450?q=80&w=1000&auto=format&fit=crop", tags: ["Sci-Fi", "Vibrant"], favorite: false },
+  { id: "3", name: "Minimalist Logo Mockup", type: "mockup", date: "Dec 12, 2024", time: "4:45 PM", size: "1.8 MB", dimensions: "2000×2000", src: "https://images.unsplash.com/photo-1507133750069-69d3cdad863a?q=80&w=1000&auto=format&fit=crop", tags: ["Clean", "Branding"], favorite: true },
+  { id: "4", name: "Product Transparent BG", type: "bg-removed", date: "Dec 10, 2024", time: "11:20 AM", size: "1.2 MB", dimensions: "800×800", src: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1000&auto=format&fit=crop", tags: ["E-commerce"], favorite: false },
+  { id: "5", name: "Abstract Fluid Art", type: "image", date: "Dec 08, 2024", time: "9:00 AM", size: "4.5 MB", dimensions: "1024×1024", src: "https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=1000&auto=format&fit=crop", tags: ["Abstract", "Colorful"], favorite: true },
+  { id: "6", name: "T-Shirt Design Mockup", type: "mockup", date: "Dec 05, 2024", time: "3:30 PM", size: "3.8 MB", dimensions: "2400×2400", src: "https://images.unsplash.com/photo-1529374255404-311a2a4f1fd9?q=80&w=1000&auto=format&fit=crop", tags: ["Apparel", "Streetwear"], favorite: false },
+  { id: "7", name: "Fantasy Dragon", type: "image", date: "Dec 03, 2024", time: "1:15 PM", size: "2.9 MB", dimensions: "1024×1024", src: "https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=1000&auto=format&fit=crop", tags: ["Fantasy", "Epic"], favorite: true },
+  { id: "8", name: "Headshot Portrait", type: "bg-removed", date: "Nov 28, 2024", time: "10:00 AM", size: "1.5 MB", dimensions: "1000×1000", src: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1000&auto=format&fit=crop", tags: ["Professional"], favorite: false },
 ];
 
-export default function Favorites() {
+export default function MyCreations() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
@@ -63,7 +63,7 @@ export default function Favorites() {
   const [sortMode, setSortMode] = useState("Date Added");
   const [selectMode, setSelectMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  const [favorites, setFavorites] = useState(FAVORITES);
+  const [items, setItems] = useState(ITEMS);
   const { toast } = useToast();
 
   const toggleSelection = (id: string) => {
@@ -84,14 +84,16 @@ export default function Favorites() {
     setSelectedItems([]);
   };
 
-  const filteredFavorites = favorites.filter(f => {
+  const filteredItems = items.filter(item => {
     if (activeFilter === "All") return true;
-    if (activeFilter === "Images" && f.type === "image") return true;
-    if (activeFilter === "Mockups" && f.type === "mockup") return true;
-    if (activeFilter === "BG Removed" && f.type === "bg-removed") return true;
+    if (activeFilter === "My Favourites" && item.favorite) return true;
+    if (activeFilter === "My Favourites" && !item.favorite) return false;
+    if (activeFilter === "Images" && item.type === "image") return true;
+    if (activeFilter === "Mockups" && item.type === "mockup") return true;
+    if (activeFilter === "BG Removed" && item.type === "bg-removed") return true;
     return false;
-  }).filter(f => 
-    f.name.toLowerCase().includes(searchQuery.toLowerCase())
+  }).filter(item => 
+    item.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const getTypeConfig = (type: string) => {
@@ -120,7 +122,7 @@ export default function Favorites() {
               <div className="flex items-center gap-2 text-sm text-[#71717A]">
                 <span>Manage and organize all your AI-generated assets</span>
                 <span className="w-1 h-1 rounded-full bg-[#71717A]" />
-                <span>{favorites.length} items total</span>
+                <span>{items.length} items total</span>
               </div>
             </div>
 
@@ -214,10 +216,11 @@ export default function Favorites() {
             {/* Filter Pills */}
             <div className="flex items-center gap-2">
               {[
-                { name: "All", icon: Star, count: 32, color: "#F59E0B" },
-                { name: "Images", icon: Wand2, count: 18, color: "#7C3AED" },
-                { name: "Mockups", icon: ShoppingBag, count: 10, color: "#4F46E5" },
-                { name: "BG Removed", icon: Scissors, count: 4, color: "#EC4899" }
+                { name: "All", icon: LayoutGrid, count: items.length, color: "#71717A" },
+                { name: "My Favourites", icon: Star, count: items.filter(i => i.favorite).length, color: "#F59E0B" },
+                { name: "Images", icon: Wand2, count: items.filter(i => i.type === "image").length, color: "#7C3AED" },
+                { name: "Mockups", icon: ShoppingBag, count: items.filter(i => i.type === "mockup").length, color: "#4F46E5" },
+                { name: "BG Removed", icon: Scissors, count: items.filter(i => i.type === "bg-removed").length, color: "#EC4899" }
               ].map(filter => (
                 <button
                   key={filter.name}
@@ -279,7 +282,7 @@ export default function Favorites() {
                     <span className="text-sm font-semibold text-[#FAFAFA]">{selectedItems.length} items selected</span>
                     <div className="w-1 h-1 rounded-full bg-[#52525B]" />
                     <button 
-                      onClick={() => setSelectedItems(favorites.map(f => f.id))}
+                      onClick={() => setSelectedItems(items.map(f => f.id))}
                       className="text-[13px] text-[#7C3AED] hover:underline transition-colors"
                     >
                       Select All
@@ -329,14 +332,14 @@ export default function Favorites() {
 
           {/* FAVORITES CONTENT */}
           <div className="flex-1 pb-10">
-            {filteredFavorites.length === 0 ? (
+            {filteredItems.length === 0 ? (
               <div className="h-[400px] flex flex-col items-center justify-center text-center">
                 <div className="w-24 h-24 bg-muted/50 rounded-full flex items-center justify-center mb-6">
                   <Star className="h-10 w-10 text-muted-foreground/50" />
                 </div>
-                <h3 className="text-xl font-bold text-foreground mb-2">No favorites found</h3>
+                <h3 className="text-xl font-bold text-foreground mb-2">No items found</h3>
                 <p className="text-muted-foreground max-w-sm">
-                  Try adjusting your filters or add some items to your favorites to see them here.
+                  Try adjusting your filters or add some items to your list to see them here.
                 </p>
               </div>
             ) : viewMode === "list" ? (
@@ -354,7 +357,7 @@ export default function Favorites() {
                 </div>
 
                 {/* Rows */}
-                {filteredFavorites.map((item) => (
+                {filteredItems.map((item) => (
                   <div 
                     key={item.id}
                     onClick={() => selectMode && toggleSelection(item.id)}
@@ -436,7 +439,7 @@ export default function Favorites() {
                   ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
                   : "columns-1 sm:columns-2 lg:columns-3 xl:columns-4 space-y-5 block" // Simple masonry using columns
               )}>
-                {filteredFavorites.map((item) => {
+                {filteredItems.map((item) => {
                   const typeConfig = getTypeConfig(item.type);
                   const TypeIcon = typeConfig.icon;
 
