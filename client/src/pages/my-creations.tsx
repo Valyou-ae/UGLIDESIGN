@@ -68,7 +68,10 @@ const ITEMS = [
   { id: "8", name: "Headshot Portrait", type: "bg-removed", date: "Nov 28, 2024", time: "10:00 AM", size: "1.5 MB", dimensions: "1000×1000", src: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1000&auto=format&fit=crop", tags: ["Professional"], favorite: false },
 ];
 
+import { useLocation } from "wouter";
+
 export default function MyCreations() {
+  const [, setLocation] = useLocation();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
@@ -97,9 +100,36 @@ export default function MyCreations() {
     }
   };
 
+  const downloadImage = (url: string, filename: string) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Download Started",
+      description: "Your image is being downloaded.",
+    });
+  };
+
   const handleAction = (action: string, item: typeof ITEMS[0]) => {
     if (action === "Open") {
       setSelectedItem(item);
+      return;
+    }
+
+    if (action === "Download") {
+      downloadImage(item.src, `${item.name.replace(/\s+/g, '_').toLowerCase()}.jpg`);
+      return;
+    }
+
+    if (action === "Edit") {
+      if (item.type === "image") setLocation("/image-gen");
+      else if (item.type === "mockup") setLocation("/mockup");
+      else if (item.type === "bg-removed") setLocation("/bg-remover");
+      else setLocation("/image-gen");
       return;
     }
 
