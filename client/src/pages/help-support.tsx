@@ -271,6 +271,200 @@ const ARTICLES: Record<string, Article> = {
     updated: "1 month ago",
     content: "Follow these simple steps to generate your first image..."
   },
+  "getting-started-more": {
+    id: "getting-started-more",
+    title: "More about Getting Started",
+    category: "Getting Started",
+    time: "4 min",
+    updated: "1 month ago",
+    content: (
+      <div className="space-y-6 text-[#18181B] dark:text-[#FAFAFA]">
+        <p className="text-lg leading-relaxed text-[#71717A] dark:text-[#A1A1AA]">
+          Beyond the basics, here is what you need to know to get the most out of your first week with Ugli.
+        </p>
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold">Exploring the Dashboard</h3>
+          <p className="text-[#71717A] dark:text-[#A1A1AA]">
+            Your personal dashboard is the command center. From here, you can access your recent generations, manage your collections, and monitor your credit usage.
+          </p>
+        </div>
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold">Community Features</h3>
+          <p className="text-[#71717A] dark:text-[#A1A1AA]">
+            Join our Discord server to share your creations, participate in daily challenges, and get tips from top creators.
+          </p>
+        </div>
+      </div>
+    )
+  },
+  "getting-started-faqs": {
+    id: "getting-started-faqs",
+    title: "Getting Started FAQs",
+    category: "Getting Started",
+    time: "5 min",
+    updated: "2 weeks ago",
+    content: (
+      <div className="space-y-6 text-[#18181B] dark:text-[#FAFAFA]">
+        <div className="space-y-4">
+           <h3 className="font-semibold">Is Ugli free to use?</h3>
+           <p className="text-[#71717A] dark:text-[#A1A1AA]">Yes, we offer a generous free tier that resets every month. You can upgrade anytime for more speed and privacy.</p>
+        </div>
+        <div className="space-y-4">
+           <h3 className="font-semibold">Do I need a credit card to sign up?</h3>
+           <p className="text-[#71717A] dark:text-[#A1A1AA]">No, you can start generating immediately without entering any payment information.</p>
+        </div>
+      </div>
+    )
+  },
+  "image-gen-more": {
+    id: "image-gen-more",
+    title: "More about Image Generation",
+    category: "Image Generation",
+    time: "4 min",
+    updated: "1 month ago",
+    content: (
+       <div className="space-y-6 text-[#18181B] dark:text-[#FAFAFA]">
+        <p className="text-lg leading-relaxed text-[#71717A] dark:text-[#A1A1AA]">
+          Dive deeper into the advanced settings that control your output.
+        </p>
+        <ul className="space-y-3 list-disc pl-5 text-[#71717A] dark:text-[#A1A1AA]">
+          <li><strong className="text-[#18181B] dark:text-[#FAFAFA]">Aspect Ratio:</strong> Choose from 1:1, 16:9, 9:16, and custom ratios.</li>
+          <li><strong className="text-[#18181B] dark:text-[#FAFAFA]">Seed Control:</strong> Use fixed seeds to reproduce specific compositions with different styles.</li>
+          <li><strong className="text-[#18181B] dark:text-[#FAFAFA]">Negative Prompts:</strong> Tell the AI exactly what to exclude from the image (e.g., "blur, distortion, watermark").</li>
+        </ul>
+      </div>
+    )
+  },
+  "image-gen-faqs": {
+    id: "image-gen-faqs",
+    title: "Image Generation FAQs",
+    category: "Image Generation",
+    time: "5 min",
+    updated: "2 weeks ago",
+    content: (
+      <div className="space-y-6 text-[#18181B] dark:text-[#FAFAFA]">
+        <div className="space-y-4">
+           <h3 className="font-semibold">Why do faces sometimes look distorted?</h3>
+           <p className="text-[#71717A] dark:text-[#A1A1AA]">AI sometimes struggles with complex geometries at a distance. Try using the "Face Fix" or "Upscale" feature to correct this.</p>
+        </div>
+        <div className="space-y-4">
+           <h3 className="font-semibold">What is the maximum resolution?</h3>
+           <p className="text-[#71717A] dark:text-[#A1A1AA]">Standard generation is 1024x1024, but you can upscale up to 4K with our Pro plan.</p>
+        </div>
+      </div>
+    )
+  },
+  "bg-removal-more": {
+    id: "bg-removal-more",
+    title: "More about Background Removal",
+    category: "Background Removal",
+    time: "4 min",
+    updated: "1 month ago",
+    content: (
+       <div className="space-y-6 text-[#18181B] dark:text-[#FAFAFA]">
+        <p className="text-lg leading-relaxed text-[#71717A] dark:text-[#A1A1AA]">
+          Our background remover is not just for erasing. You can also replace backgrounds instantly.
+        </p>
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold">Batch Processing</h3>
+          <p className="text-[#71717A] dark:text-[#A1A1AA]">
+            Pro users can upload up to 50 images at once for bulk background removal. Perfect for e-commerce catalogs.
+          </p>
+        </div>
+      </div>
+    )
+  },
+  "bg-removal-faqs": {
+    id: "bg-removal-faqs",
+    title: "Background Removal FAQs",
+    category: "Background Removal",
+    time: "5 min",
+    updated: "2 weeks ago",
+    content: (
+      <div className="space-y-6 text-[#18181B] dark:text-[#FAFAFA]">
+        <div className="space-y-4">
+           <h3 className="font-semibold">Does it work on transparent objects?</h3>
+           <p className="text-[#71717A] dark:text-[#A1A1AA]">Transparent objects like glass are challenging. For best results, shoot against a contrasting solid color.</p>
+        </div>
+         <div className="space-y-4">
+           <h3 className="font-semibold">Can I edit the mask manually?</h3>
+           <p className="text-[#71717A] dark:text-[#A1A1AA]">Yes, you can use the "Refine Edge" brush to touch up any missed areas after the auto-removal.</p>
+        </div>
+      </div>
+    )
+  },
+  "ai-agents-more": {
+    id: "ai-agents-more",
+    title: "More about AI Agents",
+    category: "AI Agents",
+    time: "4 min",
+    updated: "1 month ago",
+    content: (
+       <div className="space-y-6 text-[#18181B] dark:text-[#FAFAFA]">
+        <p className="text-lg leading-relaxed text-[#71717A] dark:text-[#A1A1AA]">
+          Learn how to direct specific agents to get the results you want.
+        </p>
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold">Directing the Style Architect</h3>
+          <p className="text-[#71717A] dark:text-[#A1A1AA]">
+            You can give specific instructions to the Style Architect by starting your prompt with "Style:". For example, "Style: Minimalist line art."
+          </p>
+        </div>
+      </div>
+    )
+  },
+  "ai-agents-faqs": {
+    id: "ai-agents-faqs",
+    title: "AI Agents FAQs",
+    category: "AI Agents",
+    time: "5 min",
+    updated: "2 weeks ago",
+    content: (
+      <div className="space-y-6 text-[#18181B] dark:text-[#FAFAFA]">
+        <div className="space-y-4">
+           <h3 className="font-semibold">Can I turn off specific agents?</h3>
+           <p className="text-[#71717A] dark:text-[#A1A1AA]">Yes, in Advanced Settings, you can disable the Style Architect if you want exact prompt adherence without enhancement.</p>
+        </div>
+      </div>
+    )
+  },
+  "billing-more": {
+    id: "billing-more",
+    title: "More about Billing & Credits",
+    category: "Billing & Credits",
+    time: "4 min",
+    updated: "1 month ago",
+    content: (
+       <div className="space-y-6 text-[#18181B] dark:text-[#FAFAFA]">
+        <p className="text-lg leading-relaxed text-[#71717A] dark:text-[#A1A1AA]">
+          Detailed information about our billing cycles, invoices, and credit rollover policies.
+        </p>
+        <ul className="space-y-3 list-disc pl-5 text-[#71717A] dark:text-[#A1A1AA]">
+          <li><strong className="text-[#18181B] dark:text-[#FAFAFA]">Rollover Credits:</strong> Unused credits on Pro plans roll over for up to 3 months.</li>
+          <li><strong className="text-[#18181B] dark:text-[#FAFAFA]">Invoices:</strong> Download VAT-compliant invoices directly from your billing dashboard.</li>
+        </ul>
+      </div>
+    )
+  },
+  "billing-faqs": {
+    id: "billing-faqs",
+    title: "Billing & Credits FAQs",
+    category: "Billing & Credits",
+    time: "5 min",
+    updated: "2 weeks ago",
+    content: (
+      <div className="space-y-6 text-[#18181B] dark:text-[#FAFAFA]">
+        <div className="space-y-4">
+           <h3 className="font-semibold">What happens if I run out of credits?</h3>
+           <p className="text-[#71717A] dark:text-[#A1A1AA]">You can purchase "Top-up Packs" that never expire, or wait for your monthly renewal.</p>
+        </div>
+        <div className="space-y-4">
+           <h3 className="font-semibold">Can I cancel anytime?</h3>
+           <p className="text-[#71717A] dark:text-[#A1A1AA]">Absolutely. You can cancel your subscription at any time and keep your credits until the end of the billing period.</p>
+        </div>
+      </div>
+    )
+  },
   "mockup-guide": {
     id: "mockup-guide",
     title: "Getting started with Mockup Generator",
@@ -345,12 +539,12 @@ const ARTICLES: Record<string, Article> = {
 };
 
 const CATEGORIES: Category[] = [
-  { id: "getting-started", icon: Rocket, color: "#7C3AED", title: "Getting Started", desc: "Learn the basics and set up your account", articleIds: ["getting-started-1"] },
-  { id: "image-gen", icon: Wand2, color: "#7C3AED", title: "Image Generation", desc: "Create stunning AI-generated images", articleIds: ["prompt-guide"] },
+  { id: "getting-started", icon: Rocket, color: "#7C3AED", title: "Getting Started", desc: "Learn the basics and set up your account", articleIds: ["getting-started-1", "getting-started-more", "getting-started-faqs"] },
+  { id: "image-gen", icon: Wand2, color: "#7C3AED", title: "Image Generation", desc: "Create stunning AI-generated images", articleIds: ["prompt-guide", "image-gen-more", "image-gen-faqs"] },
   { id: "mockup", icon: ShoppingBag, color: "#4F46E5", title: "Mockup Generator", desc: "Create product mockups for your designs", articleIds: ["seamless-patterns", "mockup-guide", "mockup-export"] },
-  { id: "bg-remover", icon: Scissors, color: "#EC4899", title: "Background Removal", desc: "Remove and replace image backgrounds", articleIds: ["bg-removal-tips"] },
-  { id: "ai-agents", icon: BrainCircuit, color: "#10B981", title: "AI Agents", desc: "Understand the 5 AI agents and how they work", articleIds: ["ai-agents"] },
-  { id: "billing", icon: CreditCard, color: "#F59E0B", title: "Billing & Credits", desc: "Manage subscriptions, payments, and credits", articleIds: ["credits-guide", "billing-upgrade"] },
+  { id: "bg-remover", icon: Scissors, color: "#EC4899", title: "Background Removal", desc: "Remove and replace image backgrounds", articleIds: ["bg-removal-tips", "bg-removal-more", "bg-removal-faqs"] },
+  { id: "ai-agents", icon: BrainCircuit, color: "#10B981", title: "AI Agents", desc: "Understand the 5 AI agents and how they work", articleIds: ["ai-agents", "ai-agents-more", "ai-agents-faqs"] },
+  { id: "billing", icon: CreditCard, color: "#F59E0B", title: "Billing & Credits", desc: "Manage subscriptions, payments, and credits", articleIds: ["credits-guide", "billing-upgrade", "billing-more", "billing-faqs"] },
   { id: "account", icon: Shield, color: "#3B82F6", title: "Account & Security", desc: "Secure your account and manage settings", articleIds: ["account-security", "password-reset"] },
   { id: "api", icon: Code, color: "#8B5CF6", title: "API & Integrations", desc: "Connect apps and use our API", articleIds: ["api-intro", "api-auth", "api-limits"] },
   { id: "troubleshooting", icon: AlertCircle, color: "#DC2626", title: "Troubleshooting", desc: "Fix common issues and errors", articleIds: ["troubleshoot-failed"] },
