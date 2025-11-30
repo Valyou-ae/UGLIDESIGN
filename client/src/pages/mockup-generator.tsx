@@ -475,15 +475,15 @@ export default function MockupGenerator() {
                       )}
 
                       {currentStep === "product" && (
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
-                          {/* Categories */}
-                          <div className="lg:col-span-3 border-r border-border pr-6 flex flex-col gap-6">
-                            <div className="flex items-center gap-2 text-foreground mb-4">
+                        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-6 lg:gap-8 h-full">
+                          {/* Categories - Mobile: Horizontal Scroll, Desktop: Vertical List */}
+                          <div className="lg:col-span-3 lg:border-r border-border lg:pr-6 flex flex-col gap-4 lg:gap-6 shrink-0">
+                            <div className="flex items-center gap-2 text-foreground lg:mb-4">
                               <LayoutGrid className="h-4 w-4 text-indigo-600" />
                               <h3 className="text-lg font-bold">Select Category</h3>
                             </div>
 
-                            <div className="space-y-1">
+                            <div className="flex lg:flex-col overflow-x-auto pb-2 lg:pb-0 gap-2 lg:gap-1 no-scrollbar -mx-4 px-4 lg:mx-0 lg:px-0">
                               {[
                                 { 
                                   name: "Men's Clothing", 
@@ -581,17 +581,17 @@ export default function MockupGenerator() {
                                     key={cat.name}
                                     onClick={() => setActiveCategory(cat.name)}
                                     className={cn(
-                                      "w-full flex items-center justify-between px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200",
+                                      "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap shrink-0 lg:w-full lg:justify-between lg:px-3 lg:py-3 lg:rounded-xl",
                                       isActive 
                                         ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/20" 
-                                        : "bg-card hover:bg-muted text-muted-foreground hover:text-foreground border border-transparent hover:border-border"
+                                        : "bg-card hover:bg-muted text-muted-foreground hover:text-foreground border border-border lg:border-transparent lg:hover:border-border"
                                     )}
                                   >
-                                    <div className="flex items-center gap-3">
-                                      <cat.icon className={cn("h-5 w-5", isActive ? "text-white" : "text-muted-foreground")} />
+                                    <div className="flex items-center gap-2 lg:gap-3">
+                                      <cat.icon className={cn("h-4 w-4 lg:h-5 lg:w-5", isActive ? "text-white" : "text-muted-foreground")} />
                                       {cat.name}
                                     </div>
-                                    {isActive && <ChevronRight className="h-4 w-4 opacity-80" />}
+                                    {isActive && <ChevronRight className="h-4 w-4 opacity-80 hidden lg:block" />}
                                   </button>
                                 );
                               })}
@@ -599,12 +599,12 @@ export default function MockupGenerator() {
                           </div>
 
                           {/* Product Grid */}
-                          <div className="lg:col-span-6">
+                          <div className="lg:col-span-6 flex-1 overflow-hidden flex flex-col">
                             <div className="flex items-center gap-2 text-foreground mb-4">
                               <ShoppingBag className="h-4 w-4 text-indigo-600" />
                               <h3 className="text-lg font-bold">Choose Product</h3>
                             </div>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 h-[500px] overflow-y-auto pr-2 pb-4 content-start">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto pr-2 pb-20 lg:pb-4 content-start h-full min-h-[300px] lg:min-h-[500px]">
                               {[
                                 { 
                                   name: "Men's Clothing", 
@@ -697,23 +697,23 @@ export default function MockupGenerator() {
                                     key={item.name} 
                                     onClick={() => setSelectedProductType(item.name)}
                                     className={cn(
-                                      "group relative border rounded-xl p-4 cursor-pointer transition-all flex flex-col items-center justify-center text-center gap-3 h-[140px]",
+                                      "group relative border rounded-xl p-3 md:p-4 cursor-pointer transition-all flex flex-col items-center justify-center text-center gap-3 h-[120px] md:h-[140px]",
                                       isSelected 
                                         ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 shadow-sm" 
                                         : "border-border hover:border-indigo-300 hover:shadow-md bg-card"
                                     )}
                                   >
                                     <div className={cn(
-                                      "h-12 w-12 rounded-full flex items-center justify-center transition-colors",
+                                      "h-10 w-10 md:h-12 md:w-12 rounded-full flex items-center justify-center transition-colors",
                                       isSelected ? "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-300" : "bg-muted text-muted-foreground group-hover:text-indigo-600 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/20"
                                     )}>
-                                      <item.icon className="h-6 w-6" />
+                                      <item.icon className="h-5 w-5 md:h-6 md:w-6" />
                                     </div>
-                                    <p className={cn("font-medium text-sm", isSelected ? "text-indigo-700 dark:text-indigo-300" : "text-foreground")}>{item.name}</p>
+                                    <p className={cn("font-medium text-xs md:text-sm", isSelected ? "text-indigo-700 dark:text-indigo-300" : "text-foreground")}>{item.name}</p>
                                     
                                     {isSelected && (
-                                      <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-indigo-600 text-white flex items-center justify-center">
-                                        <Check className="h-3 w-3" />
+                                      <div className="absolute top-2 right-2 h-4 w-4 md:h-5 md:w-5 rounded-full bg-indigo-600 text-white flex items-center justify-center">
+                                        <Check className="h-2.5 w-2.5 md:h-3 md:w-3" />
                                       </div>
                                     )}
                                   </div>
@@ -722,13 +722,13 @@ export default function MockupGenerator() {
                             </div>
                           </div>
 
-                          {/* Model Config */}
-                          <div className="lg:col-span-3 border-l border-border pl-6">
+                          {/* Model Config - Desktop: Column, Mobile: Bottom Sheet/Section */}
+                          <div className="lg:col-span-3 border-t lg:border-t-0 lg:border-l border-border pt-6 lg:pt-0 lg:pl-6">
                             <div className="flex items-center gap-2 text-foreground mb-4">
                               <Sparkles className="h-4 w-4 text-indigo-600" />
                               <h3 className="text-lg font-bold">Configuration</h3>
                             </div>
-                            <div className="sticky top-6">
+                            <div className="lg:sticky lg:top-6">
                               
                               <div className="space-y-6 bg-card/50 rounded-xl p-1">
                                 {/* Size Selection */}
