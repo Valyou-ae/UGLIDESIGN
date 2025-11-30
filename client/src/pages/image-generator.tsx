@@ -412,7 +412,7 @@ export default function ImageGenerator() {
       <main className="flex-1 flex flex-col relative h-full overflow-hidden bg-background text-foreground">
         
         {/* TOP SECTION: PROMPT BAR (Minimalistic) */}
-        <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border px-6 py-4 transition-all">
+        <div className="fixed bottom-[60px] left-0 right-0 md:relative md:bottom-auto md:top-0 z-50 bg-background/80 backdrop-blur-xl border-t md:border-t-0 md:border-b border-border px-4 md:px-6 py-3 md:py-4 transition-all order-last md:order-first">
           <div className="max-w-[1800px] mx-auto w-full space-y-4">
             
             {/* Prompt Input & Controls */}
@@ -708,7 +708,7 @@ export default function ImageGenerator() {
         </div>
 
         {/* SCROLLABLE GALLERY */}
-        <div className="flex-1 overflow-y-auto p-6 md:p-10">
+        <div className="flex-1 overflow-y-auto p-6 md:p-10 pb-40 md:pb-10">
           
           {/* Gallery Filter Bar */}
           {generations.length > 0 && (

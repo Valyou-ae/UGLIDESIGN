@@ -97,14 +97,57 @@ export function Sidebar({ className }: SidebarProps) {
     window.location.href = "/login";
   };
 
+  // Mobile Bottom Navigation
+  const MobileNav = () => (
+    <div className="md:hidden fixed bottom-0 left-0 right-0 h-[60px] bg-background border-t border-border z-50 flex items-center justify-around px-2 pb-safe">
+      <Link href="/">
+        <div className={cn("flex flex-col items-center justify-center p-2 cursor-pointer", location === "/" ? "text-primary" : "text-muted-foreground")}>
+          <Home className="h-6 w-6" />
+          <span className="text-[10px] mt-1">Home</span>
+        </div>
+      </Link>
+      <Link href="/discover">
+        <div className={cn("flex flex-col items-center justify-center p-2 cursor-pointer", location === "/discover" ? "text-primary" : "text-muted-foreground")}>
+          <Compass className="h-6 w-6" />
+          <span className="text-[10px] mt-1">Discover</span>
+        </div>
+      </Link>
+      <Link href="/image-gen">
+        <div className="flex flex-col items-center justify-center -mt-6 cursor-pointer">
+           <div className="h-14 w-14 rounded-full bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30 border-4 border-background">
+             <ImageIcon className="h-6 w-6 text-white" />
+           </div>
+           <span className="text-[10px] mt-1 font-medium text-foreground">Create</span>
+        </div>
+      </Link>
+      <Link href="/my-creations">
+        <div className={cn("flex flex-col items-center justify-center p-2 cursor-pointer", location === "/my-creations" ? "text-primary" : "text-muted-foreground")}>
+          <Folder className="h-6 w-6" />
+          <span className="text-[10px] mt-1">Creations</span>
+        </div>
+      </Link>
+      <Link href="/settings">
+        <div className={cn("flex flex-col items-center justify-center p-2 cursor-pointer", location === "/settings" ? "text-primary" : "text-muted-foreground")}>
+          <Avatar className="h-6 w-6 border border-border">
+            <AvatarImage src="https://github.com/shadcn.png" />
+            <AvatarFallback>JD</AvatarFallback>
+          </Avatar>
+          <span className="text-[10px] mt-1">Profile</span>
+        </div>
+      </Link>
+    </div>
+  );
+
   return (
-    <aside 
-      className={cn(
-        "relative h-screen border-r bg-sidebar transition-all duration-300 ease-in-out flex flex-col z-40",
-        collapsed ? "w-[80px]" : "w-[280px]",
-        className
-      )}
-    >
+    <>
+      <MobileNav />
+      <aside 
+        className={cn(
+          "relative h-screen border-r bg-sidebar transition-all duration-300 ease-in-out flex-col z-40 hidden md:flex",
+          collapsed ? "w-[80px]" : "w-[280px]",
+          className
+        )}
+      >
       {/* Collapse Toggle */}
       <Button
         variant="ghost"
@@ -341,5 +384,6 @@ export function Sidebar({ className }: SidebarProps) {
         <ThemeToggle collapsed={collapsed} />
       </div>
     </aside>
+    </>
   );
 }

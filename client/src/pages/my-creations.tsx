@@ -239,7 +239,7 @@ export default function MyCreations() {
       <Sidebar className="hidden md:flex border-r border-border/50" />
       
       <main className="flex-1 flex flex-col relative h-full overflow-hidden bg-[#F8F8F8] dark:bg-[#0A0A0B] text-foreground">
-        <div className="flex flex-col h-full p-8 md:px-10 md:py-8 overflow-y-auto">
+        <div className="flex flex-col h-full p-8 md:px-10 md:py-8 overflow-y-auto pb-24 md:pb-8">
           
           {/* PAGE HEADER */}
           <div className="flex items-start justify-between mb-8 flex-shrink-0">
