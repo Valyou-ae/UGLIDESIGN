@@ -726,7 +726,7 @@ export default function ImageGenerator() {
                  onClick={() => setActiveFilter("all")}
                  className="rounded-full h-8 text-xs"
                >
-                 All Generations
+                 All Generations ({generations.length})
                </Button>
                <Button
                  variant={activeFilter === "favorites" ? "default" : "outline"}
@@ -735,7 +735,7 @@ export default function ImageGenerator() {
                  className="rounded-full h-8 text-xs gap-1.5"
                >
                  <Star className="h-3.5 w-3.5" />
-                 Favorites
+                 Favorites ({generations.filter(g => g.isFavorite).length})
                </Button>
                <div className="w-px h-4 bg-border mx-1" />
                {Array.from(new Set(generations.map(g => g.style))).map(style => (
@@ -749,7 +749,7 @@ export default function ImageGenerator() {
                      activeFilter === style ? "" : "text-muted-foreground hover:text-foreground bg-muted/30"
                    )}
                  >
-                   {STYLE_PRESETS.find(s => s.id === style)?.name || style}
+                   {STYLE_PRESETS.find(s => s.id === style)?.name || style} ({generations.filter(g => g.style === style).length})
                  </Button>
                ))}
              </div>
