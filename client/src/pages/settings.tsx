@@ -815,13 +815,78 @@ function KeyboardShortcutsSettings() {
 
 function ConnectedAppsSettings() {
   const apps = [
-    { name: "Shopify", icon: ShoppingBag, color: "#96bf48", status: "Coming Soon" },
-    { name: "Meta", icon: Share2, color: "#0668E1", status: "Coming Soon" },
-    { name: "TikTok", icon: Video, color: "#000000", status: "Coming Soon" },
-    { name: "Google Ads", icon: Megaphone, color: "#4285F4", status: "Coming Soon" },
-    { name: "Etsy", icon: Store, color: "#F1641E", status: "Coming Soon" },
-    { name: "Printful", icon: Shirt, color: "#E4383A", status: "Coming Soon" },
-    { name: "Printify", icon: Package, color: "#C3FA37", status: "Coming Soon" },
+    { 
+      name: "Shopify", 
+      icon: (props: any) => (
+        <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+          <path d="M20.4 7.5c-.6-2.5-2.6-4.3-5.2-4.5-1.3-.1-2.6.3-3.6 1.1-1-.8-2.3-1.2-3.6-1.1-2.6.2-4.6 2-5.2 4.5-.3 1.3 0 2.7.8 3.8L8 20.5c.3 1.1 1.3 1.9 2.5 1.9h2.8c1.2 0 2.2-.8 2.5-1.9l4.4-9.2c.8-1.1 1.1-2.5.8-3.8zM9.5 6.5c.8 0 1.5.6 1.6 1.4H7.9c.1-.8.8-1.4 1.6-1.4zm5 0c.8 0 1.5.6 1.6 1.4h-3.2c.1-.8.8-1.4 1.6-1.4z"/>
+        </svg>
+      ), 
+      color: "#96bf48", 
+      status: "Coming Soon" 
+    },
+    { 
+      name: "Meta", 
+      icon: (props: any) => (
+        <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+          <path d="M17.64 9.5c-1.16-1.58-2.85-2.1-4.23-1.3-1.07.62-1.8 1.85-1.8 3.3s.73 2.68 1.8 3.3c1.38.8 3.07.28 4.23-1.3.63-1.03 1.36-2.5 1.36-2.5s-.73-1.47-1.36-2.5zM6.36 9.5c1.16-1.58 2.85-2.1 4.23-1.3 1.07.62 1.8 1.85 1.8 3.3s-.73 2.68-1.8 3.3c-1.38.8-3.07.28-4.23-1.3-.63-1.03-1.36-2.5-1.36-2.5s.73-1.47 1.36-2.5z"/>
+        </svg>
+      ), 
+      color: "#0668E1", 
+      status: "Coming Soon" 
+    },
+    { 
+      name: "TikTok", 
+      icon: (props: any) => (
+        <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+          <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+        </svg>
+      ), 
+      color: "#000000", 
+      status: "Coming Soon" 
+    },
+    { 
+      name: "Google Ads", 
+      icon: (props: any) => (
+        <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+           <path d="M21.4 14.4l-7.9-13.7c-.8-1.3-2.6-1.3-3.4 0L2.2 14.4c-.8 1.4.2 3.1 1.8 3.1h15.7c1.6 0 2.6-1.7 1.7-3.1zM12 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
+        </svg>
+      ), 
+      color: "#4285F4", 
+      status: "Coming Soon" 
+    },
+    { 
+      name: "Etsy", 
+      icon: (props: any) => (
+        <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+          <path d="M20 8h-3.5c-.3 0-.5.2-.5.5v2c0 .3.2.5.5.5H20c.3 0 .5.2.5.5v2c0 .3-.2.5-.5.5h-3.5c-.3 0-.5.2-.5.5v2c0 .3.2.5.5.5H20c.3 0 .5.2.5.5v2c0 .3-.2.5-.5.5H9c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2h11c.3 0 .5.2.5.5v2c0 .3-.2.5-.5.5z"/>
+        </svg>
+      ), 
+      color: "#F1641E", 
+      status: "Coming Soon" 
+    },
+    { 
+      name: "Printful", 
+      icon: (props: any) => (
+        <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+          <path d="M12 2L2 19h20L12 2zm0 3.5L17.5 17h-11L12 5.5z"/>
+          <path d="M12 10l-2 4h4l-2-4z" fillOpacity="0.5"/>
+        </svg>
+      ), 
+      color: "#E4383A", 
+      status: "Coming Soon" 
+    },
+    { 
+      name: "Printify", 
+      icon: (props: any) => (
+        <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+          <path d="M19 5H5c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-7 12h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+        </svg>
+      ), 
+      color: "#C3FA37", 
+      status: "Coming Soon" 
+    },
   ];
 
   return (
@@ -835,7 +900,7 @@ function ConnectedAppsSettings() {
         <p className="text-sm text-[#71717A] mt-1">Integrate with your favorite platforms (Coming Soon)</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {apps.map((app, i) => (
           <div key={i} className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 flex flex-col items-center text-center relative overflow-hidden group">
             <div className="absolute top-3 right-3">
