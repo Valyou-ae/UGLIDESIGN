@@ -31,7 +31,15 @@ import {
   Command,
   AlertTriangle,
   FileText,
-  FolderArchive
+  FolderArchive,
+  ShoppingBag,
+  Share2,
+  Video,
+  Megaphone,
+  Store,
+  Shirt,
+  Package,
+  ExternalLink
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -87,8 +95,6 @@ export default function Settings() {
       label: "INTEGRATIONS",
       items: [
         { name: "Connected Apps", icon: Plug },
-        { name: "API Keys", icon: Key },
-        { name: "Webhooks", icon: Webhook },
       ]
     },
     {
@@ -117,6 +123,8 @@ export default function Settings() {
         return <GenerationDefaultsSettings />;
       case "Keyboard Shortcuts":
         return <KeyboardShortcutsSettings />;
+      case "Connected Apps":
+        return <ConnectedAppsSettings />;
       case "Storage":
         return <StorageSettings />;
       case "Export Data":
@@ -798,6 +806,53 @@ function KeyboardShortcutsSettings() {
                 </kbd>
               ))}
             </div>
+          </div>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
+function ConnectedAppsSettings() {
+  const apps = [
+    { name: "Shopify", icon: ShoppingBag, color: "#96bf48", status: "Coming Soon" },
+    { name: "Meta", icon: Share2, color: "#0668E1", status: "Coming Soon" },
+    { name: "TikTok", icon: Video, color: "#000000", status: "Coming Soon" },
+    { name: "Google Ads", icon: Megaphone, color: "#4285F4", status: "Coming Soon" },
+    { name: "Etsy", icon: Store, color: "#F1641E", status: "Coming Soon" },
+    { name: "Printful", icon: Shirt, color: "#E4383A", status: "Coming Soon" },
+    { name: "Printify", icon: Package, color: "#C3FA37", status: "Coming Soon" },
+  ];
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }} 
+      animate={{ opacity: 1, y: 0 }} 
+      transition={{ duration: 0.3 }}
+    >
+      <div className="mb-8">
+        <h2 className="text-[22px] font-semibold text-[#18181B] dark:text-[#FAFAFA]">Connected Apps</h2>
+        <p className="text-sm text-[#71717A] mt-1">Integrate with your favorite platforms (Coming Soon)</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {apps.map((app, i) => (
+          <div key={i} className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 flex flex-col items-center text-center relative overflow-hidden group">
+            <div className="absolute top-3 right-3">
+              <ExternalLink className="h-4 w-4 text-[#71717A] opacity-0 group-hover:opacity-50 transition-opacity" />
+            </div>
+            
+            <div 
+              className="w-16 h-16 rounded-full flex items-center justify-center mb-4 transition-transform group-hover:scale-110"
+              style={{ backgroundColor: `${app.color}15` }}
+            >
+              <app.icon className="h-8 w-8" style={{ color: app.color }} />
+            </div>
+            
+            <h3 className="text-lg font-semibold text-[#18181B] dark:text-[#FAFAFA] mb-1">{app.name}</h3>
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#F4F4F5] dark:bg-[#1F1F25] text-[#71717A] border border-[#E4E4E7] dark:border-[#2A2A30]">
+              {app.status}
+            </span>
           </div>
         ))}
       </div>
