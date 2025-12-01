@@ -1196,7 +1196,7 @@ export default function MockupGenerator() {
                           </div>
 
                           {/* Footer Navigation */}
-                          <div className="mt-auto pt-4 md:pt-6 border-t border-border flex flex-col gap-2 shrink-0 bg-background/80 backdrop-blur-sm sticky bottom-0 -mx-4 px-4 md:static md:mx-0 md:px-0 md:bg-transparent">
+                          <div className="mt-6 pt-6 border-t border-border flex flex-col gap-2 shrink-0">
                             <div className="flex items-center justify-between">
                                 <Button
                                     variant="ghost"
@@ -1221,7 +1221,7 @@ export default function MockupGenerator() {
                                 </Button>
                             </div>
                             
-                            <div className="hidden md:flex justify-center gap-2 text-xs text-muted-foreground opacity-60">
+                            <div className="flex justify-center gap-2 text-xs text-muted-foreground opacity-60">
                                 <span className="flex items-center gap-1">
                                     <kbd className="bg-muted px-1.5 py-0.5 rounded border border-border font-mono text-[10px]">Enter</kbd> 
                                     Next
@@ -1314,7 +1314,7 @@ export default function MockupGenerator() {
                           </div>
 
                           {/* Footer Navigation */}
-                          <div className="mt-auto pt-4 md:pt-6 border-t border-border flex flex-col gap-2 shrink-0 bg-background/80 backdrop-blur-sm sticky bottom-0 -mx-4 px-4 md:static md:mx-0 md:px-0 md:bg-transparent">
+                          <div className="mt-auto pt-6 border-t border-border flex flex-col gap-2">
                             <div className="flex items-center justify-between">
                                 <Button
                                     variant="ghost"
@@ -1339,7 +1339,7 @@ export default function MockupGenerator() {
                                 </Button>
                             </div>
                             
-                            <div className="hidden md:flex justify-center gap-2 text-xs text-muted-foreground opacity-60">
+                            <div className="flex justify-center gap-2 text-xs text-muted-foreground opacity-60">
                                 <span className="flex items-center gap-1">
                                     <kbd className="bg-muted px-1.5 py-0.5 rounded border border-border font-mono text-[10px]">Enter</kbd> 
                                     Next
