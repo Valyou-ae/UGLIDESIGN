@@ -711,7 +711,7 @@ export default function ImageGenerator() {
           
           {/* Gallery Filter Bar */}
           {generations.length > 0 && (
-             <div className="max-w-[1800px] mx-auto mb-6 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-6 px-6 md:mx-0 md:px-0">
+             <div className="max-w-[1800px] mx-auto mb-6 flex items-center gap-2 overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden -mx-6 px-6 md:mx-0 md:px-0">
                <div className="flex p-1 bg-muted/50 rounded-lg shrink-0 h-8 items-center">
                  <button
                    onClick={() => setActiveFilter("all")}
