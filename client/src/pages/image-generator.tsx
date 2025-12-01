@@ -733,7 +733,7 @@ export default function ImageGenerator() {
                        : "text-muted-foreground hover:text-foreground"
                    )}
                  >
-                   <Star className="h-3 w-3" />
+                   <Star className={cn("h-3 w-3", activeFilter === "favorites" && "fill-yellow-400 text-yellow-400")} />
                    Favs
                  </button>
                </div>
