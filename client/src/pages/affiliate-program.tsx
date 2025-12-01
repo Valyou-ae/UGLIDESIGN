@@ -55,7 +55,7 @@ export default function AffiliateProgram() {
           </div>
 
           {/* Hero Card */}
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-700 p-8 md:p-12 text-white shadow-xl">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-700 p-6 md:p-12 text-white shadow-xl">
             <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
             <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
             
@@ -84,7 +84,7 @@ export default function AffiliateProgram() {
                 </div>
               </div>
               
-              <Card className="w-full max-w-sm bg-white/10 border-white/20 backdrop-blur-md shadow-2xl text-white">
+              <Card className="w-full md:max-w-sm bg-white/10 border-white/20 backdrop-blur-md shadow-2xl text-white">
                 <CardHeader>
                   <CardTitle className="text-lg font-medium text-white">Your Affiliate Link</CardTitle>
                   <CardDescription className="text-indigo-200">Share this link to start earning</CardDescription>
