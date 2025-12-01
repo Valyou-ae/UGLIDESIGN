@@ -1574,16 +1574,16 @@ export default function MockupGenerator() {
                               <p className="text-xs text-muted-foreground">{generationProgress}% complete</p>
                             </div>
                           ) : (
-                            <div className="flex-1 flex flex-col h-full">
-                              <div className="flex items-center justify-between mb-6">
+                            <div className="flex-1 flex flex-col h-full overflow-hidden">
+                              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 shrink-0">
                                 <div>
-                                  <h2 className="text-2xl font-bold">12 Mockups Ready</h2>
+                                  <h2 className="text-2xl md:text-3xl font-bold leading-tight">12 Mockups Ready</h2>
                                   <p className="text-sm text-muted-foreground">Seed: 82739103</p>
                                 </div>
-                                <div className="flex gap-3">
-                                  <Button variant="outline">Start Over</Button>
+                                <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3">
+                                  <Button variant="outline" onClick={() => setJourney(null)} className="flex-1 sm:flex-none">Start Over</Button>
                                   <Button 
-                                    className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white flex-1 sm:flex-none"
                                     onClick={() => generatedMockups.forEach((img, i) => downloadImage(img, `mockup_${i}.png`))}
                                   >
                                     <Download className="mr-2 h-4 w-4" />
@@ -1592,50 +1592,58 @@ export default function MockupGenerator() {
                                 </div>
                               </div>
 
-                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 overflow-y-auto pb-10">
-                                {generatedMockups.map((img, i) => (
-                                  <div key={i} className="group relative aspect-[3/4] rounded-xl overflow-hidden border border-border cursor-pointer">
-                                    <img src={img} alt="Mockup" className="w-full h-full object-cover" />
-                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[2px]">
-                                      <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full">
-                                        <Maximize className="h-4 w-4" />
-                                      </Button>
-                                      <Button 
-                                        size="icon" 
-                                        variant="secondary" 
-                                        className="h-8 w-8 rounded-full"
-                                        onClick={() => downloadImage(img, `mockup_${i}.png`)}
-                                      >
-                                        <Download className="h-4 w-4" />
-                                      </Button>
+                              <div className="flex-1 overflow-y-auto min-h-0 -mx-4 px-4 md:mx-0 md:px-0">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 pb-20">
+                                  {generatedMockups.map((img, i) => (
+                                    <div key={i} className="group relative aspect-[3/4] rounded-xl overflow-hidden border border-border cursor-pointer">
+                                      <img src={img} alt="Mockup" className="w-full h-full object-cover" />
+                                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[2px]">
+                                        <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full">
+                                          <Maximize className="h-4 w-4" />
+                                        </Button>
+                                        <Button 
+                                          size="icon" 
+                                          variant="secondary" 
+                                          className="h-8 w-8 rounded-full"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            downloadImage(img, `mockup_${i}.png`);
+                                          }}
+                                        >
+                                          <Download className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                      <Badge className="absolute top-2 left-2 bg-black/50 backdrop-blur-md text-[10px] border-0 text-white font-normal px-2 py-0.5">
+                                        Front View
+                                      </Badge>
                                     </div>
-                                    <Badge className="absolute top-2 left-2 bg-black/50 backdrop-blur-md text-[10px] border-0">
-                                      Front View
-                                    </Badge>
-                                  </div>
-                                ))}
-                                {/* Repeat for demo grid effect */}
-                                {generatedMockups.map((img, i) => (
-                                  <div key={`dup-${i}`} className="group relative aspect-[3/4] rounded-xl overflow-hidden border border-border cursor-pointer">
-                                    <img src={img} alt="Mockup" className="w-full h-full object-cover" />
-                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[2px]">
-                                      <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full">
-                                        <Maximize className="h-4 w-4" />
-                                      </Button>
-                                      <Button 
-                                        size="icon" 
-                                        variant="secondary" 
-                                        className="h-8 w-8 rounded-full"
-                                        onClick={() => downloadImage(img, `mockup_side_${i}.png`)}
-                                      >
-                                        <Download className="h-4 w-4" />
-                                      </Button>
+                                  ))}
+                                  {/* Repeat for demo grid effect */}
+                                  {generatedMockups.map((img, i) => (
+                                    <div key={`dup-${i}`} className="group relative aspect-[3/4] rounded-xl overflow-hidden border border-border cursor-pointer">
+                                      <img src={img} alt="Mockup" className="w-full h-full object-cover" />
+                                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[2px]">
+                                        <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full">
+                                          <Maximize className="h-4 w-4" />
+                                        </Button>
+                                        <Button 
+                                          size="icon" 
+                                          variant="secondary" 
+                                          className="h-8 w-8 rounded-full"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            downloadImage(img, `mockup_side_${i}.png`);
+                                          }}
+                                        >
+                                          <Download className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                      <Badge className="absolute top-2 left-2 bg-black/50 backdrop-blur-md text-[10px] border-0 text-white font-normal px-2 py-0.5">
+                                        Side View
+                                      </Badge>
                                     </div>
-                                    <Badge className="absolute top-2 left-2 bg-black/50 backdrop-blur-md text-[10px] border-0">
-                                      Side View
-                                    </Badge>
-                                  </div>
-                                ))}
+                                  ))}
+                                </div>
                               </div>
                             </div>
                           )}
