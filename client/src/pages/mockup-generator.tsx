@@ -142,6 +142,8 @@ export default function MockupGenerator() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  const [selectedMockup, setSelectedMockup] = useState<{ src: string; name: string } | null>(null);
+
   const downloadImage = (url: string, filename: string) => {
     const link = document.createElement('a');
     link.href = url;
@@ -1603,6 +1605,10 @@ export default function MockupGenerator() {
                                           <Button 
                                             size="icon" 
                                             className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              setSelectedMockup({ src: img, name: `Mockup ${i + 1}` });
+                                            }}
                                           >
                                             <Maximize className="h-3.5 w-3.5" />
                                           </Button>
@@ -1635,6 +1641,10 @@ export default function MockupGenerator() {
                                           <Button 
                                             size="icon" 
                                             className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              setSelectedMockup({ src: img, name: `Mockup Side ${i + 1}` });
+                                            }}
                                           >
                                             <Maximize className="h-3.5 w-3.5" />
                                           </Button>
@@ -1673,6 +1683,130 @@ export default function MockupGenerator() {
           </div>
         )}
       </main>
+
+      {/* Lightbox Modal */}
+      <AnimatePresence>
+        {selectedMockup && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-md flex items-center justify-center p-6"
+            onClick={() => setSelectedMockup(null)}
+          >
+            <div 
+              className="w-full max-w-7xl h-[90vh] md:h-[85vh] bg-card rounded-2xl overflow-hidden flex flex-col md:flex-row border border-border shadow-2xl"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Left: Image */}
+              <div className="w-full h-[40vh] md:h-auto md:flex-1 bg-muted/20 flex items-center justify-center p-4 md:p-8 relative group bg-checkerboard">
+                <img 
+                  src={selectedMockup.src} 
+                  alt={selectedMockup.name} 
+                  className="max-w-full max-h-full object-contain shadow-2xl rounded-lg" 
+                />
+                <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                   <Button size="icon" className="rounded-full bg-black/50 text-white border-0 hover:bg-black/70">
+                     <Maximize2 className="h-4 w-4" />
+                   </Button>
+                </div>
+              </div>
+
+              {/* Right: Details */}
+              <div className="w-full md:w-[400px] bg-card border-t md:border-t-0 md:border-l border-border flex flex-col h-[50vh] md:h-auto">
+                <div className="p-4 md:p-6 border-b border-border flex justify-between items-center shrink-0">
+                  <h3 className="font-bold text-foreground">Mockup Details</h3>
+                  <Button variant="ghost" size="icon" onClick={() => setSelectedMockup(null)} className="text-muted-foreground hover:text-foreground">
+                    <X className="h-5 w-5" />
+                  </Button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 md:space-y-8">
+                  {/* Actions */}
+                  <div className="grid grid-cols-3 gap-2">
+                    <Button 
+                      variant="ghost" 
+                      className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
+                      onClick={() => downloadImage(selectedMockup.src, `${selectedMockup.name.replace(/\s+/g, '_').toLowerCase()}.png`)}
+                    >
+                      <Download className="h-5 w-5" />
+                      <span className="text-[10px]">Save</span>
+                    </Button>
+                    
+                    <Button 
+                      variant="ghost" 
+                      className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
+                      onClick={() => toast({ title: "Copied to clipboard" })}
+                    >
+                      <Copy className="h-5 w-5" />
+                      <span className="text-[10px]">Copy</span>
+                    </Button>
+
+                    <Button 
+                      variant="ghost" 
+                      className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
+                    >
+                      <Star className="h-5 w-5" />
+                      <span className="text-[10px]">Like</span>
+                    </Button>
+                  </div>
+
+                  {/* Info */}
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Name</label>
+                    <div className="bg-muted/30 rounded-xl p-4 text-sm text-foreground font-medium border border-border relative group">
+                      {selectedMockup.name}
+                      <Button 
+                        size="icon" 
+                        variant="ghost" 
+                        className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => {
+                           navigator.clipboard.writeText(selectedMockup.name);
+                           toast({ title: "Copied" });
+                        }}
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Details */}
+                  <div className="space-y-4">
+                    <div className="flex justify-between py-2 border-b border-border">
+                      <span className="text-xs text-muted-foreground">Type</span>
+                      <Badge variant="outline" className="uppercase">MOCKUP</Badge>
+                    </div>
+                    <div className="flex justify-between py-2 border-b border-border">
+                      <span className="text-xs text-muted-foreground">Dimensions</span>
+                      <span className="text-xs font-medium text-foreground">2048 x 2048</span>
+                    </div>
+                    <div className="flex justify-between py-2 border-b border-border">
+                      <span className="text-xs text-muted-foreground">Size</span>
+                      <span className="text-xs font-medium text-foreground font-mono">3.2 MB</span>
+                    </div>
+                    <div className="flex justify-between py-2 border-b border-border">
+                      <span className="text-xs text-muted-foreground">Date Created</span>
+                      <span className="text-xs font-medium text-foreground">Just now</span>
+                    </div>
+                  </div>
+
+                  {/* Tags */}
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Tags</label>
+                    <div className="flex flex-wrap gap-2">
+                      {["Mockup", "Product", "Professional"].map(tag => (
+                        <span key={tag} className="px-2.5 py-1 rounded-md bg-muted/50 border border-border text-xs text-muted-foreground">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
