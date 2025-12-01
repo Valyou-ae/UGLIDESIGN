@@ -205,8 +205,8 @@ export default function BackgroundRemover() {
               <span className="mx-2">/</span>
               <span>Background Remover</span>
             </div>
-            <div className="flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-16 mb-1">
-              <div className="flex items-center gap-3">
+            <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-16 mb-1">
+              <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2">
                   <h1 className="text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-pink-500 to-pink-600 bg-clip-text text-transparent">
                     Background Remover
@@ -218,7 +218,7 @@ export default function BackgroundRemover() {
                 </Badge>
               </div>
 
-              <div className="flex items-center gap-8 opacity-0 lg:opacity-100 animate-fade-in hidden lg:flex">
+              <div className="flex items-center gap-4 lg:gap-8 opacity-0 lg:opacity-100 animate-fade-in hidden lg:flex">
                 <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
                   <Zap className="h-3.5 w-3.5" />
                   <span>Instant Processing</span>
@@ -243,12 +243,12 @@ export default function BackgroundRemover() {
             
             {/* STATE 1: EMPTY / UPLOAD STATE */}
             {selectedImages.length === 0 && (
-              <div className="flex-1 flex flex-col items-center justify-center animate-fade-in py-4 md:py-10">
+              <div className="flex-1 flex flex-col items-center justify-center animate-fade-in py-2 md:py-10">
                 <div className="w-full max-w-[800px]">
                   
                   {/* Hero Upload Zone */}
                   <div 
-                    className="group relative bg-card border-2 border-dashed border-border rounded-[24px] p-8 md:p-16 text-center transition-all duration-300 hover:border-pink-500 hover:bg-pink-50/50 dark:hover:bg-pink-900/10 hover:scale-[1.01] cursor-pointer"
+                    className="group relative bg-card border-2 border-dashed border-border rounded-[20px] md:rounded-[24px] p-6 md:p-16 text-center transition-all duration-300 hover:border-pink-500 hover:bg-pink-50/50 dark:hover:bg-pink-900/10 hover:scale-[1.01] cursor-pointer"
                     onClick={() => fileInputRef.current?.click()}
                   >
                     <input 
@@ -263,30 +263,30 @@ export default function BackgroundRemover() {
                     <div className="mb-4 md:mb-6 relative inline-block">
                       <div className="absolute inset-0 bg-pink-500/20 blur-2xl rounded-full group-hover:bg-pink-500/30 transition-colors" />
                       <div className="relative">
-                        <Upload className="h-16 w-16 md:h-20 md:w-20 text-pink-500 relative z-10 transition-transform duration-500 group-hover:-translate-y-2" />
-                        <div className="absolute -right-4 -bottom-2 bg-white dark:bg-black rounded-full p-1.5 shadow-lg border border-border">
-                           <Layers className="h-5 w-5 md:h-6 md:w-6 text-blue-500" />
+                        <Upload className="h-12 w-12 md:h-20 md:w-20 text-pink-500 relative z-10 transition-transform duration-500 group-hover:-translate-y-2" />
+                        <div className="absolute -right-2 -bottom-1 md:-right-4 md:-bottom-2 bg-white dark:bg-black rounded-full p-1 md:p-1.5 shadow-lg border border-border">
+                           <Layers className="h-4 w-4 md:h-6 md:w-6 text-blue-500" />
                         </div>
                       </div>
                     </div>
                     
-                    <h2 className="text-xl md:text-2xl font-bold text-foreground mb-2">Drag & drop images</h2>
-                    <p className="text-base md:text-lg text-muted-foreground mb-4">Upload one or multiple images at once</p>
-                    <p className="text-xs md:text-sm text-muted-foreground/60 uppercase tracking-wider font-medium">
+                    <h2 className="text-lg md:text-2xl font-bold text-foreground mb-2">Drag & drop images</h2>
+                    <p className="text-sm md:text-lg text-muted-foreground mb-4">Upload one or multiple images at once</p>
+                    <p className="text-[10px] md:text-sm text-muted-foreground/60 uppercase tracking-wider font-medium">
                       PNG, JPG, JPEG, WEBP, GIF • Batch Support
                     </p>
                   </div>
 
                   {/* Quick Options Row */}
-                  <div className="mt-6 md:mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="mt-4 md:mt-8 grid grid-cols-2 gap-3 md:gap-4">
                     <Dialog open={isUrlDialogOpen} onOpenChange={setIsUrlDialogOpen}>
                       <DialogTrigger asChild>
-                        <button className="flex flex-col items-start p-5 rounded-2xl bg-muted/30 border border-transparent hover:border-pink-500/30 hover:bg-card transition-all hover:-translate-y-0.5 w-full">
-                          <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/20 text-purple-600 mb-3">
-                            <LinkIcon className="h-6 w-6" />
+                        <button className="flex flex-col items-start p-3 md:p-5 rounded-xl md:rounded-2xl bg-muted/30 border border-transparent hover:border-pink-500/30 hover:bg-card transition-all hover:-translate-y-0.5 w-full">
+                          <div className="p-1.5 md:p-2 rounded-lg bg-purple-100 dark:bg-purple-900/20 text-purple-600 mb-2 md:mb-3">
+                            <LinkIcon className="h-4 w-4 md:h-6 md:w-6" />
                           </div>
-                          <span className="text-sm font-semibold mb-1">Import from URL</span>
-                          <span className="text-xs text-muted-foreground">Paste image link directly</span>
+                          <span className="text-xs md:text-sm font-semibold mb-0.5 md:mb-1 text-left">Import URL</span>
+                          <span className="text-[10px] md:text-xs text-muted-foreground text-left">Paste image link</span>
                         </button>
                       </DialogTrigger>
                       <DialogContent>
@@ -306,24 +306,24 @@ export default function BackgroundRemover() {
                       </DialogContent>
                     </Dialog>
 
-                    <button className="flex flex-col items-start p-5 rounded-2xl bg-muted/30 border border-transparent hover:border-pink-500/30 hover:bg-card transition-all hover:-translate-y-0.5 w-full">
-                       <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20 text-blue-600 mb-3">
-                        <Layers className="h-6 w-6" />
+                    <button className="flex flex-col items-start p-3 md:p-5 rounded-xl md:rounded-2xl bg-muted/30 border border-transparent hover:border-pink-500/30 hover:bg-card transition-all hover:-translate-y-0.5 w-full">
+                       <div className="p-1.5 md:p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20 text-blue-600 mb-2 md:mb-3">
+                        <Layers className="h-4 w-4 md:h-6 md:w-6" />
                       </div>
-                      <span className="text-sm font-semibold mb-1">Batch Processing</span>
-                      <span className="text-xs text-muted-foreground">Auto-detects multiple files</span>
+                      <span className="text-xs md:text-sm font-semibold mb-0.5 md:mb-1 text-left">Batch Mode</span>
+                      <span className="text-[10px] md:text-xs text-muted-foreground text-left">Auto-detect multiple</span>
                     </button>
                   </div>
 
                   {/* Sample Images Row */}
-                  <div className="mt-10">
-                    <p className="text-[13px] text-muted-foreground font-medium mb-4 text-center">Try with a sample</p>
-                    <div className="flex flex-wrap justify-center gap-3">
+                  <div className="mt-6 md:mt-10">
+                    <p className="text-[13px] text-muted-foreground font-medium mb-3 md:mb-4 text-center">Try with a sample</p>
+                    <div className="flex flex-wrap justify-center gap-2 md:gap-3 px-2">
                       {[samplePortrait, sampleProduct, sampleAnimal, sampleCar, sampleLogo, sampleFood].map((img, i) => (
                         <button 
                           key={i}
                           onClick={() => handleSampleSelect(img)}
-                          className="h-14 w-14 rounded-full border-2 border-transparent hover:border-pink-500 hover:scale-110 transition-all overflow-hidden shadow-sm"
+                          className="h-10 w-10 md:h-14 md:w-14 rounded-full border-2 border-transparent hover:border-pink-500 hover:scale-110 transition-all overflow-hidden shadow-sm"
                         >
                           <img src={img} alt="Sample" className="h-full w-full object-cover" />
                         </button>
