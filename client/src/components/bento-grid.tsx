@@ -324,7 +324,7 @@ export function BentoGrid() {
       <div className="lg:col-span-3 bg-card border border-sidebar-border/50 rounded-[24px] p-7 shadow-sm">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-bold text-foreground">Recent Work</h2>
-          <a href="#" className="text-sm font-medium text-primary hover:underline">View All →</a>
+          <Link href="/my-creations" className="text-sm font-medium text-primary hover:underline">View All →</Link>
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
