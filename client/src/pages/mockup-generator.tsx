@@ -1504,39 +1504,6 @@ export default function MockupGenerator() {
                   </AnimatePresence>
                 </div>
 
-                {/* FOOTER NAVIGATION */}
-                <div className="bg-muted/30 border-t border-border p-4 flex items-center justify-between backdrop-blur-sm">
-                  <div className="flex items-center gap-4">
-                    <Button 
-                      variant="ghost" 
-                      onClick={handleBack}
-                      disabled={currentStepIndex === 0 && !journey}
-                      className="text-muted-foreground hover:text-foreground"
-                    >
-                      <ChevronLeft className="h-4 w-4 mr-2" />
-                      Back
-                    </Button>
-                    <span className="text-xs text-muted-foreground hidden sm:inline-block">
-                      Press <kbd className="px-1 rounded bg-muted border border-border">Esc</kbd> to go back
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <span className="text-xs text-muted-foreground hidden sm:inline-block">
-                      Press <kbd className="px-1 rounded bg-muted border border-border">Enter</kbd> for next
-                    </span>
-                    {currentStep !== "generate" && (
-                      <Button 
-                        onClick={handleNext}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-6"
-                        disabled={currentStep === "upload" && !uploadedImage}
-                      >
-                        Next Step
-                        <ChevronRight className="h-4 w-4 ml-2" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
 
               </div>
             </div>
