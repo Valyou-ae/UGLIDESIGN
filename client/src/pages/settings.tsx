@@ -40,7 +40,8 @@ import {
   Shirt,
   Package,
   ExternalLink,
-  ChevronLeft
+  ChevronLeft,
+  Star
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -50,6 +51,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Sidebar } from "@/components/sidebar";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 import { 
   Select, 
   SelectContent, 
@@ -75,7 +77,13 @@ export default function Settings() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(true);
   const { toast } = useToast();
 
-  const handleTabSelect = (tabName: string) => {
+  const [, setLocation] = useLocation();
+
+  const handleTabSelect = (tabName: string, href?: string) => {
+    if (href) {
+      setLocation(href);
+      return;
+    }
     setActiveTab(tabName);
     setMobileMenuOpen(false);
   };
@@ -85,6 +93,7 @@ export default function Settings() {
       label: "ACCOUNT",
       items: [
         { name: "Profile", icon: User },
+        { name: "Affiliate Program", icon: Star, href: "/affiliate" },
         { name: "Security", icon: Shield },
         { name: "Notifications", icon: Bell },
         { name: "Privacy", icon: Lock },
@@ -184,7 +193,7 @@ export default function Settings() {
                   {group.items.map((item) => (
                     <button
                       key={item.name}
-                      onClick={() => handleTabSelect(item.name)}
+                      onClick={() => handleTabSelect(item.name, item.href)}
                       className={cn(
                         "w-full flex items-center gap-3 px-6 py-2.5 text-sm transition-all border-l-2 border-transparent",
                         activeTab === item.name 
