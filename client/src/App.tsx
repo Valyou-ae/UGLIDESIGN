@@ -22,6 +22,7 @@ import UploadDesign from "@/pages/upload-design";
 import BatchProcess from "@/pages/batch-process";
 import ImportUrl from "@/pages/import-url";
 import RandomPrompt from "@/pages/random-prompt";
+import AffiliateProgram from "@/pages/affiliate-program";
 
 function Router() {
   return (
@@ -40,6 +41,7 @@ function Router() {
       <Route path="/billing" component={Billing} />
       <Route path="/settings" component={Settings} />
       <Route path="/help" component={HelpSupport} />
+      <Route path="/affiliate" component={AffiliateProgram} />
       
       {/* Quick Action Routes */}
       <Route path="/new-project" component={NewProject} />

@@ -89,6 +89,7 @@ export function Sidebar({ className }: SidebarProps) {
   const account = [
     { name: "Settings", icon: Settings, href: "/settings" },
     { name: "Billing", icon: CreditCard, href: "/billing" },
+    { name: "Affiliate Program", icon: Star, href: "/affiliate" },
     { name: "Help & Support", icon: HelpCircle, href: "/help" },
   ];
 
