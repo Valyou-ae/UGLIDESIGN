@@ -128,6 +128,7 @@ export default function MockupGenerator() {
   const [selectedColors, setSelectedColors] = useState<string[]>(["White"]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>(["L"]);
   const [selectedAngles, setSelectedAngles] = useState<string[]>(["front"]);
+  const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   // Seamless Pattern State
   const [seamlessPhase, setSeamlessPhase] = useState<'analyzing' | 'generating' | 'selecting'>('analyzing');
   const [seamlessVariations, setSeamlessVariations] = useState<any[]>([]);
@@ -435,7 +436,8 @@ export default function MockupGenerator() {
                     >
                       {/* STEP CONTENT SWITCHER */}
                       {currentStep === "upload" && (
-                        <div className="flex flex-col items-center justify-center h-full max-w-[600px] mx-auto text-center">
+                        <div className="flex flex-col h-full">
+                          <div className="flex flex-col items-center justify-center h-full max-w-[600px] mx-auto text-center flex-1">
                           {!uploadedImage ? (
                             <div 
                               className="w-full border-2 border-dashed border-border rounded-[20px] p-8 md:p-16 hover:border-indigo-600 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-all cursor-pointer group"
@@ -471,6 +473,46 @@ export default function MockupGenerator() {
                               </div>
                             </div>
                           )}
+                          </div>
+
+                          {/* Footer Navigation */}
+                          <div className="mt-auto pt-4 md:pt-6 border-t border-border flex flex-col gap-2 shrink-0">
+                            <div className="flex items-center justify-between">
+                                <Button
+                                    variant="ghost"
+                                    onClick={handleBack}
+                                    className="gap-2 pl-2 pr-4 text-muted-foreground hover:text-foreground"
+                                >
+                                    <ChevronLeft className="h-4 w-4" />
+                                    Back
+                                </Button>
+                                <Button
+                                    onClick={handleNext}
+                                    disabled={!uploadedImage}
+                                    className={cn(
+                                        "gap-2 px-6 transition-all",
+                                        uploadedImage
+                                            ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm hover:shadow-indigo-500/20 hover:-translate-y-0.5" 
+                                            : "bg-muted text-muted-foreground opacity-50 cursor-not-allowed"
+                                    )}
+                                >
+                                    Next Step
+                                    <ChevronRight className="h-4 w-4" />
+                                </Button>
+                            </div>
+                            
+                            <div className="flex justify-center gap-2 text-xs text-muted-foreground opacity-60">
+                                <span className="flex items-center gap-1">
+                                    <kbd className="bg-muted px-1.5 py-0.5 rounded border border-border font-mono text-[10px]">Enter</kbd> 
+                                    Next
+                                </span>
+                                <span className="mx-1">•</span>
+                                <span className="flex items-center gap-1">
+                                    <kbd className="bg-muted px-1.5 py-0.5 rounded border border-border font-mono text-[10px]">Esc</kbd> 
+                                    Back
+                                </span>
+                            </div>
+                          </div>
                         </div>
                       )}
 
@@ -853,6 +895,45 @@ export default function MockupGenerator() {
                                       <SelectItem value="hispanic">Hispanic / Latino</SelectItem>
                                     </SelectContent>
                                   </Select>
+                                </div>
+                              </div>
+
+                              {/* Footer Navigation */}
+                              <div className="mt-6 pt-6 border-t border-border flex flex-col gap-2 shrink-0">
+                                <div className="flex items-center justify-between">
+                                    <Button
+                                        variant="ghost"
+                                        onClick={handleBack}
+                                        className="gap-2 pl-2 pr-4 text-muted-foreground hover:text-foreground"
+                                    >
+                                        <ChevronLeft className="h-4 w-4" />
+                                        Back
+                                    </Button>
+                                    <Button
+                                        onClick={handleNext}
+                                        disabled={!selectedProductType || selectedSizes.length === 0 || selectedColors.length === 0}
+                                        className={cn(
+                                            "gap-2 px-6 transition-all",
+                                            (selectedProductType && selectedSizes.length > 0 && selectedColors.length > 0)
+                                                ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm hover:shadow-indigo-500/20 hover:-translate-y-0.5" 
+                                                : "bg-muted text-muted-foreground opacity-50 cursor-not-allowed"
+                                        )}
+                                    >
+                                        Next Step
+                                        <ChevronRight className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                                
+                                <div className="flex justify-center gap-2 text-xs text-muted-foreground opacity-60">
+                                    <span className="flex items-center gap-1">
+                                        <kbd className="bg-muted px-1.5 py-0.5 rounded border border-border font-mono text-[10px]">Enter</kbd> 
+                                        Next
+                                    </span>
+                                    <span className="mx-1">•</span>
+                                    <span className="flex items-center gap-1">
+                                        <kbd className="bg-muted px-1.5 py-0.5 rounded border border-border font-mono text-[10px]">Esc</kbd> 
+                                        Back
+                                    </span>
                                 </div>
                               </div>
                             </div>
@@ -1370,15 +1451,75 @@ export default function MockupGenerator() {
                               { name: "Vintage Retro", img: moodMinimal, desc: "Nostalgic, classic" },   // Reusing placeholder
                               { name: "Tech Modern", img: moodBold, desc: "Sleek, futuristic" },        // Reusing placeholder
                               { name: "Bohemian", img: moodNatural, desc: "Free-spirited, artistic" },  // Reusing placeholder
-                            ].map((style, i) => (
-                              <div key={i} className="group relative aspect-[3/4] rounded-xl overflow-hidden cursor-pointer border-2 border-transparent hover:border-indigo-600 transition-all">
-                                <img src={style.img} alt={style.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-4">
-                                  <h3 className="text-white font-bold text-lg">{style.name}</h3>
-                                  <p className="text-white/70 text-xs">{style.desc}</p>
+                            ].map((style, i) => {
+                              const isSelected = selectedStyle === style.name;
+                              return (
+                                <div 
+                                  key={i} 
+                                  onClick={() => setSelectedStyle(style.name)}
+                                  className={cn(
+                                    "group relative aspect-[3/4] rounded-xl overflow-hidden cursor-pointer border-2 transition-all",
+                                    isSelected 
+                                      ? "border-indigo-600 ring-4 ring-indigo-600/20 shadow-lg scale-[1.02]" 
+                                      : "border-transparent hover:border-indigo-600/50"
+                                  )}
+                                >
+                                  <img src={style.img} alt={style.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-4">
+                                    <div className="flex justify-between items-end">
+                                      <div>
+                                        <h3 className="text-white font-bold text-lg">{style.name}</h3>
+                                        <p className="text-white/70 text-xs">{style.desc}</p>
+                                      </div>
+                                      {isSelected && (
+                                        <div className="bg-indigo-600 rounded-full p-1">
+                                          <Check className="h-4 w-4 text-white" />
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
+                              );
+                            })}
+                          </div>
+
+                          {/* Footer Navigation */}
+                          <div className="mt-8 pt-6 border-t border-border flex flex-col gap-2 shrink-0">
+                            <div className="flex items-center justify-between">
+                                <Button
+                                    variant="ghost"
+                                    onClick={handleBack}
+                                    className="gap-2 pl-2 pr-4 text-muted-foreground hover:text-foreground"
+                                >
+                                    <ChevronLeft className="h-4 w-4" />
+                                    Back
+                                </Button>
+                                <Button
+                                    onClick={handleNext}
+                                    disabled={!selectedStyle}
+                                    className={cn(
+                                        "gap-2 px-6 transition-all",
+                                        selectedStyle
+                                            ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm hover:shadow-indigo-500/20 hover:-translate-y-0.5" 
+                                            : "bg-muted text-muted-foreground opacity-50 cursor-not-allowed"
+                                    )}
+                                >
+                                    Next Step
+                                    <ChevronRight className="h-4 w-4" />
+                                </Button>
+                            </div>
+                            
+                            <div className="flex justify-center gap-2 text-xs text-muted-foreground opacity-60">
+                                <span className="flex items-center gap-1">
+                                    <kbd className="bg-muted px-1.5 py-0.5 rounded border border-border font-mono text-[10px]">Enter</kbd> 
+                                    Next
+                                </span>
+                                <span className="mx-1">•</span>
+                                <span className="flex items-center gap-1">
+                                    <kbd className="bg-muted px-1.5 py-0.5 rounded border border-border font-mono text-[10px]">Esc</kbd> 
+                                    Back
+                                </span>
+                            </div>
                           </div>
                         </div>
                       )}
