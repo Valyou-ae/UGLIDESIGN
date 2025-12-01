@@ -97,7 +97,7 @@ export default function Settings() {
         { name: "Security", icon: Shield },
         { name: "Notifications", icon: Bell },
         { name: "Privacy", icon: Lock },
-      ]
+      ] as { name: string; icon: any; href?: string; danger?: boolean }[]
     },
     {
       label: "PREFERENCES",
@@ -105,13 +105,13 @@ export default function Settings() {
         { name: "Appearance", icon: Palette },
         { name: "Generation Defaults", icon: Sliders },
         { name: "Keyboard Shortcuts", icon: Keyboard },
-      ]
+      ] as { name: string; icon: any; href?: string; danger?: boolean }[]
     },
     {
       label: "INTEGRATIONS",
       items: [
         { name: "Connected Apps", icon: Plug },
-      ]
+      ] as { name: string; icon: any; href?: string; danger?: boolean }[]
     },
     {
       label: "DATA & STORAGE",
@@ -119,7 +119,7 @@ export default function Settings() {
         { name: "Storage", icon: HardDrive },
         { name: "Export Data", icon: Download },
         { name: "Delete Account", icon: Trash2, danger: true },
-      ]
+      ] as { name: string; icon: any; href?: string; danger?: boolean }[]
     }
   ];
 
@@ -236,6 +236,25 @@ export default function Settings() {
 
 function ProfileSettings() {
   const { toast } = useToast();
+  const [socialLinks, setSocialLinks] = useState([
+    { icon: Globe, label: "Website", placeholder: "https://yourwebsite.com" },
+    { icon: Check, label: "Twitter", placeholder: "https://twitter.com/username" },
+    { icon: Check, label: "LinkedIn", placeholder: "https://linkedin.com/in/username" },
+    { icon: Check, label: "Instagram", placeholder: "https://instagram.com/username" }
+  ]);
+
+  const handleAddLink = () => {
+    setSocialLinks([
+      ...socialLinks, 
+      { icon: Globe, label: "Website", placeholder: "https://" }
+    ]);
+  };
+
+  const handleRemoveLink = (index: number) => {
+    const newLinks = [...socialLinks];
+    newLinks.splice(index, 1);
+    setSocialLinks(newLinks);
+  };
 
   return (
     <motion.div 
@@ -331,24 +350,28 @@ function ProfileSettings() {
         </div>
         
         <div className="flex flex-col gap-4">
-          {[
-            { icon: Globe, label: "Website", placeholder: "https://yourwebsite.com" },
-            { icon: Check, label: "Twitter", placeholder: "https://twitter.com/username" }, // Check is placeholder for Twitter icon
-            { icon: Check, label: "LinkedIn", placeholder: "https://linkedin.com/in/username" }, // Check is placeholder
-            { icon: Check, label: "Instagram", placeholder: "https://instagram.com/username" } // Check is placeholder
-          ].map((social, i) => (
-            <div key={i} className="relative">
+          {socialLinks.map((social, i) => (
+            <div key={i} className="relative group">
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#71717A] dark:text-[#52525B]">
                 <social.icon className="h-4 w-4" />
               </div>
               <input 
                 placeholder={social.placeholder}
-                className="w-full bg-[#F4F4F5] dark:bg-[#1A1A1F] border border-[#E4E4E7] dark:border-[#2A2A30] rounded-[10px] py-3 pl-11 pr-4 text-sm text-[#18181B] dark:text-[#FAFAFA] focus:outline-none focus:border-[#7C3AED] focus:ring-4 focus:ring-[#7C3AED]/10 transition-all"
+                className="w-full bg-[#F4F4F5] dark:bg-[#1A1A1F] border border-[#E4E4E7] dark:border-[#2A2A30] rounded-[10px] py-3 pl-11 pr-10 text-sm text-[#18181B] dark:text-[#FAFAFA] focus:outline-none focus:border-[#7C3AED] focus:ring-4 focus:ring-[#7C3AED]/10 transition-all"
               />
+              <button 
+                onClick={() => handleRemoveLink(i)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-md text-[#71717A] hover:text-[#DC2626] hover:bg-red-50 dark:hover:bg-red-900/10 opacity-0 group-hover:opacity-100 transition-all"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
             </div>
           ))}
           
-          <button className="flex items-center gap-2 text-[13px] text-[#71717A] dark:text-[#A1A1AA] hover:text-[#18181B] dark:hover:text-[#FAFAFA] transition-colors mt-1 w-fit">
+          <button 
+            onClick={handleAddLink}
+            className="flex items-center gap-2 text-[13px] text-[#71717A] dark:text-[#A1A1AA] hover:text-[#18181B] dark:hover:text-[#FAFAFA] transition-colors mt-1 w-fit"
+          >
             <Plus className="h-4 w-4" />
             Add link
           </button>
