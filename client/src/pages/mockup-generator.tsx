@@ -1237,33 +1237,38 @@ export default function MockupGenerator() {
                       {currentStep === "scene" && (
                         <div className="flex flex-col h-full max-w-[640px] mx-auto w-full animate-fade-in">
                           {/* Section 1: Quick Templates */}
-                          <div className="mb-6">
-                            <h3 className="text-sm font-bold text-foreground/80 mb-3">Quick Templates</h3>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                          <div className="mb-4 md:mb-6 shrink-0">
+                            <h3 className="text-sm font-bold text-foreground/80 mb-3 flex items-center gap-2">
+                              <Sparkles className="h-4 w-4 text-indigo-600" />
+                              Quick Templates
+                            </h3>
+                            <div className="grid grid-cols-3 gap-2">
                               {[
-                                { icon: Building, label: "Urban Street", prompt: "A vibrant urban street scene with graffiti walls, neon lights, and natural sunlight" },
-                                { icon: Camera, label: "Studio Clean", prompt: "A minimalist gray or white photography studio with professional soft lighting" },
-                                { icon: Trees, label: "Outdoor Nature", prompt: "A beautiful outdoor park setting with lush greenery and golden hour lighting" },
-                                { icon: Coffee, label: "Coffee Shop", prompt: "A cozy coffee shop interior with warm lighting, wood accents, and modern decor" },
-                                { icon: Dumbbell, label: "Gym/Athletic", prompt: "A modern fitness gym with motivational atmosphere and athletic equipment in the background" },
-                                { icon: Sun, label: "Beach/Summer", prompt: "A sunny beach setting with sand, ocean waves, and bright summery daylight" },
+                                { icon: Building, label: "Urban", prompt: "A vibrant urban street scene with graffiti walls, neon lights, and natural sunlight" },
+                                { icon: Camera, label: "Studio", prompt: "A minimalist gray or white photography studio with professional soft lighting" },
+                                { icon: Trees, label: "Nature", prompt: "A beautiful outdoor park setting with lush greenery and golden hour lighting" },
+                                { icon: Coffee, label: "Cafe", prompt: "A cozy coffee shop interior with warm lighting, wood accents, and modern decor" },
+                                { icon: Dumbbell, label: "Gym", prompt: "A modern fitness gym with motivational atmosphere and athletic equipment in the background" },
+                                { icon: Sun, label: "Beach", prompt: "A sunny beach setting with sand, ocean waves, and bright summery daylight" },
                               ].map((template, i) => (
                                 <button
                                   key={i}
                                   onClick={() => setEnvironmentPrompt(template.prompt)}
                                   className={cn(
-                                    "flex items-center gap-3 p-3 text-left rounded-lg border-2 transition-all duration-150",
+                                    "flex flex-col items-center justify-center gap-2 p-2 md:p-3 text-center rounded-xl border transition-all duration-150 h-[80px] md:h-[100px]",
                                     environmentPrompt === template.prompt
-                                      ? "bg-indigo-50 border-indigo-400 dark:bg-indigo-900/20 dark:border-indigo-600"
-                                      : "bg-card border-border hover:bg-accent dark:hover:bg-accent/50 text-muted-foreground hover:text-foreground"
+                                      ? "bg-indigo-50 border-indigo-600 dark:bg-indigo-900/20 dark:border-indigo-500 shadow-sm"
+                                      : "bg-card border-border hover:bg-accent dark:hover:bg-accent/50 text-muted-foreground hover:text-foreground hover:border-indigo-300"
                                   )}
                                 >
-                                  <template.icon className={cn(
-                                    "h-5 w-5 flex-shrink-0",
-                                    environmentPrompt === template.prompt ? "text-indigo-600 dark:text-indigo-400" : "text-current"
-                                  )} />
+                                  <div className={cn(
+                                    "h-8 w-8 md:h-10 md:w-10 rounded-full flex items-center justify-center transition-colors",
+                                    environmentPrompt === template.prompt ? "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-300" : "bg-muted text-muted-foreground"
+                                  )}>
+                                    <template.icon className="h-4 w-4 md:h-5 md:w-5" />
+                                  </div>
                                   <span className={cn(
-                                    "text-sm font-medium",
+                                    "text-[10px] md:text-sm font-medium",
                                     environmentPrompt === template.prompt ? "text-indigo-900 dark:text-indigo-100" : "text-current"
                                   )}>
                                     {template.label}
@@ -1275,15 +1280,19 @@ export default function MockupGenerator() {
 
                           {/* Section 2: Custom Scene Textarea */}
                           <div className="flex-1 flex flex-col min-h-0">
-                            <h3 className="text-sm font-bold text-foreground/80 mb-3">Custom Scene</h3>
-                            <div className="relative flex-1 max-h-[200px] mb-2">
+                            <h3 className="text-sm font-bold text-foreground/80 mb-3 flex items-center gap-2">
+                              <Wand2 className="h-4 w-4 text-indigo-600" />
+                              Custom Scene
+                            </h3>
+                            <div className="relative flex-1 max-h-[200px] mb-2 group">
+                              <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl opacity-20 group-hover:opacity-40 transition duration-500 blur"></div>
                               <Textarea
                                 value={environmentPrompt}
                                 onChange={(e) => setEnvironmentPrompt(e.target.value)}
-                                placeholder="E.g., Walking down a busy Tokyo street at night..."
+                                placeholder="Describe your perfect scene (e.g., Walking down a busy Tokyo street at night...)"
                                 className={cn(
-                                  "w-full h-32 p-4 rounded-xl border-2 resize-none transition-colors text-base bg-background",
-                                  "focus-visible:ring-0 focus-visible:border-indigo-600"
+                                  "relative w-full h-full min-h-[120px] p-4 rounded-xl border-2 resize-none transition-colors text-sm md:text-base bg-background/95 backdrop-blur-sm",
+                                  "focus-visible:ring-0 focus-visible:border-indigo-600 placeholder:text-muted-foreground/50"
                                 )}
                                 onKeyDown={(e) => {
                                     if (e.key === "Enter" && !e.shiftKey) {
@@ -1293,17 +1302,17 @@ export default function MockupGenerator() {
                                     if (e.key === "Escape") handleBack();
                                 }}
                               />
-                              <div className="absolute bottom-3 right-3 text-xs text-muted-foreground">
-                                {environmentPrompt.length} characters
+                              <div className="absolute bottom-3 right-3 text-[10px] text-muted-foreground bg-background/80 px-2 py-0.5 rounded-full border border-border">
+                                {environmentPrompt.length} chars
                               </div>
                             </div>
-                            <p className="text-xs text-center text-muted-foreground">
-                              This scene will be interpreted within your chosen Brand Style.
+                            <p className="text-[10px] md:text-xs text-center text-muted-foreground">
+                              AI will interpret this scene within your chosen Brand Style.
                             </p>
                           </div>
 
                           {/* Footer Navigation */}
-                          <div className="mt-auto pt-6 border-t border-border flex flex-col gap-2">
+                          <div className="mt-auto pt-4 md:pt-6 border-t border-border flex flex-col gap-2 shrink-0 bg-background/80 backdrop-blur-sm sticky bottom-0 -mx-4 px-4 md:static md:mx-0 md:px-0 md:bg-transparent">
                             <div className="flex items-center justify-between">
                                 <Button
                                     variant="ghost"
@@ -1328,7 +1337,7 @@ export default function MockupGenerator() {
                                 </Button>
                             </div>
                             
-                            <div className="flex justify-center gap-2 text-xs text-muted-foreground opacity-60">
+                            <div className="hidden md:flex justify-center gap-2 text-xs text-muted-foreground opacity-60">
                                 <span className="flex items-center gap-1">
                                     <kbd className="bg-muted px-1.5 py-0.5 rounded border border-border font-mono text-[10px]">Enter</kbd> 
                                     Next
