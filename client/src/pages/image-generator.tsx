@@ -465,7 +465,7 @@ export default function ImageGenerator() {
                     onKeyDown={handleKeyDown}
                     placeholder="Describe what you want to create..."
                     className={cn(
-                      "w-full bg-transparent border-0 focus:ring-0 px-0 pt-[3px] text-sm sm:text-base placeholder:text-muted-foreground/50 placeholder:italic resize-none min-h-[24px] max-h-[120px] leading-relaxed outline-none ring-0",
+                      "w-full bg-transparent border-0 focus:ring-0 px-0 pt-[3px] text-sm sm:text-base placeholder:text-muted-foreground/50 placeholder:italic resize-none min-h-[24px] max-h-[120px] leading-relaxed outline-none ring-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden",
                       prompt === "A futuristic city with neon lights and flying cars in cyberpunk style" ? "text-muted-foreground italic" : "text-foreground"
                     )}
                     rows={1}
