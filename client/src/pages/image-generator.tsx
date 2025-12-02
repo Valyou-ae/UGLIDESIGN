@@ -282,7 +282,7 @@ export default function ImageGenerator() {
     style: "auto",
     quality: "standard",
     aspectRatio: "1:1",
-    variations: "4",
+    variations: "1",
     refiner: false,
     refinerPreset: "cinematic",
     aiCuration: true,
@@ -290,7 +290,7 @@ export default function ImageGenerator() {
     useMultiAgent: true,
     useDraftToFinal: false,
     artisticStyle: "auto",
-    model: "gemini" as "gemini" | "imagen4" | "imagen4fast" | "imagen3",
+    model: "imagen4" as "gemini" | "imagen4" | "imagen4fast" | "imagen3",
     imagenModel: "imagen-4.0-generate-001" as string
   });
   const [artisticStyles, setArtisticStyles] = useState<ArtisticStyle[]>([]);
@@ -921,142 +921,6 @@ export default function ImageGenerator() {
                   className="overflow-hidden"
                 >
                   <div className="bg-muted/30 border border-border rounded-xl p-4 space-y-4 shadow-inner mb-4">
-
-                    {/* Model Selection - Full Width Row */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between px-0.5">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Model</label>
-                        {imagenStatus?.hasFallbackKey && (
-                          <Badge variant="outline" className="text-[8px] px-1 py-0 h-3.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20">
-                            Fallback Key Active
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                onClick={() => setSettings({...settings, model: "gemini"})}
-                                className={cn(
-                                  "h-10 rounded-lg flex items-center justify-center gap-1.5 transition-all border px-3",
-                                  settings.model === "gemini" 
-                                    ? "bg-background border-primary/50 text-primary shadow-sm" 
-                                    : "bg-background/50 border-transparent text-muted-foreground hover:bg-background hover:text-foreground"
-                                )}
-                                data-testid="model-select-gemini"
-                              >
-                                <Zap className={cn("h-3.5 w-3.5 shrink-0", settings.model === "gemini" ? "text-primary" : "opacity-70")} />
-                                <span className="text-[11px] font-medium truncate">Gemini Flash</span>
-                                <Badge variant="outline" className="text-[8px] px-1 py-0 h-4 shrink-0">Free</Badge>
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom">
-                              <p>Gemini 2.5 Flash - Fast generation, good for most images</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                onClick={() => imagenStatus?.available && setSettings({...settings, model: "imagen4"})}
-                                disabled={!imagenStatus?.available}
-                                className={cn(
-                                  "h-10 rounded-lg flex items-center justify-center gap-1.5 transition-all border px-3",
-                                  settings.model === "imagen4" 
-                                    ? "bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-500/50 text-green-600 dark:text-green-400 shadow-sm" 
-                                    : imagenStatus?.available
-                                      ? "bg-background/50 border-transparent text-muted-foreground hover:bg-background hover:text-foreground"
-                                      : "bg-background/30 border-transparent text-muted-foreground/50 cursor-not-allowed"
-                                )}
-                                data-testid="model-select-imagen4"
-                              >
-                                <Crown className={cn("h-3.5 w-3.5 shrink-0", settings.model === "imagen4" ? "text-green-500" : "opacity-70")} />
-                                <span className="text-[11px] font-medium truncate">Imagen 4</span>
-                                {imagenStatus?.available ? (
-                                  <Badge className="text-[8px] px-1 py-0 h-4 shrink-0 bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30">Best</Badge>
-                                ) : (
-                                  <Badge variant="outline" className="text-[8px] px-1 py-0 h-4 shrink-0 opacity-50">Key</Badge>
-                                )}
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom">
-                              <p>{imagenStatus?.available 
-                                ? "Imagen 4 - Best quality & text rendering ($0.04/image)" 
-                                : "Add your Google AI API key in Secrets to enable Imagen"}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                onClick={() => imagenStatus?.available && setSettings({...settings, model: "imagen4fast"})}
-                                disabled={!imagenStatus?.available}
-                                className={cn(
-                                  "h-10 rounded-lg flex items-center justify-center gap-1.5 transition-all border px-3",
-                                  settings.model === "imagen4fast" 
-                                    ? "bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border-blue-500/50 text-blue-600 dark:text-blue-400 shadow-sm" 
-                                    : imagenStatus?.available
-                                      ? "bg-background/50 border-transparent text-muted-foreground hover:bg-background hover:text-foreground"
-                                      : "bg-background/30 border-transparent text-muted-foreground/50 cursor-not-allowed"
-                                )}
-                                data-testid="model-select-imagen4fast"
-                              >
-                                <Zap className={cn("h-3.5 w-3.5 shrink-0", settings.model === "imagen4fast" ? "text-blue-500" : "opacity-70")} />
-                                <span className="text-[11px] font-medium truncate">Imagen 4 Fast</span>
-                                {imagenStatus?.available ? (
-                                  <Badge className="text-[8px] px-1 py-0 h-4 shrink-0 bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30">10x</Badge>
-                                ) : (
-                                  <Badge variant="outline" className="text-[8px] px-1 py-0 h-4 shrink-0 opacity-50">Key</Badge>
-                                )}
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom">
-                              <p>{imagenStatus?.available 
-                                ? "Imagen 4 Fast - 10x faster generation ($0.02/image)" 
-                                : "Add your Google AI API key in Secrets to enable Imagen"}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                onClick={() => imagenStatus?.available && setSettings({...settings, model: "imagen3"})}
-                                disabled={!imagenStatus?.available}
-                                className={cn(
-                                  "h-10 rounded-lg flex items-center justify-center gap-1.5 transition-all border px-3",
-                                  settings.model === "imagen3" 
-                                    ? "bg-gradient-to-r from-purple-500/10 to-pink-500/10 border-purple-500/50 text-purple-600 dark:text-purple-400 shadow-sm" 
-                                    : imagenStatus?.available
-                                      ? "bg-background/50 border-transparent text-muted-foreground hover:bg-background hover:text-foreground"
-                                      : "bg-background/30 border-transparent text-muted-foreground/50 cursor-not-allowed"
-                                )}
-                                data-testid="model-select-imagen3"
-                              >
-                                <Sparkles className={cn("h-3.5 w-3.5 shrink-0", settings.model === "imagen3" ? "text-purple-500" : "opacity-70")} />
-                                <span className="text-[11px] font-medium truncate">Imagen 3</span>
-                                {imagenStatus?.available ? (
-                                  <Badge className="text-[8px] px-1 py-0 h-4 shrink-0 bg-purple-500/20 text-purple-600 dark:text-purple-400 border-purple-500/30">Classic</Badge>
-                                ) : (
-                                  <Badge variant="outline" className="text-[8px] px-1 py-0 h-4 shrink-0 opacity-50">Key</Badge>
-                                )}
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom">
-                              <p>{imagenStatus?.available 
-                                ? "Imagen 3 - Good quality, lower cost" 
-                                : "Add your Google AI API key in Secrets to enable Imagen"}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                    </div>
 
                     {/* Settings Row - Quality, Ratio, Style, Count, Refiner */}
                     <div className="flex flex-wrap gap-4">
