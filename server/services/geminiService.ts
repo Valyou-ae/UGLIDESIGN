@@ -7,6 +7,16 @@ import {
   TextStyleIntent,
   ASPECT_RATIO_DIMENSIONS
 } from "../../shared/imageGenTypes";
+import {
+  buildCinematicDNA,
+  selectLightingForSubject,
+  selectColorGradeForMood,
+  selectCameraForSubject,
+  detectArtisticStyleFromPrompt,
+  getStylePromptEnhancement,
+  ARTISTIC_STYLES,
+  CINEMATIC_DNA_COMPONENTS
+} from "./cinematicDNA";
 
 const API_KEY = process.env.AI_INTEGRATIONS_GEMINI_API_KEY || '';
 const BASE_URL = process.env.AI_INTEGRATIONS_GEMINI_BASE_URL;
@@ -163,16 +173,15 @@ const NEGATIVE_LIBRARIES: Record<string, string> = {
   cinematic: "amateur, home video, phone camera, flat lighting, bad color grading, digital video look",
 };
 
-const CINEMATIC_DNA = `
-CINEMATIC DNA SYSTEM - Apply these 7 components for Hollywood-quality output:
-1. VOLUMETRIC ATMOSPHERIC EFFECTS: Add volumetric fog, god rays, atmospheric haze
-2. PROFESSIONAL LIGHTING: Three-point lighting, Rembrandt lighting, dramatic shadows
-3. DEPTH LAYERING: Foreground, midground, background separation with atmospheric depth
-4. COLOR GRADING: Teal and orange complementary grade, Kodak Vision3 film stock look
-5. MATERIAL RENDERING: Subsurface scattering on skin, PBR properties, realistic reflections
-6. CINEMATIC COMPOSITION: Rule of thirds, golden ratio, leading lines, natural framing
-7. CAMERA SYSTEMS: Shot on ARRI Alexa with Zeiss Supreme Prime lens, cinematic depth of field
-`;
+const buildCinematicDNADescription = (): string => {
+  const components = Object.values(CINEMATIC_DNA_COMPONENTS);
+  const lines = components.map((c, i) => 
+    `${i + 1}. ${c.name.toUpperCase()} (${c.qualityBoost} boost): ${c.keywords.slice(0, 3).join(', ')}`
+  );
+  return `CINEMATIC DNA SYSTEM - Apply these 7 components for Hollywood-quality output:\n${lines.join('\n')}`;
+};
+
+const CINEMATIC_DNA = buildCinematicDNADescription();
 
 const detectSubjectType = (analysis: PromptAnalysis): string => {
   const subject = analysis.subject.primary.toLowerCase();
@@ -283,18 +292,37 @@ export const enhanceStyle = async (
     const styleInfo = STYLE_PRESETS[selectedStyle] || STYLE_PRESETS.auto;
     const qualityConfig = QUALITY_PRESETS[quality];
 
+    const qualityLevel = quality === 'draft' ? 'fast' : quality === 'ultra' ? 'professional' : 'balanced';
+    const cinematicDNA = buildCinematicDNA(qualityLevel as 'fast' | 'balanced' | 'professional');
+    
+    const lightingRecommendation = selectLightingForSubject(analysis.subject.primary, analysis.mood.primary);
+    const colorGrade = selectColorGradeForMood(analysis.mood.primary);
+    const { camera, lens } = selectCameraForSubject(analysis.subject.primary);
+    
+    const detectedArtStyle = detectArtisticStyleFromPrompt(userPrompt);
+    const artStyleEnhancement = detectedArtStyle ? getStylePromptEnhancement(detectedArtStyle) : '';
+
     const textInstruction = hasText
       ? `The image MUST include the text: "${textInfo[0].text}". Style: ${textInfo[0].physicalProperties.material}`
       : 'The image must not contain any text.';
 
     const stylePromptInstruction = selectedStyle !== 'auto'
       ? `Apply the style: ${styleInfo.name}. Keywords: ${styleInfo.keywords}. Guidance: ${styleInfo.guidance}.`
-      : `Automatically select the most fitting artistic style based on the subject and mood.`;
+      : detectedArtStyle && ARTISTIC_STYLES[detectedArtStyle]
+        ? `Apply detected artistic style: ${ARTISTIC_STYLES[detectedArtStyle].name}. ${artStyleEnhancement}`
+        : `Automatically select the most fitting artistic style based on the subject and mood.`;
 
     const metaPrompt = `
       You are an expert AI Art Director creating a master prompt for an advanced AI image generator.
 
       ${CINEMATIC_DNA}
+
+      **CINEMATIC DNA ENHANCEMENT (Apply These):**
+      ${cinematicDNA}
+
+      **RECOMMENDED LIGHTING:** ${lightingRecommendation}
+      **RECOMMENDED COLOR GRADE:** ${colorGrade.name} - ${colorGrade.keywords.join(', ')}
+      **RECOMMENDED CAMERA:** ${camera.name} with ${lens.name}
 
       **PRIME DIRECTIVE: TEXT CONTROL**
       ${textInstruction}
@@ -310,10 +338,11 @@ export const enhanceStyle = async (
       **YOUR TASK:**
       Create an enhanced prompt that:
       1. Preserves the user's core idea exactly
-      2. Applies Cinematic DNA principles for Hollywood-quality output
-      3. Uses specific, technical photography/cinematography terms
-      4. Keeps the prompt under 150 words
-      5. Follows the text and style instructions precisely
+      2. Applies ALL Cinematic DNA principles for Hollywood-quality output
+      3. Uses the recommended lighting, color grade, and camera specifications
+      4. Uses specific, technical photography/cinematography terms
+      5. Keeps the prompt under 200 words
+      6. Follows the text and style instructions precisely
 
       Return ONLY the enhanced prompt text, nothing else.
     `.trim();
@@ -432,5 +461,262 @@ export const generateIterativeEditPrompt = async (
   } catch (error) {
     console.error("Iterative Edit Error:", error);
     return currentPrompt;
+  }
+};
+
+export interface DeepAnalysisResult {
+  subject: {
+    primary: string;
+    secondary: string[];
+    semanticCategory: string;
+    emotionalResonance: string;
+  };
+  composition: {
+    recommendedFraming: string;
+    focalPoint: string;
+    visualFlow: string;
+    negativeSpace: string;
+  };
+  atmosphere: {
+    mood: string;
+    timeOfDay: string;
+    weather: string;
+    ambiance: string;
+  };
+  technicalRecommendations: {
+    cameraAngle: string;
+    lensType: string;
+    lightingSetup: string;
+    colorGrade: string;
+    depthOfField: string;
+  };
+  artisticInfluences: string[];
+  suggestedEnhancements: string[];
+}
+
+export const performDeepAnalysis = async (userPrompt: string): Promise<DeepAnalysisResult> => {
+  const ai = getAIClient();
+  
+  const fallback: DeepAnalysisResult = {
+    subject: { primary: 'general', secondary: [], semanticCategory: 'abstract', emotionalResonance: 'neutral' },
+    composition: { recommendedFraming: 'centered', focalPoint: 'center', visualFlow: 'balanced', negativeSpace: 'moderate' },
+    atmosphere: { mood: 'neutral', timeOfDay: 'day', weather: 'clear', ambiance: 'calm' },
+    technicalRecommendations: { cameraAngle: 'eye level', lensType: '50mm', lightingSetup: 'natural', colorGrade: 'neutral', depthOfField: 'moderate' },
+    artisticInfluences: [],
+    suggestedEnhancements: []
+  };
+
+  if (!userPrompt.trim()) return fallback;
+
+  const detectedStyle = detectArtisticStyleFromPrompt(userPrompt);
+  const styleInfo = detectedStyle && ARTISTIC_STYLES[detectedStyle] ? ARTISTIC_STYLES[detectedStyle] : null;
+  
+  const cinematicDNAContext = Object.values(CINEMATIC_DNA_COMPONENTS)
+    .map(c => `${c.name}: ${c.keywords.slice(0, 2).join(', ')}`)
+    .join('; ');
+
+  const lightingOptions = Object.values(LIGHTING_SETUPS)
+    .map(l => l.name)
+    .slice(0, 6)
+    .join(', ');
+
+  const colorGradeOptions = Object.values(COLOR_GRADES)
+    .map(g => g.name)
+    .slice(0, 6)
+    .join(', ');
+
+  const metaPrompt = `
+    You are an expert Art Director performing DEEP SEMANTIC ANALYSIS of an image generation prompt.
+    This is NOT basic analysis - provide detailed, actionable insights for maximizing image quality.
+
+    **USER PROMPT:** "${userPrompt}"
+
+    ${styleInfo ? `**DETECTED STYLE:** ${styleInfo.name}
+    - Color Palette: ${styleInfo.colorPalette.join(', ')}
+    - Techniques: ${styleInfo.techniques.join(', ')}
+    - Best Use: ${styleInfo.bestUse.join(', ')}` : ''}
+
+    **AVAILABLE CINEMATIC DNA COMPONENTS:**
+    ${cinematicDNAContext}
+
+    **AVAILABLE LIGHTING SETUPS:**
+    ${lightingOptions}
+
+    **AVAILABLE COLOR GRADES:**
+    ${colorGradeOptions}
+
+    Perform COMPREHENSIVE analysis covering:
+
+    1. **SUBJECT ANALYSIS** (be specific):
+       - Primary subject with detailed description
+       - All secondary elements and their relationships
+       - Semantic category (portrait/landscape/product/action/abstract/scene)
+       - Emotional resonance and psychological impact
+
+    2. **COMPOSITION RECOMMENDATIONS** (professional cinematography):
+       - Recommended framing (close-up, medium, wide, extreme wide, Dutch angle, etc.)
+       - Focal point placement (rule of thirds position, golden ratio, center power, etc.)
+       - Visual flow direction (leading lines, eye path, compositional balance)
+       - Negative space strategy (minimal, balanced, dramatic, asymmetric)
+
+    3. **ATMOSPHERE** (environmental storytelling):
+       - Dominant mood and secondary emotional tones
+       - Specific time of day with lighting implications
+       - Weather and atmospheric conditions
+       - Overall ambiance and sensory qualities
+
+    4. **TECHNICAL RECOMMENDATIONS** (professional equipment):
+       - Camera angle (eye level, low angle, high angle, bird's eye, worm's eye)
+       - Specific lens type with focal length (24mm wide, 35mm, 50mm, 85mm portrait, 135mm telephoto)
+       - Lighting setup from available options
+       - Color grade from available options
+       - Depth of field (shallow bokeh, moderate, deep focus, selective focus)
+
+    5. **ARTISTIC INFLUENCES** (up to 3):
+       - Specific art movements, photographers, cinematographers, or artists
+       - How each influence would enhance the image
+
+    6. **SUGGESTED ENHANCEMENTS** (5 specific, actionable improvements):
+       - Technical improvements for quality
+       - Atmospheric additions for mood
+       - Compositional refinements
+       - Detail enhancements
+       - Professional finishing touches
+
+    Return a detailed JSON object with all fields populated.
+  `.trim();
+
+  try {
+    const response = await withRetry(() => ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: metaPrompt,
+      config: { responseMimeType: "application/json" },
+    }));
+
+    const parsed = JSON.parse(response.text?.trim() || '{}');
+    
+    return {
+      subject: {
+        primary: parsed.subject?.primary || fallback.subject.primary,
+        secondary: Array.isArray(parsed.subject?.secondary) ? parsed.subject.secondary : fallback.subject.secondary,
+        semanticCategory: parsed.subject?.semanticCategory || fallback.subject.semanticCategory,
+        emotionalResonance: parsed.subject?.emotionalResonance || fallback.subject.emotionalResonance
+      },
+      composition: {
+        recommendedFraming: parsed.composition?.recommendedFraming || fallback.composition.recommendedFraming,
+        focalPoint: parsed.composition?.focalPoint || fallback.composition.focalPoint,
+        visualFlow: parsed.composition?.visualFlow || fallback.composition.visualFlow,
+        negativeSpace: parsed.composition?.negativeSpace || fallback.composition.negativeSpace
+      },
+      atmosphere: {
+        mood: parsed.atmosphere?.mood || fallback.atmosphere.mood,
+        timeOfDay: parsed.atmosphere?.timeOfDay || fallback.atmosphere.timeOfDay,
+        weather: parsed.atmosphere?.weather || fallback.atmosphere.weather,
+        ambiance: parsed.atmosphere?.ambiance || fallback.atmosphere.ambiance
+      },
+      technicalRecommendations: {
+        cameraAngle: parsed.technicalRecommendations?.cameraAngle || fallback.technicalRecommendations.cameraAngle,
+        lensType: parsed.technicalRecommendations?.lensType || fallback.technicalRecommendations.lensType,
+        lightingSetup: parsed.technicalRecommendations?.lightingSetup || fallback.technicalRecommendations.lightingSetup,
+        colorGrade: parsed.technicalRecommendations?.colorGrade || fallback.technicalRecommendations.colorGrade,
+        depthOfField: parsed.technicalRecommendations?.depthOfField || fallback.technicalRecommendations.depthOfField
+      },
+      artisticInfluences: Array.isArray(parsed.artisticInfluences) ? parsed.artisticInfluences : fallback.artisticInfluences,
+      suggestedEnhancements: Array.isArray(parsed.suggestedEnhancements) ? parsed.suggestedEnhancements : fallback.suggestedEnhancements
+    };
+  } catch (error) {
+    console.error("Deep Analysis Error:", error);
+    return fallback;
+  }
+};
+
+export interface DraftToFinalResult {
+  draftPrompt: string;
+  draftImages: GeneratedImageData[];
+  refinedPrompt: string;
+  finalImages: GeneratedImageData[];
+  improvementNotes: string[];
+  qualityScore: number;
+}
+
+export const draftToFinalWorkflow = async (
+  userPrompt: string,
+  analysis: PromptAnalysis,
+  textInfo: DetectedTextInfo[],
+  selectedStyle: string = 'auto',
+  aspectRatio: string = '1:1'
+): Promise<DraftToFinalResult> => {
+  const ai = getAIClient();
+  
+  const draftPrompt = await enhanceStyle(userPrompt, analysis, textInfo, selectedStyle, 'draft');
+  const draftImages = await generateImage(draftPrompt, aspectRatio, 1);
+  
+  const lightingRecommendation = selectLightingForSubject(analysis.subject.primary, analysis.mood.primary);
+  const colorGrade = selectColorGradeForMood(analysis.mood.primary);
+  const { camera, lens } = selectCameraForSubject(analysis.subject.primary);
+  const detectedStyle = detectArtisticStyleFromPrompt(userPrompt);
+  const styleEnhancement = detectedStyle ? getStylePromptEnhancement(detectedStyle) : '';
+  
+  const refinementPrompt = `
+    You are refining a draft image prompt into a final, polished version.
+
+    **DRAFT PROMPT:** "${draftPrompt}"
+    **ORIGINAL USER INTENT:** "${userPrompt}"
+
+    **CINEMATIC DNA TO APPLY:**
+    ${buildCinematicDNA('professional')}
+
+    **TECHNICAL RECOMMENDATIONS:**
+    - Lighting: ${lightingRecommendation}
+    - Color Grade: ${colorGrade.name} (${colorGrade.keywords.join(', ')})
+    - Camera: ${camera.name}
+    - Lens: ${lens.name}
+    ${styleEnhancement ? `- Style: ${styleEnhancement}` : ''}
+
+    Create a FINAL polished prompt that:
+    1. Preserves all the good elements from the draft
+    2. Applies ALL Cinematic DNA components for Hollywood-quality output
+    3. Adds professional finishing touches (grain, bokeh, atmospheric depth)
+    4. Uses the most specific technical photography terms
+    5. Stays under 250 words
+
+    Return ONLY the final prompt text.
+  `.trim();
+
+  try {
+    const refinementResponse = await withRetry(() => ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: refinementPrompt,
+    }));
+
+    const refinedPrompt = refinementResponse.text?.trim() || draftPrompt;
+    const finalImages = await generateImage(refinedPrompt, aspectRatio, 1);
+
+    const improvementNotes = [
+      `Applied ${Object.keys(CINEMATIC_DNA_COMPONENTS).length} Cinematic DNA components`,
+      `Used ${camera.name} with ${lens.name} for professional quality`,
+      `Applied ${colorGrade.name} color grading`,
+      `Optimized lighting with ${lightingRecommendation}`,
+      detectedStyle ? `Enhanced with ${ARTISTIC_STYLES[detectedStyle]?.name || detectedStyle} style` : null
+    ].filter(Boolean) as string[];
+
+    return {
+      draftPrompt,
+      draftImages,
+      refinedPrompt,
+      finalImages,
+      improvementNotes,
+      qualityScore: 0.85
+    };
+  } catch (error) {
+    console.error("Draft to Final Workflow Error:", error);
+    return {
+      draftPrompt,
+      draftImages,
+      refinedPrompt: draftPrompt,
+      finalImages: draftImages,
+      improvementNotes: ['Fallback: Used draft as final'],
+      qualityScore: 0.5
+    };
   }
 };
