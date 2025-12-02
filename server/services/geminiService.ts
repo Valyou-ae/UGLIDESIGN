@@ -15,7 +15,9 @@ import {
   detectArtisticStyleFromPrompt,
   getStylePromptEnhancement,
   ARTISTIC_STYLES,
-  CINEMATIC_DNA_COMPONENTS
+  CINEMATIC_DNA_COMPONENTS,
+  LIGHTING_SETUPS,
+  COLOR_GRADES
 } from "./cinematicDNA";
 
 const API_KEY = process.env.AI_INTEGRATIONS_GEMINI_API_KEY || '';
@@ -173,6 +175,206 @@ const NEGATIVE_LIBRARIES: Record<string, string> = {
   cinematic: "amateur, home video, phone camera, flat lighting, bad color grading, digital video look",
 };
 
+const COMMON_MISSPELLINGS: Record<string, string> = {
+  'heroes tio born': 'heroes are born',
+  'tio born': 'are born',
+  'are borned': 'are born',
+  'is borned': 'is born',
+  'was borned': 'was born',
+  'were borned': 'were born',
+  'eachother': 'each other',
+  'everytime': 'every time',
+  'infront': 'in front',
+  'infact': 'in fact',
+  'atleast': 'at least',
+  'aswell': 'as well',
+  'alot': 'a lot',
+  'noone': 'no one',
+  'definately': 'definitely',
+  'enviroment': 'environment',
+  'goverment': 'government',
+  'occassion': 'occasion',
+  'tommorow': 'tomorrow',
+  'begining': 'beginning',
+  'comming': 'coming',
+  'differant': 'different',
+  'intresting': 'interesting',
+  'successfull': 'successful',
+  'beautifull': 'beautiful',
+  'wonderfull': 'wonderful',
+  'powerfull': 'powerful',
+  'carefull': 'careful',
+  'peacefull': 'peaceful',
+  'gratefull': 'grateful',
+  'faithfull': 'faithful',
+  'playfull': 'playful',
+  'naturaly': 'naturally',
+  'probaly': 'probably',
+  'basicly': 'basically',
+  'becuase': 'because',
+  'beleive': 'believe',
+  'recieve': 'receive',
+  'seperate': 'separate',
+  'occured': 'occurred',
+  'untill': 'until',
+  'accross': 'across',
+  'mosquitos': 'mosquitoes',
+  'volcanos': 'volcanoes',
+  'tornados': 'tornadoes',
+  'potatos': 'potatoes',
+  'tomatos': 'tomatoes',
+  'heros': 'heroes',
+  'echos': 'echoes',
+  'shouldnt': "shouldn't",
+  'couldnt': "couldn't",
+  'wouldnt': "wouldn't",
+  'doesnt': "doesn't",
+  'havent': "haven't",
+  'wasnt': "wasn't",
+  'werent': "weren't",
+  'hasnt': "hasn't",
+  'didnt': "didn't",
+  'theyre': "they're",
+  'youre': "you're",
+  'thats': "that's",
+  'whats': "what's",
+  'thier': 'their',
+  'dont': "don't",
+  'wont': "won't",
+  'cant': "can't",
+  'isnt': "isn't",
+  'arent': "aren't",
+  'whos': "who's",
+  'lets': "let's",
+  'were': "we're",
+  'wich': 'which',
+  'borned': 'born',
+  'taht': 'that',
+  'wiht': 'with',
+  'teh': 'the',
+  'hte': 'the',
+  'adn': 'and',
+  'ehr': 'her',
+  'hsi': 'his',
+  'tis': 'is',
+  'ot': 'to',
+  'fo': 'of'
+};
+
+const COMMON_WORDS = new Set([
+  'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i', 'it', 'for', 'not', 'on', 
+  'with', 'he', 'as', 'you', 'do', 'at', 'this', 'but', 'his', 'by', 'from', 'they', 'we',
+  'say', 'her', 'she', 'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there', 'their',
+  'what', 'so', 'up', 'out', 'if', 'about', 'who', 'get', 'which', 'go', 'me', 'when',
+  'make', 'can', 'like', 'time', 'no', 'just', 'him', 'know', 'take', 'people', 'into',
+  'year', 'your', 'good', 'some', 'could', 'them', 'see', 'other', 'than', 'then', 'now',
+  'look', 'only', 'come', 'its', 'over', 'think', 'also', 'back', 'after', 'use', 'two',
+  'how', 'our', 'work', 'first', 'well', 'way', 'even', 'new', 'want', 'because', 'any',
+  'these', 'give', 'day', 'most', 'us', 'is', 'are', 'was', 'were', 'been', 'being',
+  'stars', 'collide', 'heroes', 'born', 'when', 'where', 'why', 'dawn', 'dusk', 'night',
+  'light', 'dark', 'world', 'dream', 'love', 'life', 'death', 'hope', 'fear', 'power',
+  'magic', 'legend', 'story', 'tale', 'epic', 'adventure', 'journey', 'rise', 'fall',
+  'begin', 'end', 'never', 'always', 'forever', 'beyond', 'above', 'below', 'within'
+]);
+
+export const extractTextFromPrompt = (prompt: string): string[] => {
+  const textPatterns = [
+    /"([^"]+)"/g,
+    /'([^']+)'/g,
+    /with the text[:\s]+["']?([^"'\n,]+)["']?/gi,
+    /saying[:\s]+["']?([^"'\n,]+)["']?/gi,
+    /that says[:\s]+["']?([^"'\n,]+)["']?/gi,
+    /text[:\s]+["']?([^"'\n,]+)["']?/gi,
+    /words[:\s]+["']?([^"'\n,]+)["']?/gi,
+    /title[:\s]+["']?([^"'\n,]+)["']?/gi,
+    /subtitle[:\s]+["']?([^"'\n,]+)["']?/gi,
+    /slogan[:\s]+["']?([^"'\n,]+)["']?/gi,
+    /tagline[:\s]+["']?([^"'\n,]+)["']?/gi
+  ];
+
+  const extractedTexts: string[] = [];
+  
+  for (const pattern of textPatterns) {
+    let match;
+    while ((match = pattern.exec(prompt)) !== null) {
+      if (match[1] && match[1].trim().length > 0) {
+        extractedTexts.push(match[1].trim());
+      }
+    }
+  }
+
+  return Array.from(new Set(extractedTexts));
+};
+
+export const spellCheckText = (text: string): { corrected: string; corrections: string[] } => {
+  let corrected = text;
+  const corrections: string[] = [];
+
+  const sortedEntries = Object.entries(COMMON_MISSPELLINGS).sort((a, b) => b[0].length - a[0].length);
+
+  for (const [wrong, right] of sortedEntries) {
+    const escapedWrong = wrong.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`\\b${escapedWrong}\\b`, 'gi');
+    if (regex.test(corrected)) {
+      corrections.push(`"${wrong}" -> "${right}"`);
+      corrected = corrected.replace(new RegExp(`\\b${escapedWrong}\\b`, 'gi'), right);
+    }
+  }
+
+  return { corrected, corrections };
+};
+
+export const validateAndCorrectTextForImage = async (
+  userPrompt: string,
+  extractedTexts: string[]
+): Promise<{ correctedPrompt: string; correctedTexts: string[]; allCorrections: string[] }> => {
+  let correctedPrompt = userPrompt;
+  const correctedTexts: string[] = [];
+  const allCorrections: string[] = [];
+
+  for (const text of extractedTexts) {
+    const { corrected, corrections } = spellCheckText(text);
+    
+    if (corrections.length > 0) {
+      allCorrections.push(...corrections);
+      correctedPrompt = correctedPrompt.replace(text, corrected);
+    }
+    
+    correctedTexts.push(corrected);
+  }
+
+  const { corrected: promptCorrected, corrections: promptCorrections } = spellCheckText(correctedPrompt);
+  if (promptCorrections.length > 0) {
+    allCorrections.push(...promptCorrections);
+    correctedPrompt = promptCorrected;
+  }
+
+  return { correctedPrompt, correctedTexts, allCorrections };
+};
+
+const buildTextRenderingInstructions = (texts: string[]): string => {
+  if (texts.length === 0) return '';
+  
+  return `
+**CRITICAL TEXT RENDERING INSTRUCTIONS:**
+The following text MUST appear EXACTLY as written in the image - letter by letter, word by word:
+${texts.map((t, i) => `${i + 1}. "${t}"`).join('\n')}
+
+MANDATORY TEXT REQUIREMENTS:
+- Spell each word EXACTLY as shown above
+- Do NOT substitute, abbreviate, or modify any words
+- Ensure every letter is clearly legible
+- Use clean, readable typography
+- Double-check spelling before rendering
+
+COMMON MISTAKES TO AVOID:
+- "to" should NOT become "tio" or "ot"
+- "are" should NOT become "tio" or other variations
+- "the" should NOT become "teh" or "hte"
+- Maintain proper word spacing
+`;
+};
+
 const buildCinematicDNADescription = (): string => {
   const components = Object.values(CINEMATIC_DNA_COMPONENTS);
   const lines = components.map((c, i) => 
@@ -302,9 +504,30 @@ export const enhanceStyle = async (
     const detectedArtStyle = detectArtisticStyleFromPrompt(userPrompt);
     const artStyleEnhancement = detectedArtStyle ? getStylePromptEnhancement(detectedArtStyle) : '';
 
+    let correctedTextInfo = textInfo;
+    if (hasText) {
+      const textsToCheck = textInfo.map(t => t.text);
+      const { correctedTexts } = await validateAndCorrectTextForImage(userPrompt, textsToCheck);
+      correctedTextInfo = textInfo.map((t, i) => ({
+        ...t,
+        text: correctedTexts[i] || t.text
+      }));
+    }
+
+    const textRenderingInstructions = hasText 
+      ? buildTextRenderingInstructions(correctedTextInfo.map(t => t.text))
+      : '';
+
     const textInstruction = hasText
-      ? `The image MUST include the text: "${textInfo[0].text}". Style: ${textInfo[0].physicalProperties.material}`
-      : 'The image must not contain any text.';
+      ? `${textRenderingInstructions}
+      
+The image MUST include this EXACT text with PERFECT spelling: "${correctedTextInfo[0].text}"
+Style: ${correctedTextInfo[0].physicalProperties.material}
+
+SPELLING VERIFICATION:
+- Word by word: ${correctedTextInfo[0].text.split(' ').map((w, i) => `${i+1}."${w}"`).join(' ')}
+- Render each word EXACTLY as shown above`
+      : 'The image must not contain any text, words, letters, or characters.';
 
     const stylePromptInstruction = selectedStyle !== 'auto'
       ? `Apply the style: ${styleInfo.name}. Keywords: ${styleInfo.keywords}. Guidance: ${styleInfo.guidance}.`
@@ -324,7 +547,7 @@ export const enhanceStyle = async (
       **RECOMMENDED COLOR GRADE:** ${colorGrade.name} - ${colorGrade.keywords.join(', ')}
       **RECOMMENDED CAMERA:** ${camera.name} with ${lens.name}
 
-      **PRIME DIRECTIVE: TEXT CONTROL**
+      **PRIME DIRECTIVE: TEXT CONTROL - CRITICAL**
       ${textInstruction}
 
       **STYLE INSTRUCTION:**
@@ -343,6 +566,7 @@ export const enhanceStyle = async (
       4. Uses specific, technical photography/cinematography terms
       5. Keeps the prompt under 200 words
       6. Follows the text and style instructions precisely
+      7. If text is required, emphasize EXACT spelling character by character
 
       Return ONLY the enhanced prompt text, nothing else.
     `.trim();
