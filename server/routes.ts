@@ -317,11 +317,17 @@ export async function registerRoutes(
         negativePrompt
       });
 
+      const modeMap: Record<string, string> = {
+        'imagen-4.0-generate-001': 'imagen4',
+        'imagen-4.0-fast-generate-001': 'imagen4fast',
+        'imagen-3.0-generate-002': 'imagen3'
+      };
+
       res.json({
         success: true,
         images: images,
         enhancedPrompt: prompt.trim(),
-        generationMode: 'imagen3',
+        generationMode: modeMap[selectedModel] || 'imagen3',
         model: selectedModel
       });
     } catch (error: any) {

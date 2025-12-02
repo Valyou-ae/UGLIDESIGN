@@ -6,13 +6,19 @@ An advanced AI-powered image generation application featuring a sophisticated 5-
 ## Recent Changes
 
 ### December 2, 2025 (Latest)
-- **NEW: Imagen 3 Integration for Superior Text Rendering**
-  - Added model selector: Gemini Flash (free) vs Imagen 3 (best text)
-  - Imagen 3 uses Google's imagen-3.0-generate-002 model
+- **NEW: Imagen 4 Integration for Superior Text Rendering**
+  - Model selector with 4 options: Gemini Flash (free), Imagen 4 (best), Imagen 4 Fast (10x speed), Imagen 3
+  - Imagen 4 uses Google's imagen-4.0-generate-001 model (latest, August 2025)
+  - Fallback API key support for automatic failover if primary key fails
   - Perfect text rendering matching Google AI Studio quality
   - Requires user's Google AI API key (stored securely in Secrets)
-  - `server/services/imagen3Service.ts` - Direct Imagen 3 API integration
+  - `server/services/imagen3Service.ts` - Multi-model Imagen API integration
   - New endpoints: `/api/imagen3-status`, `/api/generate-imagen3`
+
+- Available Imagen Models:
+  - `imagen-4.0-generate-001` - Best quality & text rendering ($0.04/image)
+  - `imagen-4.0-fast-generate-001` - 10x faster generation ($0.02/image)
+  - `imagen-3.0-generate-002` - Good quality, lower cost
 
 - **Text Communication UX Features**
   - Tooltip/info icon on prompt input with text rendering tips
