@@ -277,71 +277,110 @@ export default function ImageGenerator() {
     }
   }, [generations, activeFilter]);
 
-  const handleGenerate = () => {
+  const updateAgentStatus = (agentIndex: number, status: "idle" | "working" | "complete" | "error") => {
+    setAgents(prev => prev.map((a, i) => {
+      if (i < agentIndex) return { ...a, status: "complete" };
+      if (i === agentIndex) return { ...a, status };
+      return { ...a, status: "idle" };
+    }));
+  };
+
+  const handleGenerate = async () => {
     if (!prompt.trim()) return;
     
     setStatus("generating");
     setProgress(0);
     setAgents(AGENTS.map(a => ({ ...a, status: "idle" })));
 
-    // Simulation pipeline
-    let currentAgentIndex = 0;
-    const totalDuration = 5000; // 5 seconds total
-    const intervalTime = totalDuration / 100;
-    
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          completeGeneration();
-          return 100;
-        }
-        return prev + 1;
+    try {
+      updateAgentStatus(0, "working");
+      setProgress(10);
+
+      updateAgentStatus(1, "working");
+      setProgress(30);
+
+      updateAgentStatus(2, "working");
+      setProgress(50);
+
+      const response = await fetch("/api/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: prompt,
+          style: settings.style,
+          quality: settings.quality,
+          aspectRatio: settings.aspectRatio,
+          variations: parseInt(settings.variations) as 1 | 2 | 4,
+          enableRefiner: settings.refiner,
+          refinerPreset: settings.refinerPreset
+        })
       });
 
-      // Update agents based on progress
-      const stage = Math.floor((progress / 100) * 5);
-      if (stage !== currentAgentIndex && stage < 5) {
-        setAgents(prev => prev.map((a, i) => {
-          if (i < stage) return { ...a, status: "complete" };
-          if (i === stage) return { ...a, status: "working" };
-          return { ...a, status: "idle" };
-        }));
-        currentAgentIndex = stage;
+      setProgress(80);
+      updateAgentStatus(3, "working");
+
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        throw new Error("Server returned an invalid response. Please try again.");
       }
-    }, intervalTime);
-  };
 
-  const completeGeneration = () => {
-    setStatus("complete");
-    setAgents(prev => prev.map(a => ({ ...a, status: "complete" })));
-    
-    // Add new generation
-    const newImage: GeneratedImage = {
-      id: Date.now().toString(),
-      src: cyberpunkCity, // Just using one as example result
-      prompt: prompt,
-      style: settings.style,
-      aspectRatio: settings.aspectRatio,
-      timestamp: "Just now",
-      isNew: true,
-      isFavorite: false
-    };
-    
-    setGenerations(prev => [newImage, ...prev]);
-    
-    toast({
-      title: "Image Generated!",
-      description: "Your creation is ready.",
-      className: "bg-purple-50 border-purple-200 text-purple-800 dark:bg-purple-900/20 dark:border-purple-900/50 dark:text-purple-400",
-    });
+      if (!response.ok || !data.success) {
+        throw new Error(data?.error || `Server error: ${response.status}`);
+      }
 
-    // Reset agents after delay
-    setTimeout(() => {
+      if (!data.images || !Array.isArray(data.images) || data.images.length === 0) {
+        throw new Error("No images were generated. Please try a different prompt.");
+      }
+
+      updateAgentStatus(4, "working");
+      setProgress(95);
+
+      const newImages: GeneratedImage[] = data.images.map((img: any, index: number) => ({
+        id: `${Date.now()}-${index}`,
+        src: img.url,
+        prompt: prompt,
+        style: settings.style,
+        aspectRatio: settings.aspectRatio,
+        timestamp: "Just now",
+        isNew: true,
+        isFavorite: false
+      }));
+
+      setGenerations(prev => [...newImages, ...prev]);
+      setProgress(100);
+      setStatus("complete");
+      setAgents(prev => prev.map(a => ({ ...a, status: "complete" })));
+
+      toast({
+        title: "Image Generated!",
+        description: `${newImages.length} image${newImages.length > 1 ? 's' : ''} created successfully.`,
+        className: "bg-purple-50 border-purple-200 text-purple-800 dark:bg-purple-900/20 dark:border-purple-900/50 dark:text-purple-400",
+      });
+
+      setTimeout(() => {
+        setStatus("idle");
+        setAgents(AGENTS.map(a => ({ ...a, status: "idle" })));
+        setProgress(0);
+      }, 3000);
+
+    } catch (error: any) {
+      console.error("Generation error:", error);
       setStatus("idle");
-      setAgents(AGENTS.map(a => ({ ...a, status: "idle" })));
+      setAgents(prev => prev.map(a => ({ ...a, status: "error" })));
       setProgress(0);
-    }, 3000);
+
+      toast({
+        title: "Generation Failed",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+
+      setTimeout(() => {
+        setAgents(AGENTS.map(a => ({ ...a, status: "idle" })));
+      }, 2000);
+    }
   };
 
   const handleDeleteConfirm = (id: string) => {
