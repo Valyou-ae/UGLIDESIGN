@@ -1029,6 +1029,90 @@ export const performDeepAnalysis = async (userPrompt: string): Promise<DeepAnaly
   }
 };
 
+export interface ImageQualityScores {
+  composition: number;
+  detail: number;
+  lighting: number;
+  color: number;
+  overall: number;
+}
+
+const IMAGE_SCORE_SCHEMA = {
+  type: Type.OBJECT,
+  properties: {
+    composition: { type: Type.NUMBER, description: "Score 1-10 for composition quality." },
+    detail: { type: Type.NUMBER, description: "Score 1-10 for detail level." },
+    lighting: { type: Type.NUMBER, description: "Score 1-10 for lighting quality." },
+    color: { type: Type.NUMBER, description: "Score 1-10 for color depth." },
+    overall: { type: Type.NUMBER, description: "Overall score 1-10, considering all aspects." },
+  },
+  required: ["composition", "detail", "lighting", "color", "overall"],
+};
+
+export const scoreImageQuality = async (imageBase64: string): Promise<ImageQualityScores> => {
+  const ai = getAIClient();
+  const fallback = { composition: 0, detail: 0, lighting: 0, color: 0, overall: 0 };
+  
+  try {
+    const response = await withRetry(() => ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: {
+        parts: [
+          { inlineData: { data: imageBase64, mimeType: 'image/png' } },
+          { text: `Rate this AI-generated image on a scale of 1-10 for composition, detail, lighting, and color. Provide an overall score. Return ONLY a valid JSON object.` }
+        ]
+      },
+      config: { responseMimeType: "application/json", responseSchema: IMAGE_SCORE_SCHEMA }
+    }));
+    
+    const parsed = JSON.parse(response.text?.trim() || '{}');
+    return {
+      composition: parsed.composition || 0,
+      detail: parsed.detail || 0,
+      lighting: parsed.lighting || 0,
+      color: parsed.color || 0,
+      overall: parsed.overall || 0
+    };
+  } catch (error) {
+    console.error("Image Scoring Error:", error);
+    return fallback;
+  }
+};
+
+export const generateWithAICuration = async (
+  prompt: string,
+  aspectRatio: string = '1:1',
+  numberOfSelections: number = 1,
+  batchSize: number = 4
+): Promise<{ images: GeneratedImageData[]; scores: ImageQualityScores[] }> => {
+  console.log(`[AI Curation] Generating ${batchSize} candidates, selecting ${numberOfSelections} best`);
+  
+  const allImages = await generateImage(prompt, aspectRatio, batchSize);
+  
+  if (allImages.length === 0) {
+    throw new Error("Failed to generate candidate images for curation");
+  }
+  
+  console.log(`[AI Curation] Scoring ${allImages.length} images...`);
+  const scoredImages = await Promise.all(
+    allImages.map(async (img) => ({
+      ...img,
+      scores: img.base64Data ? await scoreImageQuality(img.base64Data) : { composition: 0, detail: 0, lighting: 0, color: 0, overall: 0 }
+    }))
+  );
+  
+  scoredImages.sort((a, b) => (b.scores?.overall || 0) - (a.scores?.overall || 0));
+  
+  const selected = scoredImages.slice(0, numberOfSelections);
+  console.log(`[AI Curation] Selected top ${selected.length} images with scores:`, 
+    selected.map(s => s.scores?.overall));
+  
+  return {
+    images: selected,
+    scores: selected.map(s => s.scores!)
+  };
+};
+
 export interface DraftToFinalResult {
   draftPrompt: string;
   draftImages: GeneratedImageData[];
