@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { 
   DetectedTextInfo, 
   PromptAnalysis, 
@@ -21,7 +21,10 @@ function validateApiKey(): void {
 
 function getAIClient() {
   validateApiKey();
-  return new GoogleGenAI({ apiKey: API_KEY, httpOptions: BASE_URL ? { baseUrl: BASE_URL } : undefined });
+  return new GoogleGenAI({ 
+    apiKey: API_KEY, 
+    httpOptions: BASE_URL ? { baseUrl: BASE_URL, apiVersion: "" } : undefined 
+  });
 }
 
 async function withRetry<T>(fn: () => Promise<T>, retries = 5, initialDelay = 3000): Promise<T> {
@@ -236,7 +239,7 @@ export const performInitialAnalysis = async (userPrompt: string, processText: bo
 
   try {
     const response = await withRetry(() => ai.models.generateContent({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.5-flash',
       contents: metaPrompt,
       config: { responseMimeType: "application/json", responseSchema: COMBINED_ANALYSIS_SCHEMA },
     }));
@@ -316,7 +319,7 @@ export const enhanceStyle = async (
     `.trim();
 
     const response = await withRetry(() => ai.models.generateContent({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.5-flash',
       contents: metaPrompt,
     }));
 
@@ -339,10 +342,10 @@ export const generateImage = async (
 
     for (let i = 0; i < numberOfVariations; i++) {
       const response = await withRetry(() => ai.models.generateContent({
-        model: 'gemini-2.0-flash-exp',
-        contents: prompt,
+        model: 'gemini-2.5-flash-image',
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
         config: {
-          responseModalities: ['Text', 'Image'],
+          responseModalities: [Modality.TEXT, Modality.IMAGE],
         },
       }));
 
@@ -378,7 +381,7 @@ export const analyzeImage = async (base64Data: string, mimeType: string): Promis
 
   try {
     const response = await withRetry(() => ai.models.generateContent({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.5-flash',
       contents: [
         {
           role: 'user',
@@ -421,7 +424,7 @@ export const generateIterativeEditPrompt = async (
     `.trim();
 
     const response = await withRetry(() => ai.models.generateContent({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.5-flash',
       contents: metaPrompt,
     }));
 
