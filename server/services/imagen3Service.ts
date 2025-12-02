@@ -128,7 +128,8 @@ export const generateWithImagen = async (
     
     for (const generatedImage of response.generatedImages) {
       if (generatedImage.image?.imageBytes) {
-        const base64 = Buffer.from(generatedImage.image.imageBytes).toString('base64');
+        // imageBytes is already base64-encoded in the JS SDK, use directly
+        const base64 = generatedImage.image.imageBytes as string;
         results.push({
           base64,
           mimeType: 'image/png',
