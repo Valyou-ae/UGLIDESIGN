@@ -113,7 +113,7 @@ import scifiSpaceship from "@assets/generated_images/sci-fi_spaceship_landing_on
 // Types
 type GenerationStatus = "idle" | "generating" | "complete";
 
-type GenerationMode = "cinematic" | "typographic" | null;
+type GenerationMode = "cinematic" | "typographic" | "imagen3" | null;
 
 type GeneratedImage = {
   id: string;
@@ -289,13 +289,15 @@ export default function ImageGenerator() {
     autoOptimize: true,
     useMultiAgent: true,
     useDraftToFinal: false,
-    artisticStyle: "auto"
+    artisticStyle: "auto",
+    model: "gemini" as "gemini" | "imagen3"
   });
   const [artisticStyles, setArtisticStyles] = useState<ArtisticStyle[]>([]);
   const [showAdvancedPanel, setShowAdvancedPanel] = useState(false);
   const [showTextTips, setShowTextTips] = useState(false);
   const [lastGenerationMode, setLastGenerationMode] = useState<GenerationMode>(null);
   const [showRegenerateHint, setShowRegenerateHint] = useState(false);
+  const [imagen3Available, setImagen3Available] = useState(false);
 
   const { toast } = useToast();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -380,6 +382,23 @@ export default function ImageGenerator() {
     fetchArtisticStyles();
   }, []);
 
+  // Check Imagen 3 availability
+  useEffect(() => {
+    const checkImagen3Status = async () => {
+      try {
+        const response = await fetch('/api/imagen3-status');
+        const data = await response.json();
+        if (data.success && data.available) {
+          setImagen3Available(true);
+          setSettings(prev => ({ ...prev, model: "imagen3" }));
+        }
+      } catch (error) {
+        console.error('Failed to check Imagen 3 status:', error);
+      }
+    };
+    checkImagen3Status();
+  }, []);
+
   // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
@@ -424,11 +443,19 @@ export default function ImageGenerator() {
       updateAgentStatus(2, "working");
       setProgress(50);
 
-      const endpoint = settings.useMultiAgent ? "/api/generate-image-advanced" : "/api/generate-image";
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      let endpoint: string;
+      let requestBody: any;
+
+      if (settings.model === "imagen3" && imagen3Available) {
+        endpoint = "/api/generate-imagen3";
+        requestBody = {
+          prompt: prompt,
+          aspectRatio: settings.aspectRatio,
+          variations: parseInt(settings.variations) as 1 | 2 | 4
+        };
+      } else {
+        endpoint = settings.useMultiAgent ? "/api/generate-image-advanced" : "/api/generate-image";
+        requestBody = {
           prompt: prompt,
           style: settings.style,
           quality: settings.quality,
@@ -438,7 +465,13 @@ export default function ImageGenerator() {
           refinerPreset: settings.refinerPreset,
           artisticStyle: settings.artisticStyle,
           useDraftToFinal: settings.useDraftToFinal
-        })
+        };
+      }
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody)
       });
 
       setProgress(80);
@@ -465,17 +498,29 @@ export default function ImageGenerator() {
       const generationMode: GenerationMode = data.generationMode || null;
       setLastGenerationMode(generationMode);
 
-      const newImages: GeneratedImage[] = data.images.map((img: any, index: number) => ({
-        id: `${Date.now()}-${index}`,
-        src: img.url,
-        prompt: prompt,
-        style: settings.style,
-        aspectRatio: settings.aspectRatio,
-        timestamp: "Just now",
-        isNew: true,
-        isFavorite: false,
-        generationMode: generationMode
-      }));
+      const newImages: GeneratedImage[] = data.images.map((img: any, index: number) => {
+        let imageSrc: string;
+        if (img.url) {
+          imageSrc = img.url;
+        } else if (img.base64) {
+          const mimeType = img.mimeType || 'image/png';
+          imageSrc = `data:${mimeType};base64,${img.base64}`;
+        } else {
+          imageSrc = '';
+        }
+
+        return {
+          id: `${Date.now()}-${index}`,
+          src: imageSrc,
+          prompt: prompt,
+          style: settings.style,
+          aspectRatio: settings.aspectRatio,
+          timestamp: "Just now",
+          isNew: true,
+          isFavorite: false,
+          generationMode: generationMode
+        };
+      });
 
       setGenerations(prev => [...newImages, ...prev]);
       setProgress(100);
@@ -758,11 +803,15 @@ export default function ImageGenerator() {
                   {lastGenerationMode && (
                     <div className={cn(
                       "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
-                      lastGenerationMode === "typographic"
-                        ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
-                        : "bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20"
+                      lastGenerationMode === "imagen3"
+                        ? "bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20"
+                        : lastGenerationMode === "typographic"
+                          ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
+                          : "bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20"
                     )}>
-                      {lastGenerationMode === "typographic" ? (
+                      {lastGenerationMode === "imagen3" ? (
+                        <><Crown className="h-3 w-3" /> Imagen 3 Mode</>
+                      ) : lastGenerationMode === "typographic" ? (
                         <><Type className="h-3 w-3" /> Text-Priority Mode</>
                       ) : (
                         <><Clapperboard className="h-3 w-3" /> Cinematic Mode</>
@@ -840,6 +889,69 @@ export default function ImageGenerator() {
                   className="overflow-hidden"
                 >
                   <div className="bg-muted/30 border border-border rounded-xl p-3 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 shadow-inner mb-4">
+
+                    {/* Model Selection */}
+                    <div className="space-y-1.5 col-span-2 md:col-span-4 lg:col-span-5">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block px-0.5">Model</label>
+                      <div className="flex gap-2">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                onClick={() => setSettings({...settings, model: "gemini"})}
+                                className={cn(
+                                  "flex-1 h-10 rounded-lg flex items-center justify-center gap-2 transition-all border",
+                                  settings.model === "gemini" 
+                                    ? "bg-background border-primary/50 text-primary shadow-sm" 
+                                    : "bg-background/50 border-transparent text-muted-foreground hover:bg-background hover:text-foreground"
+                                )}
+                                data-testid="model-select-gemini"
+                              >
+                                <Zap className={cn("h-4 w-4", settings.model === "gemini" ? "text-primary" : "opacity-70")} />
+                                <span className="text-xs font-medium">Gemini Flash</span>
+                                <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 ml-1">Free</Badge>
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom">
+                              <p>Gemini 2.5 Flash - Fast generation, good for most images</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                onClick={() => imagen3Available && setSettings({...settings, model: "imagen3"})}
+                                disabled={!imagen3Available}
+                                className={cn(
+                                  "flex-1 h-10 rounded-lg flex items-center justify-center gap-2 transition-all border",
+                                  settings.model === "imagen3" 
+                                    ? "bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-500/50 text-green-600 dark:text-green-400 shadow-sm" 
+                                    : imagen3Available
+                                      ? "bg-background/50 border-transparent text-muted-foreground hover:bg-background hover:text-foreground"
+                                      : "bg-background/30 border-transparent text-muted-foreground/50 cursor-not-allowed"
+                                )}
+                                data-testid="model-select-imagen3"
+                              >
+                                <Crown className={cn("h-4 w-4", settings.model === "imagen3" ? "text-green-500" : "opacity-70")} />
+                                <span className="text-xs font-medium">Imagen 3</span>
+                                {imagen3Available ? (
+                                  <Badge className="text-[9px] px-1.5 py-0 h-4 ml-1 bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30">Best Text</Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 ml-1 opacity-50">API Key Required</Badge>
+                                )}
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom">
+                              <p>{imagen3Available 
+                                ? "Imagen 3 - Superior text rendering quality, perfect for text-heavy images" 
+                                : "Add your Google AI API key in Secrets to enable Imagen 3"}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                    </div>
 
                     {/* Quality */}
                     <div className="space-y-1.5 col-span-1">

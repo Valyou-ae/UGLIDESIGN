@@ -6,12 +6,20 @@ An advanced AI-powered image generation application featuring a sophisticated 5-
 ## Recent Changes
 
 ### December 2, 2025 (Latest)
-- **NEW: Text Communication UX Features**
+- **NEW: Imagen 3 Integration for Superior Text Rendering**
+  - Added model selector: Gemini Flash (free) vs Imagen 3 (best text)
+  - Imagen 3 uses Google's imagen-3.0-generate-002 model
+  - Perfect text rendering matching Google AI Studio quality
+  - Requires user's Google AI API key (stored securely in Secrets)
+  - `server/services/imagen3Service.ts` - Direct Imagen 3 API integration
+  - New endpoints: `/api/imagen3-status`, `/api/generate-imagen3`
+
+- **Text Communication UX Features**
   - Tooltip/info icon on prompt input with text rendering tips
   - Smart warning badges (yellow/amber) for text-heavy prompts
   - Collapsible "Text Tips" section with best practices
   - Post-generation regeneration suggestions for text-heavy prompts
-  - Mode indicator badge showing "Text-Priority Mode" or "Cinematic Mode"
+  - Mode indicator badge showing "Text-Priority Mode", "Cinematic Mode", or "Imagen 3 Mode"
 
 - **Text Priority Mode / Dual Pathway System**
   - Intelligent detection of text-heavy and multilingual prompts
