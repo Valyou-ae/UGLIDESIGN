@@ -6,16 +6,16 @@ An advanced AI-powered image generation application featuring a sophisticated 5-
 ## Recent Changes
 
 ### December 2, 2025 (Latest)
-- **AI Studio-Aligned Text Rendering System**
-  - Replicates exact Google AI Studio implementation for 10/10 text quality
-  - Uses `gemini-3-pro-image-preview` as PRIMARY model for text-heavy prompts
-  - Imagen 4 only used for non-text visual generation
+- **AI Studio-Aligned Model Routing System**
+  - Replicates exact Google AI Studio implementation for optimal generation
+  - Imagen 4 is PRIMARY for all final image generation (including text prompts)
+  - gemini-3-pro-image-preview used as high-quality fallback and for drafts-with-text
   - Removed text overlay approach (doesn't match AI Studio quality)
   
-- **Dual Pathway Model Routing (AI Studio Pattern)**:
-  - Text-heavy prompts → `gemini-3-pro-image-preview` (primary)
-  - Non-text prompts → `imagen-4.0-generate-001` (primary) with fallback to `gemini-3-pro-image-preview`
-  - Draft mode → `gemini-2.5-flash-image` for speed
+- **AI Studio Model Routing (Correct Implementation)**:
+  - Final mode (all prompts) → `imagen-4.0-generate-001` (PRIMARY), fallback to `gemini-3-pro-image-preview`
+  - Draft mode WITHOUT text → `gemini-2.5-flash-image` (speed optimized)
+  - Draft mode WITH text → `gemini-3-pro-image-preview` (better text accuracy)
 
 - **Text Priority Detection**
   - Intelligent detection of text-heavy and multilingual prompts

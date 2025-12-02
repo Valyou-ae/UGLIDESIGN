@@ -872,7 +872,7 @@ export const generateImageSmart = async (
 
   if (hasText) {
     mode = 'typographic';
-    console.log(`[Smart Generation] Using TYPOGRAPHIC mode - text-focused prompt with gemini-3-pro-image-preview as PRIMARY`);
+    console.log(`[Smart Generation] Using TYPOGRAPHIC mode - text-focused prompt optimization`);
     enhancedPrompt = buildTypographicPrompt(userPrompt, textPriorityAnalysis);
   } else {
     mode = 'cinematic';
@@ -889,18 +889,28 @@ export const generateImageSmart = async (
   let images: GeneratedImageData[] = [];
   let modelUsed = 'gemini';
 
-  if (hasText) {
-    const textModel = 'gemini-3-pro-image-preview';
-    console.log(`[Smart Generation] TEXT DETECTED - Using ${textModel} as PRIMARY for accurate text rendering`);
-    images = await generateWithGeminiImageModel(ai, enhancedPrompt, aspectRatio, negativePrompt, numVariations, textModel);
-    modelUsed = textModel;
-  } else if (quality === 'draft') {
-    const draftModel = 'gemini-2.5-flash-image';
-    console.log(`[Smart Generation] Draft mode (no text) - using ${draftModel}`);
-    images = await generateWithGeminiImageModel(ai, enhancedPrompt, aspectRatio, negativePrompt, numVariations, draftModel);
-    modelUsed = draftModel;
+  // AI Studio Model Routing (correct implementation):
+  // - Draft mode WITHOUT text → gemini-2.5-flash-image (speed optimized)
+  // - Draft mode WITH text → gemini-3-pro-image-preview (better text accuracy)
+  // - Final mode (all prompts) → Imagen 4 PRIMARY, gemini-3-pro-image-preview as fallback
+  
+  if (quality === 'draft') {
+    if (hasText) {
+      // Drafts with text need gemini-3-pro-image-preview for text accuracy
+      const draftTextModel = 'gemini-3-pro-image-preview';
+      console.log(`[Smart Generation] Draft mode WITH TEXT - using ${draftTextModel} for text accuracy`);
+      images = await generateWithGeminiImageModel(ai, enhancedPrompt, aspectRatio, negativePrompt, numVariations, draftTextModel);
+      modelUsed = draftTextModel;
+    } else {
+      // Standard drafts without text use fast model
+      const draftModel = 'gemini-2.5-flash-image';
+      console.log(`[Smart Generation] Draft mode (no text) - using ${draftModel} for speed`);
+      images = await generateWithGeminiImageModel(ai, enhancedPrompt, aspectRatio, negativePrompt, numVariations, draftModel);
+      modelUsed = draftModel;
+    }
   } else {
-    console.log(`[Smart Generation] Final mode (no text) - trying Imagen 4 first`);
+    // Final mode: Imagen 4 is PRIMARY for ALL generation (including text prompts)
+    console.log(`[Smart Generation] Final mode - Imagen 4 PRIMARY (hasText: ${hasText})`);
     
     try {
       const imagenResults = await generateWithImagen(enhancedPrompt, {
@@ -920,16 +930,18 @@ export const generateImageSmart = async (
       modelUsed = 'imagen-4.0-generate-001';
       console.log(`[Smart Generation] Imagen 4 succeeded - ${images.length} images`);
     } catch (imagenError: any) {
-      console.warn(`[Smart Generation] Imagen generation failed:`, imagenError.message);
+      console.warn(`[Smart Generation] Imagen 4 failed:`, imagenError.message);
       
+      // Re-throw permission/auth errors - don't fallback for those
       if (imagenError.message?.includes("PERMISSION_DENIED") || imagenError.message?.includes("API key expired")) {
         throw imagenError;
       }
     }
 
+    // Fallback to gemini-3-pro-image-preview if Imagen 4 failed
     if (images.length === 0) {
       const fallbackModel = 'gemini-3-pro-image-preview';
-      console.log(`[Smart Generation] Using fallback model: ${fallbackModel}`);
+      console.log(`[Smart Generation] Imagen 4 failed, using fallback: ${fallbackModel}`);
       images = await generateWithGeminiImageModel(ai, enhancedPrompt, aspectRatio, negativePrompt, numVariations, fallbackModel);
       modelUsed = fallbackModel;
     }
