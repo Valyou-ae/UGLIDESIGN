@@ -22,6 +22,10 @@ import {
   getAgentSystemInfo 
 } from "./services/multiAgentSystem";
 import { ARTISTIC_STYLES } from "./services/cinematicDNA";
+import { 
+  isImagen3Available, 
+  generateWithImagen3 
+} from "./services/imagen3Service";
 import type { GenerateImageRequest, GenerateImageResponse, QualityLevel } from "../shared/imageGenTypes";
 
 export async function registerRoutes(
@@ -265,6 +269,59 @@ export async function registerRoutes(
       res.status(500).json({ 
         success: false, 
         error: error.message || "Failed to generate iterative edit" 
+      });
+    }
+  });
+
+  app.get("/api/imagen3-status", (req, res) => {
+    res.json({ 
+      success: true, 
+      available: isImagen3Available(),
+      model: 'imagen-3.0-generate-002',
+      description: 'Google Imagen 3 - Superior text rendering quality'
+    });
+  });
+
+  app.post("/api/generate-imagen3", async (req, res) => {
+    try {
+      if (!isImagen3Available()) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Imagen 3 is not available. Please add your Google AI API key." 
+        });
+      }
+
+      const { prompt, aspectRatio, variations, negativePrompt } = req.body;
+
+      if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
+        return res.status(400).json({ success: false, error: "Prompt is required" });
+      }
+
+      console.log("[Imagen3 Route] Generating with prompt:", prompt.substring(0, 100));
+
+      const images = await generateWithImagen3(prompt.trim(), {
+        aspectRatio: aspectRatio || '1:1',
+        numberOfImages: Math.min(Math.max(variations || 1, 1), 4),
+        negativePrompt
+      });
+
+      const formattedImages = images.map(img => ({
+        base64: img.base64,
+        mimeType: img.mimeType
+      }));
+
+      res.json({
+        success: true,
+        images: formattedImages,
+        enhancedPrompt: prompt.trim(),
+        generationMode: 'imagen3',
+        model: 'imagen-3.0-generate-002'
+      });
+    } catch (error: any) {
+      console.error("Imagen 3 generation error:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: error.message || "Failed to generate image with Imagen 3" 
       });
     }
   });
