@@ -1,8 +1,8 @@
 import { GoogleGenAI, Type, Modality } from "@google/genai";
-import { 
-  DetectedTextInfo, 
-  PromptAnalysis, 
-  QualityLevel, 
+import {
+  DetectedTextInfo,
+  PromptAnalysis,
+  QualityLevel,
   GeneratedImageData,
   TextStyleIntent,
   ASPECT_RATIO_DIMENSIONS
@@ -33,9 +33,9 @@ function validateApiKey(): void {
 
 function getAIClient() {
   validateApiKey();
-  return new GoogleGenAI({ 
-    apiKey: API_KEY, 
-    httpOptions: BASE_URL ? { baseUrl: BASE_URL, apiVersion: "" } : undefined 
+  return new GoogleGenAI({
+    apiKey: API_KEY,
+    httpOptions: BASE_URL ? { baseUrl: BASE_URL, apiVersion: "" } : undefined
   });
 }
 
@@ -262,7 +262,7 @@ const COMMON_MISSPELLINGS: Record<string, string> = {
 };
 
 const COMMON_WORDS = new Set([
-  'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i', 'it', 'for', 'not', 'on', 
+  'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i', 'it', 'for', 'not', 'on',
   'with', 'he', 'as', 'you', 'do', 'at', 'this', 'but', 'his', 'by', 'from', 'they', 'we',
   'say', 'her', 'she', 'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there', 'their',
   'what', 'so', 'up', 'out', 'if', 'about', 'who', 'get', 'which', 'go', 'me', 'when',
@@ -293,7 +293,7 @@ export const extractTextFromPrompt = (prompt: string): string[] => {
   ];
 
   const extractedTexts: string[] = [];
-  
+
   for (const pattern of textPatterns) {
     let match;
     while ((match = pattern.exec(prompt)) !== null) {
@@ -339,29 +339,29 @@ const TEXT_INSTRUCTION_KEYWORDS = [
 export const analyzeTextPriority = (prompt: string): TextPriorityAnalysis => {
   const extractedTexts = extractTextFromPrompt(prompt);
   const detectedLanguages: string[] = [];
-  
+
   for (const [lang, pattern] of Object.entries(MULTILINGUAL_PATTERNS)) {
     if (pattern.test(prompt)) {
       detectedLanguages.push(lang);
     }
   }
-  
+
   const hasMultilingualText = detectedLanguages.length > 0;
   const hasQuotedText = /"[^"]+"/.test(prompt) || /'[^']+'/.test(prompt);
   const promptLower = prompt.toLowerCase();
   const hasTextInstructions = TEXT_INSTRUCTION_KEYWORDS.some(kw => promptLower.includes(kw));
-  
+
   let confidence = 0;
   if (hasQuotedText) confidence += 0.3;
   if (hasMultilingualText) confidence += 0.4;
   if (hasTextInstructions) confidence += 0.3;
   if (extractedTexts.length > 0) confidence += 0.2;
   if (extractedTexts.length > 3) confidence += 0.2;
-  
+
   confidence = Math.min(confidence, 1.0);
-  
+
   const isTextPriority = confidence >= 0.4 || hasMultilingualText || (hasQuotedText && hasTextInstructions);
-  
+
   return {
     isTextPriority,
     hasMultilingualText,
@@ -378,19 +378,19 @@ export const buildTypographicPrompt = (
   textPriorityAnalysis: TextPriorityAnalysis
 ): string => {
   const { extractedTexts, detectedLanguages, hasMultilingualText } = textPriorityAnalysis;
-  
+
   let typographicPrompt = '';
-  
+
   typographicPrompt += `CRITICAL TEXT RENDERING REQUIREMENTS:\n`;
   typographicPrompt += `The following text MUST appear in the image EXACTLY as written - this is the PRIMARY objective:\n\n`;
-  
+
   if (extractedTexts.length > 0) {
     extractedTexts.forEach((text, i) => {
       typographicPrompt += `TEXT ${i + 1}: "${text}"\n`;
       typographicPrompt += `- Spell EXACTLY: ${text.split('').join(' ')}\n`;
     });
   }
-  
+
   if (hasMultilingualText) {
     typographicPrompt += `\nMULTILINGUAL TEXT REQUIREMENTS:\n`;
     typographicPrompt += `- Detected scripts: ${detectedLanguages.join(', ')}\n`;
@@ -398,13 +398,13 @@ export const buildTypographicPrompt = (
     typographicPrompt += `- Do NOT transliterate or substitute characters\n`;
     typographicPrompt += `- Preserve all diacritics, special characters, and script-specific features\n`;
   }
-  
+
   typographicPrompt += `\nSCENE DESCRIPTION (secondary to text accuracy):\n`;
   typographicPrompt += userPrompt;
-  
+
   typographicPrompt += `\n\nFINAL INSTRUCTION: Text accuracy is MORE IMPORTANT than visual style. `;
   typographicPrompt += `Prioritize perfect spelling and legibility over artistic effects.`;
-  
+
   return typographicPrompt;
 };
 
@@ -436,12 +436,12 @@ export const validateAndCorrectTextForImage = async (
 
   for (const text of extractedTexts) {
     const { corrected, corrections } = spellCheckText(text);
-    
+
     if (corrections.length > 0) {
       allCorrections.push(...corrections);
       correctedPrompt = correctedPrompt.replace(text, corrected);
     }
-    
+
     correctedTexts.push(corrected);
   }
 
@@ -456,7 +456,7 @@ export const validateAndCorrectTextForImage = async (
 
 const buildTextRenderingInstructions = (texts: string[]): string => {
   if (texts.length === 0) return '';
-  
+
   return `
 **CRITICAL TEXT RENDERING INSTRUCTIONS:**
 The following text MUST appear EXACTLY as written in the image - letter by letter, word by word:
@@ -477,9 +477,9 @@ COMMON MISTAKES TO AVOID:
 `;
 };
 
-const buildCinematicDNADescription = (): string => {
+const buildCinematicDNADescription = (qualityLevel: 'fast' | 'balanced' | 'professional' = 'balanced'): string => {
   const components = Object.values(CINEMATIC_DNA_COMPONENTS);
-  const lines = components.map((c, i) => 
+  const lines = components.map((c, i) =>
     `${i + 1}. ${c.name.toUpperCase()} (${c.qualityBoost} boost): ${c.keywords.slice(0, 3).join(', ')}`
   );
   return `CINEMATIC DNA SYSTEM - Apply these 7 components for Hollywood-quality output:\n${lines.join('\n')}`;
@@ -598,11 +598,11 @@ export const enhanceStyle = async (
 
     const qualityLevel = quality === 'draft' ? 'fast' : quality === 'ultra' ? 'professional' : 'balanced';
     const cinematicDNA = buildCinematicDNA(qualityLevel as 'fast' | 'balanced' | 'professional');
-    
+
     const lightingRecommendation = selectLightingForSubject(analysis.subject.primary, analysis.mood.primary);
     const colorGrade = selectColorGradeForMood(analysis.mood.primary);
     const { camera, lens } = selectCameraForSubject(analysis.subject.primary);
-    
+
     const detectedArtStyle = detectArtisticStyleFromPrompt(userPrompt);
     const artStyleEnhancement = detectedArtStyle ? getStylePromptEnhancement(detectedArtStyle) : '';
 
@@ -616,13 +616,13 @@ export const enhanceStyle = async (
       }));
     }
 
-    const textRenderingInstructions = hasText 
+    const textRenderingInstructions = hasText
       ? buildTextRenderingInstructions(correctedTextInfo.map(t => t.text))
       : '';
 
     const textInstruction = hasText
       ? `${textRenderingInstructions}
-      
+
 The image MUST include this EXACT text with PERFECT spelling: "${correctedTextInfo[0].text}"
 Style: ${correctedTextInfo[0].physicalProperties.material}
 
@@ -696,32 +696,25 @@ export const generateImage = async (
   prompt: string,
   aspectRatio: string = '1:1',
   numberOfVariations: number = 1,
-  options?: { textPriorityMode?: boolean; temperature?: number }
+  options?: { textPriorityMode?: boolean }
 ): Promise<GeneratedImageData[]> => {
   const ai = getAIClient();
-  const textPriorityMode = options?.textPriorityMode ?? false;
-  const temperature = textPriorityMode ? 0.2 : (options?.temperature ?? 1.0);
 
   try {
     const results: GeneratedImageData[] = [];
 
     for (let i = 0; i < numberOfVariations; i++) {
-      const config: any = {
-        responseModalities: [Modality.TEXT, Modality.IMAGE],
-      };
-      
-      if (textPriorityMode) {
-        config.temperature = temperature;
-      }
-
       const response = await withRetry(() => ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
         contents: [{ role: "user", parts: [{ text: prompt }] }],
-        config,
+        config: {
+          responseModalities: [Modality.TEXT, Modality.IMAGE],
+        },
       }));
 
-      if (response.candidates && response.candidates[0]?.content?.parts) {
-        for (const part of response.candidates[0].content.parts) {
+      const candidate = response.candidates?.[0];
+      if (candidate?.content?.parts) {
+        for (const part of candidate.content.parts) {
           if (part.inlineData) {
             const base64Data = part.inlineData.data;
             const mimeType = part.inlineData.mimeType || 'image/png';
@@ -788,7 +781,7 @@ export const generateImageSmart = async (
   variations: number = 1
 ): Promise<SmartGenerationResult> => {
   const textPriorityAnalysis = analyzeTextPriority(userPrompt);
-  
+
   console.log(`[Smart Generation] Text Priority Analysis:`, {
     isTextPriority: textPriorityAnalysis.isTextPriority,
     confidence: textPriorityAnalysis.confidence,
@@ -796,35 +789,35 @@ export const generateImageSmart = async (
     languages: textPriorityAnalysis.detectedLanguages,
     extractedTexts: textPriorityAnalysis.extractedTexts.length
   });
-  
+
   let enhancedPrompt: string;
   let mode: 'cinematic' | 'typographic';
   let analysis: PromptAnalysis | undefined;
-  
+
   if (textPriorityAnalysis.isTextPriority) {
     mode = 'typographic';
     console.log(`[Smart Generation] Using TYPOGRAPHIC mode - clean, text-focused prompt`);
-    
+
     enhancedPrompt = buildTypographicPrompt(userPrompt, textPriorityAnalysis);
-    
+
   } else {
     mode = 'cinematic';
     console.log(`[Smart Generation] Using CINEMATIC mode - full enhancement pipeline`);
-    
+
     const result = await performInitialAnalysis(userPrompt, true);
     analysis = result.analysis;
     enhancedPrompt = await enhanceStyle(userPrompt, result.analysis, result.textInfo, selectedStyle, quality);
   }
-  
+
   console.log(`[Smart Generation] Final prompt (${mode} mode):`, enhancedPrompt.substring(0, 200) + '...');
-  
+
   const images = await generateImage(
     enhancedPrompt,
     aspectRatio,
     Math.min(Math.max(variations, 1), 4),
     { textPriorityMode: textPriorityAnalysis.isTextPriority }
   );
-  
+
   return {
     images,
     mode,
@@ -843,7 +836,7 @@ export const generateIterativeEditPrompt = async (
   const ai = getAIClient();
 
   try {
-    const intentInstruction = textStyleIntent 
+    const intentInstruction = textStyleIntent
       ? `Text style intent: ${textStyleIntent} (subtle=small non-distracting, integrated=physically part of scene, bold=dominant central feature, cinematic=clean movie-poster style)`
       : '';
 
@@ -902,7 +895,7 @@ export interface DeepAnalysisResult {
 
 export const performDeepAnalysis = async (userPrompt: string): Promise<DeepAnalysisResult> => {
   const ai = getAIClient();
-  
+
   const fallback: DeepAnalysisResult = {
     subject: { primary: 'general', secondary: [], semanticCategory: 'abstract', emotionalResonance: 'neutral' },
     composition: { recommendedFraming: 'centered', focalPoint: 'center', visualFlow: 'balanced', negativeSpace: 'moderate' },
@@ -916,7 +909,7 @@ export const performDeepAnalysis = async (userPrompt: string): Promise<DeepAnaly
 
   const detectedStyle = detectArtisticStyleFromPrompt(userPrompt);
   const styleInfo = detectedStyle && ARTISTIC_STYLES[detectedStyle] ? ARTISTIC_STYLES[detectedStyle] : null;
-  
+
   const cinematicDNAContext = Object.values(CINEMATIC_DNA_COMPONENTS)
     .map(c => `${c.name}: ${c.keywords.slice(0, 2).join(', ')}`)
     .join('; ');
@@ -1000,7 +993,7 @@ export const performDeepAnalysis = async (userPrompt: string): Promise<DeepAnaly
     }));
 
     const parsed = JSON.parse(response.text?.trim() || '{}');
-    
+
     return {
       subject: {
         primary: parsed.subject?.primary || fallback.subject.primary,
@@ -1053,16 +1046,16 @@ export const draftToFinalWorkflow = async (
   aspectRatio: string = '1:1'
 ): Promise<DraftToFinalResult> => {
   const ai = getAIClient();
-  
+
   const draftPrompt = await enhanceStyle(userPrompt, analysis, textInfo, selectedStyle, 'draft');
   const draftImages = await generateImage(draftPrompt, aspectRatio, 1);
-  
+
   const lightingRecommendation = selectLightingForSubject(analysis.subject.primary, analysis.mood.primary);
   const colorGrade = selectColorGradeForMood(analysis.mood.primary);
   const { camera, lens } = selectCameraForSubject(analysis.subject.primary);
   const detectedStyle = detectArtisticStyleFromPrompt(userPrompt);
   const styleEnhancement = detectedStyle ? getStylePromptEnhancement(detectedStyle) : '';
-  
+
   const refinementPrompt = `
     You are refining a draft image prompt into a final, polished version.
 

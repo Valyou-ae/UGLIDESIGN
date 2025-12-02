@@ -15,13 +15,11 @@ import {
   CINEMA_LENSES
 } from "./cinematicDNA";
 
-const API_KEY = process.env.AI_INTEGRATIONS_GEMINI_API_KEY || '';
-const BASE_URL = process.env.AI_INTEGRATIONS_GEMINI_BASE_URL;
+const API_KEY = process.env.API_KEY || '';
 
 const getAIClient = () => {
   return new GoogleGenAI({
-    apiKey: API_KEY,
-    ...(BASE_URL && { httpOptions: { baseUrl: BASE_URL, apiVersion: "" } })
+    apiKey: API_KEY
   });
 };
 

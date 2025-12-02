@@ -211,7 +211,7 @@ export default function ImageGenerator() {
   });
   const [artisticStyles, setArtisticStyles] = useState<ArtisticStyle[]>([]);
   const [showAdvancedPanel, setShowAdvancedPanel] = useState(false);
-  
+
   const { toast } = useToast();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -254,12 +254,12 @@ export default function ImageGenerator() {
         "minimalist composition"
       ];
       const randomPhrase = simulatedPhrases[Math.floor(Math.random() * simulatedPhrases.length)];
-      
+
       setPrompt(prev => {
         const newPrompt = prev.trim() ? `${prev.trim()} ${randomPhrase}` : randomPhrase;
         return newPrompt;
       });
-      
+
       setIsListening(false);
       toast({
         title: "Voice Recognized",
@@ -322,7 +322,7 @@ export default function ImageGenerator() {
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
-    
+
     setStatus("generating");
     setProgress(0);
     setAgents(AGENTS.map(a => ({ ...a, status: "idle" })));
@@ -485,22 +485,22 @@ export default function ImageGenerator() {
   return (
     <div className="h-screen bg-background flex font-sans text-foreground overflow-hidden">
       <Sidebar className="hidden md:flex border-r border-border/50" />
-      
+
       <main className="flex-1 flex flex-col relative h-full overflow-hidden bg-background text-foreground">
-        
+
         {/* TOP SECTION: PROMPT BAR (Minimalistic) */}
         <div className="fixed bottom-[70px] left-0 right-0 md:relative md:bottom-auto md:top-0 z-[60] bg-background/80 backdrop-blur-xl border-t md:border-t-0 md:border-b border-border px-4 md:px-6 py-3 md:py-4 transition-all order-last md:order-first pb-safe">
           <div className="max-w-[1800px] mx-auto w-full space-y-4">
-            
+
             {/* Prompt Input & Controls */}
             <div className="flex items-end gap-3">
-              
+
               {/* Main Input Wrapper */}
               <div className={cn(
                 "flex-1 bg-muted/40 border border-border rounded-xl transition-all duration-200 flex items-end p-2 gap-2 group focus-within:bg-background shadow-sm min-h-[56px]",
                 prompt.trim().length > 0 && "bg-background border-muted-foreground/40"
               )}>
-                
+
                 {/* Reference Image Trigger with Popover */}
                 <div className="self-end mb-0.5 shrink-0">
                   <Popover>
@@ -551,7 +551,7 @@ export default function ImageGenerator() {
 
                 {/* Right Side Actions inside Input - Bottom Aligned */}
                 <div className="flex items-center gap-1 mb-0.5 shrink-0 self-end">
-                  
+
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -626,7 +626,7 @@ export default function ImageGenerator() {
                   className="overflow-hidden"
                 >
                   <div className="bg-muted/30 border border-border rounded-xl p-3 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 shadow-inner mb-4">
-                    
+
                     {/* Quality */}
                     <div className="space-y-1.5 col-span-1">
                       <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block px-0.5">Quality</label>
@@ -748,7 +748,7 @@ export default function ImageGenerator() {
                           className="scale-75 origin-right data-[state=checked]:bg-primary"
                         />
                       </div>
-                      
+
                       <div className={cn(
                         "grid grid-cols-4 lg:grid-cols-2 gap-1.5 transition-all duration-300 h-9",
                         settings.refiner ? "opacity-100" : "opacity-40 pointer-events-none grayscale"
@@ -785,7 +785,7 @@ export default function ImageGenerator() {
 
         {/* SCROLLABLE GALLERY */}
         <div className="flex-1 overflow-y-auto p-6 md:p-10 pb-40 md:pb-10 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          
+
           {/* Gallery Filter Bar */}
           {generations.length > 0 && (
              <div className="max-w-[1800px] mx-auto mb-6 flex items-center gap-2 overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden -mx-6 px-6 md:mx-0 md:px-0">
@@ -816,7 +816,7 @@ export default function ImageGenerator() {
                </div>
 
                <div className="w-px h-4 bg-border mx-1 shrink-0" />
-               
+
                {Array.from(new Set(generations.map(g => g.style))).map(style => (
                  <button
                    key={style}
@@ -841,7 +841,7 @@ export default function ImageGenerator() {
               <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
                 Enter a prompt above to unleash the power of our 5-agent AI system.
               </p>
-              
+
               <div className="flex flex-wrap justify-center gap-3">
                 {["Futuristic city with neon lights", "Oil painting of a cat king", "Cyberpunk street food stall"].map(p => (
                   <button 
@@ -863,7 +863,7 @@ export default function ImageGenerator() {
                     <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48ZyBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTAgMzhoNDB2MmgtNDB6Ii8+PHBhdGggZD0iTTAgMGg0MHYyaC00MHoiLz48cGF0aCBkPSJNMCAwdjQwaDJWMHoiLz48cGF0aCBkPSJNMzggMHY0MGgyVjB6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
                     <Sparkles className="h-12 w-12 text-white animate-spin-slow duration-[3s]" />
                     <p className="text-white/90 font-medium mt-4 text-sm animate-pulse">Generating masterpiece...</p>
-                    
+
                     {/* Progress Bar & Percentage */}
                     <div className="w-3/4 mt-3 space-y-1.5">
                       <div className="flex justify-between items-center px-1">
@@ -893,7 +893,7 @@ export default function ImageGenerator() {
                   </div>
                 </div>
               )}
-              
+
               {filteredGenerations.map((gen) => (
                 <div 
                   key={gen.id}
@@ -901,11 +901,11 @@ export default function ImageGenerator() {
                   className="break-inside-avoid mb-6 relative group rounded-xl overflow-hidden cursor-pointer bg-card border border-border hover:border-primary/50 hover:shadow-xl transition-all hover:scale-[1.02]"
                 >
                   <img src={gen.src} alt={gen.prompt} className="w-full h-auto object-cover" />
-                  
+
                   {/* Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-5">
                     <p className="text-white text-sm line-clamp-2 mb-4 font-medium leading-relaxed">{gen.prompt}</p>
-                    
+
                     <div className="flex items-center gap-2">
                       <Button 
                         size="sm" 
@@ -999,7 +999,7 @@ export default function ImageGenerator() {
                         <Download className="h-5 w-5" />
                         <span className="text-[10px]">Save</span>
                       </Button>
-                      
+
                       <Button 
                         variant="ghost" 
                         className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
