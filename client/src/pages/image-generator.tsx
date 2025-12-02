@@ -113,7 +113,7 @@ import scifiSpaceship from "@assets/generated_images/sci-fi_spaceship_landing_on
 // Types
 type GenerationStatus = "idle" | "generating" | "complete";
 
-type GenerationMode = "cinematic" | "typographic" | "imagen3" | null;
+type GenerationMode = "cinematic" | "typographic" | "imagen3" | "imagen4" | "imagen4fast" | null;
 
 type GeneratedImage = {
   id: string;
@@ -290,14 +290,21 @@ export default function ImageGenerator() {
     useMultiAgent: true,
     useDraftToFinal: false,
     artisticStyle: "auto",
-    model: "gemini" as "gemini" | "imagen3"
+    model: "gemini" as "gemini" | "imagen4" | "imagen4fast" | "imagen3",
+    imagenModel: "imagen-4.0-generate-001" as string
   });
   const [artisticStyles, setArtisticStyles] = useState<ArtisticStyle[]>([]);
   const [showAdvancedPanel, setShowAdvancedPanel] = useState(false);
   const [showTextTips, setShowTextTips] = useState(false);
   const [lastGenerationMode, setLastGenerationMode] = useState<GenerationMode>(null);
   const [showRegenerateHint, setShowRegenerateHint] = useState(false);
-  const [imagen3Available, setImagen3Available] = useState(false);
+  const [imagenStatus, setImagenStatus] = useState<{
+    available: boolean;
+    hasPrimaryKey: boolean;
+    hasFallbackKey: boolean;
+    models: { id: string; name: string; description: string; available: boolean; price?: string }[];
+    recommendedModel: string;
+  } | null>(null);
 
   const { toast } = useToast();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -382,21 +389,33 @@ export default function ImageGenerator() {
     fetchArtisticStyles();
   }, []);
 
-  // Check Imagen 3 availability
+  // Check Imagen availability and models
   useEffect(() => {
-    const checkImagen3Status = async () => {
+    const checkImagenStatus = async () => {
       try {
         const response = await fetch('/api/imagen3-status');
         const data = await response.json();
-        if (data.success && data.available) {
-          setImagen3Available(true);
-          setSettings(prev => ({ ...prev, model: "imagen3" }));
+        if (data.success) {
+          setImagenStatus({
+            available: data.available,
+            hasPrimaryKey: data.hasPrimaryKey,
+            hasFallbackKey: data.hasFallbackKey,
+            models: data.models || [],
+            recommendedModel: data.recommendedModel || 'imagen-4.0-generate-001'
+          });
+          if (data.available) {
+            setSettings(prev => ({ 
+              ...prev, 
+              model: "imagen4",
+              imagenModel: data.recommendedModel || 'imagen-4.0-generate-001'
+            }));
+          }
         }
       } catch (error) {
-        console.error('Failed to check Imagen 3 status:', error);
+        console.error('Failed to check Imagen status:', error);
       }
     };
-    checkImagen3Status();
+    checkImagenStatus();
   }, []);
 
   // Auto-resize textarea
@@ -446,12 +465,20 @@ export default function ImageGenerator() {
       let endpoint: string;
       let requestBody: any;
 
-      if (settings.model === "imagen3" && imagen3Available) {
+      const isImagenModel = settings.model === "imagen4" || settings.model === "imagen4fast" || settings.model === "imagen3";
+      
+      if (isImagenModel && imagenStatus?.available) {
         endpoint = "/api/generate-imagen3";
+        const modelMap: Record<string, string> = {
+          "imagen4": "imagen-4.0-generate-001",
+          "imagen4fast": "imagen-4.0-fast-generate-001",
+          "imagen3": "imagen-3.0-generate-002"
+        };
         requestBody = {
           prompt: prompt,
           aspectRatio: settings.aspectRatio,
-          variations: parseInt(settings.variations) as 1 | 2 | 4
+          variations: parseInt(settings.variations) as 1 | 2 | 4,
+          model: modelMap[settings.model] || settings.imagenModel
         };
       } else {
         endpoint = settings.useMultiAgent ? "/api/generate-image-advanced" : "/api/generate-image";
@@ -803,18 +830,26 @@ export default function ImageGenerator() {
                   {lastGenerationMode && (
                     <div className={cn(
                       "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
-                      lastGenerationMode === "imagen3"
+                      lastGenerationMode === "imagen4"
                         ? "bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20"
-                        : lastGenerationMode === "typographic"
+                        : lastGenerationMode === "imagen4fast"
                           ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
-                          : "bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20"
+                          : lastGenerationMode === "imagen3"
+                            ? "bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20"
+                            : lastGenerationMode === "typographic"
+                              ? "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20"
+                              : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
                     )}>
-                      {lastGenerationMode === "imagen3" ? (
-                        <><Crown className="h-3 w-3" /> Imagen 3 Mode</>
+                      {lastGenerationMode === "imagen4" ? (
+                        <><Crown className="h-3 w-3" /> Imagen 4</>
+                      ) : lastGenerationMode === "imagen4fast" ? (
+                        <><Zap className="h-3 w-3" /> Imagen 4 Fast</>
+                      ) : lastGenerationMode === "imagen3" ? (
+                        <><Sparkles className="h-3 w-3" /> Imagen 3</>
                       ) : lastGenerationMode === "typographic" ? (
-                        <><Type className="h-3 w-3" /> Text-Priority Mode</>
+                        <><Type className="h-3 w-3" /> Text-Priority</>
                       ) : (
-                        <><Clapperboard className="h-3 w-3" /> Cinematic Mode</>
+                        <><Clapperboard className="h-3 w-3" /> Cinematic</>
                       )}
                     </div>
                   )}
@@ -892,15 +927,22 @@ export default function ImageGenerator() {
 
                     {/* Model Selection */}
                     <div className="space-y-1.5 col-span-2 md:col-span-4 lg:col-span-5">
-                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block px-0.5">Model</label>
-                      <div className="flex gap-2">
+                      <div className="flex items-center justify-between px-0.5">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Model</label>
+                        {imagenStatus?.hasFallbackKey && (
+                          <Badge variant="outline" className="text-[8px] px-1 py-0 h-3.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20">
+                            Fallback Key Active
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex gap-2 flex-wrap">
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <button
                                 onClick={() => setSettings({...settings, model: "gemini"})}
                                 className={cn(
-                                  "flex-1 h-10 rounded-lg flex items-center justify-center gap-2 transition-all border",
+                                  "flex-1 min-w-[120px] h-10 rounded-lg flex items-center justify-center gap-2 transition-all border",
                                   settings.model === "gemini" 
                                     ? "bg-background border-primary/50 text-primary shadow-sm" 
                                     : "bg-background/50 border-transparent text-muted-foreground hover:bg-background hover:text-foreground"
@@ -922,31 +964,97 @@ export default function ImageGenerator() {
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <button
-                                onClick={() => imagen3Available && setSettings({...settings, model: "imagen3"})}
-                                disabled={!imagen3Available}
+                                onClick={() => imagenStatus?.available && setSettings({...settings, model: "imagen4"})}
+                                disabled={!imagenStatus?.available}
                                 className={cn(
-                                  "flex-1 h-10 rounded-lg flex items-center justify-center gap-2 transition-all border",
-                                  settings.model === "imagen3" 
+                                  "flex-1 min-w-[120px] h-10 rounded-lg flex items-center justify-center gap-2 transition-all border",
+                                  settings.model === "imagen4" 
                                     ? "bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-500/50 text-green-600 dark:text-green-400 shadow-sm" 
-                                    : imagen3Available
+                                    : imagenStatus?.available
+                                      ? "bg-background/50 border-transparent text-muted-foreground hover:bg-background hover:text-foreground"
+                                      : "bg-background/30 border-transparent text-muted-foreground/50 cursor-not-allowed"
+                                )}
+                                data-testid="model-select-imagen4"
+                              >
+                                <Crown className={cn("h-4 w-4", settings.model === "imagen4" ? "text-green-500" : "opacity-70")} />
+                                <span className="text-xs font-medium">Imagen 4</span>
+                                {imagenStatus?.available ? (
+                                  <Badge className="text-[9px] px-1.5 py-0 h-4 ml-1 bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30">Best</Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 ml-1 opacity-50">API Key</Badge>
+                                )}
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom">
+                              <p>{imagenStatus?.available 
+                                ? "Imagen 4 - Best quality & text rendering ($0.04/image)" 
+                                : "Add your Google AI API key in Secrets to enable Imagen"}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                onClick={() => imagenStatus?.available && setSettings({...settings, model: "imagen4fast"})}
+                                disabled={!imagenStatus?.available}
+                                className={cn(
+                                  "flex-1 min-w-[120px] h-10 rounded-lg flex items-center justify-center gap-2 transition-all border",
+                                  settings.model === "imagen4fast" 
+                                    ? "bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border-blue-500/50 text-blue-600 dark:text-blue-400 shadow-sm" 
+                                    : imagenStatus?.available
+                                      ? "bg-background/50 border-transparent text-muted-foreground hover:bg-background hover:text-foreground"
+                                      : "bg-background/30 border-transparent text-muted-foreground/50 cursor-not-allowed"
+                                )}
+                                data-testid="model-select-imagen4fast"
+                              >
+                                <Zap className={cn("h-4 w-4", settings.model === "imagen4fast" ? "text-blue-500" : "opacity-70")} />
+                                <span className="text-xs font-medium">Imagen 4 Fast</span>
+                                {imagenStatus?.available ? (
+                                  <Badge className="text-[9px] px-1.5 py-0 h-4 ml-1 bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30">10x Speed</Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 ml-1 opacity-50">API Key</Badge>
+                                )}
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom">
+                              <p>{imagenStatus?.available 
+                                ? "Imagen 4 Fast - 10x faster generation ($0.02/image)" 
+                                : "Add your Google AI API key in Secrets to enable Imagen"}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                onClick={() => imagenStatus?.available && setSettings({...settings, model: "imagen3"})}
+                                disabled={!imagenStatus?.available}
+                                className={cn(
+                                  "flex-1 min-w-[120px] h-10 rounded-lg flex items-center justify-center gap-2 transition-all border",
+                                  settings.model === "imagen3" 
+                                    ? "bg-gradient-to-r from-purple-500/10 to-pink-500/10 border-purple-500/50 text-purple-600 dark:text-purple-400 shadow-sm" 
+                                    : imagenStatus?.available
                                       ? "bg-background/50 border-transparent text-muted-foreground hover:bg-background hover:text-foreground"
                                       : "bg-background/30 border-transparent text-muted-foreground/50 cursor-not-allowed"
                                 )}
                                 data-testid="model-select-imagen3"
                               >
-                                <Crown className={cn("h-4 w-4", settings.model === "imagen3" ? "text-green-500" : "opacity-70")} />
+                                <Sparkles className={cn("h-4 w-4", settings.model === "imagen3" ? "text-purple-500" : "opacity-70")} />
                                 <span className="text-xs font-medium">Imagen 3</span>
-                                {imagen3Available ? (
-                                  <Badge className="text-[9px] px-1.5 py-0 h-4 ml-1 bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30">Best Text</Badge>
+                                {imagenStatus?.available ? (
+                                  <Badge className="text-[9px] px-1.5 py-0 h-4 ml-1 bg-purple-500/20 text-purple-600 dark:text-purple-400 border-purple-500/30">Classic</Badge>
                                 ) : (
-                                  <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 ml-1 opacity-50">API Key Required</Badge>
+                                  <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 ml-1 opacity-50">API Key</Badge>
                                 )}
                               </button>
                             </TooltipTrigger>
                             <TooltipContent side="bottom">
-                              <p>{imagen3Available 
-                                ? "Imagen 3 - Superior text rendering quality, perfect for text-heavy images" 
-                                : "Add your Google AI API key in Secrets to enable Imagen 3"}</p>
+                              <p>{imagenStatus?.available 
+                                ? "Imagen 3 - Good quality, lower cost" 
+                                : "Add your Google AI API key in Secrets to enable Imagen"}</p>
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>

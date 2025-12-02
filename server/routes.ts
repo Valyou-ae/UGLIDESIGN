@@ -23,8 +23,10 @@ import {
 } from "./services/multiAgentSystem";
 import { ARTISTIC_STYLES } from "./services/cinematicDNA";
 import { 
-  isImagen3Available, 
-  generateWithImagen3 
+  isImagenAvailable, 
+  generateWithImagen,
+  checkImagenStatus,
+  type ImagenModel
 } from "./services/imagen3Service";
 import type { GenerateImageRequest, GenerateImageResponse, QualityLevel } from "../shared/imageGenTypes";
 
@@ -273,55 +275,60 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/imagen3-status", (req, res) => {
-    res.json({ 
-      success: true, 
-      available: isImagen3Available(),
-      model: 'imagen-3.0-generate-002',
-      description: 'Google Imagen 3 - Superior text rendering quality'
-    });
+  app.get("/api/imagen3-status", async (req, res) => {
+    try {
+      const status = await checkImagenStatus();
+      res.json({ 
+        success: true, 
+        available: status.available,
+        hasPrimaryKey: status.hasPrimaryKey,
+        hasFallbackKey: status.hasFallbackKey,
+        models: status.models,
+        recommendedModel: status.recommendedModel,
+        description: 'Google Imagen - Superior text rendering quality'
+      });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
   });
 
   app.post("/api/generate-imagen3", async (req, res) => {
     try {
-      if (!isImagen3Available()) {
+      if (!isImagenAvailable()) {
         return res.status(400).json({ 
           success: false, 
-          error: "Imagen 3 is not available. Please add your Google AI API key." 
+          error: "Imagen is not available. Please add your Google AI API key." 
         });
       }
 
-      const { prompt, aspectRatio, variations, negativePrompt } = req.body;
+      const { prompt, aspectRatio, variations, negativePrompt, model } = req.body;
 
       if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
         return res.status(400).json({ success: false, error: "Prompt is required" });
       }
 
-      console.log("[Imagen3 Route] Generating with prompt:", prompt.substring(0, 100));
+      const selectedModel: ImagenModel = model || 'imagen-4.0-generate-001';
+      console.log(`[Imagen Route] Generating with model ${selectedModel}:`, prompt.substring(0, 100));
 
-      const images = await generateWithImagen3(prompt.trim(), {
+      const images = await generateWithImagen(prompt.trim(), {
+        model: selectedModel,
         aspectRatio: aspectRatio || '1:1',
         numberOfImages: Math.min(Math.max(variations || 1, 1), 4),
         negativePrompt
       });
 
-      const formattedImages = images.map(img => ({
-        base64: img.base64,
-        mimeType: img.mimeType
-      }));
-
       res.json({
         success: true,
-        images: formattedImages,
+        images: images,
         enhancedPrompt: prompt.trim(),
         generationMode: 'imagen3',
-        model: 'imagen-3.0-generate-002'
+        model: selectedModel
       });
     } catch (error: any) {
-      console.error("Imagen 3 generation error:", error);
+      console.error("Imagen generation error:", error);
       res.status(500).json({ 
         success: false, 
-        error: error.message || "Failed to generate image with Imagen 3" 
+        error: error.message || "Failed to generate image with Imagen" 
       });
     }
   });
