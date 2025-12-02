@@ -306,6 +306,108 @@ export const extractTextFromPrompt = (prompt: string): string[] => {
   return Array.from(new Set(extractedTexts));
 };
 
+export interface TextPriorityAnalysis {
+  isTextPriority: boolean;
+  hasMultilingualText: boolean;
+  hasQuotedText: boolean;
+  hasTextInstructions: boolean;
+  detectedLanguages: string[];
+  extractedTexts: string[];
+  confidence: number;
+}
+
+const MULTILINGUAL_PATTERNS = {
+  japanese: /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/,
+  chinese: /[\u4E00-\u9FFF\u3400-\u4DBF]/,
+  korean: /[\uAC00-\uD7AF\u1100-\u11FF]/,
+  arabic: /[\u0600-\u06FF\u0750-\u077F]/,
+  hebrew: /[\u0590-\u05FF]/,
+  thai: /[\u0E00-\u0E7F]/,
+  hindi: /[\u0900-\u097F]/,
+  russian: /[\u0400-\u04FF]/,
+  greek: /[\u0370-\u03FF]/,
+};
+
+const TEXT_INSTRUCTION_KEYWORDS = [
+  'with the text', 'that says', 'saying', 'written', 'spelled',
+  'letters', 'words', 'sign', 'banner', 'title', 'subtitle',
+  'headline', 'slogan', 'tagline', 'label', 'caption',
+  'in large letters', 'in bold', 'at top', 'at bottom',
+  'languages', 'script', 'native script', 'multilingual'
+];
+
+export const analyzeTextPriority = (prompt: string): TextPriorityAnalysis => {
+  const extractedTexts = extractTextFromPrompt(prompt);
+  const detectedLanguages: string[] = [];
+  
+  for (const [lang, pattern] of Object.entries(MULTILINGUAL_PATTERNS)) {
+    if (pattern.test(prompt)) {
+      detectedLanguages.push(lang);
+    }
+  }
+  
+  const hasMultilingualText = detectedLanguages.length > 0;
+  const hasQuotedText = /"[^"]+"/.test(prompt) || /'[^']+'/.test(prompt);
+  const promptLower = prompt.toLowerCase();
+  const hasTextInstructions = TEXT_INSTRUCTION_KEYWORDS.some(kw => promptLower.includes(kw));
+  
+  let confidence = 0;
+  if (hasQuotedText) confidence += 0.3;
+  if (hasMultilingualText) confidence += 0.4;
+  if (hasTextInstructions) confidence += 0.3;
+  if (extractedTexts.length > 0) confidence += 0.2;
+  if (extractedTexts.length > 3) confidence += 0.2;
+  
+  confidence = Math.min(confidence, 1.0);
+  
+  const isTextPriority = confidence >= 0.4 || hasMultilingualText || (hasQuotedText && hasTextInstructions);
+  
+  return {
+    isTextPriority,
+    hasMultilingualText,
+    hasQuotedText,
+    hasTextInstructions,
+    detectedLanguages,
+    extractedTexts,
+    confidence
+  };
+};
+
+export const buildTypographicPrompt = (
+  userPrompt: string,
+  textPriorityAnalysis: TextPriorityAnalysis
+): string => {
+  const { extractedTexts, detectedLanguages, hasMultilingualText } = textPriorityAnalysis;
+  
+  let typographicPrompt = '';
+  
+  typographicPrompt += `CRITICAL TEXT RENDERING REQUIREMENTS:\n`;
+  typographicPrompt += `The following text MUST appear in the image EXACTLY as written - this is the PRIMARY objective:\n\n`;
+  
+  if (extractedTexts.length > 0) {
+    extractedTexts.forEach((text, i) => {
+      typographicPrompt += `TEXT ${i + 1}: "${text}"\n`;
+      typographicPrompt += `- Spell EXACTLY: ${text.split('').join(' ')}\n`;
+    });
+  }
+  
+  if (hasMultilingualText) {
+    typographicPrompt += `\nMULTILINGUAL TEXT REQUIREMENTS:\n`;
+    typographicPrompt += `- Detected scripts: ${detectedLanguages.join(', ')}\n`;
+    typographicPrompt += `- Render each language in its NATIVE SCRIPT exactly as provided\n`;
+    typographicPrompt += `- Do NOT transliterate or substitute characters\n`;
+    typographicPrompt += `- Preserve all diacritics, special characters, and script-specific features\n`;
+  }
+  
+  typographicPrompt += `\nSCENE DESCRIPTION (secondary to text accuracy):\n`;
+  typographicPrompt += userPrompt;
+  
+  typographicPrompt += `\n\nFINAL INSTRUCTION: Text accuracy is MORE IMPORTANT than visual style. `;
+  typographicPrompt += `Prioritize perfect spelling and legibility over artistic effects.`;
+  
+  return typographicPrompt;
+};
+
 export const spellCheckText = (text: string): { corrected: string; corrections: string[] } => {
   let corrected = text;
   const corrections: string[] = [];
@@ -583,23 +685,39 @@ SPELLING VERIFICATION:
   }
 };
 
+export interface GenerateImageOptions {
+  aspectRatio?: string;
+  numberOfVariations?: number;
+  textPriorityMode?: boolean;
+  temperature?: number;
+}
+
 export const generateImage = async (
   prompt: string,
   aspectRatio: string = '1:1',
-  numberOfVariations: number = 1
+  numberOfVariations: number = 1,
+  options?: { textPriorityMode?: boolean; temperature?: number }
 ): Promise<GeneratedImageData[]> => {
   const ai = getAIClient();
+  const textPriorityMode = options?.textPriorityMode ?? false;
+  const temperature = textPriorityMode ? 0.2 : (options?.temperature ?? 1.0);
 
   try {
     const results: GeneratedImageData[] = [];
 
     for (let i = 0; i < numberOfVariations; i++) {
+      const config: any = {
+        responseModalities: [Modality.TEXT, Modality.IMAGE],
+      };
+      
+      if (textPriorityMode) {
+        config.temperature = temperature;
+      }
+
       const response = await withRetry(() => ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
         contents: [{ role: "user", parts: [{ text: prompt }] }],
-        config: {
-          responseModalities: [Modality.TEXT, Modality.IMAGE],
-        },
+        config,
       }));
 
       if (response.candidates && response.candidates[0]?.content?.parts) {
@@ -651,6 +769,70 @@ export const analyzeImage = async (base64Data: string, mimeType: string): Promis
     console.error("Image Analysis Error:", error);
     return 'A creative image';
   }
+};
+
+export interface SmartGenerationResult {
+  images: GeneratedImageData[];
+  mode: 'cinematic' | 'typographic';
+  textPriorityAnalysis: TextPriorityAnalysis;
+  enhancedPrompt: string;
+  originalPrompt: string;
+  analysis?: PromptAnalysis;
+}
+
+export const generateImageSmart = async (
+  userPrompt: string,
+  aspectRatio: string = '1:1',
+  selectedStyle: string = 'auto',
+  quality: QualityLevel = 'standard',
+  variations: number = 1
+): Promise<SmartGenerationResult> => {
+  const textPriorityAnalysis = analyzeTextPriority(userPrompt);
+  
+  console.log(`[Smart Generation] Text Priority Analysis:`, {
+    isTextPriority: textPriorityAnalysis.isTextPriority,
+    confidence: textPriorityAnalysis.confidence,
+    hasMultilingual: textPriorityAnalysis.hasMultilingualText,
+    languages: textPriorityAnalysis.detectedLanguages,
+    extractedTexts: textPriorityAnalysis.extractedTexts.length
+  });
+  
+  let enhancedPrompt: string;
+  let mode: 'cinematic' | 'typographic';
+  let analysis: PromptAnalysis | undefined;
+  
+  if (textPriorityAnalysis.isTextPriority) {
+    mode = 'typographic';
+    console.log(`[Smart Generation] Using TYPOGRAPHIC mode - clean, text-focused prompt`);
+    
+    enhancedPrompt = buildTypographicPrompt(userPrompt, textPriorityAnalysis);
+    
+  } else {
+    mode = 'cinematic';
+    console.log(`[Smart Generation] Using CINEMATIC mode - full enhancement pipeline`);
+    
+    const result = await performInitialAnalysis(userPrompt, true);
+    analysis = result.analysis;
+    enhancedPrompt = await enhanceStyle(userPrompt, result.analysis, result.textInfo, selectedStyle, quality);
+  }
+  
+  console.log(`[Smart Generation] Final prompt (${mode} mode):`, enhancedPrompt.substring(0, 200) + '...');
+  
+  const images = await generateImage(
+    enhancedPrompt,
+    aspectRatio,
+    Math.min(Math.max(variations, 1), 4),
+    { textPriorityMode: textPriorityAnalysis.isTextPriority }
+  );
+  
+  return {
+    images,
+    mode,
+    textPriorityAnalysis,
+    enhancedPrompt,
+    originalPrompt: userPrompt,
+    analysis
+  };
 };
 
 export const generateIterativeEditPrompt = async (

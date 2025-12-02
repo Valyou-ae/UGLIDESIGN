@@ -125,12 +125,20 @@ export interface GenerateImageRequest {
   refinerPreset: string;
 }
 
+export interface TextPriorityInfo {
+  confidence: number;
+  detectedLanguages: string[];
+  extractedTexts: string[];
+}
+
 export interface GenerateImageResponse {
   success: boolean;
   images?: GeneratedImageData[];
   error?: string;
   enhancedPrompt?: string;
   analysis?: PromptAnalysis;
+  generationMode?: 'cinematic' | 'typographic';
+  textPriorityInfo?: TextPriorityInfo;
 }
 
 export const ASPECT_RATIO_DIMENSIONS: Record<string, { width: number; height: number }> = {

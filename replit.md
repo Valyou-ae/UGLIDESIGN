@@ -1,9 +1,22 @@
 # Replit AI Studio - Advanced Image Generator
 
 ## Overview
-An advanced AI-powered image generation application featuring a sophisticated 5-agent system, comprehensive Cinematic DNA knowledge base with 50+ artistic styles, and professional-grade prompt enhancement for Hollywood-quality output.
+An advanced AI-powered image generation application featuring a sophisticated 5-agent system, comprehensive Cinematic DNA knowledge base with 60+ artistic styles, intelligent dual-pathway generation (Cinematic vs Typographic), and professional-grade prompt enhancement for Hollywood-quality output.
 
 ## Recent Changes
+
+### December 2, 2025 (Latest)
+- **NEW: Text Priority Mode / Dual Pathway System**
+  - Intelligent detection of text-heavy and multilingual prompts
+  - Automatic routing between Cinematic mode (visual focus) and Typographic mode (text accuracy)
+  - Multilingual script detection (Japanese, Chinese, Korean, Arabic, Hebrew, Thai, Hindi, Russian, Greek)
+  - Low temperature (0.2) for text-priority generation to improve accuracy
+  - Clean, focused prompts for text-heavy requests matching Google AI Studio quality
+
+- Text Priority Features:
+  - `analyzeTextPriority()` - Detects quoted text, multilingual scripts, text instructions
+  - `buildTypographicPrompt()` - Creates clean, text-first prompts
+  - `generateImageSmart()` - Dual pathway routing based on text priority analysis
 
 ### December 2, 2025
 - Integrated comprehensive Cinematic DNA system with all 7 components:

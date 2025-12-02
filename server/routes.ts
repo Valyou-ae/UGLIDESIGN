@@ -4,7 +4,10 @@ import { storage } from "./storage";
 import { 
   performInitialAnalysis, 
   enhanceStyle, 
-  generateImage, 
+  generateImage,
+  generateImageSmart,
+  analyzeTextPriority,
+  buildTypographicPrompt,
   analyzeImage,
   getNegativePrompts,
   STYLE_PRESETS,
@@ -38,27 +41,31 @@ export async function registerRoutes(
         return res.status(400).json({ success: false, error: "Prompt is required" });
       }
 
-      const { textInfo, analysis } = await performInitialAnalysis(prompt.trim(), true);
-
-      const enhancedPrompt = await enhanceStyle(
+      const smartResult = await generateImageSmart(
         prompt.trim(),
-        analysis,
-        textInfo,
-        style || 'auto',
-        (quality || 'standard') as QualityLevel
-      );
-
-      const images = await generateImage(
-        enhancedPrompt,
         aspectRatio || '1:1',
+        style || 'auto',
+        (quality || 'standard') as QualityLevel,
         Math.min(Math.max(variations || 1, 1), 4)
       );
 
       const response: GenerateImageResponse = {
         success: true,
-        images,
-        enhancedPrompt,
-        analysis
+        images: smartResult.images,
+        enhancedPrompt: smartResult.enhancedPrompt,
+        analysis: smartResult.analysis || {
+          subject: { primary: 'text-priority', secondary: [] },
+          mood: { primary: 'auto-detected', secondary: [] },
+          lighting: { scenario: 'auto' },
+          environment: { type: 'auto', details: '' },
+          style_intent: smartResult.mode
+        },
+        generationMode: smartResult.mode,
+        textPriorityInfo: smartResult.textPriorityAnalysis.isTextPriority ? {
+          confidence: smartResult.textPriorityAnalysis.confidence,
+          detectedLanguages: smartResult.textPriorityAnalysis.detectedLanguages,
+          extractedTexts: smartResult.textPriorityAnalysis.extractedTexts
+        } : undefined
       };
 
       res.json(response);
