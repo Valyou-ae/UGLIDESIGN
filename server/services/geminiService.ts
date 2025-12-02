@@ -236,7 +236,7 @@ export const performInitialAnalysis = async (userPrompt: string, processText: bo
 
   try {
     const response = await withRetry(() => ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-1.5-flash',
       contents: metaPrompt,
       config: { responseMimeType: "application/json", responseSchema: COMBINED_ANALYSIS_SCHEMA },
     }));
@@ -316,7 +316,7 @@ export const enhanceStyle = async (
     `.trim();
 
     const response = await withRetry(() => ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-1.5-flash',
       contents: metaPrompt,
     }));
 
@@ -339,7 +339,7 @@ export const generateImage = async (
 
     for (let i = 0; i < numberOfVariations; i++) {
       const response = await withRetry(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash-preview-05-20',
+        model: 'gemini-2.0-flash-exp',
         contents: prompt,
         config: {
           responseModalities: ['Text', 'Image'],
@@ -378,7 +378,7 @@ export const analyzeImage = async (base64Data: string, mimeType: string): Promis
 
   try {
     const response = await withRetry(() => ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-1.5-flash',
       contents: [
         {
           role: 'user',
@@ -421,7 +421,7 @@ export const generateIterativeEditPrompt = async (
     `.trim();
 
     const response = await withRetry(() => ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-1.5-flash',
       contents: metaPrompt,
     }));
 
