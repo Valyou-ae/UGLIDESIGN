@@ -5,7 +5,10 @@ import {
   QualityLevel,
   GeneratedImageData,
   TextStyleIntent,
-  ASPECT_RATIO_DIMENSIONS
+  ASPECT_RATIO_DIMENSIONS,
+  ModelTier,
+  TierReasonCode,
+  TierEvaluation
 } from "../../shared/imageGenTypes";
 import {
   buildCinematicDNA,
@@ -67,6 +70,269 @@ async function withRetry<T>(fn: () => Promise<T>, retries = 5, initialDelay = 30
     }
   }
   throw new Error("Exceeded max retries for an unknown reason.");
+}
+
+// ============================================================================
+// AUTO-SCALING TIER SYSTEM
+// Intelligently selects the optimal model tier based on prompt complexity
+// ============================================================================
+
+const TIER_CONFIG: Record<ModelTier, { thinkingBudget: number; maxWords: number }> = {
+  standard: { thinkingBudget: 1024, maxWords: 150 },
+  premium: { thinkingBudget: 4096, maxWords: 200 },
+  ultra: { thinkingBudget: 8192, maxWords: 250 }
+};
+
+// Tier-specific generation settings for model selection, retries, and fallbacks
+const TIER_GENERATION_CONFIG: Record<ModelTier, {
+  imagenRetries: number;
+  imagenRetryDelay: number;
+  imagenMaxDelay: number;
+  fallbackModel: string;
+  textFallbackModel: string;
+}> = {
+  standard: {
+    imagenRetries: 3,
+    imagenRetryDelay: 1000,
+    imagenMaxDelay: 16000,
+    fallbackModel: 'gemini-2.5-flash-image',
+    textFallbackModel: 'gemini-3-pro-image-preview'
+  },
+  premium: {
+    imagenRetries: 5,
+    imagenRetryDelay: 1000,
+    imagenMaxDelay: 32000,
+    fallbackModel: 'gemini-3-pro-image-preview',
+    textFallbackModel: 'gemini-3-pro-image-preview'
+  },
+  ultra: {
+    imagenRetries: 7,
+    imagenRetryDelay: 1500,
+    imagenMaxDelay: 45000,
+    fallbackModel: 'gemini-3-pro-image-preview',
+    textFallbackModel: 'gemini-3-pro-image-preview'
+  }
+};
+
+const TIER_MESSAGES: Record<string, string> = {
+  upgrade_text: "Upgraded to {tier} for better text accuracy",
+  upgrade_multilingual: "Upgraded to {tier} for multilingual support", 
+  upgrade_complexity: "Upgraded to {tier} for complex style rendering",
+  upgrade_fidelity: "Upgraded to {tier} for high-fidelity output",
+  downgrade_simple: "Using {tier} - optimized for your prompt",
+  no_change: "Using {tier} as selected",
+  override: "Using {tier} as you requested"
+};
+
+// Tier system uses these script patterns for complexity scoring
+const TIER_SCRIPT_PATTERNS: Record<string, RegExp> = {
+  japanese: /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/,
+  chinese: /[\u4E00-\u9FFF]/,
+  korean: /[\uAC00-\uD7AF\u1100-\u11FF]/,
+  arabic: /[\u0600-\u06FF]/,
+  hebrew: /[\u0590-\u05FF]/,
+  thai: /[\u0E00-\u0E7F]/,
+  hindi: /[\u0900-\u097F]/,
+  russian: /[\u0400-\u04FF]/,
+  greek: /[\u0370-\u03FF]/
+};
+
+function detectScriptsForTier(text: string): string[] {
+  const detected: string[] = [];
+  for (const [lang, pattern] of Object.entries(TIER_SCRIPT_PATTERNS)) {
+    if (pattern.test(text)) {
+      detected.push(lang);
+    }
+  }
+  return detected;
+}
+
+function extractTextsForTier(prompt: string): string[] {
+  const patterns = [
+    /"([^"]+)"/g,
+    /'([^']+)'/g,
+    /「([^」]+)」/g,
+    /『([^』]+)』/g
+  ];
+  
+  const texts: string[] = [];
+  for (const pattern of patterns) {
+    let match;
+    while ((match = pattern.exec(prompt)) !== null) {
+      texts.push(match[1]);
+    }
+  }
+  return texts;
+}
+
+function hasTextKeywordsForTier(prompt: string): boolean {
+  const textKeywords = [
+    'text', 'saying', 'says', 'written', 'write', 'word', 'words',
+    'letter', 'letters', 'title', 'headline', 'caption', 'label',
+    'sign', 'banner', 'poster', 'typography', 'font', 'neon sign',
+    'spell', 'spelled', 'spelling', 'logo', 'logotype', 'wordmark'
+  ];
+  const lowerPrompt = prompt.toLowerCase();
+  return textKeywords.some(keyword => lowerPrompt.includes(keyword));
+}
+
+function detectComplexStyleDemands(prompt: string): number {
+  const complexStyles = [
+    'hyperrealistic', 'photorealistic', 'ultra detailed', 'intricate',
+    'masterpiece', '8k', '4k uhd', 'cinematic', 'professional',
+    'award-winning', 'studio quality', 'high fidelity', 'museum quality',
+    'gallery quality', 'fine art', 'renaissance', 'baroque', 'art nouveau'
+  ];
+  const lowerPrompt = prompt.toLowerCase();
+  let score = 0;
+  for (const style of complexStyles) {
+    if (lowerPrompt.includes(style)) score += 10;
+  }
+  return Math.min(score, 40); // Cap at 40 points
+}
+
+export function evaluatePromptTier(
+  prompt: string,
+  userSelectedQuality: QualityLevel,
+  userOverrideTier?: ModelTier
+): TierEvaluation {
+  const reasons: TierReasonCode[] = [];
+  let complexityScore = 0;
+
+  // If user explicitly overrides, respect their choice
+  if (userOverrideTier) {
+    const config = TIER_CONFIG[userOverrideTier];
+    return {
+      recommendedTier: userOverrideTier,
+      originalTier: userOverrideTier,
+      wasAutoAdjusted: false,
+      adjustmentDirection: 'none',
+      reasons: [{ code: 'user_override', weight: 100, description: 'User selected this tier' }],
+      complexityScore: 50,
+      thinkingBudget: config.thinkingBudget,
+      maxWords: config.maxWords,
+      userMessage: TIER_MESSAGES.override.replace('{tier}', userOverrideTier.charAt(0).toUpperCase() + userOverrideTier.slice(1))
+    };
+  }
+
+  // Map quality level to base tier
+  const qualityToTier: Record<QualityLevel, ModelTier> = {
+    draft: 'standard',
+    standard: 'standard',
+    premium: 'premium',
+    ultra: 'ultra'
+  };
+  const baseTier = qualityToTier[userSelectedQuality];
+  let recommendedTier = baseTier;
+
+  // 1. Analyze text content (highest priority for upgrades)
+  const quotedTexts = extractTextsForTier(prompt);
+  const totalTextLength = quotedTexts.reduce((sum, t) => sum + t.length, 0);
+  const hasTextKeywords = hasTextKeywordsForTier(prompt);
+  
+  if (quotedTexts.length > 0 || hasTextKeywords) {
+    const textScore = Math.min(30 + totalTextLength * 2, 50);
+    complexityScore += textScore;
+    reasons.push({
+      code: 'text_detected',
+      weight: textScore,
+      description: `Found ${quotedTexts.length} text element(s) requiring accurate rendering`
+    });
+  }
+
+  // 2. Check for multilingual scripts
+  const detectedLanguages = detectScriptsForTier(prompt);
+  if (detectedLanguages.length > 0) {
+    const multilingualScore = 25 + detectedLanguages.length * 5;
+    complexityScore += multilingualScore;
+    reasons.push({
+      code: 'multilingual',
+      weight: multilingualScore,
+      description: `Detected ${detectedLanguages.join(', ')} script(s)`
+    });
+  }
+
+  // 3. Analyze style complexity
+  const styleScore = detectComplexStyleDemands(prompt);
+  if (styleScore > 0) {
+    complexityScore += styleScore;
+    reasons.push({
+      code: 'complex_style',
+      weight: styleScore,
+      description: 'Complex artistic style requirements detected'
+    });
+  }
+
+  // 4. Check prompt length (longer prompts may need more processing)
+  const wordCount = prompt.split(/\s+/).length;
+  if (wordCount > 50) {
+    const lengthScore = Math.min((wordCount - 50) / 2, 15);
+    complexityScore += lengthScore;
+    reasons.push({
+      code: 'high_fidelity',
+      weight: lengthScore,
+      description: 'Detailed prompt requiring thorough processing'
+    });
+  }
+
+  // Determine tier based on complexity score
+  // Score thresholds: 0-30 = standard, 31-60 = premium, 61+ = ultra
+  if (complexityScore >= 61) {
+    recommendedTier = 'ultra';
+  } else if (complexityScore >= 31) {
+    recommendedTier = 'premium';
+  } else {
+    recommendedTier = 'standard';
+  }
+
+  // If no complexity detected, mark as simple
+  if (reasons.length === 0) {
+    reasons.push({
+      code: 'simple_prompt',
+      weight: 0,
+      description: 'Simple prompt - standard tier is optimal'
+    });
+  }
+
+  // Determine adjustment direction and message
+  const tierOrder: ModelTier[] = ['standard', 'premium', 'ultra'];
+  const baseIndex = tierOrder.indexOf(baseTier);
+  const recommendedIndex = tierOrder.indexOf(recommendedTier);
+  
+  let adjustmentDirection: 'upgraded' | 'downgraded' | 'none';
+  let userMessage: string;
+  
+  if (recommendedIndex > baseIndex) {
+    adjustmentDirection = 'upgraded';
+    const primaryReason = reasons[0]?.code || 'complexity';
+    const messageKey = `upgrade_${primaryReason === 'text_detected' ? 'text' : 
+                        primaryReason === 'multilingual' ? 'multilingual' :
+                        primaryReason === 'complex_style' ? 'complexity' : 'fidelity'}`;
+    userMessage = (TIER_MESSAGES[messageKey] || TIER_MESSAGES.upgrade_fidelity)
+      .replace('{tier}', recommendedTier.charAt(0).toUpperCase() + recommendedTier.slice(1));
+  } else if (recommendedIndex < baseIndex) {
+    adjustmentDirection = 'downgraded';
+    userMessage = TIER_MESSAGES.downgrade_simple
+      .replace('{tier}', recommendedTier.charAt(0).toUpperCase() + recommendedTier.slice(1));
+  } else {
+    adjustmentDirection = 'none';
+    userMessage = TIER_MESSAGES.no_change
+      .replace('{tier}', recommendedTier.charAt(0).toUpperCase() + recommendedTier.slice(1));
+  }
+
+  const config = TIER_CONFIG[recommendedTier];
+  
+  return {
+    recommendedTier,
+    originalTier: baseTier,
+    wasAutoAdjusted: adjustmentDirection !== 'none',
+    adjustmentDirection,
+    reasons,
+    complexityScore: Math.min(complexityScore, 100),
+    thinkingBudget: config.thinkingBudget,
+    maxWords: config.maxWords,
+    userMessage
+  };
 }
 
 const TEXT_PHYSICAL_PROPERTIES_SCHEMA = {
@@ -626,7 +892,8 @@ export const enhanceStyle = async (
   analysis: PromptAnalysis,
   textInfo: DetectedTextInfo[],
   selectedStyle: string = 'auto',
-  quality: QualityLevel = 'standard'
+  quality: QualityLevel = 'standard',
+  tierOverrides?: { thinkingBudget?: number; maxWords?: number }
 ): Promise<string> => {
   const ai = getAIClient();
 
@@ -634,6 +901,10 @@ export const enhanceStyle = async (
     const hasText = textInfo.length > 0;
     const styleInfo = STYLE_PRESETS[selectedStyle] || STYLE_PRESETS.auto;
     const qualityConfig = QUALITY_PRESETS[quality];
+    
+    // Use tier overrides if provided, otherwise fall back to quality presets
+    const effectiveThinkingBudget = tierOverrides?.thinkingBudget || qualityConfig.thinkingBudget;
+    const effectiveMaxWords = tierOverrides?.maxWords || qualityConfig.maxWords;
 
     const qualityLevel = quality === 'draft' ? 'fast' : quality === 'ultra' ? 'professional' : 'balanced';
     const cinematicDNA = buildCinematicDNA(qualityLevel as 'fast' | 'balanced' | 'professional');
@@ -678,9 +949,10 @@ SPELLING VERIFICATION:
 
     // Style Architect: Different behavior for drafts vs final
     // Drafts still get Cinematic DNA but with focus on 3 key components
+    // Uses tier-specific settings when provided
     const isDraft = quality === 'draft';
-    const maxWords = qualityConfig.maxWords;
-    const thinkingBudget = qualityConfig.thinkingBudget;
+    const maxWords = effectiveMaxWords;
+    const thinkingBudget = effectiveThinkingBudget;
     
     const metaPrompt = isDraft 
       ? `
@@ -830,12 +1102,23 @@ export const generateImage = async (
   prompt: string,
   aspectRatio: string = '1:1',
   numberOfVariations: number = 1,
-  options?: { textPriorityMode?: boolean; hasText?: boolean; quality?: QualityLevel; negativePrompt?: string }
+  options?: { 
+    textPriorityMode?: boolean; 
+    hasText?: boolean; 
+    quality?: QualityLevel; 
+    negativePrompt?: string;
+    tier?: ModelTier;
+  }
 ): Promise<GeneratedImageData[]> => {
   const ai = getAIClient();
   const hasText = options?.hasText || false;
   const quality = options?.quality || 'standard';
   const negativePrompt = options?.negativePrompt || '';
+  const tier = options?.tier || 'standard';
+  
+  // Get tier-specific generation config
+  const tierConfig = TIER_GENERATION_CONFIG[tier];
+  console.log(`[generateImage] Using tier: ${tier} (retries: ${tierConfig.imagenRetries}, fallback: ${hasText ? tierConfig.textFallbackModel : tierConfig.fallbackModel})`);
 
   try {
     if (quality === 'draft') {
@@ -844,41 +1127,57 @@ export const generateImage = async (
       return generateWithGeminiImageModel(ai, prompt, aspectRatio, negativePrompt, numberOfVariations, draftModel);
     }
 
-    console.log(`[generateImage] Final mode - trying Imagen 4 first (hasText: ${hasText})`);
+    console.log(`[generateImage] Final mode - trying Imagen 4 first (hasText: ${hasText}, tier: ${tier})`);
     
-    try {
-      const imagenResults = await generateWithImagen(prompt, {
-        model: 'imagen-4.0-generate-001',
-        aspectRatio,
-        numberOfImages: numberOfVariations,
-        negativePrompt: negativePrompt || undefined
-      });
+    // Tier-aware retry logic for Imagen 4
+    let lastError: any = null;
+    let delay = tierConfig.imagenRetryDelay;
+    
+    for (let attempt = 0; attempt < tierConfig.imagenRetries; attempt++) {
+      try {
+        const imagenResults = await generateWithImagen(prompt, {
+          model: 'imagen-4.0-generate-001',
+          aspectRatio,
+          numberOfImages: numberOfVariations,
+          negativePrompt: negativePrompt || undefined
+        });
 
-      const results = imagenResults.map(result => ({
-        url: `data:${result.mimeType};base64,${result.base64}`,
-        prompt: prompt,
-        base64Data: result.base64,
-        mimeType: result.mimeType
-      }));
+        const results = imagenResults.map(result => ({
+          url: `data:${result.mimeType};base64,${result.base64}`,
+          prompt: prompt,
+          base64Data: result.base64,
+          mimeType: result.mimeType
+        }));
 
-      if (results.length > 0) {
-        console.log(`[generateImage] Imagen 4 succeeded - ${results.length} images`);
-        return results;
-      }
-    } catch (imagenError: any) {
-      console.warn("[generateImage] Imagen generation failed, attempting fallback...", imagenError.message);
-      if (imagenError.message?.includes("PERMISSION_DENIED") || imagenError.message?.includes("API key expired")) {
-        throw imagenError;
+        if (results.length > 0) {
+          console.log(`[generateImage] Imagen 4 succeeded on attempt ${attempt + 1} - ${results.length} images`);
+          return results;
+        }
+      } catch (imagenError: any) {
+        lastError = imagenError;
+        const errorMessage = imagenError.message || imagenError.toString();
+        const isRetryable = errorMessage.includes('429') || 
+                           errorMessage.includes('RESOURCE_EXHAUSTED') ||
+                           errorMessage.includes('rate limit') ||
+                           errorMessage.includes('quota');
+        
+        if (!isRetryable || attempt === tierConfig.imagenRetries - 1) {
+          console.warn(`[generateImage] Imagen 4 failed (attempt ${attempt + 1}/${tierConfig.imagenRetries}): ${errorMessage}`);
+          if (errorMessage.includes("PERMISSION_DENIED") || errorMessage.includes("API key expired")) {
+            throw imagenError;
+          }
+          break;
+        }
+        
+        console.warn(`[generateImage] Imagen 4 rate limited, retrying in ${delay}ms... (attempt ${attempt + 1}/${tierConfig.imagenRetries})`);
+        await sleep(delay);
+        delay = Math.min(delay * 2, tierConfig.imagenMaxDelay);
       }
     }
 
-    let fallbackModel: string;
-    if (quality === 'standard' || quality === 'premium' || quality === 'ultra' || hasText) {
-      fallbackModel = 'gemini-3-pro-image-preview';
-    } else {
-      fallbackModel = 'gemini-2.5-flash-image';
-    }
-    console.log(`[generateImage] Using fallback model: ${fallbackModel}`);
+    // Tier-aware fallback model selection
+    const fallbackModel = hasText ? tierConfig.textFallbackModel : tierConfig.fallbackModel;
+    console.log(`[generateImage] Using tier-specific fallback: ${fallbackModel} (tier: ${tier})`);
     return generateWithGeminiImageModel(ai, prompt, aspectRatio, negativePrompt, numberOfVariations, fallbackModel);
   } catch (error) {
     console.error("Image Generation Error:", error);
@@ -932,6 +1231,7 @@ export interface SmartGenerationResult {
   analysis?: PromptAnalysis;
   modelUsed?: string;
   negativePrompt?: string;
+  tierEvaluation?: TierEvaluation;
 }
 
 export const generateImageSmart = async (
@@ -939,10 +1239,18 @@ export const generateImageSmart = async (
   aspectRatio: string = '1:1',
   selectedStyle: string = 'auto',
   quality: QualityLevel = 'standard',
-  variations: number = 1
+  variations: number = 1,
+  tierOverride?: ModelTier
 ): Promise<SmartGenerationResult> => {
   const ai = getAIClient();
   const textPriorityAnalysis = analyzeTextPriority(userPrompt);
+  
+  // Auto-scaling tier evaluation
+  const tierEvaluation = evaluatePromptTier(userPrompt, quality, tierOverride);
+  console.log(`[Smart Generation] Tier: ${tierEvaluation.recommendedTier} (auto-adjusted: ${tierEvaluation.wasAutoAdjusted}, complexity: ${tierEvaluation.complexityScore})`);
+  
+  // Get tier-specific generation config
+  const tierConfig = TIER_GENERATION_CONFIG[tierEvaluation.recommendedTier];
   
   console.log(`[Smart Generation] Text Priority Analysis:`, {
     isTextPriority: textPriorityAnalysis.isTextPriority,
@@ -967,7 +1275,11 @@ export const generateImageSmart = async (
   } else {
     mode = 'cinematic';
     console.log(`[Smart Generation] Using CINEMATIC mode - full enhancement pipeline`);
-    enhancedPrompt = await enhanceStyle(userPrompt, analysis, textInfo, selectedStyle, quality);
+    // Pass tier-specific thinking budget/maxWords
+    enhancedPrompt = await enhanceStyle(
+      userPrompt, analysis, textInfo, selectedStyle, quality,
+      { thinkingBudget: tierEvaluation.thinkingBudget, maxWords: tierEvaluation.maxWords }
+    );
   }
 
   const negativePrompt = getNegativePrompts(analysis, textInfo, selectedStyle);
@@ -979,59 +1291,71 @@ export const generateImageSmart = async (
   let images: GeneratedImageData[] = [];
   let modelUsed = 'gemini';
 
-  // AI Studio Model Routing (correct implementation):
-  // - Draft mode WITHOUT text → gemini-2.5-flash-image (speed optimized)
-  // - Draft mode WITH text → gemini-3-pro-image-preview (better text accuracy)
-  // - Final mode (all prompts) → Imagen 4 PRIMARY, gemini-3-pro-image-preview as fallback
-  
+  // AI Studio Model Routing with tier-aware retry/fallback
   if (quality === 'draft') {
     if (hasText) {
-      // Drafts with text need gemini-3-pro-image-preview for text accuracy
       const draftTextModel = 'gemini-3-pro-image-preview';
       console.log(`[Smart Generation] Draft mode WITH TEXT - using ${draftTextModel} for text accuracy`);
       images = await generateWithGeminiImageModel(ai, enhancedPrompt, aspectRatio, negativePrompt, numVariations, draftTextModel);
       modelUsed = draftTextModel;
     } else {
-      // Standard drafts without text use fast model
       const draftModel = 'gemini-2.5-flash-image';
       console.log(`[Smart Generation] Draft mode (no text) - using ${draftModel} for speed`);
       images = await generateWithGeminiImageModel(ai, enhancedPrompt, aspectRatio, negativePrompt, numVariations, draftModel);
       modelUsed = draftModel;
     }
   } else {
-    // Final mode: Imagen 4 is PRIMARY for ALL generation (including text prompts)
-    console.log(`[Smart Generation] Final mode - Imagen 4 PRIMARY (hasText: ${hasText})`);
+    // Final mode with tier-aware retry logic
+    console.log(`[Smart Generation] Final mode - Imagen 4 PRIMARY (tier: ${tierEvaluation.recommendedTier}, retries: ${tierConfig.imagenRetries})`);
     
-    try {
-      const imagenResults = await generateWithImagen(enhancedPrompt, {
-        model: 'imagen-4.0-generate-001',
-        aspectRatio,
-        numberOfImages: numVariations,
-        negativePrompt
-      });
+    let delay = tierConfig.imagenRetryDelay;
+    
+    for (let attempt = 0; attempt < tierConfig.imagenRetries; attempt++) {
+      try {
+        const imagenResults = await generateWithImagen(enhancedPrompt, {
+          model: 'imagen-4.0-generate-001',
+          aspectRatio,
+          numberOfImages: numVariations,
+          negativePrompt
+        });
 
-      images = imagenResults.map(r => ({
-        url: `data:${r.mimeType};base64,${r.base64}`,
-        prompt: enhancedPrompt,
-        base64Data: r.base64,
-        mimeType: r.mimeType
-      }));
+        images = imagenResults.map(r => ({
+          url: `data:${r.mimeType};base64,${r.base64}`,
+          prompt: enhancedPrompt,
+          base64Data: r.base64,
+          mimeType: r.mimeType
+        }));
 
-      modelUsed = 'imagen-4.0-generate-001';
-      console.log(`[Smart Generation] Imagen 4 succeeded - ${images.length} images`);
-    } catch (imagenError: any) {
-      console.warn(`[Smart Generation] Imagen 4 failed:`, imagenError.message);
-      
-      // Re-throw permission/auth errors - don't fallback for those
-      if (imagenError.message?.includes("PERMISSION_DENIED") || imagenError.message?.includes("API key expired")) {
-        throw imagenError;
+        if (images.length > 0) {
+          modelUsed = 'imagen-4.0-generate-001';
+          console.log(`[Smart Generation] Imagen 4 succeeded on attempt ${attempt + 1} - ${images.length} images`);
+          break;
+        }
+      } catch (imagenError: any) {
+        const errorMessage = imagenError.message || imagenError.toString();
+        const isRetryable = errorMessage.includes('429') || 
+                           errorMessage.includes('RESOURCE_EXHAUSTED') ||
+                           errorMessage.includes('rate limit') ||
+                           errorMessage.includes('quota');
+        
+        if (!isRetryable || attempt === tierConfig.imagenRetries - 1) {
+          console.warn(`[Smart Generation] Imagen 4 failed (attempt ${attempt + 1}/${tierConfig.imagenRetries}):`, errorMessage);
+          if (errorMessage.includes("PERMISSION_DENIED") || errorMessage.includes("API key expired")) {
+            throw imagenError;
+          }
+          break;
+        }
+        
+        console.warn(`[Smart Generation] Imagen 4 rate limited, retrying in ${delay}ms... (attempt ${attempt + 1}/${tierConfig.imagenRetries})`);
+        await sleep(delay);
+        delay = Math.min(delay * 2, tierConfig.imagenMaxDelay);
       }
     }
 
-    // Text-aware fallback: use gemini-3-pro for text prompts, flash for non-text
+    // Tier-aware fallback model selection
     if (images.length === 0) {
-      const fallbackModel = hasText ? 'gemini-3-pro-image-preview' : 'gemini-2.5-flash-image';
-      console.log(`[Smart Generation] Imagen 4 failed, using text-aware fallback: ${fallbackModel} (hasText: ${hasText})`);
+      const fallbackModel = hasText ? tierConfig.textFallbackModel : tierConfig.fallbackModel;
+      console.log(`[Smart Generation] Using tier-specific fallback: ${fallbackModel} (tier: ${tierEvaluation.recommendedTier})`);
       images = await generateWithGeminiImageModel(ai, enhancedPrompt, aspectRatio, negativePrompt, numVariations, fallbackModel);
       modelUsed = fallbackModel;
     }
@@ -1045,7 +1369,8 @@ export const generateImageSmart = async (
     originalPrompt: userPrompt,
     analysis,
     modelUsed,
-    negativePrompt
+    negativePrompt,
+    tierEvaluation
   };
 };
 
