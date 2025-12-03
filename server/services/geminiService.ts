@@ -160,11 +160,11 @@ export const STYLE_PRESETS: Record<string, { name: string; keywords: string; gui
   sketch: { name: "Pencil Sketch", keywords: "pencil sketch, graphite, crosshatching, detailed drawing", guidance: "Emulate detailed pencil drawings." },
 };
 
-export const QUALITY_PRESETS: Record<QualityLevel, { iterations: number; detailLevel: string }> = {
-  draft: { iterations: 1, detailLevel: "quick preview" },
-  standard: { iterations: 2, detailLevel: "balanced quality" },
-  premium: { iterations: 3, detailLevel: "high detail" },
-  ultra: { iterations: 4, detailLevel: "maximum detail and refinement" },
+export const QUALITY_PRESETS: Record<QualityLevel, { iterations: number; detailLevel: string; thinkingBudget: number; maxWords: number }> = {
+  draft: { iterations: 1, detailLevel: "quick preview", thinkingBudget: 512, maxWords: 70 },
+  standard: { iterations: 2, detailLevel: "balanced quality", thinkingBudget: 1024, maxWords: 150 },
+  premium: { iterations: 3, detailLevel: "high detail", thinkingBudget: 4096, maxWords: 200 },
+  ultra: { iterations: 4, detailLevel: "maximum detail and refinement", thinkingBudget: 8192, maxWords: 250 },
 };
 
 const NEGATIVE_LIBRARIES: Record<string, string> = {
@@ -676,40 +676,83 @@ SPELLING VERIFICATION:
         ? `Apply detected artistic style: ${ARTISTIC_STYLES[detectedArtStyle].name}. ${artStyleEnhancement}`
         : `Automatically select the most fitting artistic style based on the subject and mood.`;
 
-    const metaPrompt = `
-      You are an expert AI Art Director creating a master prompt for an advanced AI image generator.
+    // Style Architect: Different behavior for drafts vs final
+    // Drafts still get Cinematic DNA but with focus on 3 key components
+    const isDraft = quality === 'draft';
+    const maxWords = qualityConfig.maxWords;
+    const thinkingBudget = qualityConfig.thinkingBudget;
+    
+    const metaPrompt = isDraft 
+      ? `
+      You are a Style Architect creating a CONCISE prompt for fast draft iteration.
+      Thinking budget: ${thinkingBudget} tokens. Word limit: EXACTLY ${maxWords} words or less.
+
+      ### PRIME DIRECTIVES (Always Apply) ###
+      1. COMPOSITIONAL LOCK: Preserve the user's exact subject and scene
+      2. SPELLING INTEGRITY: Any text must be spelled EXACTLY as specified
+
+      ### FOCUS ON THREE KEY COMPONENTS ###
+      1. Lighting: ${lightingRecommendation}
+      2. Camera: ${camera.name} with ${lens.name}  
+      3. Color: ${colorGrade.name}
+
+      ${hasText ? `### TEXT REQUIREMENT ###\nInclude exact text: "${correctedTextInfo[0]?.text || ''}"` : ''}
+
+      ### USER'S IDEA ###
+      "${userPrompt}"
+
+      ### CONSTRAINTS ###
+      - MUST be under ${maxWords} words (count carefully!)
+      - Focus on Lighting, Camera, Color only
+      - Keep it fast and efficient
+      ${hasText ? '- Spell text exactly as specified' : ''}
+
+      Return ONLY the prompt text (${maxWords} words max).
+    `.trim()
+      : `
+      You are an expert AI Art Director (Style Architect) creating a master prompt.
+      Thinking budget: ${thinkingBudget} tokens. Word limit: EXACTLY ${maxWords} words or less.
+
+      ### PRIME DIRECTIVES (Non-Negotiable) ###
+      1. COMPOSITIONAL LOCK: Preserve the user's exact subject and scene structure
+      2. EMOTIONAL DIRECTIVE: Maintain the intended mood and atmosphere
+      3. UNIVERSAL PHYSICALITY: All elements must obey realistic physics and lighting
+      4. SPELLING INTEGRITY: Any text must be spelled EXACTLY as specified
 
       ${CINEMATIC_DNA}
 
-      **CINEMATIC DNA ENHANCEMENT (Apply These):**
+      ### CINEMATIC DNA ENHANCEMENT ###
       ${cinematicDNA}
 
-      **RECOMMENDED LIGHTING:** ${lightingRecommendation}
-      **RECOMMENDED COLOR GRADE:** ${colorGrade.name} - ${colorGrade.keywords.join(', ')}
-      **RECOMMENDED CAMERA:** ${camera.name} with ${lens.name}
+      ### TECHNICAL RECOMMENDATIONS ###
+      - Lighting: ${lightingRecommendation}
+      - Color Grade: ${colorGrade.name} (${colorGrade.keywords.join(', ')})
+      - Camera: ${camera.name} with ${lens.name}
 
-      **PRIME DIRECTIVE: TEXT CONTROL - CRITICAL**
+      ### TEXT CONTROL ###
       ${textInstruction}
 
-      **STYLE INSTRUCTION:**
+      ### STYLE ###
       ${stylePromptInstruction}
 
-      **QUALITY LEVEL:** ${quality} - ${qualityConfig.detailLevel}
+      ### USER'S CORE IDEA ###
+      "${userPrompt}"
 
-      **USER'S CORE IDEA:** "${userPrompt}"
-      **ANALYSIS:** Subject: ${analysis.subject.primary}, Mood: ${analysis.mood.primary}, Lighting: ${analysis.lighting.scenario}, Style Intent: ${analysis.style_intent}
+      ### ANALYSIS ###
+      Subject: ${analysis.subject.primary}, Mood: ${analysis.mood.primary}
+      Lighting: ${analysis.lighting.scenario}, Style Intent: ${analysis.style_intent}
 
-      **YOUR TASK:**
-      Create an enhanced prompt that:
-      1. Preserves the user's core idea exactly
-      2. Applies ALL Cinematic DNA principles for Hollywood-quality output
-      3. Uses the recommended lighting, color grade, and camera specifications
-      4. Uses specific, technical photography/cinematography terms
-      5. Keeps the prompt under 200 words
-      6. Follows the text and style instructions precisely
-      7. If text is required, emphasize EXACT spelling character by character
+      ### YOUR TASK ###
+      Synthesize a MASTER PROMPT that:
+      1. MUST be under ${maxWords} words (count carefully!)
+      2. Preserves the user's core idea with absolute fidelity
+      3. Applies ALL Cinematic DNA components for Hollywood-quality output
+      4. Uses the recommended lighting, color grade, and camera specs
+      5. Uses specific, technical cinematography terminology
+      6. Follows Prime Directives strictly
+      7. If text required, spell out each word letter-by-letter
 
-      Return ONLY the enhanced prompt text, nothing else.
+      Return ONLY the enhanced prompt text (${maxWords} words max).
     `.trim();
 
     const response = await withRetry(() => ai.models.generateContent({
@@ -847,13 +890,26 @@ export const analyzeImage = async (base64Data: string, mimeType: string): Promis
   const ai = getAIClient();
 
   try {
+    // Use gemini-2.5-flash for image analysis (Remix feature)
+    // This model has vision capabilities for reverse-engineering prompts from images
     const response = await withRetry(() => ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: [
         {
           role: 'user',
           parts: [
-            { text: 'Analyze this image and create a detailed prompt that could recreate it. Focus on subject, style, lighting, colors, composition, and mood. Return only the prompt text.' },
+            { text: `Analyze this image and create a detailed, descriptive text prompt that could be used to recreate a similar image.
+
+Focus on:
+1. Subject: What is the main subject? Describe in detail.
+2. Style: What artistic or photographic style is used?
+3. Lighting: Describe the lighting setup and quality.
+4. Colors: What is the color palette and mood?
+5. Composition: How is the image composed? Camera angle, framing?
+6. Atmosphere: What mood or emotion does the image convey?
+7. Technical details: Any specific effects, textures, or post-processing?
+
+Return ONLY the descriptive prompt text that could recreate this image, nothing else.` },
             { inlineData: { mimeType, data: base64Data } }
           ]
         }
