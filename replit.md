@@ -6,6 +6,24 @@ An advanced AI-powered image generation application featuring a sophisticated 5-
 ## Recent Changes
 
 ### December 3, 2025 (Latest)
+- **Auto-Scaling Tier System**
+  - Intelligent tier selection based on prompt complexity (Standard/Premium/Ultra)
+  - Automatic upgrade for text-heavy, multilingual, and complex style prompts
+  - User-friendly notifications without exposing model names
+  - Tier Lock override control in settings UI
+  - Complexity scoring: text density, multilingual scripts, style demands
+
+- **Tier Selection Criteria**:
+  - Text detection: quoted text, text instructions (+30-50 points)
+  - Multilingual scripts: Japanese, Chinese, Korean, Arabic, Hebrew, Thai, Hindi, Russian, Greek (+25-35 points)
+  - Complex styles: hyperrealistic, cinematic, fine art, etc. (+10-40 points)
+  - Score thresholds: 0-30=Standard, 31-60=Premium, 61+=Ultra
+
+- **User Notifications**:
+  - Toast notifications for tier upgrades/downgrades
+  - Shows complexity score and reason for tier change
+  - Blue for upgrades, amber for downgrades
+
 - **Complete AI Studio Feature Parity**
   - Exponential backoff with 5 retries before fallback for Imagen 4
   - Quality presets with thinking budgets (Draft=512, Standard=1024, Premium=4096, Ultra=8192)

@@ -291,7 +291,8 @@ export default function ImageGenerator() {
     useDraftToFinal: false,
     artisticStyle: "auto",
     model: "imagen4" as "gemini" | "imagen4" | "imagen4fast" | "imagen3",
-    imagenModel: "imagen-4.0-generate-001" as string
+    imagenModel: "imagen-4.0-generate-001" as string,
+    tierOverride: "auto" as "auto" | "standard" | "premium" | "ultra"
   });
   const [artisticStyles, setArtisticStyles] = useState<ArtisticStyle[]>([]);
   const [showAdvancedPanel, setShowAdvancedPanel] = useState(false);
@@ -491,7 +492,8 @@ export default function ImageGenerator() {
           enableRefiner: settings.refiner,
           refinerPreset: settings.refinerPreset,
           artisticStyle: settings.artisticStyle,
-          useDraftToFinal: settings.useDraftToFinal
+          useDraftToFinal: settings.useDraftToFinal,
+          tierOverride: settings.tierOverride !== 'auto' ? settings.tierOverride : undefined
         };
       }
 
@@ -561,6 +563,20 @@ export default function ImageGenerator() {
 
       const modeLabel = generationMode === 'typographic' ? 'Text-Priority Mode' : 
                         generationMode === 'cinematic' ? 'Cinematic Mode' : '';
+      
+      // Show tier auto-scaling notification if tier was adjusted
+      if (data.tierEvaluation?.wasAutoAdjusted) {
+        const tierIcon = data.tierEvaluation.adjustmentDirection === 'upgraded' ? '⬆️' : '⬇️';
+        const tierColor = data.tierEvaluation.adjustmentDirection === 'upgraded' 
+          ? 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-900/20 dark:border-blue-900/50 dark:text-blue-400'
+          : 'bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-900/20 dark:border-amber-900/50 dark:text-amber-400';
+        
+        toast({
+          title: `${tierIcon} ${data.tierEvaluation.userMessage}`,
+          description: `Complexity: ${data.tierEvaluation.complexityScore}/100`,
+          className: tierColor,
+        });
+      }
       
       toast({
         title: "Image Generated!",
@@ -946,6 +962,52 @@ export default function ImageGenerator() {
                                   </button>
                                 </TooltipTrigger>
                                 <TooltipContent side="bottom"><p>{q.tooltip}</p></TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Tier Lock (Auto-scaling override) */}
+                      <div className="space-y-1.5 min-w-[140px]">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block px-0.5 cursor-help flex items-center gap-1">
+                                Tier Lock
+                                <Info className="h-2.5 w-2.5 opacity-50" />
+                              </label>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-[200px]">
+                              <p>Auto: System picks the best tier based on your prompt. Lock to override.</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        <div className="flex gap-1">
+                          {[
+                            { id: "auto", name: "Auto", tooltip: "Let AI pick the best tier" },
+                            { id: "standard", name: "Std", tooltip: "Force Standard tier" },
+                            { id: "premium", name: "Pro", tooltip: "Force Premium tier" },
+                            { id: "ultra", name: "Ultra", tooltip: "Force Ultra tier" }
+                          ].map(tier => (
+                            <TooltipProvider key={tier.id}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={() => setSettings({...settings, tierOverride: tier.id as typeof settings.tierOverride})}
+                                    className={cn(
+                                      "flex-1 h-9 rounded-lg flex items-center justify-center transition-all border px-1.5",
+                                      settings.tierOverride === tier.id 
+                                        ? tier.id === 'auto' 
+                                          ? "bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-blue-500/30 text-blue-600 dark:text-blue-400 shadow-sm"
+                                          : "bg-background border-primary/50 text-primary shadow-sm" 
+                                        : "bg-background/50 border-transparent text-muted-foreground hover:bg-background hover:text-foreground"
+                                    )}
+                                  >
+                                    <span className="text-[8px] font-medium">{tier.name}</span>
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="bottom"><p>{tier.tooltip}</p></TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
                           ))}

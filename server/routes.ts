@@ -14,7 +14,8 @@ import {
   QUALITY_PRESETS,
   performDeepAnalysis,
   draftToFinalWorkflow,
-  generateIterativeEditPrompt
+  generateIterativeEditPrompt,
+  evaluatePromptTier
 } from "./services/geminiService";
 import { 
   runMultiAgentPipeline, 
@@ -28,7 +29,7 @@ import {
   checkImagenStatus,
   type ImagenModel
 } from "./services/imagen3Service";
-import type { GenerateImageRequest, GenerateImageResponse, QualityLevel } from "../shared/imageGenTypes";
+import type { GenerateImageRequest, GenerateImageResponse, QualityLevel, ModelTier } from "../shared/imageGenTypes";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -72,7 +73,8 @@ export async function registerRoutes(
           confidence: smartResult.textPriorityAnalysis.confidence,
           detectedLanguages: smartResult.textPriorityAnalysis.detectedLanguages,
           extractedTexts: smartResult.textPriorityAnalysis.extractedTexts
-        } : undefined
+        } : undefined,
+        tierEvaluation: smartResult.tierEvaluation
       };
 
       res.json(response);
@@ -119,26 +121,41 @@ export async function registerRoutes(
         return res.status(400).json({ success: false, error: "Invalid request body" });
       }
 
-      const { prompt, style, quality, aspectRatio, variations, useMultiAgent } = req.body as GenerateImageRequest & { useMultiAgent?: boolean };
+      const { prompt, style, quality, aspectRatio, variations, useMultiAgent, tierOverride } = req.body as GenerateImageRequest & { useMultiAgent?: boolean; tierOverride?: ModelTier };
 
       if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
         return res.status(400).json({ success: false, error: "Prompt is required" });
       }
+
+      const qualityLevel = (quality || 'standard') as QualityLevel;
+      
+      // Auto-scaling tier evaluation
+      const tierEvaluation = evaluatePromptTier(prompt.trim(), qualityLevel, tierOverride);
+      console.log(`[Tier System] ${tierEvaluation.userMessage} (complexity: ${tierEvaluation.complexityScore}/100)`);
 
       const { textInfo, analysis } = await performInitialAnalysis(prompt.trim(), true);
 
       let enhancedPrompt: string;
       let agentInfo: any = null;
 
-      const qualityLevel = (quality || 'standard') as QualityLevel;
-      const shouldUseMultiAgent = useMultiAgent || qualityLevel === 'premium' || qualityLevel === 'ultra';
+      // Use tier-based decision for multi-agent pipeline
+      const effectiveTier = tierEvaluation.recommendedTier;
+      const shouldUseMultiAgent = useMultiAgent || effectiveTier === 'premium' || effectiveTier === 'ultra';
 
       if (shouldUseMultiAgent) {
+        // Map tier to quality level for multi-agent pipeline
+        const tierToQuality: Record<ModelTier, QualityLevel> = {
+          standard: 'standard',
+          premium: 'premium',
+          ultra: 'ultra'
+        };
+        const effectiveQuality = tierToQuality[effectiveTier];
+        
         const multiAgentResult = await runMultiAgentPipeline(
           prompt.trim(),
           analysis,
           style || 'auto',
-          qualityLevel
+          effectiveQuality
         );
         enhancedPrompt = multiAgentResult.finalPrompt;
         agentInfo = {
@@ -155,14 +172,23 @@ export async function registerRoutes(
           analysis,
           textInfo,
           style || 'auto',
-          qualityLevel
+          qualityLevel,
+          { thinkingBudget: tierEvaluation.thinkingBudget, maxWords: tierEvaluation.maxWords }
         );
       }
 
+      // Detect if prompt has text for fallback model selection
+      const hasTextContent = textInfo.length > 0 || tierEvaluation.reasons.some(r => r.code === 'text_detected');
+      
       const images = await generateImage(
         enhancedPrompt,
         aspectRatio || '1:1',
-        Math.min(Math.max(variations || 1, 1), 4)
+        Math.min(Math.max(variations || 1, 1), 4),
+        {
+          hasText: hasTextContent,
+          quality: qualityLevel,
+          tier: tierEvaluation.recommendedTier
+        }
       );
 
       const response: GenerateImageResponse = {
@@ -170,6 +196,7 @@ export async function registerRoutes(
         images,
         enhancedPrompt,
         analysis,
+        tierEvaluation,
         ...(agentInfo && { agentInfo })
       };
 

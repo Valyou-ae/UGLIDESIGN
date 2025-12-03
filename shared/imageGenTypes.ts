@@ -79,6 +79,27 @@ export type VariationCount = 1 | 2 | 4;
 
 export type QualityLevel = 'draft' | 'standard' | 'premium' | 'ultra';
 
+// Auto-scaling tier system - user-friendly names instead of model names
+export type ModelTier = 'standard' | 'premium' | 'ultra';
+
+export interface TierReasonCode {
+  code: 'simple_prompt' | 'text_detected' | 'multilingual' | 'complex_style' | 'high_fidelity' | 'user_override';
+  weight: number;
+  description: string;
+}
+
+export interface TierEvaluation {
+  recommendedTier: ModelTier;
+  originalTier: ModelTier;
+  wasAutoAdjusted: boolean;
+  adjustmentDirection: 'upgraded' | 'downgraded' | 'none';
+  reasons: TierReasonCode[];
+  complexityScore: number; // 0-100
+  thinkingBudget: number;
+  maxWords: number;
+  userMessage: string; // Friendly message for the user
+}
+
 export interface PromptAnalysis {
   subject: {
     primary: string;
@@ -140,6 +161,7 @@ export interface GenerateImageResponse {
   generationMode?: 'cinematic' | 'typographic';
   modelUsed?: string;
   textPriorityInfo?: TextPriorityInfo;
+  tierEvaluation?: TierEvaluation; // Auto-scaling tier info
 }
 
 export const ASPECT_RATIO_DIMENSIONS: Record<string, { width: number; height: number }> = {
