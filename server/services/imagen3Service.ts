@@ -3,6 +3,39 @@ import { GoogleGenAI } from "@google/genai";
 const PRIMARY_API_KEY = process.env.GOOGLE_AI_API_KEY || '';
 const FALLBACK_API_KEY = process.env.GOOGLE_AI_API_KEY_FALLBACK || '';
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+async function withExponentialBackoff<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 5,
+  initialDelay: number = 1000
+): Promise<T> {
+  let delay = initialDelay;
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      const errorMessage = error.message || error.toString();
+      const isRetryable = 
+        errorMessage.includes('429') || 
+        errorMessage.includes('RESOURCE_EXHAUSTED') ||
+        errorMessage.includes('rate limit') ||
+        errorMessage.includes('quota');
+      
+      if (!isRetryable || attempt === maxRetries - 1) {
+        throw error;
+      }
+      
+      console.log(`[Imagen] Rate limited, retry ${attempt + 1}/${maxRetries} after ${delay}ms...`);
+      await sleep(delay);
+      delay = Math.min(delay * 2, 32000);
+    }
+  }
+  
+  throw new Error('Max retries exceeded');
+}
+
 export type ImagenModel = 'imagen-4.0-generate-001' | 'imagen-4.0-fast-generate-001' | 'imagen-3.0-generate-002';
 
 export interface ImagenModelInfo {
@@ -110,15 +143,18 @@ export const generateWithImagen = async (
   const tryGenerate = async (useFallback: boolean): Promise<{ base64: string; mimeType: string; model: string }[]> => {
     const ai = getImagenClient(useFallback);
     
-    const response = await ai.models.generateImages({
-      model: model,
-      prompt: prompt,
-      config: {
-        numberOfImages: numberOfImages,
-        aspectRatio: aspectRatio as "1:1" | "3:4" | "4:3" | "9:16" | "16:9",
-        ...(negativePrompt && { negativePrompt }),
-      }
-    });
+    // Use exponential backoff with 5 retries for rate limit errors
+    const response = await withExponentialBackoff(async () => {
+      return await ai.models.generateImages({
+        model: model,
+        prompt: prompt,
+        config: {
+          numberOfImages: numberOfImages,
+          aspectRatio: aspectRatio as "1:1" | "3:4" | "4:3" | "9:16" | "16:9",
+          ...(negativePrompt && { negativePrompt }),
+        }
+      });
+    }, 5, 1000);
 
     if (!response.generatedImages || response.generatedImages.length === 0) {
       throw new Error(`${IMAGEN_MODELS[model].name} did not return any images`);
@@ -128,7 +164,6 @@ export const generateWithImagen = async (
     
     for (const generatedImage of response.generatedImages) {
       if (generatedImage.image?.imageBytes) {
-        // imageBytes is already base64-encoded in the JS SDK, use directly
         const base64 = generatedImage.image.imageBytes as string;
         results.push({
           base64,

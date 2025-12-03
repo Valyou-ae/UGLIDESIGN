@@ -5,19 +5,39 @@ An advanced AI-powered image generation application featuring a sophisticated 5-
 
 ## Recent Changes
 
-### December 2, 2025 (Latest)
+### December 3, 2025 (Latest)
+- **Complete AI Studio Feature Parity**
+  - Exponential backoff with 5 retries before fallback for Imagen 4
+  - Quality presets with thinking budgets (Draft=512, Standard=1024, Premium=4096, Ultra=8192)
+  - Style Architect with dual behavior (light for drafts, deep synthesis for final)
+  - Letter-by-letter spelling enhancement for text accuracy
+
+- **Exponential Backoff System**
+  - 5 retries with exponential delay (1s → 2s → 4s → 8s → 16s, max 32s)
+  - Retries on 429, RESOURCE_EXHAUSTED, rate limit, quota errors
+  - Only falls back after all retries fail
+
+- **Quality Presets with Thinking Budgets**:
+  - Draft: 512 tokens, 70 words max (light enhancement)
+  - Standard: 1024 tokens, 150 words max
+  - Premium: 4096 tokens, 200 words max
+  - Ultra: 8192 tokens, 250 words max (deep synthesis)
+
+- **Style Architect Dual Behavior**:
+  - Drafts: Focus on Lighting/Camera/Color, Prime Directives, under 70 words
+  - Final: Full Cinematic DNA, all Prime Directives, deep multi-stage synthesis
+
+### December 2, 2025
 - **AI Studio-Aligned Model Routing System**
-  - Replicates exact Google AI Studio implementation for optimal generation
   - Imagen 4 is PRIMARY for all final image generation (including text prompts)
   - gemini-3-pro-image-preview used as high-quality fallback and for drafts-with-text
-  - Removed text overlay approach (doesn't match AI Studio quality)
   
-- **AI Studio Model Routing (Correct Implementation)**:
+- **AI Studio Model Routing**:
   - Final mode (all prompts) → `imagen-4.0-generate-001` (PRIMARY)
-  - Final fallback WITH text → `gemini-3-pro-image-preview` (high-fidelity text)
-  - Final fallback WITHOUT text → `gemini-2.5-flash-image` (speed/cost efficient)
-  - Draft mode WITH text → `gemini-3-pro-image-preview` (better text accuracy)
-  - Draft mode WITHOUT text → `gemini-2.5-flash-image` (speed optimized)
+  - Final fallback WITH text → `gemini-3-pro-image-preview`
+  - Final fallback WITHOUT text → `gemini-2.5-flash-image`
+  - Draft mode WITH text → `gemini-3-pro-image-preview`
+  - Draft mode WITHOUT text → `gemini-2.5-flash-image`
 
 - **Text Priority Detection**
   - Intelligent detection of text-heavy and multilingual prompts
