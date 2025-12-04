@@ -1180,7 +1180,7 @@ async function generateWithGeminiImageModel(
       const response: any = await withRetry(() => ai.models.generateContent({
         model: modelName,
         contents: [{ role: 'user', parts }],
-        config: { responseModalities: ['image', 'text'], imageConfig: { aspectRatio } }
+        config: { responseModalities: ['TEXT', 'IMAGE'], imageConfig: { aspectRatio } }
       }));
 
       for (const part of response.candidates?.[0]?.content?.parts || []) {
