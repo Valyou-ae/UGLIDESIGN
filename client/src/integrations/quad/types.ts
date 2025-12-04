@@ -40,6 +40,8 @@ export interface GeneratedImage {
   finalText?: string;
   finalBackground?: string;
   textStyleIntent?: TextStyleIntent;
+  textAccuracy?: number;
+  aestheticsScore?: number;
 }
 
 export interface TextPhysicalProperties {
