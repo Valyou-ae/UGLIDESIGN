@@ -159,6 +159,117 @@ export const generateImage = async (
 ): Promise<GeneratedImage[]> => {
   const results: GeneratedImage[] = [];
   
+  // AI Curation mode: Use Text Integrity Agent when enabled AND text is detected
+  const hasTextContent = textInfo.length > 0;
+  const useTextIntegrity = useCuratedSelection && hasTextContent;
+  
+  if (useTextIntegrity) {
+    if (progressCallback) {
+      progressCallback('AI Curation enabled: Generating 8 candidates with OCR validation...');
+    }
+    
+    try {
+      const expectedTexts = textInfo.map(t => t.text);
+      console.log('[QUAD] Using Text Integrity Agent with expected texts:', expectedTexts);
+      
+      const response = await fetch('/api/generate-with-text-integrity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: stylePrompt,
+          expectedTexts,
+          aspectRatio,
+          style: 'auto',
+          quality,
+          candidateCount: 8
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || 'Text Integrity generation failed');
+      }
+      
+      const data = await response.json();
+      
+      if (progressCallback) {
+        const accuracyPct = data.accuracyPercent || 0;
+        const aestheticsPct = data.aestheticsPercent || 0;
+        progressCallback(`AI Curation complete: ${accuracyPct}% text accuracy, ${aestheticsPct}% aesthetics`);
+      }
+      
+      console.log('[QUAD] Text Integrity result:', {
+        accuracy: data.accuracyPercent,
+        aesthetics: data.aestheticsPercent,
+        attemptsNeeded: data.attemptsNeeded,
+        modelUsed: data.modelUsed
+      });
+      
+      // Extract best image from result
+      if (data.image) {
+        let imageUrl: string;
+        let base64Data: string;
+        let mimeType: string = 'image/png';
+        
+        if (typeof data.image === 'string') {
+          imageUrl = data.image.startsWith('data:') ? data.image : `data:image/png;base64,${data.image}`;
+          base64Data = data.image.replace(/^data:image\/[^;]+;base64,/, '');
+        } else if (typeof data.image === 'object') {
+          mimeType = data.image.mimeType || 'image/png';
+          if (data.image.url) {
+            imageUrl = data.image.url;
+            base64Data = data.image.base64Data || data.image.url.replace(/^data:image\/[^;]+;base64,/, '');
+          } else if (data.image.base64Data) {
+            base64Data = data.image.base64Data;
+            imageUrl = `data:${mimeType};base64,${base64Data}`;
+          } else {
+            console.warn('[QUAD] Text Integrity returned success but image missing data, falling back');
+            throw new Error('Image object missing required data');
+          }
+        } else {
+          console.warn('[QUAD] Text Integrity returned unexpected image format, falling back');
+          throw new Error('Unexpected image format in response');
+        }
+        
+        const image: GeneratedImage = {
+          url: imageUrl,
+          prompt: stylePrompt,
+          base64Data,
+          mimeType,
+          textAccuracy: data.accuracy,
+          aestheticsScore: data.aesthetics,
+        };
+        
+        results.push(image);
+        
+        if (onDraftGenerated) {
+          onDraftGenerated(image, 0, 1);
+        }
+        
+        // Log any complexity warnings from Text Integrity
+        if (data.complexityWarnings && data.complexityWarnings.length > 0) {
+          console.log('[QUAD] Text Integrity warnings:', data.complexityWarnings);
+        }
+        
+        return results;
+      } else {
+        // No image in response despite success - fall through to standard generation
+        console.warn('[QUAD] Text Integrity returned success but no image, falling back to standard generation');
+        if (progressCallback) {
+          progressCallback('AI Curation returned no result, using standard generation...');
+        }
+        // Don't return - fall through to standard generation loop
+      }
+    } catch (error: any) {
+      console.error('[QUAD] Text Integrity Agent failed, falling back to standard generation:', error.message);
+      if (progressCallback) {
+        progressCallback('AI Curation failed, using standard generation...');
+      }
+      // Fall through to standard generation
+    }
+  }
+  
+  // Standard generation loop
   for (let i = 0; i < numberOfVariations; i++) {
     if (progressCallback) {
       progressCallback(`Generating image ${i + 1} of ${numberOfVariations}...`);
