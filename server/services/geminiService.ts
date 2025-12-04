@@ -1406,21 +1406,17 @@ export const generateImageSmart = async (
   let modelUsed = 'gemini';
 
   // AI Studio Model Routing with tier-aware retry/fallback
-  if (quality === 'draft') {
-    if (hasText) {
-      const draftTextModel = 'gemini-2.5-flash-image';
-      console.log(`[Smart Generation] Draft mode WITH TEXT - using ${draftTextModel}`);
-      images = await generateWithGeminiImageModel(ai, enhancedPrompt, aspectRatio, negativePrompt, numVariations, draftTextModel);
-      modelUsed = draftTextModel;
-    } else {
-      const draftModel = 'gemini-2.5-flash-image';
-      console.log(`[Smart Generation] Draft mode (no text) - using ${draftModel} for speed`);
-      images = await generateWithGeminiImageModel(ai, enhancedPrompt, aspectRatio, negativePrompt, numVariations, draftModel);
-      modelUsed = draftModel;
-    }
+  // For TEXT-HEAVY prompts: Always try Imagen 4 first (even in draft) for better text accuracy
+  // For non-text prompts in draft mode: Use gemini-2.5-flash-image for speed
+  if (quality === 'draft' && !hasText) {
+    const draftModel = 'gemini-2.5-flash-image';
+    console.log(`[Smart Generation] Draft mode (no text) - using ${draftModel} for speed`);
+    images = await generateWithGeminiImageModel(ai, enhancedPrompt, aspectRatio, negativePrompt, numVariations, draftModel);
+    modelUsed = draftModel;
   } else {
-    // Final mode with tier-aware retry logic
-    console.log(`[Smart Generation] Final mode - Imagen 4 PRIMARY (tier: ${tierEvaluation.recommendedTier}, retries: ${tierConfig.imagenRetries})`);
+    // For TEXT-HEAVY prompts (draft or final) AND final non-text: Use Imagen 4 PRIMARY
+    const modeDesc = quality === 'draft' ? 'Draft WITH TEXT' : 'Final';
+    console.log(`[Smart Generation] ${modeDesc} mode - Imagen 4 PRIMARY for text accuracy (tier: ${tierEvaluation.recommendedTier}, retries: ${tierConfig.imagenRetries})`);
     
     let delay = tierConfig.imagenRetryDelay;
     
@@ -1466,7 +1462,7 @@ export const generateImageSmart = async (
       }
     }
 
-    // Tier-aware fallback model selection
+    // Tier-aware fallback model selection (only if Imagen 4 failed)
     if (images.length === 0) {
       const fallbackModel = hasText ? tierConfig.textFallbackModel : tierConfig.fallbackModel;
       console.log(`[Smart Generation] Using tier-specific fallback: ${fallbackModel} (tier: ${tierEvaluation.recommendedTier})`);
