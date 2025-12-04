@@ -6,6 +6,15 @@ An advanced AI-powered image generation application featuring a sophisticated 5-
 ## Recent Changes
 
 ### December 4, 2025 (Latest)
+- **QUAD Integration (/studio1)**
+  - Integrated QUAD repo (Quad-Agent Image Studio V1.5) as separate testing page
+  - Complete isolation from existing /studio page
+  - Located at `client/src/integrations/quad/`
+  - Uses existing backend API endpoints (not direct Google API calls)
+  - Components: QuadApp, LiveBrainstorm, KnowledgeBaseModal
+  - Services: geminiService (adapted), refinerService, qualityLearningService
+  - Features: Master Refiner with multiple presets, voice brainstorming, quality learning
+
 - **Critical Text Detection Fix**
   - Fixed typographic mode not triggering for text-heavy prompts
   - Root cause: `hasText` relied on LLM-derived analysis which often missed text
@@ -167,6 +176,9 @@ An advanced AI-powered image generation application featuring a sophisticated 5-
 
 ### Frontend
 - `client/src/pages/image-generator.tsx` - Main image generator UI
+- `client/src/pages/studio.tsx` - AI Studio test page (primary)
+- `client/src/pages/studio1.tsx` - QUAD integration test page (isolated)
+- `client/src/integrations/quad/` - QUAD repo integration
 - `client/src/services/` - Frontend services for API communication
 
 ### Shared Types
