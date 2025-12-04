@@ -133,6 +133,18 @@ export const getNegativePrompts = (
   return negatives.join(', ');
 };
 
+export interface ImageGenerationErrorDetails {
+  message: string;
+  model?: string;
+  tier?: string;
+  attempt?: number;
+  totalAttempts?: number;
+  fallbackAttempted?: boolean;
+  isRetryable?: boolean;
+  attemptHistory?: string[];
+  imagenTriedAtLeastOnce?: boolean;
+}
+
 export const generateImage = async (
   stylePrompt: string,
   textInfo: DetectedTextInfo[],
@@ -166,8 +178,41 @@ export const generateImage = async (
         }),
       });
       
+      // Check response.ok BEFORE parsing JSON to handle non-JSON error responses
       if (!response.ok) {
-        throw new Error('Image generation failed');
+        let errorDetails: ImageGenerationErrorDetails = { message: 'Unknown error' };
+        try {
+          const errorData = await response.json();
+          errorDetails = errorData.errorDetails || { message: errorData.error || 'Unknown error' };
+        } catch {
+          // Response wasn't JSON (network error, HTML error page, etc.)
+          errorDetails = { message: `Server error (${response.status}): ${response.statusText}` };
+        }
+        
+        const errorMessage = `Image generation failed: ${errorDetails.message}`;
+        
+        console.error(`[QUAD] Generation error for image ${i + 1}:`, {
+          error: errorDetails.message,
+          model: errorDetails.model || 'unknown',
+          tier: errorDetails.tier || 'unknown',
+          attempt: errorDetails.attempt,
+          totalAttempts: errorDetails.totalAttempts,
+          fallbackAttempted: errorDetails.fallbackAttempted,
+          attemptHistory: errorDetails.attemptHistory
+        });
+        
+        if (errorDetails.attemptHistory && errorDetails.attemptHistory.length > 0) {
+          console.error(`[QUAD] Attempt history:`, errorDetails.attemptHistory);
+        }
+        
+        if (progressCallback) {
+          const modelInfo = errorDetails.model && errorDetails.model !== 'unknown' ? ` (${errorDetails.model})` : '';
+          const attemptInfo = errorDetails.attempt ? ` after ${errorDetails.attempt} attempts` : '';
+          const fallbackInfo = errorDetails.fallbackAttempted ? ' [fallback also failed]' : '';
+          progressCallback(`Error${modelInfo}${attemptInfo}${fallbackInfo}: ${errorDetails.message.substring(0, 80)}`);
+        }
+        
+        throw new Error(errorMessage);
       }
       
       const data = await response.json();
@@ -186,9 +231,28 @@ export const generateImage = async (
         if (onDraftGenerated) {
           onDraftGenerated(image, i, numberOfVariations);
         }
+      } else if (data.images && data.images.length > 0) {
+        // Handle array response format
+        const imageData = data.images[0];
+        const base64Data = imageData.base64Data || imageData.url?.replace(/^data:image\/[^;]+;base64,/, '') || '';
+        const image: GeneratedImage = {
+          url: imageData.url || `data:image/png;base64,${base64Data}`,
+          prompt: stylePrompt,
+          base64Data,
+          mimeType: imageData.mimeType || 'image/png',
+        };
+        
+        results.push(image);
+        
+        if (onDraftGenerated) {
+          onDraftGenerated(image, i, numberOfVariations);
+        }
+      } else {
+        console.warn(`[QUAD] No image in response for variation ${i + 1}`);
       }
-    } catch (error) {
-      console.error(`Error generating image ${i + 1}:`, error);
+    } catch (error: any) {
+      console.error(`[QUAD] Error generating image ${i + 1}:`, error.message || error);
+      // Continue to next variation instead of stopping entirely
     }
   }
   

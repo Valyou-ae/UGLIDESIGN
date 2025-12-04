@@ -1320,6 +1320,24 @@ async function generateWithGeminiImageModel(
   return results;
 }
 
+export interface ImageGenerationError extends Error {
+  model?: string;
+  attempt?: number;
+  totalAttempts?: number;
+  isRetryable?: boolean;
+  originalError?: any;
+  fallbackAttempted?: boolean;
+  tier?: ModelTier;
+  attemptHistory?: string[];
+  imagenTriedAtLeastOnce?: boolean;
+}
+
+export const createDetailedError = (message: string, details: Partial<ImageGenerationError>): ImageGenerationError => {
+  const error = new Error(message) as ImageGenerationError;
+  Object.assign(error, details);
+  return error;
+};
+
 export const generateImage = async (
   prompt: string,
   aspectRatio: string = '1:1',
@@ -1346,7 +1364,24 @@ export const generateImage = async (
     if (quality === 'draft') {
       const draftModel = 'gemini-2.5-flash-image';
       console.log(`[generateImage] Draft mode - using ${draftModel}`);
-      return generateWithGeminiImageModel(ai, prompt, aspectRatio, negativePrompt, numberOfVariations, draftModel);
+      try {
+        return await generateWithGeminiImageModel(ai, prompt, aspectRatio, negativePrompt, numberOfVariations, draftModel);
+      } catch (draftError: any) {
+        console.error(`[generateImage] Draft model ${draftModel} failed:`, draftError.message || draftError);
+        throw createDetailedError(
+          `Draft generation failed with ${draftModel}: ${draftError.message || 'Unknown error'}`,
+          { 
+            model: draftModel, 
+            originalError: draftError, 
+            tier,
+            imagenTriedAtLeastOnce: false,
+            fallbackAttempted: false,
+            attempt: 1,
+            totalAttempts: 1,
+            attemptHistory: [`Draft attempt: ${draftError.message || 'Unknown error'}`]
+          }
+        );
+      }
     }
 
     console.log(`[generateImage] Final mode - trying Imagen 4 first (hasText: ${hasText}, tier: ${tier})`);
@@ -1354,9 +1389,16 @@ export const generateImage = async (
     // Tier-aware retry logic for Imagen 4
     let lastError: any = null;
     let delay = tierConfig.imagenRetryDelay;
+    const allAttemptErrors: string[] = [];
+    let actualAttemptCount = 0;
+    let imagenTriedAtLeastOnce = false;
     
     for (let attempt = 0; attempt < tierConfig.imagenRetries; attempt++) {
+      actualAttemptCount = attempt + 1;
+      imagenTriedAtLeastOnce = true;
+      
       try {
+        console.log(`[generateImage] Imagen 4 attempt ${attempt + 1}/${tierConfig.imagenRetries}`);
         const imagenResults = await generateWithImagen(prompt, {
           model: 'imagen-4.0-generate-001',
           aspectRatio,
@@ -1375,18 +1417,41 @@ export const generateImage = async (
           console.log(`[generateImage] Imagen 4 succeeded on attempt ${attempt + 1} - ${results.length} images`);
           return results;
         }
+        
+        // Imagen returned empty array - treat as error
+        const emptyError = `Imagen 4 returned empty response on attempt ${attempt + 1}`;
+        allAttemptErrors.push(emptyError);
+        console.warn(`[generateImage] ${emptyError}`);
+        lastError = new Error(emptyError);
       } catch (imagenError: any) {
         lastError = imagenError;
         const errorMessage = imagenError.message || imagenError.toString();
+        allAttemptErrors.push(`Attempt ${attempt + 1}: ${errorMessage}`);
+        
         const isRetryable = errorMessage.includes('429') || 
                            errorMessage.includes('RESOURCE_EXHAUSTED') ||
                            errorMessage.includes('rate limit') ||
                            errorMessage.includes('quota');
         
+        console.warn(`[generateImage] Imagen 4 error (attempt ${attempt + 1}/${tierConfig.imagenRetries}): ${errorMessage} [retryable: ${isRetryable}]`);
+        
         if (!isRetryable || attempt === tierConfig.imagenRetries - 1) {
-          console.warn(`[generateImage] Imagen 4 failed (attempt ${attempt + 1}/${tierConfig.imagenRetries}): ${errorMessage}`);
+          console.warn(`[generateImage] Imagen 4 failed permanently after ${attempt + 1} attempts`);
           if (errorMessage.includes("PERMISSION_DENIED") || errorMessage.includes("API key expired")) {
-            throw imagenError;
+            throw createDetailedError(
+              `Imagen 4 access denied: ${errorMessage}`,
+              { 
+                model: 'imagen-4.0-generate-001', 
+                attempt: attempt + 1, 
+                totalAttempts: tierConfig.imagenRetries, 
+                isRetryable: false, 
+                originalError: imagenError, 
+                tier,
+                imagenTriedAtLeastOnce: true,
+                fallbackAttempted: false,
+                attemptHistory: allAttemptErrors
+              }
+            );
           }
           break;
         }
@@ -1399,11 +1464,50 @@ export const generateImage = async (
 
     // Tier-aware fallback model selection
     const fallbackModel = hasText ? tierConfig.textFallbackModel : tierConfig.fallbackModel;
-    console.log(`[generateImage] Using tier-specific fallback: ${fallbackModel} (tier: ${tier})`);
-    return generateWithGeminiImageModel(ai, prompt, aspectRatio, negativePrompt, numberOfVariations, fallbackModel);
-  } catch (error) {
-    console.error("Image Generation Error:", error);
-    throw error;
+    console.log(`[generateImage] Imagen 4 exhausted ${actualAttemptCount} attempts. Using fallback: ${fallbackModel} (tier: ${tier})`);
+    console.log(`[generateImage] Imagen 4 attempt history: ${allAttemptErrors.join(' | ')}`);
+    
+    try {
+      const fallbackResults = await generateWithGeminiImageModel(ai, prompt, aspectRatio, negativePrompt, numberOfVariations, fallbackModel);
+      if (fallbackResults.length > 0) {
+        console.log(`[generateImage] Fallback ${fallbackModel} succeeded - ${fallbackResults.length} images`);
+        return fallbackResults;
+      }
+      throw new Error('Fallback model returned no images');
+    } catch (fallbackError: any) {
+      console.error(`[generateImage] Fallback ${fallbackModel} also failed:`, fallbackError.message || fallbackError);
+      throw createDetailedError(
+        `All models failed. Imagen 4 (${actualAttemptCount} attempts): ${lastError?.message || 'unknown error'}. Fallback ${fallbackModel}: ${fallbackError.message || 'Unknown error'}`,
+        { 
+          model: fallbackModel, 
+          originalError: fallbackError, 
+          fallbackAttempted: true, 
+          imagenTriedAtLeastOnce,
+          tier,
+          attempt: actualAttemptCount,
+          totalAttempts: tierConfig.imagenRetries,
+          attemptHistory: allAttemptErrors
+        }
+      );
+    }
+  } catch (error: any) {
+    console.error("[generateImage] Final error:", error.message || error);
+    // Re-throw if it's already a detailed error (check multiple fields)
+    if (error.model || error.tier || error.attemptHistory || error.imagenTriedAtLeastOnce !== undefined || error.fallbackAttempted !== undefined) {
+      throw error;
+    }
+    throw createDetailedError(
+      `Image generation failed: ${error.message || 'Unknown error'}`,
+      { 
+        originalError: error, 
+        tier,
+        imagenTriedAtLeastOnce: false,
+        fallbackAttempted: false,
+        attempt: 0,
+        totalAttempts: 0,
+        attemptHistory: []
+      }
+    );
   }
 };
 

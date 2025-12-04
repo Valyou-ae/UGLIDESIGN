@@ -217,9 +217,40 @@ export async function registerRoutes(
       res.json(response);
     } catch (error: any) {
       console.error("Advanced image generation error:", error);
+      
+      // Extract and normalize detailed error information for debugging
+      // Use smart defaults based on what pathway was actually attempted
+      const imagenTriedAtLeastOnce = error.imagenTriedAtLeastOnce ?? false;
+      const fallbackAttempted = error.fallbackAttempted ?? false;
+      
+      // Determine default model based on pathway
+      let defaultModel = 'unknown';
+      if (error.model) {
+        defaultModel = error.model;
+      } else if (imagenTriedAtLeastOnce) {
+        defaultModel = fallbackAttempted ? error.model || 'gemini-2.5-flash-image' : 'imagen-4.0-generate-001';
+      } else {
+        defaultModel = 'gemini-2.5-flash-image'; // Draft mode or early failure
+      }
+      
+      const errorDetails: any = {
+        message: error.message || "Failed to generate image",
+        model: defaultModel,
+        tier: error.tier || 'standard',
+        attempt: error.attempt ?? 0,
+        totalAttempts: error.totalAttempts ?? 0,
+        fallbackAttempted,
+        isRetryable: error.isRetryable ?? false,
+        imagenTriedAtLeastOnce,
+        attemptHistory: Array.isArray(error.attemptHistory) ? error.attemptHistory : [],
+      };
+      
+      console.error("[API] Returning error details:", JSON.stringify(errorDetails, null, 2));
+      
       res.status(500).json({ 
         success: false, 
-        error: error.message || "Failed to generate image" 
+        error: errorDetails.message,
+        errorDetails
       });
     }
   });
