@@ -123,7 +123,7 @@ export async function registerRoutes(
         return res.status(400).json({ success: false, error: "Invalid request body" });
       }
 
-      const { prompt, style, quality, aspectRatio, variations, useMultiAgent, tierOverride } = req.body as GenerateImageRequest & { useMultiAgent?: boolean; tierOverride?: ModelTier };
+      const { prompt, style, quality, aspectRatio, variations, useMultiAgent, tierOverride, enhanceOnly } = req.body as GenerateImageRequest & { useMultiAgent?: boolean; tierOverride?: ModelTier; enhanceOnly?: boolean };
 
       if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
         return res.status(400).json({ success: false, error: "Prompt is required" });
@@ -179,6 +179,17 @@ export async function registerRoutes(
         );
       }
 
+      // If enhanceOnly is true, return just the enhanced prompt without generating image
+      if (enhanceOnly) {
+        return res.json({
+          success: true,
+          enhancedPrompt,
+          analysis,
+          tierEvaluation,
+          ...(agentInfo && { agentInfo })
+        });
+      }
+
       // Detect if prompt has text for fallback model selection
       const hasTextContent = textInfo.length > 0 || tierEvaluation.reasons.some(r => r.code === 'text_detected');
       
@@ -196,6 +207,7 @@ export async function registerRoutes(
       const response: GenerateImageResponse = {
         success: true,
         images,
+        image: images.length > 0 ? images[0] : undefined,
         enhancedPrompt,
         analysis,
         tierEvaluation,
@@ -241,15 +253,28 @@ export async function registerRoutes(
 
       const analysis = await performDeepAnalysis(prompt.trim());
       
-      let detectedText: any[] = [];
+      let textInfo: any[] = [];
       if (processText !== false) {
         const textPriority = analyzeTextPriority(prompt.trim());
         if (textPriority.isTextPriority || textPriority.hasQuotedText) {
-          detectedText = textPriority.extractedTexts.map(text => ({ text, placement: 'integrated' }));
+          textInfo = textPriority.extractedTexts.map(text => ({ 
+            text, 
+            placement: 'integrated',
+            fontStyle: 'modern',
+            fontSize: 'medium',
+            physicalProperties: {
+              material: '',
+              lightingInteraction: '',
+              surfaceTexture: '',
+              environmentalInteraction: '',
+              perspectiveAndDepth: ''
+            }
+          }));
         }
       }
       
-      res.json({ success: true, analysis, detectedText });
+      // Return both formats for compatibility
+      res.json({ success: true, analysis, textInfo, detectedText: textInfo });
     } catch (error: any) {
       console.error("Deep analysis error:", error);
       res.status(500).json({ 
