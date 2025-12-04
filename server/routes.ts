@@ -336,9 +336,24 @@ export async function registerRoutes(
       }
 
       const selectedModel: ImagenModel = model || 'imagen-4.0-generate-001';
+      
+      const textPriorityAnalysis = analyzeTextPriority(prompt.trim());
+      let enhancedPrompt = prompt.trim();
+      let usedTypographicEnhancement = false;
+      
+      if (textPriorityAnalysis.isTextPriority || textPriorityAnalysis.hasQuotedText) {
+        console.log(`[Imagen Route] Text-heavy prompt detected - applying typographic enhancement`);
+        console.log(`[Imagen Route] Text priority confidence: ${textPriorityAnalysis.confidence}, extracted texts: ${textPriorityAnalysis.extractedTexts.length}`);
+        enhancedPrompt = buildTypographicPrompt(prompt.trim(), textPriorityAnalysis);
+        usedTypographicEnhancement = true;
+        console.log(`[Imagen Route] Enhanced prompt preview:`, enhancedPrompt.substring(0, 300) + '...');
+      } else {
+        console.log(`[Imagen Route] Non-text prompt - using original`);
+      }
+      
       console.log(`[Imagen Route] Generating with model ${selectedModel}:`, prompt.substring(0, 100));
 
-      const images = await generateWithImagen(prompt.trim(), {
+      const images = await generateWithImagen(enhancedPrompt, {
         model: selectedModel,
         aspectRatio: aspectRatio || '1:1',
         numberOfImages: Math.min(Math.max(variations || 1, 1), 4),
@@ -354,9 +369,15 @@ export async function registerRoutes(
       res.json({
         success: true,
         images: images,
-        enhancedPrompt: prompt.trim(),
+        enhancedPrompt: enhancedPrompt,
+        originalPrompt: prompt.trim(),
         generationMode: modeMap[selectedModel] || 'imagen3',
-        model: selectedModel
+        model: selectedModel,
+        typographicEnhancement: usedTypographicEnhancement,
+        textPriorityInfo: textPriorityAnalysis.isTextPriority ? {
+          confidence: textPriorityAnalysis.confidence,
+          extractedTexts: textPriorityAnalysis.extractedTexts
+        } : undefined
       });
     } catch (error: any) {
       console.error("Imagen generation error:", error);
