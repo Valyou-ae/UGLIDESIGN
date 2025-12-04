@@ -19,7 +19,11 @@ import {
   generateWithTextIntegrity,
   checkTextComplexitySoftLimits,
   testAllModelConnections,
-  isImagenClientAvailable
+  isImagenClientAvailable,
+  cleanInstructionPrefixes,
+  isGraphicDesignPrompt,
+  suggestsPortraitOrientation,
+  suggestsLandscapeOrientation
 } from "./services/geminiService";
 import { 
   runMultiAgentPipeline, 
@@ -133,6 +137,23 @@ export async function registerRoutes(
 
       const qualityLevel = (quality || 'standard') as QualityLevel;
       
+      // Smart aspect ratio detection for book covers, posters, etc.
+      let effectiveAspectRatio = aspectRatio || '1:1';
+      let aspectRatioAutoAdjusted = false;
+      
+      // Only auto-adjust if user didn't explicitly set aspect ratio
+      if (!aspectRatio || aspectRatio === '1:1') {
+        if (suggestsPortraitOrientation(prompt)) {
+          effectiveAspectRatio = '3:4'; // Portrait for book covers, posters
+          aspectRatioAutoAdjusted = true;
+          console.log(`[Smart Orientation] Auto-adjusted to portrait (3:4) for: ${prompt.substring(0, 50)}...`);
+        } else if (suggestsLandscapeOrientation(prompt)) {
+          effectiveAspectRatio = '16:9'; // Landscape for scenes, banners
+          aspectRatioAutoAdjusted = true;
+          console.log(`[Smart Orientation] Auto-adjusted to landscape (16:9) for: ${prompt.substring(0, 50)}...`);
+        }
+      }
+      
       // Auto-scaling tier evaluation
       const tierEvaluation = evaluatePromptTier(prompt.trim(), qualityLevel, tierOverride);
       console.log(`[Tier System] ${tierEvaluation.userMessage} (complexity: ${tierEvaluation.complexityScore}/100)`);
@@ -197,7 +218,7 @@ export async function registerRoutes(
       
       const images = await generateImage(
         enhancedPrompt,
-        aspectRatio || '1:1',
+        effectiveAspectRatio,
         Math.min(Math.max(variations || 1, 1), 4),
         {
           hasText: hasTextContent,
@@ -213,6 +234,8 @@ export async function registerRoutes(
         enhancedPrompt,
         analysis,
         tierEvaluation,
+        aspectRatio: effectiveAspectRatio,
+        aspectRatioAutoAdjusted,
         ...(agentInfo && { agentInfo })
       };
 

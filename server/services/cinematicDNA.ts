@@ -44,56 +44,56 @@ export const CINEMATIC_DNA_COMPONENTS: Record<string, CinematicComponent> = {
     qualityBoost: "15-20%",
     keywords: ["volumetric fog", "god rays", "atmospheric haze", "light shafts", "crepuscular rays", "atmospheric perspective"],
     basicTemplate: "volumetric atmosphere, atmospheric depth",
-    enhancedTemplate: "volumetric fog and god rays, atmospheric haze with depth separation, light shafts",
-    professionalTemplate: "volumetric atmospheric lighting with god rays and fog, exponential distance haze, atmospheric perspective with desaturated backgrounds, professional depth separation"
+    enhancedTemplate: "volumetric fog with god rays piercing through, atmospheric haze creating depth separation, soft light shafts",
+    professionalTemplate: "masterful volumetric atmospheric lighting: soft volumetric fog with dramatic god rays cutting through mist, exponential distance haze creating natural depth, crepuscular rays with dust particles catching light, atmospheric perspective with color desaturation in far planes, professional Hollywood-grade depth separation"
   },
   lighting: {
     name: "Professional Lighting Systems",
     qualityBoost: "20-25%",
     keywords: ["three-point lighting", "Rembrandt lighting", "cinematic lighting", "key light", "fill light", "rim light"],
     basicTemplate: "three-point lighting, professional illumination",
-    enhancedTemplate: "cinematic three-point lighting with Rembrandt setup, dramatic shadows and depth",
-    professionalTemplate: "professional Hollywood lighting: three-point setup with Rembrandt key light, soft fill, dramatic rim lighting, cinematic illumination with precise shadow control"
+    enhancedTemplate: "cinematic three-point lighting with Rembrandt setup, dramatic shadows with soft falloff, edge-defining rim light",
+    professionalTemplate: "masterful Hollywood lighting: three-point setup with 4:1 contrast ratio, Rembrandt key light creating characteristic triangle shadow, soft fill preserving shadow detail, dramatic rim lighting with warm edge separation, precise shadow control with gradient falloff, naturalistic light wrapping around forms"
   },
   depth: {
     name: "Depth Layering System",
     qualityBoost: "10-15%",
     keywords: ["foreground", "midground", "background", "depth layers", "layered composition", "depth separation"],
     basicTemplate: "foreground midground background, depth layers",
-    enhancedTemplate: "detailed foreground elements, sharp midground subject, atmospheric background, cinematic depth layering",
-    professionalTemplate: "professional depth composition: detailed foreground framing, sharp midground subject with selective focus, atmospheric background with depth haze, cinematic layer separation using DOF and atmospheric methods"
+    enhancedTemplate: "detailed foreground framing elements, sharp midground subject, soft atmospheric background, cinematic depth layering",
+    professionalTemplate: "masterful depth composition: sharp textured foreground framing elements creating visual interest, crystal-clear midground subject with selective focus emphasis, soft atmospheric background with natural bokeh and depth haze, professional layer separation using both DOF and atmospheric depth techniques, natural progression of detail from front to back"
   },
   colorGrading: {
     name: "Professional Color Grading",
     qualityBoost: "15-20%",
     keywords: ["teal and orange", "color grade", "film stock", "Kodak Vision3", "cinematic color", "color science"],
     basicTemplate: "cinematic color grading, professional colors",
-    enhancedTemplate: "teal and orange color grade, cinematic film look, professional color correction",
-    professionalTemplate: "professional Hollywood color grade: teal and orange complementary colors, Kodak Vision3 500T film stock emulation, cinematic color science with warm highlights and cool shadows"
+    enhancedTemplate: "teal and orange complementary color grade, cinematic film look with lifted blacks, professional color correction",
+    professionalTemplate: "masterful Hollywood color grade: teal shadows with orange highlights complementary color scheme, Kodak Vision3 500T film stock emulation with characteristic warmth, sophisticated color science with warm skin tones and cool shadows, crushed blacks with detail retention, wide dynamic range with smooth highlight rolloff, cohesive color palette throughout"
   },
   materials: {
     name: "Material & Surface Rendering",
     qualityBoost: "10-15%",
     keywords: ["subsurface scattering", "SSS", "PBR", "realistic reflections", "physically based rendering"],
     basicTemplate: "realistic materials, proper reflections",
-    enhancedTemplate: "subsurface scattering on skin, PBR materials, realistic surface properties",
-    professionalTemplate: "professional material rendering: subsurface scattering with natural skin translucency, physically based rendering with accurate metallic and roughness, realistic reflections and transparency, photorealistic surface properties"
+    enhancedTemplate: "subsurface scattering on skin showing translucency, PBR materials with accurate specularity, realistic surface properties",
+    professionalTemplate: "masterful material rendering: subsurface scattering with natural skin translucency and vein visibility, PBR with accurate metallic roughness and fresnel reflections, realistic refractive transparency on glass and water, photorealistic surface properties with micro-detail textures, natural light interaction on every surface"
   },
   composition: {
     name: "Cinematic Composition Rules",
     qualityBoost: "10-15%",
     keywords: ["rule of thirds", "golden ratio", "leading lines", "natural framing", "composition"],
     basicTemplate: "rule of thirds, balanced composition",
-    enhancedTemplate: "rule of thirds composition with leading lines, golden ratio placement, professional framing",
-    professionalTemplate: "cinematic composition: rule of thirds with golden ratio placement, leading lines guiding viewer attention, natural framing elements, depth plane layering, professional balance and visual flow"
+    enhancedTemplate: "rule of thirds composition with leading lines guiding the eye, golden ratio placement, professional framing",
+    professionalTemplate: "masterful cinematic composition: rule of thirds with golden spiral placement creating visual flow, leading lines naturally guiding viewer attention to subject, natural framing elements creating depth and context, foreground-midground-background layer separation, deliberate negative space for visual breathing room, perfect visual balance with dynamic asymmetry"
   },
   camera: {
     name: "Cinema Camera Systems",
     qualityBoost: "15-20%",
     keywords: ["ARRI Alexa", "Zeiss lens", "cinema camera", "cinematic depth of field", "film-like rendering"],
     basicTemplate: "cinema camera, professional lens",
-    enhancedTemplate: "shot on ARRI Alexa with Zeiss Supreme Prime, cinematic camera, professional cinematography",
-    professionalTemplate: "professional cinema capture: ARRI Alexa LF with Zeiss Supreme Prime 50mm at T1.5, full frame sensor, cinematic depth of field, film-like rendering with natural colors and wide dynamic range"
+    enhancedTemplate: "shot on ARRI Alexa with Zeiss Supreme Prime, shallow depth of field, cinematic camera, professional cinematography",
+    professionalTemplate: "masterful cinema capture: ARRI Alexa LF with Zeiss Supreme Prime 50mm at T1.5, full frame sensor with 14+ stops dynamic range, cinematic shallow depth of field with creamy bokeh, film-like organic rendering with natural skin tones, wide color gamut with smooth gradients, professional motion picture aesthetic"
   }
 };
 
@@ -851,6 +851,92 @@ export const SUBJECT_LIGHTING_MAP: Record<string, string[]> = {
   architecture: ["time of day lighting", "long exposure", "balanced interior/exterior"],
   food: ["soft directional", "backlight for steam", "warm tones", "shadow control"]
 };
+
+export interface DesignDNAComponent {
+  name: string;
+  qualityBoost: string;
+  keywords: string[];
+  basicTemplate: string;
+  enhancedTemplate: string;
+  professionalTemplate: string;
+}
+
+export const DESIGN_DNA_COMPONENTS: Record<string, DesignDNAComponent> = {
+  atmosphere: {
+    name: "Design Atmosphere",
+    qualityBoost: "15-20%",
+    keywords: ["atmospheric depth", "visual layers", "depth gradients", "subtle textures"],
+    basicTemplate: "atmospheric depth in the design, subtle gradients",
+    enhancedTemplate: "rich atmospheric depth through layered gradients, subtle textured backgrounds, visual depth without photography",
+    professionalTemplate: "masterful atmospheric design: sophisticated depth through layered gradient overlays, subtle textured backgrounds with grain, visual dimensionality created through design elements not camera effects, professional depth separation in graphic composition"
+  },
+  conceptualLighting: {
+    name: "Conceptual Lighting Effects",
+    qualityBoost: "20-25%",
+    keywords: ["dramatic spotlight", "ambient glow", "conceptual lighting", "mood lighting"],
+    basicTemplate: "dramatic spotlight effect, mood lighting",
+    enhancedTemplate: "dramatic conceptual spotlight illuminating key elements, ambient glow creating atmosphere, stylized lighting effects",
+    professionalTemplate: "masterful conceptual lighting within the design: dramatic spotlight effects drawing focus to key elements, sophisticated ambient glow creating emotional resonance, stylized lighting that enhances mood without referencing photography, rim glow effects for element separation"
+  },
+  colorHarmony: {
+    name: "Design Color Harmony",
+    qualityBoost: "15-20%",
+    keywords: ["color palette", "color harmony", "complementary colors", "cohesive palette"],
+    basicTemplate: "harmonious color palette, cohesive colors",
+    enhancedTemplate: "sophisticated color harmony with complementary tones, deliberate color palette creating mood, professional color relationships",
+    professionalTemplate: "masterful design color palette: sophisticated complementary color harmony creating visual tension, cohesive restricted palette enhancing focus, strategic color temperature for emotional impact, professional color relationships that guide the eye"
+  },
+  visualHierarchy: {
+    name: "Visual Hierarchy",
+    qualityBoost: "10-15%",
+    keywords: ["visual hierarchy", "focal point", "design balance", "typographic hierarchy"],
+    basicTemplate: "clear visual hierarchy, balanced layout",
+    enhancedTemplate: "deliberate visual hierarchy with clear focal point, typographic balance, strategic element placement",
+    professionalTemplate: "masterful visual hierarchy: crystal-clear focal point drawing immediate attention, sophisticated typographic hierarchy with purposeful weight distribution, strategic negative space creating breathing room, perfect balance between text and imagery"
+  },
+  texture: {
+    name: "Design Texture & Finish",
+    qualityBoost: "10-15%",
+    keywords: ["subtle grain", "design texture", "surface finish", "tactile quality"],
+    basicTemplate: "subtle texture, professional finish",
+    enhancedTemplate: "subtle grain texture adding visual interest, premium surface finish, tactile quality in digital form",
+    professionalTemplate: "masterful design texture: sophisticated subtle grain adding depth and organic feel, premium matte or gloss finish appropriate to mood, micro-textures creating tactile visual quality, refined surface treatment elevating the design"
+  },
+  composition: {
+    name: "Design Composition",
+    qualityBoost: "10-15%",
+    keywords: ["design composition", "layout balance", "golden ratio", "grid alignment"],
+    basicTemplate: "balanced design composition, professional layout",
+    enhancedTemplate: "golden ratio composition, deliberate element placement, professional grid-based layout",
+    professionalTemplate: "masterful design composition: golden ratio placement creating natural visual flow, grid-aligned elements with deliberate asymmetry, strategic use of rule of thirds for text and imagery, professional balance between white space and content"
+  }
+};
+
+export function buildDesignDNA(
+  quality: 'fast' | 'balanced' | 'professional' = 'balanced',
+  includeComponents: string[] = ['atmosphere', 'conceptualLighting', 'colorHarmony', 'visualHierarchy', 'texture', 'composition']
+): string {
+  const parts: string[] = [];
+  
+  for (const componentKey of includeComponents) {
+    const component = DESIGN_DNA_COMPONENTS[componentKey];
+    if (component) {
+      switch (quality) {
+        case 'fast':
+          parts.push(component.basicTemplate);
+          break;
+        case 'balanced':
+          parts.push(component.enhancedTemplate);
+          break;
+        case 'professional':
+          parts.push(component.professionalTemplate);
+          break;
+      }
+    }
+  }
+  
+  return parts.join('. ');
+}
 
 export function buildCinematicDNA(
   quality: 'fast' | 'balanced' | 'professional' = 'balanced',

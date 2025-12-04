@@ -12,6 +12,7 @@ import {
 } from "../../shared/imageGenTypes";
 import {
   buildCinematicDNA,
+  buildDesignDNA,
   selectLightingForSubject,
   selectColorGradeForMood,
   selectCameraForSubject,
@@ -19,6 +20,7 @@ import {
   getStylePromptEnhancement,
   ARTISTIC_STYLES,
   CINEMATIC_DNA_COMPONENTS,
+  DESIGN_DNA_COMPONENTS,
   LIGHTING_SETUPS,
   COLOR_GRADES
 } from "./cinematicDNA";
@@ -35,6 +37,56 @@ const BASE_URL = process.env.AI_INTEGRATIONS_GEMINI_BASE_URL;
 const IMAGEN_API_KEY = process.env.IMAGEN_API_KEY || '';
 
 const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
+
+// ============================================================================
+// PROMPT CLEANING UTILITIES
+// Clean instruction prefixes that should not appear in the generated image
+// ============================================================================
+
+const INSTRUCTION_PREFIXES = [
+  // Action prefixes
+  /^(create|generate|make|design|draw|produce|render|craft|build|construct)\s+(a|an|the|me\s+a|me\s+an)?\s*/i,
+  // Request prefixes
+  /^(i\s+want|i\s+need|i'd\s+like|please\s+(create|generate|make|design))\s+(a|an|the)?\s*/i,
+  // Descriptive prefixes that leak
+  /^(this\s+is|here\s+is|showing|depicting)\s+(a|an|the)?\s*/i,
+  // Image-specific prefixes
+  /^(an?\s+image\s+of|a\s+picture\s+of|a\s+photo\s+of|an?\s+illustration\s+of)\s*/i,
+];
+
+export function cleanInstructionPrefixes(prompt: string): string {
+  let cleaned = prompt.trim();
+  
+  // Apply each pattern until no more matches
+  for (const pattern of INSTRUCTION_PREFIXES) {
+    cleaned = cleaned.replace(pattern, '');
+  }
+  
+  // Clean up any resulting double spaces
+  cleaned = cleaned.replace(/\s+/g, ' ').trim();
+  
+  // Capitalize first letter if it's lowercase after cleaning
+  if (cleaned.length > 0 && /[a-z]/.test(cleaned[0])) {
+    cleaned = cleaned[0].toUpperCase() + cleaned.slice(1);
+  }
+  
+  return cleaned;
+}
+
+// Detect if prompt is for graphic design (book cover, poster, etc.)
+export function isGraphicDesignPrompt(prompt: string): boolean {
+  return /book\s*cover|poster|flyer|banner|logo|graphic|cover\s*art|album\s*cover|cd\s*cover|dvd\s*cover|movie\s*poster|event\s*poster|typography|title\s*card|title\s*screen/i.test(prompt);
+}
+
+// Detect if prompt suggests portrait orientation
+export function suggestsPortraitOrientation(prompt: string): boolean {
+  return /book\s*cover|phone\s*wallpaper|mobile\s*wallpaper|portrait|vertical|tall|standing|poster|movie\s*poster|magazine\s*cover|album\s*cover/i.test(prompt);
+}
+
+// Detect if prompt suggests landscape orientation  
+export function suggestsLandscapeOrientation(prompt: string): boolean {
+  return /landscape|panorama|wide|horizontal|scene|vista|desktop\s*wallpaper|banner|header/i.test(prompt);
+}
 
 function validateApiKey(): void {
   if (!API_KEY) {
@@ -833,8 +885,8 @@ export const buildTypographicPrompt = (
     typographicPrompt += `**MULTILINGUAL:** Render text in native scripts (${detectedLanguages.join(', ')}). Preserve all diacritics and special characters exactly.\n\n`;
   }
   
-  // Original scene description - but filter out conflicting camera specs for graphic design
-  let sceneDescription = userPrompt;
+  // Original scene description - clean instruction prefixes and filter camera specs for graphic design
+  let sceneDescription = cleanInstructionPrefixes(userPrompt);
   if (isGraphicDesign) {
     // Remove camera/lens specs that don't apply to graphic design
     sceneDescription = sceneDescription
@@ -1105,6 +1157,7 @@ export const enhanceStyle = async (
 
     const qualityLevel = quality === 'draft' ? 'fast' : quality === 'ultra' ? 'professional' : 'balanced';
     const cinematicDNA = buildCinematicDNA(qualityLevel as 'fast' | 'balanced' | 'professional');
+    const designDNA = buildDesignDNA(qualityLevel as 'fast' | 'balanced' | 'professional');
 
     const lightingRecommendation = selectLightingForSubject(analysis.subject.primary, analysis.mood.primary);
     const colorGrade = selectColorGradeForMood(analysis.mood.primary);
@@ -1212,13 +1265,11 @@ All text must be perfectly legible with professional typographic styling.`
       ${translationDirective}
 
       ${isGraphicDesign 
-        ? `### DESIGN DNA (Translated from Cinematic DNA) ###
-      Apply these design principles to create professional graphic design:
-      - Atmospheric Depth: Subtle gradients, layered shadows, visual depth
-      - Conceptual Lighting: Dramatic spotlights, ambient glow, mood lighting
-      - Color Palette: Rich, cohesive, professionally graded colors
-      - Visual Hierarchy: Strategic placement, typographic balance, clear focal points
-      - Texture & Finish: Subtle grain, professional polish, refined details`
+        ? `### DESIGN DNA (For Graphic Design) ###
+      Apply these 6 professional design principles:
+      ${designDNA}
+      
+      CRITICAL: Create the ARTWORK ITSELF, not a photograph of artwork. Use design language, not camera terminology.`
         : `${CINEMATIC_DNA}
 
       ### CINEMATIC DNA ENHANCEMENT ###
@@ -1593,10 +1644,15 @@ export const generateImageSmart = async (
   tierOverride?: ModelTier
 ): Promise<SmartGenerationResult> => {
   const ai = getAIClient();
-  const textPriorityAnalysis = analyzeTextPriority(userPrompt);
   
-  // Auto-scaling tier evaluation
-  const tierEvaluation = evaluatePromptTier(userPrompt, quality, tierOverride);
+  // Clean instruction prefixes from prompt (e.g., "Create a...", "Generate a...")
+  const cleanedPrompt = cleanInstructionPrefixes(userPrompt);
+  console.log(`[Smart Generation] Cleaned prompt: "${userPrompt.substring(0, 50)}..." -> "${cleanedPrompt.substring(0, 50)}..."`);
+  
+  const textPriorityAnalysis = analyzeTextPriority(cleanedPrompt);
+  
+  // Auto-scaling tier evaluation (use cleaned prompt for consistent detection)
+  const tierEvaluation = evaluatePromptTier(cleanedPrompt, quality, tierOverride);
   console.log(`[Smart Generation] Tier: ${tierEvaluation.recommendedTier} (auto-adjusted: ${tierEvaluation.wasAutoAdjusted}, complexity: ${tierEvaluation.complexityScore})`);
   
   // Get tier-specific generation config
@@ -1615,7 +1671,7 @@ export const generateImageSmart = async (
     extractedTexts: textPriorityAnalysis.extractedTexts.length
   });
 
-  const result = await performInitialAnalysis(userPrompt, true);
+  const result = await performInitialAnalysis(cleanedPrompt, true);
   const analysis = result.analysis;
   const textInfo = result.textInfo;
   
@@ -1638,7 +1694,7 @@ export const generateImageSmart = async (
     
     // Step 1: Run full agent enhancement (agents will translate for graphic design)
     enhancedPrompt = await enhanceStyle(
-      userPrompt, analysis, textInfo, selectedStyle, quality,
+      cleanedPrompt, analysis, textInfo, selectedStyle, quality,
       { thinkingBudget: tierEvaluation.thinkingBudget, maxWords: tierEvaluation.maxWords }
     );
     
@@ -1654,7 +1710,7 @@ export const generateImageSmart = async (
     console.log(`[Smart Generation] Using CINEMATIC mode - full enhancement pipeline`);
     // Pass tier-specific thinking budget/maxWords
     enhancedPrompt = await enhanceStyle(
-      userPrompt, analysis, textInfo, selectedStyle, quality,
+      cleanedPrompt, analysis, textInfo, selectedStyle, quality,
       { thinkingBudget: tierEvaluation.thinkingBudget, maxWords: tierEvaluation.maxWords }
     );
   }
@@ -2423,6 +2479,10 @@ export async function generateWithTextIntegrity(
 ): Promise<CuratedGenerationResult> {
   console.log(`[Text Integrity Generation] Starting with ${expectedTexts.length} text blocks, ${candidateCount} candidates`);
   
+  // Clean instruction prefixes from prompt (e.g., "Create a...", "Generate a...")
+  const cleanedPrompt = cleanInstructionPrefixes(userPrompt);
+  console.log(`[Text Integrity] Cleaned prompt: "${userPrompt.substring(0, 50)}..." -> "${cleanedPrompt.substring(0, 50)}..."`);
+  
   const complexityCheck = checkTextComplexitySoftLimits(expectedTexts);
   if (complexityCheck.warnings.length > 0) {
     console.log(`[Text Integrity] Complexity warnings:`, complexityCheck.warnings);
@@ -2431,7 +2491,7 @@ export async function generateWithTextIntegrity(
   const zoneLayout = buildZoneLayoutPlan(expectedTexts);
   const criticalSpelling = buildCriticalSpellingEmphasis(expectedTexts);
   
-  const enhancedPrompt = `${userPrompt}
+  const enhancedPrompt = `${cleanedPrompt}
 
 ${zoneLayout}
 
