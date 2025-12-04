@@ -838,6 +838,54 @@ export const buildTypographicPrompt = (
   return typographicPrompt;
 };
 
+export const buildTextBlockDirectives = (textPriorityAnalysis: TextPriorityAnalysis): string => {
+  const { extractedTexts, detectedLanguages, hasMultilingualText } = textPriorityAnalysis;
+  
+  if (extractedTexts.length === 0) {
+    return '';
+  }
+  
+  let textBlock = `\n**TEXT BLOCK (CRITICAL INSTRUCTION):** The image MUST include the following text, spelled EXACTLY as shown:\n\n`;
+  
+  extractedTexts.forEach((text, i) => {
+    const isTitle = i === 0 || /title|heading/i.test(text);
+    const isSubtitle = /subtitle|inquiry|into/i.test(text.toLowerCase());
+    const isAuthor = /dr\.|by\s|author/i.test(text.toLowerCase());
+    const isQuote = text.includes('"') || text.includes("'") || text.includes('—');
+    const isPublisher = /press|publisher|est\./i.test(text.toLowerCase());
+    
+    let fontHint = 'clean, legible font';
+    let sizeHint = 'appropriately sized';
+    
+    if (isTitle) {
+      fontHint = 'strong, elegant Serif font';
+      sizeHint = 'most prominent, large';
+    } else if (isSubtitle) {
+      fontHint = 'clean Sans-Serif font';
+      sizeHint = 'smaller than title';
+    } else if (isAuthor) {
+      fontHint = 'elegant Serif font';
+      sizeHint = 'medium, clearly legible';
+    } else if (isQuote) {
+      fontHint = 'italicized Serif font';
+      sizeHint = 'smaller, stylized';
+    } else if (isPublisher) {
+      fontHint = 'small, clean Sans-Serif font';
+      sizeHint = 'smallest, at bottom';
+    }
+    
+    textBlock += `* The text "${text}" MUST appear exactly as written, rendered in a ${fontHint}, ${sizeHint}.\n`;
+  });
+  
+  textBlock += `\nAll text MUST be perfectly legible with professional kerning and spacing.`;
+  
+  if (hasMultilingualText) {
+    textBlock += `\n**MULTILINGUAL:** Render text in native scripts (${detectedLanguages.join(', ')}). Preserve all diacritics and special characters exactly.`;
+  }
+  
+  return textBlock;
+};
+
 export const spellCheckText = (text: string): { corrected: string; corrections: string[] } => {
   let corrected = text;
   const corrections: string[] = [];
@@ -1051,19 +1099,14 @@ export const enhanceStyle = async (
       }));
     }
 
-    const textRenderingInstructions = hasText
-      ? buildTextRenderingInstructions(correctedTextInfo.map(t => t.text))
-      : '';
-
+    // AI Studio insight: Simple, direct text instruction - NO letter-by-letter spelling (confuses Imagen 4)
+    // Iterate over ALL texts, not just the first one
     const textInstruction = hasText
-      ? `${textRenderingInstructions}
+      ? `The image MUST include the following text blocks, each spelled EXACTLY as written:
+${correctedTextInfo.map((t, i) => `${i + 1}. "${t.text}" - ${t.physicalProperties.material}`).join('\n')}
 
-The image MUST include this EXACT text with PERFECT spelling: "${correctedTextInfo[0].text}"
-Style: ${correctedTextInfo[0].physicalProperties.material}
-
-SPELLING VERIFICATION:
-- Word by word: ${correctedTextInfo[0].text.split(' ').map((w, i) => `${i+1}."${w}"`).join(' ')}
-- Render each word EXACTLY as shown above`
+CRITICAL: Do NOT attempt to spell letter-by-letter - just render the exact text as shown.
+All text must be perfectly legible with professional typographic styling.`
       : 'The image must not contain any text, words, letters, or characters.';
 
     const stylePromptInstruction = selectedStyle !== 'auto'
@@ -1073,11 +1116,29 @@ SPELLING VERIFICATION:
         : `Automatically select the most fitting artistic style based on the subject and mood.`;
 
     // Style Architect: Different behavior for drafts vs final
-    // Drafts still get Cinematic DNA but with focus on 3 key components
-    // Uses tier-specific settings when provided
+    // AI Studio insight: Detect graphic design and translate cinematic concepts to design language
     const isDraft = quality === 'draft';
     const maxWords = effectiveMaxWords;
     const thinkingBudget = effectiveThinkingBudget;
+    
+    // Detect if this is graphic design (book covers, posters, etc.) vs photography
+    const isGraphicDesign = /book\s*cover|poster|flyer|banner|logo|graphic|illustration|design|typography|cover\s*art/i.test(userPrompt);
+    
+    // AI Studio: Translation rules for graphic design vs photography
+    const translationDirective = isGraphicDesign 
+      ? `
+      ### GRAPHIC DESIGN MODE (ACTIVE) ###
+      This is a GRAPHIC DESIGN request, NOT a photograph. You must TRANSLATE cinematic concepts:
+      - "Cinematic lighting" → "dramatic conceptual spotlight within the design"
+      - "Professional color grading" → "moody, restricted color palette"
+      - "Depth of field" → "layered visual depth through design elements"
+      - "Camera/lens specs" → OMIT ENTIRELY (no "shot on ARRI Alexa" for book covers!)
+      - "Film grain" → "subtle texture in the design"
+      
+      Create the ARTWORK ITSELF, not a photograph of it. Make the graphic design feel
+      as atmospheric and professionally composed as a film frame, using design language.
+      `
+      : '';
     
     const metaPrompt = isDraft 
       ? `
@@ -1088,10 +1149,16 @@ SPELLING VERIFICATION:
       1. COMPOSITIONAL LOCK: Preserve the user's exact subject and scene
       2. SPELLING INTEGRITY: Any text must be spelled EXACTLY as specified
 
+      ${translationDirective}
+
       ### FOCUS ON THREE KEY COMPONENTS ###
-      1. Lighting: ${lightingRecommendation}
+      ${isGraphicDesign 
+        ? `1. Conceptual Lighting: Dramatic spotlight effects within the design
+      2. Color Palette: ${colorGrade.name} treatment
+      3. Visual Hierarchy: Professional design composition`
+        : `1. Lighting: ${lightingRecommendation}
       2. Camera: ${camera.name} with ${lens.name}  
-      3. Color: ${colorGrade.name}
+      3. Color: ${colorGrade.name}`}
 
       ${hasText ? `### TEXT REQUIREMENT ###\nInclude exact text: "${correctedTextInfo[0]?.text || ''}"` : ''}
 
@@ -1100,7 +1167,9 @@ SPELLING VERIFICATION:
 
       ### CONSTRAINTS ###
       - MUST be under ${maxWords} words (count carefully!)
-      - Focus on Lighting, Camera, Color only
+      ${isGraphicDesign 
+        ? '- NO camera/lens specifications (this is graphic design, not photography)\n      - Focus on design aesthetics and visual atmosphere'
+        : '- Focus on Lighting, Camera, Color only'}
       - Keep it fast and efficient
       ${hasText ? '- Spell text exactly as specified' : ''}
 
@@ -1116,15 +1185,30 @@ SPELLING VERIFICATION:
       3. UNIVERSAL PHYSICALITY: All elements must obey realistic physics and lighting
       4. SPELLING INTEGRITY: Any text must be spelled EXACTLY as specified
 
-      ${CINEMATIC_DNA}
+      ${translationDirective}
+
+      ${isGraphicDesign 
+        ? `### DESIGN DNA (Translated from Cinematic DNA) ###
+      Apply these design principles to create professional graphic design:
+      - Atmospheric Depth: Subtle gradients, layered shadows, visual depth
+      - Conceptual Lighting: Dramatic spotlights, ambient glow, mood lighting
+      - Color Palette: Rich, cohesive, professionally graded colors
+      - Visual Hierarchy: Strategic placement, typographic balance, clear focal points
+      - Texture & Finish: Subtle grain, professional polish, refined details`
+        : `${CINEMATIC_DNA}
 
       ### CINEMATIC DNA ENHANCEMENT ###
-      ${cinematicDNA}
+      ${cinematicDNA}`}
 
       ### TECHNICAL RECOMMENDATIONS ###
-      - Lighting: ${lightingRecommendation}
+      ${isGraphicDesign 
+        ? `- Conceptual Lighting: Translate to dramatic spotlight/atmospheric effects WITHIN the design
+      - Color Palette: ${colorGrade.name} (${colorGrade.keywords.join(', ')})
+      - Composition: Professional graphic design visual hierarchy
+      - NOTE: Do NOT include camera/lens specs - this is graphic design, not photography`
+        : `- Lighting: ${lightingRecommendation}
       - Color Grade: ${colorGrade.name} (${colorGrade.keywords.join(', ')})
-      - Camera: ${camera.name} with ${lens.name}
+      - Camera: ${camera.name} with ${lens.name}`}
 
       ### TEXT CONTROL ###
       ${textInstruction}
@@ -1143,11 +1227,15 @@ SPELLING VERIFICATION:
       Synthesize a MASTER PROMPT that:
       1. MUST be under ${maxWords} words (count carefully!)
       2. Preserves the user's core idea with absolute fidelity
-      3. Applies ALL Cinematic DNA components for Hollywood-quality output
+      ${isGraphicDesign 
+        ? `3. Translates Cinematic DNA into DESIGN LANGUAGE (no camera specs!)
+      4. Creates the artwork itself, not a photo of it
+      5. Uses sophisticated graphic design terminology`
+        : `3. Applies ALL Cinematic DNA components for Hollywood-quality output
       4. Uses the recommended lighting, color grade, and camera specs
-      5. Uses specific, technical cinematography terminology
+      5. Uses specific, technical cinematography terminology`}
       6. Follows Prime Directives strictly
-      7. If text required, spell out each word letter-by-letter
+      ${hasText ? '7. Text MUST appear spelled EXACTLY as specified (do NOT spell letter-by-letter, just include the exact text)' : ''}
 
       Return ONLY the enhanced prompt text (${maxWords} words max).
     `.trim();
@@ -1412,10 +1500,27 @@ export const generateImageSmart = async (
   let enhancedPrompt: string;
   let mode: 'cinematic' | 'typographic';
 
+  // AI Studio insight: ALWAYS run full 5-agent system - never bypass
+  // For typographic mode, agents translate cinematic concepts to design language
+  // Then we append TEXT BLOCK directives after enhancement
+  
   if (hasText) {
     mode = 'typographic';
-    console.log(`[Smart Generation] Using TYPOGRAPHIC mode - text-focused prompt optimization`);
-    enhancedPrompt = buildTypographicPrompt(userPrompt, textPriorityAnalysis);
+    console.log(`[Smart Generation] Using TYPOGRAPHIC mode WITH full agent system`);
+    
+    // Step 1: Run full agent enhancement (agents will translate for graphic design)
+    enhancedPrompt = await enhanceStyle(
+      userPrompt, analysis, textInfo, selectedStyle, quality,
+      { thinkingBudget: tierEvaluation.thinkingBudget, maxWords: tierEvaluation.maxWords }
+    );
+    
+    // Step 2: Append TEXT BLOCK critical instructions after agent enhancement
+    const textBlockDirectives = buildTextBlockDirectives(textPriorityAnalysis);
+    if (textBlockDirectives) {
+      enhancedPrompt = enhancedPrompt + '\n\n' + textBlockDirectives;
+    }
+    
+    console.log(`[Smart Generation] Appended TEXT BLOCK directives to agent-enhanced prompt`);
   } else {
     mode = 'cinematic';
     console.log(`[Smart Generation] Using CINEMATIC mode - full enhancement pipeline`);
