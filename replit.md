@@ -5,7 +5,21 @@ An advanced AI-powered image generation application featuring a sophisticated 5-
 
 ## Recent Changes
 
-### December 3, 2025 (Latest)
+### December 4, 2025 (Latest)
+- **Critical Text Detection Fix**
+  - Fixed typographic mode not triggering for text-heavy prompts
+  - Root cause: `hasText` relied on LLM-derived analysis which often missed text
+  - Solution: Now uses deterministic `tierDetectedText` from `evaluatePromptTier` as primary source
+  - `hasText = tierDetectedText || textInfo.length > 0 || isTextPriority`
+  - This ensures `buildTypographicPrompt()` with letter-by-letter spelling is used
+
+- **Improved Model Routing for Text**
+  - Text-heavy prompts now route to Imagen 4 even in draft mode
+  - Draft mode WITHOUT text → `gemini-2.5-flash-image` (fast)
+  - Draft mode WITH text → Imagen 4 (better text rendering)
+  - Final mode (all) → Imagen 4 PRIMARY with fallback
+
+### December 3, 2025
 - **Auto-Scaling Tier System**
   - Intelligent tier selection based on prompt complexity (Standard/Premium/Ultra)
   - Automatic upgrade for text-heavy, multilingual, and complex style prompts

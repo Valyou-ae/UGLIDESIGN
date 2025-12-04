@@ -1366,8 +1366,13 @@ export const generateImageSmart = async (
   // Get tier-specific generation config
   const tierConfig = TIER_GENERATION_CONFIG[tierEvaluation.recommendedTier];
   
+  // Use DETERMINISTIC text detection from tier evaluation (most reliable)
+  // tierEvaluation.reasons contains 'text_detected' when quoted text or text keywords found
+  const tierDetectedText = tierEvaluation.reasons.some(r => r.code === 'text_detected');
+  
   console.log(`[Smart Generation] Text Priority Analysis:`, {
     isTextPriority: textPriorityAnalysis.isTextPriority,
+    tierDetectedText,
     confidence: textPriorityAnalysis.confidence,
     hasMultilingual: textPriorityAnalysis.hasMultilingualText,
     languages: textPriorityAnalysis.detectedLanguages,
@@ -1377,7 +1382,12 @@ export const generateImageSmart = async (
   const result = await performInitialAnalysis(userPrompt, true);
   const analysis = result.analysis;
   const textInfo = result.textInfo;
-  const hasText = textInfo.length > 0 || textPriorityAnalysis.isTextPriority;
+  
+  // FIXED: Use tier evaluation's deterministic text detection as primary source
+  // This ensures typographic mode triggers when evaluatePromptTier detects text
+  const hasText = tierDetectedText || textInfo.length > 0 || textPriorityAnalysis.isTextPriority;
+  
+  console.log(`[Smart Generation] hasText = ${hasText} (tierDetectedText: ${tierDetectedText}, textInfo: ${textInfo.length}, isTextPriority: ${textPriorityAnalysis.isTextPriority})`);
   
   let enhancedPrompt: string;
   let mode: 'cinematic' | 'typographic';
