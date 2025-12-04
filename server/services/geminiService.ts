@@ -73,6 +73,97 @@ export function cleanInstructionPrefixes(prompt: string): string {
   return cleaned;
 }
 
+// ============================================================================
+// COMPREHENSIVE META-INSTRUCTION CLEANING
+// Removes ALL instruction/meta text that should NEVER appear in generated images
+// This is the FINAL cleaning step before sending to image model
+// ============================================================================
+
+const META_INSTRUCTION_PATTERNS = [
+  // Zone layout patterns (from Text SFX Artist) - remove zone labels but preserve content
+  /\*?\*?LAYOUT\s*ZONES?\s*\(?\s*Spatial\s*Hierarchy\s*\)?:?\*?\*?/gi,
+  /ZONE\s*\d+\s*\([^)]*\):\s*/gi,  // Just the zone label, not the content after
+  /ZONE\s*\d+\s*\([^)]*\)/gi,
+  /should\s+not\s+overlap\s+between\s+zones\.?/gi,
+  
+  // Rendering requirements patterns
+  /\*?\*?RENDERING\s*REQUIREMENTS:?\*?\*?/gi,
+  /\*?\*?TEXT\s*RENDERING\s*REQUIREMENTS:?\*?\*?/gi,
+  /must\s+be\s+rendered\s+with\s+PERFECT\s+spelling\s+accuracy\.?[^.]*\.?/gi,
+  /Each\s+word\s+must\s+be\s+exactly\s+as\s+specified\.?/gi,
+  
+  // Critical spelling patterns
+  /\*?\*?CRITICAL\s*SPELLING:?\*?\*?/gi,
+  /\*?\*?CRITICAL\s*SPELLING\s*EMPHASIS:?\*?\*?/gi,
+  /are\s+complex\s+and\s+require\s+exact\s+spelling:?/gi,
+  /must\s+be\s+spelled\s+with\s+100%\s+accuracy\.?[^.]*\.?/gi,
+  /Double-check\s+each\s+character\.?/gi,
+  
+  // Scene/element instruction patterns
+  /elements\s+and\s+motifs\s+are\s+in\s+crisp\s+focus\.?/gi,
+  /\*?\*?SCENE:?\*?\*?\s*/gi,
+  /\*?\*?DESIGN\s*QUALITY:?\*?\*?\s*/gi,
+  
+  // Text block directives - remove instruction but keep the quoted text
+  /The\s+image\s+MUST\s+include\s+the\s+following\s+text\s+blocks[^:]*:/gi,
+  /CRITICAL:\s*Do\s+NOT\s+attempt\s+to\s+spell\s+letter-by-letter[^.]*\.?/gi,
+  /All\s+text\s+must\s+be\s+perfectly\s+legible\s+with\s+professional\s+typographic\s+styling\.?/gi,
+  
+  // Markdown header artifacts only - not content
+  /\*\*(?:LAYOUT|RENDERING|CRITICAL|TEXT BLOCK|SCENE|DESIGN)[A-Z\s]*:\*\*/gi,
+];
+
+export function cleanMetaInstructions(prompt: string): string {
+  let cleaned = prompt;
+  
+  // First, apply instruction prefix cleaning
+  cleaned = cleanInstructionPrefixes(cleaned);
+  
+  // Then remove all meta-instruction patterns
+  for (const pattern of META_INSTRUCTION_PATTERNS) {
+    cleaned = cleaned.replace(pattern, '');
+  }
+  
+  // Transform numbered list meta-instructions while preserving quoted text
+  // Pattern: "1. "Title" - description..." → "Title"
+  cleaned = cleaned.replace(/\d+\.\s*("[^"]+")[^"\n]*(?=\n|$)/gi, '$1');
+  
+  // Remove lines that are purely instructional (but preserve lines with quoted content)
+  const lines = cleaned.split('\n');
+  const filteredLines = lines.filter(line => {
+    const trimmed = line.trim();
+    // Keep empty lines if they're between content
+    if (!trimmed) return false;
+    // Keep lines that contain quoted text - these have actual content
+    if (/"[^"]+"/.test(trimmed)) return true;
+    // Skip lines that are pure zone references without content
+    if (/^ZONE\s*\d+\s*$/i.test(trimmed)) return false;
+    // Skip lines that start with markdown headers for instructions
+    if (/^#+\s*(LAYOUT|RENDERING|CRITICAL|TEXT\s*BLOCK|ZONE)/i.test(trimmed)) return false;
+    // Skip lines that are just bullet points with meta content (but no quoted text)
+    if (/^[-*]\s*(ZONE|Layout|Rendering|Critical|Must\s+be|Should\s+not)/i.test(trimmed) && !/"/.test(trimmed)) return false;
+    return true;
+  });
+  
+  cleaned = filteredLines.join(' ');
+  
+  // Clean up multiple spaces and normalize
+  cleaned = cleaned.replace(/\s+/g, ' ').trim();
+  
+  // Final cleanup: remove orphaned punctuation
+  cleaned = cleaned.replace(/\s+([,.:;])/g, '$1');
+  cleaned = cleaned.replace(/([,.:;])\s*\1+/g, '$1');
+  
+  // Capitalize first letter if needed
+  if (cleaned.length > 0 && /[a-z]/.test(cleaned[0])) {
+    cleaned = cleaned[0].toUpperCase() + cleaned.slice(1);
+  }
+  
+  console.log(`[cleanMetaInstructions] Removed ${prompt.length - cleaned.length} chars of meta-instructions`);
+  
+  return cleaned;
+}
+
 // Detect if prompt is for graphic design (book cover, poster, etc.)
 export function isGraphicDesignPrompt(prompt: string): boolean {
   return /book\s*cover|poster|flyer|banner|logo|graphic|cover\s*art|album\s*cover|cd\s*cover|dvd\s*cover|movie\s*poster|event\s*poster|typography|title\s*card|title\s*screen/i.test(prompt);
@@ -1431,6 +1522,10 @@ export const generateImage = async (
   const negativePrompt = options?.negativePrompt || '';
   const tier = options?.tier || 'standard';
   
+  // CRITICAL: Clean ALL meta-instructions before sending to image model
+  const cleanedPrompt = cleanMetaInstructions(prompt);
+  console.log(`[generateImage] Cleaned prompt: removed ${prompt.length - cleanedPrompt.length} chars of meta-instructions`);
+  
   // Get tier-specific generation config
   const tierConfig = TIER_GENERATION_CONFIG[tier];
   console.log(`[generateImage] Using tier: ${tier} (retries: ${tierConfig.imagenRetries}, fallback: ${hasText ? tierConfig.textFallbackModel : tierConfig.fallbackModel})`);
@@ -1440,7 +1535,7 @@ export const generateImage = async (
       const draftModel = 'gemini-2.5-flash-image';
       console.log(`[generateImage] Draft mode - using ${draftModel}`);
       try {
-        return await generateWithGeminiImageModel(ai, prompt, aspectRatio, negativePrompt, numberOfVariations, draftModel);
+        return await generateWithGeminiImageModel(ai, cleanedPrompt, aspectRatio, negativePrompt, numberOfVariations, draftModel);
       } catch (draftError: any) {
         console.error(`[generateImage] Draft model ${draftModel} failed:`, draftError.message || draftError);
         throw createDetailedError(
@@ -1474,7 +1569,7 @@ export const generateImage = async (
       
       try {
         console.log(`[generateImage] Imagen 4 attempt ${attempt + 1}/${tierConfig.imagenRetries}`);
-        const imagenResults = await generateWithImagen(prompt, {
+        const imagenResults = await generateWithImagen(cleanedPrompt, {
           model: 'imagen-4.0-generate-001',
           aspectRatio,
           numberOfImages: numberOfVariations,
@@ -1483,7 +1578,7 @@ export const generateImage = async (
 
         const results = imagenResults.map(result => ({
           url: `data:${result.mimeType};base64,${result.base64}`,
-          prompt: prompt,
+          prompt: cleanedPrompt,
           base64Data: result.base64,
           mimeType: result.mimeType
         }));
@@ -1543,7 +1638,7 @@ export const generateImage = async (
     console.log(`[generateImage] Imagen 4 attempt history: ${allAttemptErrors.join(' | ')}`);
     
     try {
-      const fallbackResults = await generateWithGeminiImageModel(ai, prompt, aspectRatio, negativePrompt, numberOfVariations, fallbackModel);
+      const fallbackResults = await generateWithGeminiImageModel(ai, cleanedPrompt, aspectRatio, negativePrompt, numberOfVariations, fallbackModel);
       if (fallbackResults.length > 0) {
         console.log(`[generateImage] Fallback ${fallbackModel} succeeded - ${fallbackResults.length} images`);
         return fallbackResults;
@@ -1717,7 +1812,11 @@ export const generateImageSmart = async (
 
   const negativePrompt = getNegativePrompts(analysis, textInfo, selectedStyle);
   
-  console.log(`[Smart Generation] Final prompt (${mode} mode):`, enhancedPrompt.substring(0, 200) + '...');
+  // CRITICAL: Clean ALL meta-instructions before sending to image model
+  const finalCleanedPrompt = cleanMetaInstructions(enhancedPrompt);
+  console.log(`[Smart Generation] Cleaned prompt: removed ${enhancedPrompt.length - finalCleanedPrompt.length} chars of meta-instructions`);
+  
+  console.log(`[Smart Generation] Final prompt (${mode} mode):`, finalCleanedPrompt.substring(0, 200) + '...');
   console.log(`[Smart Generation] Negative prompt:`, negativePrompt.substring(0, 100) + '...');
 
   const numVariations = Math.min(Math.max(variations, 1), 4);
@@ -1730,7 +1829,7 @@ export const generateImageSmart = async (
   if (quality === 'draft' && !hasText) {
     const draftModel = 'gemini-2.5-flash-image';
     console.log(`[Smart Generation] Draft mode (no text) - using ${draftModel} for speed`);
-    images = await generateWithGeminiImageModel(ai, enhancedPrompt, aspectRatio, negativePrompt, numVariations, draftModel);
+    images = await generateWithGeminiImageModel(ai, finalCleanedPrompt, aspectRatio, negativePrompt, numVariations, draftModel);
     modelUsed = draftModel;
   } else {
     // For TEXT-HEAVY prompts (draft or final) AND final non-text: Use Imagen 4 PRIMARY
@@ -1741,7 +1840,7 @@ export const generateImageSmart = async (
     
     for (let attempt = 0; attempt < tierConfig.imagenRetries; attempt++) {
       try {
-        const imagenResults = await generateWithImagen(enhancedPrompt, {
+        const imagenResults = await generateWithImagen(finalCleanedPrompt, {
           model: 'imagen-4.0-generate-001',
           aspectRatio,
           numberOfImages: numVariations,
@@ -1750,7 +1849,7 @@ export const generateImageSmart = async (
 
         images = imagenResults.map(r => ({
           url: `data:${r.mimeType};base64,${r.base64}`,
-          prompt: enhancedPrompt,
+          prompt: finalCleanedPrompt,
           base64Data: r.base64,
           mimeType: r.mimeType
         }));
@@ -1785,7 +1884,7 @@ export const generateImageSmart = async (
     if (images.length === 0) {
       const fallbackModel = hasText ? tierConfig.textFallbackModel : tierConfig.fallbackModel;
       console.log(`[Smart Generation] Using tier-specific fallback: ${fallbackModel} (tier: ${tierEvaluation.recommendedTier})`);
-      images = await generateWithGeminiImageModel(ai, enhancedPrompt, aspectRatio, negativePrompt, numVariations, fallbackModel);
+      images = await generateWithGeminiImageModel(ai, finalCleanedPrompt, aspectRatio, negativePrompt, numVariations, fallbackModel);
       modelUsed = fallbackModel;
     }
   }
@@ -2523,6 +2622,11 @@ All text must be rendered with PERFECT spelling accuracy. Each word must be exac
   
   const negativePrompt = getNegativePrompts(result.analysis, result.textInfo, selectedStyle);
   
+  // CRITICAL: Clean ALL meta-instructions before sending to image model
+  // This removes zone directives, rendering requirements, critical spelling markers, etc.
+  const finalCleanedPrompt = cleanMetaInstructions(enhancedStylePrompt);
+  console.log(`[Text Integrity] Final cleaned prompt length: ${finalCleanedPrompt.length} (removed ${enhancedStylePrompt.length - finalCleanedPrompt.length} chars of meta-instructions)`);
+  
   const fallbacksUsed: string[] = [];
   let allResults: TextIntegrityResult[] = [];
   let modelUsed = 'imagen-4.0-generate-001';
@@ -2530,7 +2634,7 @@ All text must be rendered with PERFECT spelling accuracy. Each word must be exac
   console.log(`[Text Integrity] PRIMARY: Generating ${candidateCount} candidates with Imagen 4`);
   
   try {
-    const imagenCandidates = await generateWithImagen(enhancedStylePrompt, {
+    const imagenCandidates = await generateWithImagen(finalCleanedPrompt, {
       model: 'imagen-4.0-generate-001',
       aspectRatio,
       numberOfImages: Math.min(candidateCount, 4),
@@ -2539,11 +2643,11 @@ All text must be rendered with PERFECT spelling accuracy. Each word must be exac
     
     let candidates: GeneratedImageData[] = imagenCandidates.map(r => ({
       url: `data:${r.mimeType};base64,${r.base64}`,
-      prompt: enhancedStylePrompt
+      prompt: finalCleanedPrompt
     }));
     
     if (candidateCount > 4) {
-      const secondBatch = await generateWithImagen(enhancedStylePrompt, {
+      const secondBatch = await generateWithImagen(finalCleanedPrompt, {
         model: 'imagen-4.0-generate-001',
         aspectRatio,
         numberOfImages: Math.min(candidateCount - 4, 4),
@@ -2552,7 +2656,7 @@ All text must be rendered with PERFECT spelling accuracy. Each word must be exac
       
       candidates = candidates.concat(secondBatch.map(r => ({
         url: `data:${r.mimeType};base64,${r.base64}`,
-        prompt: enhancedStylePrompt
+        prompt: finalCleanedPrompt
       })));
     }
     
@@ -2597,7 +2701,7 @@ All text must be rendered with PERFECT spelling accuracy. Each word must be exac
       try {
         const response = await withRetry(() => ai.models.generateContent({
           model: 'gemini-3-pro-image-preview',
-          contents: enhancedStylePrompt,
+          contents: finalCleanedPrompt,
           config: {
             responseModalities: [Modality.TEXT, Modality.IMAGE],
           }
@@ -2608,7 +2712,7 @@ All text must be rendered with PERFECT spelling accuracy. Each word must be exac
           if (part.inlineData?.mimeType?.startsWith('image/')) {
             fallbackCandidates.push({
               url: `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`,
-              prompt: enhancedStylePrompt
+              prompt: finalCleanedPrompt
             });
           }
         }
