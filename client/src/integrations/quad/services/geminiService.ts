@@ -218,12 +218,41 @@ export const generateImage = async (
       const data = await response.json();
       
       if (data.image) {
-        const base64Data = data.image.replace(/^data:image\/[^;]+;base64,/, '');
+        // Handle both string and object formats for data.image
+        let imageUrl: string;
+        let base64Data: string;
+        let mimeType: string = 'image/png';
+        
+        if (typeof data.image === 'string') {
+          // Legacy format: data.image is a string (URL or base64)
+          imageUrl = data.image.startsWith('data:') ? data.image : `data:image/png;base64,${data.image}`;
+          base64Data = data.image.replace(/^data:image\/[^;]+;base64,/, '');
+        } else if (typeof data.image === 'object') {
+          // New format: data.image is an object with url and/or base64Data, mimeType
+          mimeType = data.image.mimeType || 'image/png';
+          
+          if (data.image.url) {
+            // Has URL - use it directly
+            imageUrl = data.image.url;
+            base64Data = data.image.base64Data || data.image.url.replace(/^data:image\/[^;]+;base64,/, '');
+          } else if (data.image.base64Data) {
+            // No URL but has base64Data - construct data URL
+            base64Data = data.image.base64Data;
+            imageUrl = `data:${mimeType};base64,${base64Data}`;
+          } else {
+            console.warn('[QUAD] Image object missing both url and base64Data:', data.image);
+            throw new Error('Image object missing required data');
+          }
+        } else {
+          console.warn('[QUAD] Unexpected image format:', typeof data.image);
+          throw new Error('Unexpected image format in response');
+        }
+        
         const image: GeneratedImage = {
-          url: data.image.startsWith('data:') ? data.image : `data:image/png;base64,${data.image}`,
+          url: imageUrl,
           prompt: stylePrompt,
           base64Data,
-          mimeType: 'image/png',
+          mimeType,
         };
         
         results.push(image);
