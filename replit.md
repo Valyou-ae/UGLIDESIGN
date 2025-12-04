@@ -13,13 +13,21 @@ An advanced AI-powered image generation application featuring a sophisticated 5-
   - `hasText = tierDetectedText || textInfo.length > 0 || isTextPriority`
   - This ensures `buildTypographicPrompt()` is used for text-heavy prompts
 
-- **AI Studio-Aligned Typographic Prompt System**
-  - Removed letter-by-letter spelling (confuses Imagen 4 - per AI Studio guidance)
-  - Uses simple "MUST include...spelled EXACTLY as shown" directive instead
-  - Added typographic hierarchy with font hints (Serif/Sans-Serif)
-  - Detects graphic design mode (book covers, posters) vs photos of text
-  - Removes camera specs for graphic design (no "shot on ARRI Alexa" for book covers)
-  - Translates cinematic concepts to design language for graphic design prompts
+- **AI Studio-Aligned 5-Agent Typographic Integration**
+  - ALWAYS runs full 5-agent system (never bypasses for typographic mode)
+  - Agents translate cinematic concepts to design language for graphic design
+  - Text block directives appended AFTER agent enhancement
+  - Removed ALL letter-by-letter spelling (confuses Imagen 4 - per AI Studio guidance)
+  - Uses simple "MUST include...spelled EXACTLY as shown" directive
+  - Iterates over ALL detected text blocks, not just the first one
+  
+- **Graphic Design Mode Detection & Translation**
+  - Detects book covers, posters, flyers, banners, logos, typography, cover art
+  - Replaces CINEMATIC DNA with DESIGN DNA for graphic design prompts:
+    - "Cinematic lighting" → "dramatic conceptual spotlight within the design"
+    - "Professional color grading" → "moody, restricted color palette"
+    - Camera/lens specs → OMITTED for graphic design
+  - Creates artwork itself, not photograph of artwork
 
 - **Improved Model Routing for Text**
   - Text-heavy prompts now route to Imagen 4 even in draft mode
