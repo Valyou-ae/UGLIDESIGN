@@ -1994,3 +1994,471 @@ export const draftToFinalWorkflow = async (
     };
   }
 };
+
+// ============================================================================
+// TEXT INTEGRITY AGENT - AI Studio's OCR Validation System
+// ============================================================================
+
+export function levenshteinDistance(str1: string, str2: string): number {
+  const m = str1.length;
+  const n = str2.length;
+  const dp: number[][] = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      if (str1[i - 1].toLowerCase() === str2[j - 1].toLowerCase()) {
+        dp[i][j] = dp[i - 1][j - 1];
+      } else {
+        dp[i][j] = 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+      }
+    }
+  }
+  return dp[m][n];
+}
+
+export function calculateTextAccuracy(expected: string, actual: string): number {
+  if (!expected || !actual) return 0;
+  const distance = levenshteinDistance(expected, actual);
+  const maxLen = Math.max(expected.length, actual.length);
+  return maxLen === 0 ? 1 : Math.max(0, 1 - distance / maxLen);
+}
+
+export async function ocrImageWithGemini(imageBase64: string, mimeType: string = 'image/jpeg'): Promise<string> {
+  const ai = getAIClient();
+  
+  try {
+    const response = await withRetry(() => ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { text: 'Extract ALL text visible in this image. Return ONLY the text content, preserving the exact spelling and formatting. If there are multiple text blocks, separate them with newlines. Do not add any commentary or explanation.' },
+            { inlineData: { mimeType, data: imageBase64 } }
+          ]
+        }
+      ]
+    }));
+    
+    return response.text?.trim() || '';
+  } catch (error) {
+    console.error('[OCR] Failed to extract text:', error);
+    return '';
+  }
+}
+
+export async function scoreImageAesthetics(imageBase64: string, mimeType: string = 'image/jpeg'): Promise<number> {
+  const ai = getAIClient();
+  
+  try {
+    const response = await withRetry(() => ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { text: `Rate this image on a scale of 0-100 for visual quality, considering:
+- Composition and balance
+- Lighting and atmosphere
+- Color harmony
+- Professional polish
+- Overall aesthetic appeal
+
+Return ONLY a single number (0-100), nothing else.` },
+            { inlineData: { mimeType, data: imageBase64 } }
+          ]
+        }
+      ]
+    }));
+    
+    const scoreText = response.text?.trim() || '50';
+    const score = parseInt(scoreText, 10);
+    return isNaN(score) ? 50 : Math.min(100, Math.max(0, score)) / 100;
+  } catch (error) {
+    console.error('[Aesthetics] Failed to score image:', error);
+    return 0.5;
+  }
+}
+
+export interface TextIntegrityResult {
+  image: GeneratedImageData;
+  ocrText: string;
+  accuracyScores: { text: string; expected: string; accuracy: number }[];
+  overallAccuracy: number;
+  aestheticsScore: number;
+  combinedScore: number;
+  rank: number;
+}
+
+export interface TextIntegrityBatchResult {
+  bestImage: GeneratedImageData;
+  bestAccuracy: number;
+  allResults: TextIntegrityResult[];
+  attemptsNeeded: number;
+  modelUsed: string;
+}
+
+export async function runTextIntegrityValidation(
+  candidates: GeneratedImageData[],
+  expectedTexts: string[],
+  includeAesthetics: boolean = true
+): Promise<TextIntegrityResult[]> {
+  const results: TextIntegrityResult[] = [];
+  
+  console.log(`[Text Integrity] Validating ${candidates.length} candidates against ${expectedTexts.length} expected texts`);
+  
+  for (let i = 0; i < candidates.length; i++) {
+    const candidate = candidates[i];
+    
+    const dataUrlMatch = candidate.url.match(/^data:([^;]+);base64,(.+)$/);
+    if (!dataUrlMatch) {
+      console.warn(`[Text Integrity] Candidate ${i} has invalid URL format`);
+      results.push({
+        image: candidate,
+        ocrText: '',
+        accuracyScores: [],
+        overallAccuracy: 0,
+        aestheticsScore: 0,
+        combinedScore: 0,
+        rank: 999
+      });
+      continue;
+    }
+    
+    const [, mimeType, base64Data] = dataUrlMatch;
+    
+    const ocrText = await ocrImageWithGemini(base64Data, mimeType);
+    console.log(`[Text Integrity] Candidate ${i} OCR result:`, ocrText.substring(0, 100) + '...');
+    
+    const ocrTextLower = ocrText.toLowerCase();
+    const accuracyScores = expectedTexts.map(expected => {
+      const expectedLower = expected.toLowerCase();
+      
+      let bestAccuracy = 0;
+      const ocrLines = ocrText.split('\n').map(l => l.trim()).filter(Boolean);
+      
+      for (const line of ocrLines) {
+        const lineAccuracy = calculateTextAccuracy(expectedLower, line.toLowerCase());
+        if (lineAccuracy > bestAccuracy) {
+          bestAccuracy = lineAccuracy;
+        }
+      }
+      
+      if (bestAccuracy < 0.5 && ocrTextLower.includes(expectedLower.substring(0, Math.min(10, expectedLower.length)))) {
+        bestAccuracy = Math.max(bestAccuracy, 0.6);
+      }
+      
+      return { text: expected, expected, accuracy: bestAccuracy };
+    });
+    
+    const overallAccuracy = accuracyScores.length > 0 
+      ? accuracyScores.reduce((sum, s) => sum + s.accuracy, 0) / accuracyScores.length
+      : 0;
+    
+    let aestheticsScore = 0.5;
+    if (includeAesthetics) {
+      aestheticsScore = await scoreImageAesthetics(base64Data, mimeType);
+      console.log(`[Text Integrity] Candidate ${i} aesthetics score: ${(aestheticsScore * 100).toFixed(0)}%`);
+    }
+    
+    const combinedScore = (overallAccuracy * 0.7) + (aestheticsScore * 0.3);
+    
+    results.push({
+      image: candidate,
+      ocrText,
+      accuracyScores,
+      overallAccuracy,
+      aestheticsScore,
+      combinedScore,
+      rank: 0
+    });
+  }
+  
+  results.sort((a, b) => b.combinedScore - a.combinedScore);
+  results.forEach((r, i) => r.rank = i + 1);
+  
+  console.log(`[Text Integrity] Rankings:`, results.map(r => ({ 
+    rank: r.rank, 
+    accuracy: r.overallAccuracy.toFixed(2),
+    aesthetics: r.aestheticsScore.toFixed(2),
+    combined: r.combinedScore.toFixed(2)
+  })));
+  
+  return results;
+}
+
+export function buildZoneLayoutPlan(textBlocks: string[]): string {
+  if (textBlocks.length === 0) return '';
+  
+  const zones: string[] = [];
+  
+  if (textBlocks.length === 1) {
+    zones.push(`ZONE (Center): "${textBlocks[0]}" - prominently displayed as the main text element`);
+  } else if (textBlocks.length === 2) {
+    zones.push(`ZONE 1 (Top Half): "${textBlocks[0]}" - main title, largest and most prominent`);
+    zones.push(`ZONE 2 (Bottom Half): "${textBlocks[1]}" - secondary text, supporting the title`);
+  } else if (textBlocks.length === 3) {
+    zones.push(`ZONE 1 (Top Third): "${textBlocks[0]}" - main title, largest and most prominent`);
+    zones.push(`ZONE 2 (Middle Third): "${textBlocks[1]}" - subtitle or secondary information`);
+    zones.push(`ZONE 3 (Bottom Third): "${textBlocks[2]}" - author, credits, or tertiary text`);
+  } else {
+    zones.push(`ZONE 1 (Top): "${textBlocks[0]}" - main title, most prominent`);
+    zones.push(`ZONE 2 (Upper Middle): "${textBlocks[1]}" - subtitle`);
+    
+    const middleBlocks = textBlocks.slice(2, -1);
+    middleBlocks.forEach((block, i) => {
+      zones.push(`ZONE ${i + 3} (Middle): "${block}" - supporting text`);
+    });
+    
+    zones.push(`ZONE ${textBlocks.length} (Bottom): "${textBlocks[textBlocks.length - 1]}" - footer/credits`);
+  }
+  
+  return `
+**TEXT LAYOUT ZONES (Spatial Hierarchy):**
+${zones.join('\n')}
+
+Each zone should maintain clear visual separation. Text should not overlap between zones.
+`.trim();
+}
+
+export function buildCriticalSpellingEmphasis(textBlocks: string[]): string {
+  const complexWords: string[] = [];
+  
+  for (const block of textBlocks) {
+    const words = block.split(/\s+/);
+    for (const word of words) {
+      const cleanWord = word.replace(/[^a-zA-Z]/g, '');
+      if (cleanWord.length >= 8 || /[A-Z].*[A-Z]/.test(word) || /-/.test(word)) {
+        complexWords.push(word);
+      }
+    }
+  }
+  
+  if (complexWords.length === 0) return '';
+  
+  return `
+**CRITICAL SPELLING (Pay Extra Attention):**
+The following words are complex and require exact spelling:
+${complexWords.map(w => `- "${w}" - render this word EXACTLY as shown, letter by letter`).join('\n')}
+
+These words must be spelled with 100% accuracy. Double-check each character.
+`.trim();
+}
+
+export function checkTextComplexitySoftLimits(textBlocks: string[]): { warnings: string[]; isWithinLimits: boolean } {
+  const warnings: string[] = [];
+  let isWithinLimits = true;
+  
+  if (textBlocks.length > 5) {
+    warnings.push(`High text block count (${textBlocks.length}/5 recommended). Consider reducing for better accuracy.`);
+    isWithinLimits = false;
+  } else if (textBlocks.length > 4) {
+    warnings.push(`Text block count at upper limit (${textBlocks.length}/5 recommended).`);
+  }
+  
+  for (let i = 0; i < textBlocks.length; i++) {
+    const wordCount = textBlocks[i].split(/\s+/).length;
+    if (wordCount > 12) {
+      warnings.push(`Text block ${i + 1} has ${wordCount} words (12 max recommended). Consider shortening.`);
+      isWithinLimits = false;
+    } else if (wordCount > 10) {
+      warnings.push(`Text block ${i + 1} approaching word limit (${wordCount}/12 recommended).`);
+    }
+  }
+  
+  return { warnings, isWithinLimits };
+}
+
+export interface CuratedGenerationResult {
+  bestImage: GeneratedImageData;
+  bestAccuracy: number;
+  bestAesthetics: number;
+  bestCombinedScore: number;
+  allResults: TextIntegrityResult[];
+  attemptsNeeded: number;
+  modelUsed: string;
+  fallbacksUsed: string[];
+  complexityWarnings: string[];
+  zoneLayout: string;
+}
+
+export async function generateWithTextIntegrity(
+  userPrompt: string,
+  expectedTexts: string[],
+  aspectRatio: string = '1:1',
+  selectedStyle: string = 'auto',
+  quality: QualityLevel = 'standard',
+  candidateCount: number = 8
+): Promise<CuratedGenerationResult> {
+  console.log(`[Text Integrity Generation] Starting with ${expectedTexts.length} text blocks, ${candidateCount} candidates`);
+  
+  const complexityCheck = checkTextComplexitySoftLimits(expectedTexts);
+  if (complexityCheck.warnings.length > 0) {
+    console.log(`[Text Integrity] Complexity warnings:`, complexityCheck.warnings);
+  }
+  
+  const zoneLayout = buildZoneLayoutPlan(expectedTexts);
+  const criticalSpelling = buildCriticalSpellingEmphasis(expectedTexts);
+  
+  const enhancedPrompt = `${userPrompt}
+
+${zoneLayout}
+
+${criticalSpelling}
+
+**TEXT RENDERING REQUIREMENTS:**
+All text must be rendered with PERFECT spelling accuracy. Each word must be exactly as specified.
+`.trim();
+  
+  console.log(`[Text Integrity] Enhanced prompt with zones and critical spelling`);
+  
+  const textPriorityAnalysis = analyzeTextPriority(enhancedPrompt);
+  const tierEvaluation = evaluatePromptTier(enhancedPrompt, quality);
+  const result = await performInitialAnalysis(enhancedPrompt, true);
+  
+  let enhancedStylePrompt = await enhanceStyle(
+    enhancedPrompt, 
+    result.analysis, 
+    result.textInfo, 
+    selectedStyle, 
+    quality,
+    { thinkingBudget: tierEvaluation.thinkingBudget, maxWords: tierEvaluation.maxWords }
+  );
+  
+  const textBlockDirectives = buildTextBlockDirectives(textPriorityAnalysis);
+  if (textBlockDirectives) {
+    enhancedStylePrompt = enhancedStylePrompt + '\n\n' + textBlockDirectives;
+  }
+  
+  const negativePrompt = getNegativePrompts(result.analysis, result.textInfo, selectedStyle);
+  
+  const fallbacksUsed: string[] = [];
+  let allResults: TextIntegrityResult[] = [];
+  let modelUsed = 'imagen-4.0-generate-001';
+  
+  console.log(`[Text Integrity] PRIMARY: Generating ${candidateCount} candidates with Imagen 4`);
+  
+  try {
+    const imagenCandidates = await generateWithImagen(enhancedStylePrompt, {
+      model: 'imagen-4.0-generate-001',
+      aspectRatio,
+      numberOfImages: Math.min(candidateCount, 4),
+      negativePrompt
+    });
+    
+    let candidates: GeneratedImageData[] = imagenCandidates.map(r => ({
+      url: `data:${r.mimeType};base64,${r.base64}`,
+      prompt: enhancedStylePrompt
+    }));
+    
+    if (candidateCount > 4) {
+      const secondBatch = await generateWithImagen(enhancedStylePrompt, {
+        model: 'imagen-4.0-generate-001',
+        aspectRatio,
+        numberOfImages: Math.min(candidateCount - 4, 4),
+        negativePrompt
+      });
+      
+      candidates = candidates.concat(secondBatch.map(r => ({
+        url: `data:${r.mimeType};base64,${r.base64}`,
+        prompt: enhancedStylePrompt
+      })));
+    }
+    
+    console.log(`[Text Integrity] Generated ${candidates.length} candidates, running OCR validation`);
+    
+    allResults = await runTextIntegrityValidation(candidates, expectedTexts);
+    
+    const bestResult = allResults[0];
+    if (bestResult && bestResult.combinedScore >= 0.80) {
+      console.log(`[Text Integrity] SUCCESS: Found candidate with ${(bestResult.combinedScore * 100).toFixed(1)}% combined score (accuracy: ${(bestResult.overallAccuracy * 100).toFixed(1)}%, aesthetics: ${(bestResult.aestheticsScore * 100).toFixed(1)}%)`);
+      return {
+        bestImage: bestResult.image,
+        bestAccuracy: bestResult.overallAccuracy,
+        bestAesthetics: bestResult.aestheticsScore,
+        bestCombinedScore: bestResult.combinedScore,
+        allResults,
+        attemptsNeeded: 1,
+        modelUsed,
+        fallbacksUsed,
+        complexityWarnings: complexityCheck.warnings,
+        zoneLayout
+      };
+    }
+    
+    console.log(`[Text Integrity] Best Imagen 4 accuracy: ${(bestResult?.overallAccuracy || 0) * 100}%. Trying fallback...`);
+    fallbacksUsed.push('imagen-4-low-accuracy');
+    
+  } catch (error) {
+    console.error(`[Text Integrity] Imagen 4 failed:`, error);
+    fallbacksUsed.push('imagen-4-error');
+  }
+  
+  console.log(`[Text Integrity] SECONDARY FALLBACK: Trying gemini-3-pro-image-preview`);
+  modelUsed = 'gemini-3-pro-image-preview';
+  
+  try {
+    const ai = getAIClient();
+    const fallbackCandidates: GeneratedImageData[] = [];
+    
+    for (let i = 0; i < Math.min(candidateCount, 4); i++) {
+      try {
+        const response = await withRetry(() => ai.models.generateContent({
+          model: 'gemini-3-pro-image-preview',
+          contents: enhancedStylePrompt,
+          config: {
+            responseModalities: [Modality.TEXT, Modality.IMAGE],
+          }
+        }));
+        
+        const parts = response.candidates?.[0]?.content?.parts || [];
+        for (const part of parts) {
+          if (part.inlineData?.mimeType?.startsWith('image/')) {
+            fallbackCandidates.push({
+              url: `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`,
+              prompt: enhancedStylePrompt
+            });
+          }
+        }
+      } catch (e) {
+        console.error(`[Text Integrity] Fallback generation ${i} failed:`, e);
+      }
+    }
+    
+    if (fallbackCandidates.length > 0) {
+      console.log(`[Text Integrity] Running OCR validation on ${fallbackCandidates.length} fallback candidates`);
+      const fallbackResults = await runTextIntegrityValidation(fallbackCandidates, expectedTexts);
+      allResults = allResults.concat(fallbackResults);
+      
+      allResults.sort((a, b) => b.combinedScore - a.combinedScore);
+      allResults.forEach((r, i) => r.rank = i + 1);
+    }
+  } catch (error) {
+    console.error(`[Text Integrity] Gemini 3 Pro fallback failed:`, error);
+    fallbacksUsed.push('gemini-3-pro-error');
+  }
+  
+  const finalBest = allResults[0];
+  
+  if (!finalBest) {
+    throw new Error('Text Integrity Agent: All generation attempts failed. Please try again.');
+  }
+  
+  console.log(`[Text Integrity] FINAL: Best combined score ${(finalBest.combinedScore * 100).toFixed(1)}% (accuracy: ${(finalBest.overallAccuracy * 100).toFixed(1)}%, aesthetics: ${(finalBest.aestheticsScore * 100).toFixed(1)}%) from ${modelUsed}`);
+  
+  return {
+    bestImage: finalBest.image,
+    bestAccuracy: finalBest.overallAccuracy,
+    bestAesthetics: finalBest.aestheticsScore,
+    bestCombinedScore: finalBest.combinedScore,
+    allResults,
+    attemptsNeeded: allResults.length,
+    modelUsed,
+    fallbacksUsed,
+    complexityWarnings: complexityCheck.warnings,
+    zoneLayout
+  };
+}

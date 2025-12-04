@@ -15,7 +15,9 @@ import {
   performDeepAnalysis,
   draftToFinalWorkflow,
   generateIterativeEditPrompt,
-  evaluatePromptTier
+  evaluatePromptTier,
+  generateWithTextIntegrity,
+  checkTextComplexitySoftLimits
 } from "./services/geminiService";
 import { 
   runMultiAgentPipeline, 
@@ -704,6 +706,73 @@ The Master Refiner applies professional-grade image enhancement after generation
       res.json({ success: true, content });
     } else {
       res.status(404).json({ success: false, error: "Article not found" });
+    }
+  });
+
+  app.post("/api/generate-with-text-integrity", async (req, res) => {
+    try {
+      const { 
+        prompt, 
+        expectedTexts, 
+        aspectRatio, 
+        style, 
+        quality, 
+        candidateCount 
+      } = req.body;
+
+      if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
+        return res.status(400).json({ success: false, error: "Prompt is required" });
+      }
+
+      if (!expectedTexts || !Array.isArray(expectedTexts) || expectedTexts.length === 0) {
+        return res.status(400).json({ success: false, error: "expectedTexts array is required" });
+      }
+
+      const complexityCheck = checkTextComplexitySoftLimits(expectedTexts);
+      
+      console.log(`[Text Integrity API] Generating with ${expectedTexts.length} text blocks, ${candidateCount || 8} candidates`);
+      
+      const result = await generateWithTextIntegrity(
+        prompt.trim(),
+        expectedTexts,
+        aspectRatio || '3:4',
+        style || 'auto',
+        (quality || 'standard') as QualityLevel,
+        candidateCount || 8
+      );
+
+      res.json({
+        success: true,
+        image: result.bestImage,
+        accuracy: result.bestAccuracy,
+        accuracyPercent: Math.round(result.bestAccuracy * 100),
+        aesthetics: result.bestAesthetics,
+        aestheticsPercent: Math.round(result.bestAesthetics * 100),
+        combinedScore: result.bestCombinedScore,
+        combinedScorePercent: Math.round(result.bestCombinedScore * 100),
+        allCandidates: result.allResults.map(r => ({
+          accuracy: r.overallAccuracy,
+          accuracyPercent: Math.round(r.overallAccuracy * 100),
+          aesthetics: r.aestheticsScore,
+          aestheticsPercent: Math.round(r.aestheticsScore * 100),
+          combinedScore: r.combinedScore,
+          combinedScorePercent: Math.round(r.combinedScore * 100),
+          rank: r.rank,
+          ocrText: r.ocrText,
+          scores: r.accuracyScores
+        })),
+        attemptsNeeded: result.attemptsNeeded,
+        modelUsed: result.modelUsed,
+        fallbacksUsed: result.fallbacksUsed,
+        complexityWarnings: result.complexityWarnings,
+        zoneLayout: result.zoneLayout
+      });
+    } catch (error: any) {
+      console.error("Text Integrity generation error:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: error.message || "Failed to generate image with text integrity" 
+      });
     }
   });
 

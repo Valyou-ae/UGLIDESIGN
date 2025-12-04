@@ -35,6 +35,32 @@ An advanced AI-powered image generation application featuring a sophisticated 5-
   - Draft mode WITH text → Imagen 4 (better text rendering)
   - Final mode (all) → Imagen 4 PRIMARY with fallback
 
+- **Text Integrity Agent** (AI Studio's OCR Validation System)
+  - Generates 8 candidate images for text-heavy prompts
+  - OCR validation using Gemini Vision to extract text
+  - Levenshtein distance scoring for spelling accuracy
+  - Aesthetic scoring for visual quality (composition, lighting, color)
+  - Combined score: 70% accuracy + 30% aesthetics
+  - Multi-layer fallback: Imagen 4 → gemini-3-pro-image-preview
+  - API endpoint: `POST /api/generate-with-text-integrity`
+
+- **Text SFX Artist** (Zone Layout System)
+  - Generates ZONE layout plan for multi-block text
+  - ZONE 1 (Top Third): Main title
+  - ZONE 2 (Middle Third): Subtitle
+  - ZONE 3 (Bottom Third): Author/credits
+  - Spatial hierarchy for clear text placement
+
+- **Critical Spelling Emphasis**
+  - Identifies complex words (8+ chars, hyphenated, mixed case)
+  - Adds "CRITICAL SPELLING" block to prompt
+  - Flags words for extra model attention
+
+- **Soft Limits**
+  - Max 4-5 text blocks recommended
+  - Max 10-12 words per block
+  - Warnings when limits exceeded
+
 ### December 3, 2025
 - **Auto-Scaling Tier System**
   - Intelligent tier selection based on prompt complexity (Standard/Premium/Ultra)
