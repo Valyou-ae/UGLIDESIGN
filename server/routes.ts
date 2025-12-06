@@ -7,7 +7,7 @@ import { pool } from "./db";
 import bcrypt from "bcrypt";
 import { insertUserSchema, insertImageSchema, insertWithdrawalSchema } from "@shared/schema";
 import { ZodError } from "zod";
-import { generateImageWithPipeline, type ProgressCallback } from "./gemini";
+import { generateImageWithPipeline } from "./gemini";
 
 const PgSession = ConnectPgSimple(session);
 
@@ -191,17 +191,20 @@ export async function registerRoutes(
 
   app.post("/api/generate-image", async (req, res) => {
     try {
-      const { prompt, style, aspectRatio } = req.body;
+      const { prompt, style, aspectRatio, processTextInPrompt } = req.body;
 
       if (!prompt) {
         return res.status(400).json({ message: "Prompt is required" });
       }
 
-      // Use the 3-phase pipeline for 100% text accuracy
-      // Phase 1: Text Sentinel detects text requirements
-      // Phase 2: Style Architect creates Art Direction prompt
-      // Phase 3: Image Generator renders with accurate text
-      const result = await generateImageWithPipeline(prompt, style);
+      // AI Studio Flow:
+      // Phase 1: Initial Analysis (text + deep analysis in ONE call)
+      // Phase 2: Draft Prompt with Cinematic DNA
+      // Phase 3: Image Generation with dynamic negative prompts
+      const result = await generateImageWithPipeline(prompt, {
+        processTextInPrompt: processTextInPrompt !== false,
+        style
+      });
       
       const imageUrl = `data:${result.mimeType};base64,${result.imageBase64}`;
 
@@ -224,16 +227,11 @@ export async function registerRoutes(
       res.json({ 
         image,
         enhancedPrompt: result.pipeline?.finalPrompt,
+        textInfo: result.textInfo,
         pipeline: result.pipeline ? {
-          textAnalysis: result.pipeline.textAnalysis,
-          textDirections: result.pipeline.artDirection.textDirections,
-          ocrValidation: result.pipeline.ocrValidation ? {
-            accuracyScore: result.pipeline.ocrValidation.accuracyScore,
-            passedValidation: result.pipeline.ocrValidation.passedValidation,
-            extractedTexts: result.pipeline.ocrValidation.extractedTexts,
-            matchDetails: result.pipeline.ocrValidation.matchDetails,
-          } : undefined,
-          attempts: result.pipeline.attempts,
+          analysis: result.pipeline.analysis,
+          cinematicDNA: result.pipeline.draftPrompt.cinematicDNA,
+          modelUsed: result.pipeline.modelUsed,
         } : undefined,
       });
     } catch (error: any) {
@@ -245,7 +243,7 @@ export async function registerRoutes(
   // ============== SSE IMAGE GENERATION WITH PROGRESS ==============
 
   app.get("/api/generate-image-stream", async (req, res) => {
-    const { prompt, style, aspectRatio, enhanceWithAI } = req.query;
+    const { prompt, style, aspectRatio, processTextInPrompt } = req.query;
 
     if (!prompt || typeof prompt !== 'string') {
       return res.status(400).json({ message: "Prompt is required" });
@@ -254,6 +252,7 @@ export async function registerRoutes(
     // Parse query parameters
     const styleStr = typeof style === 'string' ? style : undefined;
     const aspectRatioStr = typeof aspectRatio === 'string' ? aspectRatio : "1:1";
+    const processText = processTextInPrompt !== 'false';
 
     // Set up SSE headers
     res.setHeader('Content-Type', 'text/event-stream');
@@ -262,18 +261,18 @@ export async function registerRoutes(
     res.setHeader('X-Accel-Buffering', 'no');
     res.flushHeaders();
 
-    // Progress callback to send SSE events
-    const onProgress: ProgressCallback = (phase, message, attempt, maxAttempts) => {
-      const data = JSON.stringify({ phase, message, attempt, maxAttempts });
+    // Send progress updates via SSE - called by the pipeline at each phase
+    const onProgress = (phase: string, message: string) => {
+      const data = JSON.stringify({ phase, message });
       res.write(`data: ${data}\n\n`);
     };
 
     try {
-      const result = await generateImageWithPipeline(
-        prompt, 
-        styleStr,
+      const result = await generateImageWithPipeline(prompt, {
+        processTextInPrompt: processText,
+        style: styleStr,
         onProgress
-      );
+      });
 
       const imageUrl = `data:${result.mimeType};base64,${result.imageBase64}`;
 
@@ -300,16 +299,11 @@ export async function registerRoutes(
         result: {
           image,
           enhancedPrompt: result.pipeline?.finalPrompt,
+          textInfo: result.textInfo,
           pipeline: result.pipeline ? {
-            textAnalysis: result.pipeline.textAnalysis,
-            textDirections: result.pipeline.artDirection.textDirections,
-            ocrValidation: result.pipeline.ocrValidation ? {
-              accuracyScore: result.pipeline.ocrValidation.accuracyScore,
-              passedValidation: result.pipeline.ocrValidation.passedValidation,
-              extractedTexts: result.pipeline.ocrValidation.extractedTexts,
-              matchDetails: result.pipeline.ocrValidation.matchDetails,
-            } : undefined,
-            attempts: result.pipeline.attempts,
+            analysis: result.pipeline.analysis,
+            cinematicDNA: result.pipeline.draftPrompt.cinematicDNA,
+            modelUsed: result.pipeline.modelUsed,
           } : undefined,
         }
       });
