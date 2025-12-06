@@ -372,8 +372,9 @@ export default function MockupGenerator() {
     const styleName = selectedStyle || "minimal";
     const productName = selectedProductType || "t-shirt";
     const colors = selectedColors.length > 0 ? selectedColors : ["White"];
+    const sizes = selectedSizes.length > 0 ? selectedSizes : ["M"];
     const scene = environmentPrompt || "studio";
-    const totalExpected = Math.max(1, selectedAngles.length * colors.length);
+    const totalExpected = Math.max(1, selectedAngles.length * colors.length * sizes.length);
 
     setIsGenerating(true);
     setGenerationProgress(0);
@@ -391,6 +392,7 @@ export default function MockupGenerator() {
         {
           productType: productName,
           productColors: colors,
+          productSizes: useModel ? sizes : undefined,
           angles: selectedAngles,
           scene: scene,
           style: styleName,

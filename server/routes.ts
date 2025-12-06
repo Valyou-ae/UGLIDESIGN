@@ -600,6 +600,7 @@ export async function registerRoutes(
         designImage,
         productType = "t-shirt",
         productColors = ["White"],
+        productSizes,
         angles = ["front"],
         scene = "studio",
         style = "minimal",
@@ -708,83 +709,115 @@ export async function registerRoutes(
           p.subcategory?.toLowerCase().includes(productType.toLowerCase())
         ) || knowledge.getDTGProducts()[0];
 
+        const sizesToGenerate: string[] = Array.isArray(productSizes) && productSizes.length > 0 
+          ? productSizes 
+          : [mappedModelDetails.modelSize || 'M'];
+
         let personaLockFailed = false;
         let batchCompleted = false;
+        let totalGeneratedCount = 0;
+        const totalSizes = sizesToGenerate.length;
+        const jobsPerSize = angles.length * colors.length;
+        const totalJobs = jobsPerSize * totalSizes;
 
         console.log("Starting elite mockup generation with:", {
           product: product?.name,
           colors: colors.map(c => c?.name),
           angles: angles,
+          sizes: sizesToGenerate,
           modelDetails: mappedModelDetails
         });
 
         sendEvent("status", { stage: "preparing", message: "Preparing model reference...", progress: 8 });
 
         try {
-          const batch = await eliteGenerator.generateMockupBatch({
-            journey: "DTG",
-            designImage: base64Data,
-            product: product,
-            colors: colors,
-            angles: angles as any[],
-            modelDetails: mappedModelDetails as any,
-            brandStyle: mappedStyle as any,
-            lightingPreset: 'three-point-classic',
-            materialCondition: 'BRAND_NEW',
-            environmentPrompt: scene
-          }, (completed, total, job) => {
-            const progress = 10 + Math.round((completed / total) * 85);
+          for (let sizeIndex = 0; sizeIndex < sizesToGenerate.length; sizeIndex++) {
+            const currentSize = sizesToGenerate[sizeIndex];
             
-            if (job.status === 'completed' && job.result) {
-              sendEvent("image", {
-                jobId: job.id,
-                angle: job.angle,
-                color: job.color.name,
-                imageData: job.result.imageData,
-                mimeType: job.result.mimeType
-              });
-            } else if (job.status === 'failed') {
-              sendEvent("image_error", {
-                jobId: job.id,
-                angle: job.angle,
-                color: job.color.name,
-                error: job.error || "Generation failed"
-              });
-            }
+            const sizeModelDetails = {
+              ...mappedModelDetails,
+              modelSize: currentSize
+            };
 
-            sendEvent("status", {
-              stage: "generating",
-              message: `Generated ${completed}/${total} mockups...`,
-              progress
+            const sizeLabel = totalSizes > 1 ? ` (Size ${currentSize})` : '';
+            sendEvent("status", { 
+              stage: "generating", 
+              message: `Generating size ${currentSize}${totalSizes > 1 ? ` (${sizeIndex + 1}/${totalSizes})` : ''}...`, 
+              progress: 10 + Math.round((sizeIndex / totalSizes) * 10)
             });
-          }, (error) => {
-            if (error.type === 'persona_lock_failed') {
-              personaLockFailed = true;
-              sendEvent("persona_lock_failed", {
-                message: error.message,
-                details: error.details,
-                suggestion: "Try again or use a different model configuration"
+
+            const batch = await eliteGenerator.generateMockupBatch({
+              journey: "DTG",
+              designImage: base64Data,
+              product: product,
+              colors: colors,
+              angles: angles as any[],
+              modelDetails: sizeModelDetails as any,
+              brandStyle: mappedStyle as any,
+              lightingPreset: 'three-point-classic',
+              materialCondition: 'BRAND_NEW',
+              environmentPrompt: scene
+            }, (completed, total, job) => {
+              const completedOverall = (sizeIndex * jobsPerSize) + completed;
+              const progress = 10 + Math.round((completedOverall / totalJobs) * 85);
+              
+              if (job.status === 'completed' && job.result) {
+                totalGeneratedCount++;
+                sendEvent("image", {
+                  jobId: job.id,
+                  angle: job.angle,
+                  color: job.color.name,
+                  size: currentSize,
+                  imageData: job.result.imageData,
+                  mimeType: job.result.mimeType
+                });
+              } else if (job.status === 'failed') {
+                sendEvent("image_error", {
+                  jobId: job.id,
+                  angle: job.angle,
+                  color: job.color.name,
+                  size: currentSize,
+                  error: job.error || "Generation failed"
+                });
+              }
+
+              sendEvent("status", {
+                stage: "generating",
+                message: `Generated ${completedOverall}/${totalJobs} mockups${sizeLabel}...`,
+                progress
               });
-            } else {
-              sendEvent("batch_error", {
-                type: error.type,
-                message: error.message,
-                details: error.details
-              });
+            }, (error) => {
+              if (error.type === 'persona_lock_failed') {
+                personaLockFailed = true;
+                sendEvent("persona_lock_failed", {
+                  message: error.message,
+                  details: error.details,
+                  suggestion: "Try again or use a different model configuration"
+                });
+              } else {
+                sendEvent("batch_error", {
+                  type: error.type,
+                  message: error.message,
+                  details: error.details
+                });
+              }
+            });
+
+            if (personaLockFailed) {
+              break;
             }
-          });
 
-          if (!personaLockFailed) {
-            batchCompleted = true;
-
-            if (batch.personaLockImage) {
+            if (sizeIndex === 0 && batch.personaLockImage) {
               sendEvent("persona_lock", {
                 headshotImage: batch.personaLockImage
               });
             }
+          }
 
+          if (!personaLockFailed) {
+            batchCompleted = true;
             sendEvent("status", { stage: "complete", message: "All mockups generated!", progress: 100 });
-            sendEvent("complete", { success: true, totalGenerated: batch.jobs.filter(j => j.status === 'completed').length });
+            sendEvent("complete", { success: true, totalGenerated: totalGeneratedCount });
           } else {
             sendEvent("status", { 
               stage: "failed", 

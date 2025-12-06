@@ -92,7 +92,29 @@ export function getRandomPersona(filters?: PersonaFilters): UnifiedPersona {
     }
 
     if (filters.size) {
-      personas = personas.filter(p => p.size === filters.size);
+      const sizeOrder = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+      const requestedSizeIndex = sizeOrder.indexOf(filters.size as string);
+      
+      let sizeFilteredPersonas = personas.filter(p => p.size === filters.size);
+      
+      if (sizeFilteredPersonas.length === 0 && requestedSizeIndex >= 0) {
+        for (let offset = 1; offset <= sizeOrder.length; offset++) {
+          if (requestedSizeIndex - offset >= 0) {
+            const smallerSize = sizeOrder[requestedSizeIndex - offset];
+            sizeFilteredPersonas = personas.filter(p => p.size === smallerSize);
+            if (sizeFilteredPersonas.length > 0) break;
+          }
+          if (requestedSizeIndex + offset < sizeOrder.length) {
+            const largerSize = sizeOrder[requestedSizeIndex + offset];
+            sizeFilteredPersonas = personas.filter(p => p.size === largerSize);
+            if (sizeFilteredPersonas.length > 0) break;
+          }
+        }
+      }
+      
+      if (sizeFilteredPersonas.length > 0) {
+        personas = sizeFilteredPersonas;
+      }
     }
   }
 
