@@ -5,7 +5,7 @@ const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 export const MODELS = {
   FAST_ANALYSIS: "gemini-2.5-flash",
   DEEP_ANALYSIS: "gemini-2.5-pro",
-  IMAGE_GENERATION: "gemini-2.0-flash-preview-image-generation",
+  IMAGE_GENERATION: "gemini-3-pro-image-preview",
 } as const;
 
 export interface PromptAnalysis {
