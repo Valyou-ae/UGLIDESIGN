@@ -60,6 +60,9 @@ Respond with JSON in this exact format:
       config: {
         systemInstruction: systemInstruction,
         responseMimeType: "application/json",
+        temperature: 0,
+        topP: 1,
+        topK: 1,
       },
     });
 
@@ -137,6 +140,9 @@ Respond with JSON:
       config: {
         systemInstruction: systemInstruction,
         responseMimeType: "application/json",
+        temperature: 0,
+        topP: 1,
+        topK: 1,
       },
     });
 
@@ -282,6 +288,9 @@ Respond with JSON:
       config: {
         systemInstruction: systemInstruction,
         responseMimeType: "application/json",
+        temperature: 0,
+        topP: 1,
+        topK: 1,
       },
     });
 
