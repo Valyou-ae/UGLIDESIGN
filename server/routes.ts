@@ -659,13 +659,18 @@ export async function registerRoutes(
 
         const ethnicityMap: Record<string, string> = {
           "CAUCASIAN": "White",
+          "WHITE": "White",
           "AFRICAN": "Black",
+          "BLACK": "Black",
           "ASIAN": "Asian",
           "HISPANIC": "Hispanic",
           "SOUTH_ASIAN": "Indian",
-          "MIDDLE_EASTERN": "Indian",
+          "INDIAN": "Indian",
+          "MIDDLE_EASTERN": "Diverse",
+          "SOUTHEAST_ASIAN": "Southeast Asian",
           "MIXED": "Diverse",
-          "INDIGENOUS": "Indigenous"
+          "INDIGENOUS": "Indigenous",
+          "DIVERSE": "Diverse"
         };
 
         const ageMap: Record<string, string> = {
