@@ -137,7 +137,10 @@ export type BrandStyleKey =
   | 'EDITORIAL_FASHION'
   | 'VINTAGE_RETRO'
   | 'STREET_URBAN'
-  | 'MINIMALIST_MODERN';
+  | 'MINIMALIST_MODERN'
+  | 'BOLD_PLAYFUL'
+  | 'PREMIUM_LUXE'
+  | 'NATURAL_ORGANIC';
 
 export interface BrandStyle {
   id: BrandStyleKey;
