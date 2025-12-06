@@ -411,6 +411,19 @@ ${materialPreset.promptAddition}
 ===== DESIGN LOCK =====
 [LOCKED - DESIGN APPLICATION AND SIZE RULES]
 [THE DESIGN MUST BE THE SAME SIZE IN EVERY SHOT]
+[THE DESIGN MUST BE IDENTICAL IN EVERY SHOT - NO MODIFICATIONS]
+
+===== DESIGN IMMUTABILITY (HIGHEST PRIORITY) =====
+[CRITICAL - DO NOT ALTER THE DESIGN IN ANY WAY]
+- The provided design image is IMMUTABLE and must not be changed
+- Use the EXACT design as provided - do not redraw, recreate, or reinterpret
+- PRESERVE all borders, outlines, and strokes exactly as they appear
+- PRESERVE all colors exactly as they appear (no color shifts, adjustments, or corrections)
+- If the design has a border/outline, ALL mockups must show that border/outline
+- If the design does NOT have a border/outline, do NOT add one
+- The design must look IDENTICAL across all angle shots (front, side, three-quarter, close-up)
+- The ONLY acceptable changes: fabric distortion from body contours, lighting/shadow integration
+===== END IMMUTABILITY =====
 
 - Design style: ${designAnalysis.style}
 - Design complexity: ${designAnalysis.complexity}
@@ -814,7 +827,39 @@ The person in your output image MUST be immediately recognizable as the SAME ind
     });
 
     parts.push({
-      text: `Apply this design to the product as specified:\n\n${renderSpec.fullPrompt}`
+      text: `===== CRITICAL DESIGN REFERENCE =====
+[MANDATORY - DO NOT MODIFY THE DESIGN]
+
+This is the EXACT design that MUST appear on the product. Use this image AS-IS.
+
+STRICT DESIGN FIDELITY REQUIREMENTS:
+1. COLORS: Keep the EXACT same colors - do not alter, shift, or recolor any part of the design
+2. BORDERS/OUTLINES: If the design has borders, strokes, or outlines - KEEP THEM. If it does NOT have borders - DO NOT ADD THEM
+3. SHAPES: Maintain the EXACT same shapes, proportions, and geometry
+4. DETAILS: Preserve ALL details, gradients, textures, and effects from the original
+5. NO REDRAWING: Do NOT redraw, recreate, or reinterpret the design - project it directly onto the garment
+6. NO FILTERS: Do NOT apply artistic filters, effects, or style changes to the design
+
+WHAT TO DO:
+- Place this EXACT image onto the product's print area
+- Scale it proportionally to fit the designated area
+- Apply natural fabric distortion based on body contours
+- Adjust lighting/shadows to match the scene
+
+WHAT NOT TO DO:
+- DO NOT add borders, outlines, or strokes that aren't in the original
+- DO NOT remove borders, outlines, or strokes that ARE in the original
+- DO NOT change any colors (even slightly)
+- DO NOT simplify or "clean up" the design
+- DO NOT recreate the design from scratch
+
+The design on the final mockup MUST be pixel-perfect identical to this reference (except for natural fabric distortion and lighting).
+
+===== END DESIGN REFERENCE =====
+
+Apply this design to the product as specified:
+
+${renderSpec.fullPrompt}`
     });
 
     const response = await genAI.models.generateContent({
