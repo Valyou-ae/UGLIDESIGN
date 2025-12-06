@@ -8,7 +8,7 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  updateUserProfile(userId: string, data: Partial<User>): Promise<User | undefined>;
+  updateUserProfile(userId: string, data: UpdateProfile): Promise<User | undefined>;
   
   // Image operations
   createImage(image: InsertImage): Promise<GeneratedImage>;
@@ -52,10 +52,18 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async updateUserProfile(userId: string, data: Partial<User>): Promise<User | undefined> {
+  async updateUserProfile(userId: string, data: UpdateProfile): Promise<User | undefined> {
+    const updateData: Partial<User> = {};
+    if (data.displayName !== undefined) updateData.displayName = data.displayName;
+    if (data.firstName !== undefined) updateData.firstName = data.firstName;
+    if (data.lastName !== undefined) updateData.lastName = data.lastName;
+    if (data.bio !== undefined) updateData.bio = data.bio;
+    if (data.affiliateCode !== undefined) updateData.affiliateCode = data.affiliateCode;
+    if (data.socialLinks !== undefined) updateData.socialLinks = data.socialLinks as { label: string; url: string }[];
+    
     const [user] = await db
       .update(users)
-      .set(data)
+      .set(updateData)
       .where(eq(users.id, userId))
       .returning();
     return user || undefined;

@@ -62,6 +62,7 @@ export const updateProfileSchema = createInsertSchema(users).pick({
   lastName: true,
   bio: true,
   socialLinks: true,
+  affiliateCode: true,
 }).partial();
 
 export const insertImageSchema = createInsertSchema(generatedImages).omit({

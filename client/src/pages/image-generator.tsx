@@ -287,7 +287,7 @@ export default function ImageGenerator() {
 
     const generatedImages: GeneratedImage[] = [];
     let imageCount = 0;
-    let totalExpected = settings.quality === "draft" ? 4 : 2;
+    let totalExpected = settings.quality === "draft" ? 4 : 1;
 
     const handleEvent = (event: GenerationEvent) => {
       const { type, data } = event;
