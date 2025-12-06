@@ -657,6 +657,45 @@ export async function registerRoutes(
         const eliteGenerator = await import("./services/eliteMockupGenerator");
         const knowledge = await import("./services/knowledge");
 
+        const ethnicityMap: Record<string, string> = {
+          "CAUCASIAN": "White",
+          "AFRICAN": "Black",
+          "ASIAN": "Asian",
+          "HISPANIC": "Hispanic",
+          "SOUTH_ASIAN": "Indian",
+          "MIDDLE_EASTERN": "Indian",
+          "MIXED": "Diverse",
+          "INDIGENOUS": "Indigenous"
+        };
+
+        const ageMap: Record<string, string> = {
+          "ADULT": "Adult",
+          "YOUNG_ADULT": "Young Adult",
+          "TEEN": "Teen"
+        };
+
+        const sexMap: Record<string, string> = {
+          "MALE": "Male",
+          "FEMALE": "Female"
+        };
+
+        const mappedModelDetails = {
+          age: ageMap[modelDetails.age] || "Adult",
+          sex: sexMap[modelDetails.sex] || "Male",
+          ethnicity: ethnicityMap[modelDetails.ethnicity] || "White",
+          modelSize: modelDetails.modelSize || "M"
+        };
+
+        const styleMap: Record<string, string> = {
+          "minimal": "MINIMALIST_MODERN",
+          "editorial": "EDITORIAL_FASHION",
+          "vintage": "VINTAGE_RETRO",
+          "street": "STREET_URBAN",
+          "ecommerce": "ECOMMERCE_CLEAN",
+          "clean": "ECOMMERCE_CLEAN"
+        };
+        const mappedStyle = styleMap[style.toLowerCase()] || "ECOMMERCE_CLEAN";
+
         sendEvent("status", { stage: "analyzing", message: "Analyzing your design...", progress: 5 });
 
         const product = knowledge.getDTGProducts().find(p => 
@@ -667,6 +706,13 @@ export async function registerRoutes(
         let personaLockFailed = false;
         let batchCompleted = false;
 
+        console.log("Starting elite mockup generation with:", {
+          product: product?.name,
+          colors: colors.map(c => c?.name),
+          angles: angles,
+          modelDetails: mappedModelDetails
+        });
+
         try {
           const batch = await eliteGenerator.generateMockupBatch({
             journey: "DTG",
@@ -674,8 +720,8 @@ export async function registerRoutes(
             product: product,
             colors: colors,
             angles: angles as any[],
-            modelDetails: modelDetails,
-            brandStyle: style.toUpperCase().replace(/\s+/g, '_') as any || 'ECOMMERCE_CLEAN',
+            modelDetails: mappedModelDetails as any,
+            brandStyle: mappedStyle as any,
             lightingPreset: 'three-point-classic',
             materialCondition: 'BRAND_NEW',
             environmentPrompt: scene
@@ -740,6 +786,7 @@ export async function registerRoutes(
             });
           }
         } catch (batchErr) {
+          console.error("Elite mockup batch error:", batchErr);
           const errorMessage = batchErr instanceof Error ? batchErr.message : String(batchErr);
           const isPersonaLockError = errorMessage.includes('Persona Lock failed');
           
