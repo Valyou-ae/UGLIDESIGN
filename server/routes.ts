@@ -281,8 +281,8 @@ export async function registerRoutes(
       });
 
       // Validate required banking fields
-      if (!withdrawalData.bankName || !withdrawalData.accountNumber || !withdrawalData.accountName) {
-        return res.status(400).json({ message: "Bank name, account number, and account name are required" });
+      if (!withdrawalData.bankName || !withdrawalData.accountNumber || !withdrawalData.accountHolderName) {
+        return res.status(400).json({ message: "Bank name, account number, and account holder name are required" });
       }
 
       // Validate withdrawal amount doesn't exceed available balance
@@ -491,14 +491,14 @@ export async function registerRoutes(
 
       sendEvent("status", { agent: "Master Refiner", status: "working", message: "Applying final polish..." });
 
-      const topCandidates = candidates.slice(0, 2);
+      const bestCandidate = candidates[0];
 
-      for (const candidate of topCandidates) {
+      if (bestCandidate) {
         sendEvent("final_image", {
-          index: candidate.index,
-          imageData: candidate.imageData,
-          mimeType: candidate.mimeType,
-          score: candidate.score,
+          index: bestCandidate.index,
+          imageData: bestCandidate.imageData,
+          mimeType: bestCandidate.mimeType,
+          score: bestCandidate.score,
         });
       }
 
@@ -506,7 +506,7 @@ export async function registerRoutes(
       sendEvent("complete", {
         message: "Final generation complete",
         totalCandidates: candidates.length,
-        selectedCount: topCandidates.length,
+        selectedCount: bestCandidate ? 1 : 0,
       });
 
       res.end();
