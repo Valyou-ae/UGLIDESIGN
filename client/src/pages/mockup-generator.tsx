@@ -91,12 +91,84 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { mockupApi, MockupEvent } from "@/lib/api";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 // Import sample mood images
 import moodMinimal from "@assets/generated_images/mood_image_for_minimalist_luxury_style.png";
 import moodUrban from "@assets/generated_images/mood_image_for_urban_street_style.png";
 import moodNatural from "@assets/generated_images/mood_image_for_natural_organic_style.png";
 import moodBold from "@assets/generated_images/mood_image_for_bold_vibrant_style.png";
+
+// Import brand archetype images
+import brandUrbanEdge from "@assets/generated_images/urban_edge_brand_style.png";
+import brandSoftMinimalist from "@assets/generated_images/soft_minimalist_brand_style.png";
+import brandBoldPlayful from "@assets/generated_images/bold_playful_brand_style.png";
+import brandPremiumLuxe from "@assets/generated_images/premium_luxe_brand_style.png";
+import brandVintageAuthentic from "@assets/generated_images/vintage_authentic_brand_style.png";
+
+// Brand style data with images, taglines, and mood keywords
+const BRAND_STYLES = [
+  { 
+    id: "ECOMMERCE_CLEAN", 
+    name: "E-Commerce Clean", 
+    img: brandSoftMinimalist, 
+    tagline: "Clean & Professional",
+    keywords: ["Minimal", "Trust", "Conversion", "Clarity"]
+  },
+  { 
+    id: "EDITORIAL_FASHION", 
+    name: "Editorial Fashion", 
+    img: brandUrbanEdge, 
+    tagline: "Dramatic & Bold",
+    keywords: ["High Fashion", "Editorial", "Dramatic", "Artistic"]
+  },
+  { 
+    id: "VINTAGE_RETRO", 
+    name: "Vintage Retro", 
+    img: brandVintageAuthentic, 
+    tagline: "Nostalgic & Timeless",
+    keywords: ["Classic", "Authentic", "Heritage", "Warm"]
+  },
+  { 
+    id: "STREET_URBAN", 
+    name: "Street Style Urban", 
+    img: brandUrbanEdge, 
+    tagline: "Gritty & Authentic",
+    keywords: ["Urban", "Raw", "Street", "Edge"]
+  },
+  { 
+    id: "MINIMALIST_MODERN", 
+    name: "Minimalist Modern", 
+    img: brandSoftMinimalist, 
+    tagline: "Less is More",
+    keywords: ["Sleek", "Refined", "Elegant", "Simple"]
+  },
+  { 
+    id: "BOLD_PLAYFUL", 
+    name: "Bold & Playful", 
+    img: brandBoldPlayful, 
+    tagline: "Vibrant & Energetic",
+    keywords: ["Fun", "Colorful", "Dynamic", "Youth"]
+  },
+  { 
+    id: "PREMIUM_LUXE", 
+    name: "Premium Luxe", 
+    img: brandPremiumLuxe, 
+    tagline: "Sophisticated & Elite",
+    keywords: ["Luxury", "Premium", "Exclusive", "Opulent"]
+  },
+  { 
+    id: "NATURAL_ORGANIC", 
+    name: "Natural Organic", 
+    img: moodNatural, 
+    tagline: "Earthy & Sustainable",
+    keywords: ["Eco", "Natural", "Organic", "Earthy"]
+  },
+];
 
 // Types
 type JourneyType = "DTG" | "AOP" | null;
@@ -120,6 +192,14 @@ interface ModelDetails {
   sex: Sex;
   ethnicity: Ethnicity;
   modelSize: ModelSize;
+}
+
+interface MockupDetails {
+  src: string;
+  angle: string;
+  color: string;
+  brandStyle: string;
+  index: number;
 }
 
 const DTG_STEPS: WizardStep[] = ["upload", "product", "model", "style", "scene", "angles", "generate"];
@@ -165,13 +245,15 @@ export default function MockupGenerator() {
   const [patternScale, setPatternScale] = useState(50);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedMockups, setGeneratedMockups] = useState<string[]>([]);
+  const [expectedMockupsCount, setExpectedMockupsCount] = useState(0);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [generationStage, setGenerationStage] = useState("");
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const [selectedMockup, setSelectedMockup] = useState<{ src: string; name: string } | null>(null);
+  const [selectedMockupDetails, setSelectedMockupDetails] = useState<MockupDetails | null>(null);
+  const [summaryOpen, setSummaryOpen] = useState(true);
 
   const downloadImage = (url: string, filename: string) => {
     const link = document.createElement('a');
@@ -271,20 +353,21 @@ export default function MockupGenerator() {
       return;
     }
 
-    setIsGenerating(true);
-    setGenerationProgress(0);
-    setGenerationStage("Initializing...");
-    setGeneratedMockups([]);
-
-    if (intervalRef.current) clearInterval(intervalRef.current);
-
     const styleName = selectedStyle || "minimal";
     const productName = selectedProductType || "t-shirt";
     const colors = selectedColors.length > 0 ? selectedColors : ["White"];
     const scene = environmentPrompt || "studio";
+    const totalExpected = Math.max(1, selectedAngles.length * colors.length);
+
+    setIsGenerating(true);
+    setGenerationProgress(0);
+    setGenerationStage("Initializing...");
+    setGeneratedMockups([]);
+    setExpectedMockupsCount(totalExpected);
+
+    if (intervalRef.current) clearInterval(intervalRef.current);
 
     const generatedImages: string[] = [];
-    const totalExpected = selectedAngles.length * colors.length;
 
     try {
       await mockupApi.generateBatch(
@@ -1718,41 +1801,50 @@ export default function MockupGenerator() {
                             <h2 className="text-2xl font-bold mb-2">Choose Brand Archetype</h2>
                             <p className="text-muted-foreground">Define the mood and aesthetic of your photoshoot</p>
                           </div>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                            {[
-                              { name: "Minimalist Luxury", img: moodMinimal, desc: "Clean, high-end, subtle" },
-                              { name: "Urban Street", img: moodUrban, desc: "Gritty, authentic, street" },
-                              { name: "Natural Organic", img: moodNatural, desc: "Earthy, sustainable" },
-                              { name: "Bold & Vibrant", img: moodBold, desc: "Colorful, energetic" },
-                              { name: "Dark & Moody", img: moodUrban, desc: "Dramatic, high contrast" }, // Reusing placeholder
-                              { name: "Vintage Retro", img: moodMinimal, desc: "Nostalgic, classic" },   // Reusing placeholder
-                              { name: "Tech Modern", img: moodBold, desc: "Sleek, futuristic" },        // Reusing placeholder
-                              { name: "Bohemian", img: moodNatural, desc: "Free-spirited, artistic" },  // Reusing placeholder
-                            ].map((style, i) => {
-                              const isSelected = selectedStyle === style.name;
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {BRAND_STYLES.map((style) => {
+                              const isSelected = selectedStyle === style.id;
                               return (
                                 <div 
-                                  key={i} 
-                                  onClick={() => setSelectedStyle(style.name)}
+                                  key={style.id} 
+                                  onClick={() => setSelectedStyle(style.id)}
+                                  data-testid={`style-card-${style.id}`}
                                   className={cn(
-                                    "group relative aspect-[3/4] rounded-xl overflow-hidden cursor-pointer border-2 transition-all",
+                                    "group relative bg-card rounded-xl overflow-hidden cursor-pointer border-2 transition-all duration-200 hover:shadow-lg",
                                     isSelected 
-                                      ? "border-indigo-600 ring-4 ring-indigo-600/20 shadow-lg scale-[1.02]" 
-                                      : "border-transparent hover:border-indigo-600/50"
+                                      ? "border-indigo-600 ring-4 ring-indigo-600/20 shadow-lg" 
+                                      : "border-border hover:border-indigo-600/50"
                                   )}
                                 >
-                                  <img src={style.img} alt={style.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-4">
-                                    <div className="flex justify-between items-end">
-                                      <div>
-                                        <h3 className="text-white font-bold text-lg">{style.name}</h3>
-                                        <p className="text-white/70 text-xs">{style.desc}</p>
-                                      </div>
+                                  <div className="p-4 flex flex-col">
+                                    <div className="relative w-full h-[120px] rounded-lg overflow-hidden mb-4 bg-muted">
+                                      <img 
+                                        src={style.img} 
+                                        alt={style.name} 
+                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                                      />
                                       {isSelected && (
-                                        <div className="bg-indigo-600 rounded-full p-1">
-                                          <Check className="h-4 w-4 text-white" />
+                                        <div className="absolute top-2 right-2 bg-indigo-600 rounded-full p-1.5 shadow-lg">
+                                          <Check className="h-3.5 w-3.5 text-white" />
                                         </div>
                                       )}
+                                    </div>
+                                    
+                                    <div className="space-y-2">
+                                      <h3 className="font-bold text-foreground text-sm">{style.name}</h3>
+                                      <p className="text-muted-foreground text-xs">{style.tagline}</p>
+                                      
+                                      <div className="flex flex-wrap gap-1 pt-1">
+                                        {style.keywords.map((keyword, idx) => (
+                                          <Badge 
+                                            key={idx}
+                                            variant="secondary"
+                                            className="text-[10px] px-1.5 py-0.5 font-normal bg-muted hover:bg-muted text-muted-foreground"
+                                          >
+                                            {keyword}
+                                          </Badge>
+                                        ))}
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
@@ -1818,7 +1910,7 @@ export default function MockupGenerator() {
                                 </div>
                                 <div className="flex justify-between items-center mb-4 pb-4 border-b border-border">
                                   <span className="text-sm font-medium text-muted-foreground">Style</span>
-                                  <span className="font-bold">{selectedStyle || "Minimal"}</span>
+                                  <span className="font-bold">{BRAND_STYLES.find(s => s.id === selectedStyle)?.name || "Minimal"}</span>
                                 </div>
                                 <div className="flex justify-between items-center mb-4 pb-4 border-b border-border">
                                   <span className="text-sm font-medium text-muted-foreground">Colors</span>
@@ -1843,7 +1935,7 @@ export default function MockupGenerator() {
                                 Generate {Math.max(1, selectedAngles.length * selectedColors.length)} Mockups
                               </Button>
                             </div>
-                          ) : isGenerating ? (
+                          ) : isGenerating && generatedMockups.length === 0 ? (
                             <div className="flex-1 flex flex-col items-center justify-center text-center max-w-[400px] mx-auto">
                               <div className="relative mb-8 w-full">
                                 <div className="absolute inset-0 bg-indigo-500/20 blur-2xl rounded-full animate-pulse" />
@@ -1881,13 +1973,23 @@ export default function MockupGenerator() {
                             </div>
                           ) : (
                             <div className="flex-1 flex flex-col h-full overflow-hidden">
-                              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 shrink-0">
+                              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 shrink-0">
                                 <div>
-                                  <h2 className="text-2xl md:text-3xl font-bold leading-tight">{generatedMockups.length} {generatedMockups.length === 1 ? "Mockup" : "Mockups"} Ready</h2>
-                                  <p className="text-sm text-muted-foreground">{selectedProductType || "T-Shirt"} - {selectedStyle || "Minimal"}</p>
+                                  <div className="flex items-center gap-3">
+                                    <h2 className="text-2xl md:text-3xl font-bold leading-tight">
+                                      {isGenerating 
+                                        ? `${generatedMockups.length} of ${expectedMockupsCount} Generating...`
+                                        : `${generatedMockups.length} ${generatedMockups.length === 1 ? "Mockup" : "Mockups"} Ready`
+                                      }
+                                    </h2>
+                                    {isGenerating && (
+                                      <RefreshCw className="h-5 w-5 text-indigo-600 animate-spin" />
+                                    )}
+                                  </div>
+                                  <p className="text-sm text-muted-foreground">{selectedProductType || "T-Shirt"} - {BRAND_STYLES.find(s => s.id === selectedStyle)?.name || "Minimal"}</p>
                                 </div>
                                 <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3">
-                                  <Button variant="outline" onClick={() => setJourney(null)} className="flex-1 sm:flex-none">Start Over</Button>
+                                  <Button variant="outline" onClick={() => setJourney(null)} className="flex-1 sm:flex-none" disabled={isGenerating}>Start Over</Button>
                                   <Button 
                                     variant="outline"
                                     onClick={() => {
@@ -1896,6 +1998,7 @@ export default function MockupGenerator() {
                                     }}
                                     className="flex-1 sm:flex-none"
                                     data-testid="button-regenerate"
+                                    disabled={isGenerating}
                                   >
                                     <RefreshCw className="mr-2 h-4 w-4" />
                                     Regenerate
@@ -1903,6 +2006,7 @@ export default function MockupGenerator() {
                                   <Button 
                                     className="bg-indigo-600 hover:bg-indigo-700 text-white flex-1 sm:flex-none"
                                     onClick={() => generatedMockups.forEach((img, i) => downloadImage(img, `mockup_${i}.png`))}
+                                    disabled={isGenerating || generatedMockups.length === 0}
                                   >
                                     <Download className="mr-2 h-4 w-4" />
                                     Download All
@@ -1910,11 +2014,152 @@ export default function MockupGenerator() {
                                 </div>
                               </div>
 
+                              {/* Collapsible Summary Panel */}
+                              <Collapsible
+                                open={summaryOpen}
+                                onOpenChange={setSummaryOpen}
+                                className="mb-4 shrink-0"
+                                data-testid="collapsible-summary"
+                              >
+                                <div className="bg-muted/30 border border-border rounded-xl overflow-hidden">
+                                  <CollapsibleTrigger asChild>
+                                    <button className="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-muted/50 transition-colors" data-testid="button-toggle-summary">
+                                      <div className="flex items-center gap-2">
+                                        <Info className="h-4 w-4 text-indigo-600" />
+                                        <span className="text-sm font-medium text-foreground">Generation Summary</span>
+                                      </div>
+                                      <ChevronDown className={cn(
+                                        "h-4 w-4 text-muted-foreground transition-transform duration-200",
+                                        summaryOpen && "rotate-180"
+                                      )} />
+                                    </button>
+                                  </CollapsibleTrigger>
+                                  <CollapsibleContent>
+                                    <div className="px-4 pb-4 pt-0">
+                                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                                        {/* Product */}
+                                        <div className="bg-card rounded-lg p-3 border border-border" data-testid="summary-product">
+                                          <div className="flex items-center gap-1.5 mb-1">
+                                            <Shirt className="h-3 w-3 text-indigo-600" />
+                                            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Product</span>
+                                          </div>
+                                          <p className="text-xs font-medium text-foreground truncate">{selectedProductType || "T-Shirt"}</p>
+                                        </div>
+
+                                        {/* Colors */}
+                                        <div className="bg-card rounded-lg p-3 border border-border" data-testid="summary-colors">
+                                          <div className="flex items-center gap-1.5 mb-1">
+                                            <Palette className="h-3 w-3 text-indigo-600" />
+                                            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Colors</span>
+                                          </div>
+                                          <p className="text-xs font-medium text-foreground truncate">
+                                            {selectedColors.length > 0 
+                                              ? selectedColors.slice(0, 3).join(", ") + (selectedColors.length > 3 ? ` +${selectedColors.length - 3}` : "") 
+                                              : "White"}
+                                          </p>
+                                        </div>
+
+                                        {/* Sizes */}
+                                        <div className="bg-card rounded-lg p-3 border border-border" data-testid="summary-sizes">
+                                          <div className="flex items-center gap-1.5 mb-1">
+                                            <Ruler className="h-3 w-3 text-indigo-600" />
+                                            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Sizes</span>
+                                          </div>
+                                          <p className="text-xs font-medium text-foreground truncate">
+                                            {selectedSizes.length > 0 ? selectedSizes.join(", ") : "L"}
+                                          </p>
+                                        </div>
+
+                                        {/* Model */}
+                                        <div className="bg-card rounded-lg p-3 border border-border" data-testid="summary-model">
+                                          <div className="flex items-center gap-1.5 mb-1">
+                                            <User className="h-3 w-3 text-indigo-600" />
+                                            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Model</span>
+                                          </div>
+                                          <p className="text-xs font-medium text-foreground truncate">
+                                            {useModel 
+                                              ? `${modelDetails.sex === "MALE" ? "M" : "F"}, ${modelDetails.age === "ADULT" ? "Adult" : modelDetails.age === "YOUNG_ADULT" ? "Young" : "Teen"}, ${modelDetails.ethnicity.charAt(0) + modelDetails.ethnicity.slice(1).toLowerCase().replace("_", " ")}, ${modelDetails.modelSize}`
+                                              : "Flat Lay"}
+                                          </p>
+                                        </div>
+
+                                        {/* Brand Style */}
+                                        <div className="bg-card rounded-lg p-3 border border-border" data-testid="summary-brand-style">
+                                          <div className="flex items-center gap-1.5 mb-1">
+                                            <Sparkles className="h-3 w-3 text-indigo-600" />
+                                            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Style</span>
+                                          </div>
+                                          <p className="text-xs font-medium text-foreground truncate">
+                                            {BRAND_STYLES.find(s => s.id === selectedStyle)?.name || "Minimal"}
+                                          </p>
+                                        </div>
+
+                                        {/* Angles */}
+                                        <div className="bg-card rounded-lg p-3 border border-border" data-testid="summary-angles">
+                                          <div className="flex items-center gap-1.5 mb-1">
+                                            <Camera className="h-3 w-3 text-indigo-600" />
+                                            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Angles</span>
+                                          </div>
+                                          <p className="text-xs font-medium text-foreground truncate">
+                                            {selectedAngles.length > 0 
+                                              ? selectedAngles.map(a => 
+                                                  a === 'front' ? 'Front' : 
+                                                  a === 'three-quarter' ? '3/4' : 
+                                                  a === 'side' ? 'Side' : 
+                                                  a === 'closeup' ? 'Close' : a
+                                                ).join(", ")
+                                              : "Front"}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </CollapsibleContent>
+                                </div>
+                              </Collapsible>
+
+                              {isGenerating && (
+                                <div className="mb-4 shrink-0">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <p className="text-sm text-indigo-600 font-medium">{generationStage}</p>
+                                    <p className="text-xs text-muted-foreground">{generationProgress}%</p>
+                                  </div>
+                                  <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                                    <motion.div 
+                                      className="bg-indigo-600 h-full rounded-full"
+                                      initial={{ width: 0 }}
+                                      animate={{ width: `${generationProgress}%` }}
+                                    />
+                                  </div>
+                                  <Button 
+                                    variant="link" 
+                                    size="sm"
+                                    onClick={() => {
+                                      setIsGenerating(false);
+                                      setGenerationProgress(0);
+                                      setGenerationStage("");
+                                      toast({
+                                        title: "Generation Cancelled",
+                                        description: "You can restart the generation anytime.",
+                                      });
+                                    }}
+                                    className="text-muted-foreground hover:text-foreground p-0 h-auto mt-2"
+                                  >
+                                    Cancel Generation
+                                  </Button>
+                                </div>
+                              )}
+
                               <div className="flex-1 overflow-y-auto min-h-0 -mx-4 px-4 md:mx-0 md:px-0">
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 pb-20">
                                   {generatedMockups.map((img, i) => (
-                                    <div key={i} className="group relative aspect-[3/4] rounded-xl overflow-hidden border border-border cursor-pointer">
-                                      <img src={img} alt="Mockup" className="w-full h-full object-cover" />
+                                    <motion.div
+                                      key={`mockup-${i}`}
+                                      initial={{ opacity: 0, scale: 0.95 }}
+                                      animate={{ opacity: 1, scale: 1 }}
+                                      transition={{ duration: 0.3 }}
+                                      className="group relative aspect-[3/4] rounded-xl overflow-hidden border border-border cursor-pointer"
+                                    >
+                                      <img src={img} alt={`Mockup ${i + 1}`} className="w-full h-full object-cover" />
                                       
                                       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-4">
                                         <div className="flex items-center justify-end gap-2">
@@ -1923,7 +2168,20 @@ export default function MockupGenerator() {
                                             className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg"
                                             onClick={(e) => {
                                               e.stopPropagation();
-                                              setSelectedMockup({ src: img, name: `Mockup ${i + 1}` });
+                                              const angleId = selectedAngles[i % selectedAngles.length];
+                                              const angleName = angleId === 'front' ? 'Front View' : 
+                                                               angleId === 'three-quarter' ? 'Three-Quarter' :
+                                                               angleId === 'side' ? 'Side Profile' :
+                                                               angleId === 'closeup' ? 'Close-up View' : 'View';
+                                              const colorName = selectedColors[Math.floor(i / selectedAngles.length) % selectedColors.length] || 'White';
+                                              const styleName = BRAND_STYLES.find(s => s.id === selectedStyle)?.name || "Minimal";
+                                              setSelectedMockupDetails({
+                                                src: img,
+                                                angle: angleName,
+                                                color: colorName,
+                                                brandStyle: styleName,
+                                                index: i
+                                              });
                                             }}
                                           >
                                             <Maximize className="h-3.5 w-3.5" />
@@ -1948,7 +2206,26 @@ export default function MockupGenerator() {
                                          selectedAngles[i % selectedAngles.length] === 'side' ? 'Side View' :
                                          selectedAngles[i % selectedAngles.length] === 'closeup' ? 'Close-up View' : 'View'}
                                       </Badge>
-                                    </div>
+                                    </motion.div>
+                                  ))}
+                                  
+                                  {isGenerating && Array.from({ length: Math.max(0, expectedMockupsCount - generatedMockups.length) }).map((_, i) => (
+                                    <motion.div
+                                      key={`placeholder-${i}`}
+                                      initial={{ opacity: 0 }}
+                                      animate={{ opacity: 1 }}
+                                      transition={{ duration: 0.2 }}
+                                      className="relative aspect-[3/4] rounded-xl overflow-hidden border border-border bg-muted/30"
+                                    >
+                                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                                        <div className="relative">
+                                          <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full animate-pulse" />
+                                          <Loader2 className="h-8 w-8 text-indigo-600 animate-spin relative z-10" />
+                                        </div>
+                                        <p className="text-xs text-muted-foreground">Generating...</p>
+                                      </div>
+                                      <div className="absolute inset-0 bg-gradient-to-t from-muted/50 to-transparent" />
+                                    </motion.div>
                                   ))}
                                 </div>
                               </div>
@@ -1969,13 +2246,14 @@ export default function MockupGenerator() {
 
       {/* Lightbox Modal */}
       <AnimatePresence>
-        {selectedMockup && (
+        {selectedMockupDetails && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-md flex items-center justify-center p-6"
-            onClick={() => setSelectedMockup(null)}
+            onClick={() => setSelectedMockupDetails(null)}
+            data-testid="modal-mockup-details"
           >
             <div 
               className="w-full max-w-7xl h-[90vh] md:h-[85vh] bg-card rounded-2xl overflow-hidden flex flex-col md:flex-row border border-border shadow-2xl"
@@ -1984,9 +2262,10 @@ export default function MockupGenerator() {
               {/* Left: Image */}
               <div className="w-full h-[40vh] md:h-auto md:flex-1 bg-muted/20 flex items-center justify-center p-4 md:p-8 relative group bg-checkerboard">
                 <img 
-                  src={selectedMockup.src} 
-                  alt={selectedMockup.name} 
+                  src={selectedMockupDetails.src} 
+                  alt={`Mockup ${selectedMockupDetails.index + 1}`} 
                   className="max-w-full max-h-full object-contain shadow-2xl rounded-lg" 
+                  data-testid="img-mockup-fullsize"
                 />
                 <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                    <Button size="icon" className="rounded-full bg-black/50 text-white border-0 hover:bg-black/70">
@@ -1999,7 +2278,13 @@ export default function MockupGenerator() {
               <div className="w-full md:w-[400px] bg-card border-t md:border-t-0 md:border-l border-border flex flex-col h-[50vh] md:h-auto">
                 <div className="p-4 md:p-6 border-b border-border flex justify-between items-center shrink-0">
                   <h3 className="font-bold text-foreground">Mockup Details</h3>
-                  <Button variant="ghost" size="icon" onClick={() => setSelectedMockup(null)} className="text-muted-foreground hover:text-foreground">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => setSelectedMockupDetails(null)} 
+                    className="text-muted-foreground hover:text-foreground"
+                    data-testid="button-close-modal"
+                  >
                     <X className="h-5 w-5" />
                   </Button>
                 </div>
@@ -2010,10 +2295,11 @@ export default function MockupGenerator() {
                     <Button 
                       variant="ghost" 
                       className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
-                      onClick={() => downloadImage(selectedMockup.src, `${selectedMockup.name.replace(/\s+/g, '_').toLowerCase()}.png`)}
+                      onClick={() => downloadImage(selectedMockupDetails.src, `mockup_${selectedMockupDetails.index + 1}_${selectedMockupDetails.color}_${selectedMockupDetails.angle.replace(/\s+/g, '_')}.png`)}
+                      data-testid="button-download-mockup"
                     >
                       <Download className="h-5 w-5" />
-                      <span className="text-[10px]">Save</span>
+                      <span className="text-[10px]">Download</span>
                     </Button>
                     
                     <Button 
@@ -2034,26 +2320,35 @@ export default function MockupGenerator() {
                     </Button>
                   </div>
 
-                  {/* Info */}
+                  {/* Mockup Info */}
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Name</label>
-                    <div className="bg-muted/30 rounded-xl p-4 text-sm text-foreground font-medium border border-border relative group">
-                      {selectedMockup.name}
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
-                        className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => {
-                           navigator.clipboard.writeText(selectedMockup.name);
-                           toast({ title: "Copied" });
-                        }}
-                      >
-                        <Copy className="h-3 w-3" />
-                      </Button>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Mockup Info</label>
+                    <div className="bg-muted/30 rounded-xl p-4 border border-border space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground flex items-center gap-2">
+                          <Camera className="h-3.5 w-3.5" />
+                          View Angle
+                        </span>
+                        <span className="text-sm font-medium text-foreground" data-testid="text-view-angle">{selectedMockupDetails.angle}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground flex items-center gap-2">
+                          <Palette className="h-3.5 w-3.5" />
+                          Product Color
+                        </span>
+                        <span className="text-sm font-medium text-foreground" data-testid="text-product-color">{selectedMockupDetails.color}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground flex items-center gap-2">
+                          <Sparkles className="h-3.5 w-3.5" />
+                          Brand Style
+                        </span>
+                        <span className="text-sm font-medium text-foreground" data-testid="text-brand-style">{selectedMockupDetails.brandStyle}</span>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Details */}
+                  {/* Technical Details */}
                   <div className="space-y-4">
                     <div className="flex justify-between py-2 border-b border-border">
                       <span className="text-xs text-muted-foreground">Type</span>
@@ -2062,10 +2357,6 @@ export default function MockupGenerator() {
                     <div className="flex justify-between py-2 border-b border-border">
                       <span className="text-xs text-muted-foreground">Dimensions</span>
                       <span className="text-xs font-medium text-foreground">2048 x 2048</span>
-                    </div>
-                    <div className="flex justify-between py-2 border-b border-border">
-                      <span className="text-xs text-muted-foreground">Size</span>
-                      <span className="text-xs font-medium text-foreground font-mono">3.2 MB</span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-border">
                       <span className="text-xs text-muted-foreground">Date Created</span>
@@ -2077,7 +2368,7 @@ export default function MockupGenerator() {
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Tags</label>
                     <div className="flex flex-wrap gap-2">
-                      {["Mockup", "Product", "Professional"].map(tag => (
+                      {[selectedMockupDetails.angle, selectedMockupDetails.color, selectedMockupDetails.brandStyle].map(tag => (
                         <span key={tag} className="px-2.5 py-1 rounded-md bg-muted/50 border border-border text-xs text-muted-foreground">
                           {tag}
                         </span>
