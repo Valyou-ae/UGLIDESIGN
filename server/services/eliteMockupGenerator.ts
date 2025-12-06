@@ -17,7 +17,8 @@ import type {
   JourneyType,
   MockupGenerationRequest,
   UnifiedPersona,
-  DesignAnalysis
+  DesignAnalysis,
+  Size
 } from "@shared/mockupTypes";
 import {
   BRAND_STYLES,
@@ -289,7 +290,8 @@ export function buildRenderSpecification(
   journey: JourneyType,
   materialCondition: MaterialPresetKey = 'BRAND_NEW',
   lightingPreset?: string,
-  environmentPrompt?: string
+  environmentPrompt?: string,
+  currentSize?: string
 ): RenderSpecification {
   const style = BRAND_STYLES[brandStyle];
   const cameraSpec = getCameraSpecsForAngle(angle);
@@ -298,6 +300,14 @@ export function buildRenderSpecification(
   const printMethod = getPrintMethod(journey);
   const fabricPhysics = getFabricPhysics(product.subcategory || product.category);
   const garmentBlueprint = product.isWearable ? getGarmentBlueprintPrompt(product) : "";
+
+  const sizeForBody = (currentSize || modelDetails?.modelSize || personaLock?.persona.size || 'M') as Size;
+  const sizeSpecificProfile = personaLock && modelDetails ? getSomaticProfile(
+    modelDetails.age,
+    modelDetails.sex,
+    modelDetails.ethnicity,
+    sizeForBody
+  ) : null;
 
   const personaLockBlock = product.isWearable && personaLock ? `
 ===== PERSONA LOCK (CONSISTENCY ANCHOR) =====
@@ -311,15 +321,25 @@ PRIMARY IDENTITY:
 - Sex: ${personaLock.persona.sex} (MUST be ${personaLock.persona.sex.toLowerCase()} - do not show opposite sex)
 - Ethnicity: ${personaLock.persona.ethnicity} (CRITICAL - see enforcement below)
 
-PHYSICAL CHARACTERISTICS:
-- Height: ${personaLock.persona.height}
-- Weight: ${personaLock.persona.weight}
-- Build: ${personaLock.persona.build}
+FACIAL IDENTITY (KEEP CONSISTENT ACROSS ALL SIZES):
 - Hair: ${personaLock.persona.hairStyle}, ${personaLock.persona.hairColor}
 - Eyes: ${personaLock.persona.eyeColor}
 - Skin tone: ${personaLock.persona.skinTone}
 - Facial features: ${personaLock.persona.facialFeatures}
-- Full description: ${personaLock.somaticDescription}
+
+===== SIZE-SPECIFIC BODY TYPE (SIZE: ${sizeForBody}) =====
+[CRITICAL - BODY MUST MATCH THE GARMENT SIZE]
+${sizeSpecificProfile ? `
+- Height: ${sizeSpecificProfile.height}
+- Weight: ${sizeSpecificProfile.weight}
+- Build: ${sizeSpecificProfile.build}
+- Body description: ${sizeSpecificProfile.description}
+` : `
+- Height: ${personaLock.persona.height}
+- Weight: ${personaLock.persona.weight}
+- Build: ${personaLock.persona.build}
+`}
+===== END SIZE-SPECIFIC BODY =====
 
 ===== CRITICAL IDENTITY ENFORCEMENT =====
 [MANDATORY - FAILURE TO MATCH THESE IS NOT ACCEPTABLE]
@@ -337,10 +357,14 @@ PHYSICAL CHARACTERISTICS:
    - DO NOT substitute one ethnicity for another (e.g., do not show Asian when Middle Eastern is specified)
    - DO NOT blend ethnic features incorrectly
 
-3. BODY SIZE ENFORCEMENT:
-   - Build: ${personaLock.persona.build}
+3. BODY SIZE ENFORCEMENT (SIZE: ${sizeForBody}):
+${sizeSpecificProfile ? `   - Build: ${sizeSpecificProfile.build}
+   - Weight: ${sizeSpecificProfile.weight}
+   - Height: ${sizeSpecificProfile.height}
+   - The body MUST match these size-specific specifications
+   - A ${sizeForBody} garment should be worn by a person with ${sizeSpecificProfile.build}` : `   - Build: ${personaLock.persona.build}
    - Weight: ${personaLock.persona.weight}
-   - The body MUST match these specifications exactly
+   - The body MUST match these specifications exactly`}
 
 4. CROSS-SHOT CONSISTENCY:
    - This EXACT same person must appear in ALL angle shots
@@ -366,9 +390,12 @@ ${journey === 'AOP' && designAnalysis.aopAccentColor ? `- AOP accent color (coll
   const sizeFitLockBlock = product.isWearable && personaLock ? `
 ===== SIZE/FIT LOCK =====
 [LOCKED - GARMENT MUST FIT AS SPECIFIED]
-- Model size: ${personaLock.persona.size}
-- Build type: ${personaLock.persona.build}
+- Garment size: ${sizeForBody}
+${sizeSpecificProfile ? `- Model body type: ${sizeSpecificProfile.build}
+- Model weight range: ${sizeSpecificProfile.weight}
+- Model height range: ${sizeSpecificProfile.height}` : `- Build type: ${personaLock.persona.build}`}
 - Garment must appear properly fitted for this body type
+- The person wearing ${sizeForBody} should have a body that naturally fits ${sizeForBody} clothing
 - No baggy or overly tight appearance unless specified by product type
 ${materialPreset.promptAddition}
 ===== END SIZE/FIT LOCK =====` : "";
@@ -932,7 +959,8 @@ export async function generateMockupBatch(
       request.journey,
       request.materialCondition,
       request.lightingPreset,
-      request.environmentPrompt
+      request.environmentPrompt,
+      job.modelDetails?.modelSize
     );
 
     const result = await generateMockupWithRetry(
