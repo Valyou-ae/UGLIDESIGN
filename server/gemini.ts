@@ -25,10 +25,11 @@ const STYLE_ARCHITECT_MODEL = "gemini-2.5-pro";
 const STYLE_ARCHITECT_TEMPERATURE = 0.7;
 
 // Phase 3: Image Generator - Best for text rendering
-const IMAGE_GENERATOR_MODEL = "gemini-2.0-flash-exp";
-const IMAGE_GENERATOR_FALLBACK = "gemini-2.0-flash-preview-image-generation";
-// Escalation model for attempts 4-5 (when primary model keeps failing)
-const IMAGE_GENERATOR_ESCALATION = "imagen-3.0-generate-001";
+// gemini-2.5-flash-image is the only supported image generation model
+const IMAGE_GENERATOR_MODEL = "gemini-2.5-flash-image";
+const IMAGE_GENERATOR_FALLBACK = "gemini-2.5-flash-image";
+// Escalation model for attempts 4-5 - use same model with reinforced prompts
+const IMAGE_GENERATOR_ESCALATION = "gemini-2.5-flash-image";
 
 // Phase 4: OCR Validator - Vision model for text verification
 const OCR_VALIDATOR_MODEL = "gemini-2.5-flash";
@@ -368,72 +369,38 @@ async function generateImageOnly(
   attempt: number = 1,
   hasText: boolean = false
 ): Promise<{ imageBase64: string; mimeType: string; textResponse?: string }> {
-  // Use escalation model for attempts 4-5 for better text fidelity
-  const useEscalation = attempt >= 4;
-  const primaryModel = useEscalation ? IMAGE_GENERATOR_ESCALATION : IMAGE_GENERATOR_MODEL;
-  
   // Generate negative prompts to guard against text errors
   const negativePrompts = generateNegativePrompts(hasText);
   
+  // For later attempts, add extra emphasis on text accuracy
+  let attemptReinforcement = "";
+  if (attempt >= 3 && hasText) {
+    attemptReinforcement = "\n\n⚠️ CRITICAL: Previous attempts had text errors. You MUST render ALL text with 100% accuracy. Check every character, every dollar sign, every space.";
+  }
+  
   // Append negative prompts as an AVOID section
   const fullPrompt = hasText 
-    ? `${prompt}\n\n---\nCRITICAL - AVOID THE FOLLOWING:\n${negativePrompts}`
+    ? `${prompt}${attemptReinforcement}\n\n---\nCRITICAL - AVOID THE FOLLOWING:\n${negativePrompts}`
     : prompt;
   
-  console.log(`[Image Generator] Attempt ${attempt} - Using model: ${primaryModel}${useEscalation ? ' (ESCALATION MODE)' : ''}`);
+  console.log(`[Image Generator] Attempt ${attempt} - Using model: ${IMAGE_GENERATOR_MODEL}`);
   if (hasText) {
     console.log(`[Image Generator] Negative prompts applied for text accuracy`);
   }
   
   let response;
-  let modelUsed = primaryModel;
   
   try {
-    if (useEscalation) {
-      // Imagen 3 uses a different API format - generate images directly
-      console.log("[Image Generator] Using Imagen 3 for enhanced text accuracy");
-      response = await ai.models.generateImages({
-        model: IMAGE_GENERATOR_ESCALATION,
-        prompt: fullPrompt,
-        config: {
-          numberOfImages: 1,
-        }
-      });
-      
-      // Imagen returns images differently
-      const generatedImage = response.generatedImages?.[0];
-      if (!generatedImage?.image?.imageBytes) {
-        throw new Error("No image from Imagen");
-      }
-      
-      console.log("[Image Generator] Complete with Imagen 3 escalation model");
-      return {
-        imageBase64: generatedImage.image.imageBytes,
-        mimeType: "image/png",
-        textResponse: undefined
-      };
-    } else {
-      // Standard Gemini image generation
-      response = await ai.models.generateContent({
-        model: primaryModel,
-        contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
-        config: {
-          responseModalities: [Modality.TEXT, Modality.IMAGE],
-        },
-      });
-    }
-  } catch (primaryError: any) {
-    console.log("[Image Generator] Primary model failed:", primaryError.message);
-    console.log("[Image Generator] Trying fallback:", IMAGE_GENERATOR_FALLBACK);
-    modelUsed = IMAGE_GENERATOR_FALLBACK;
-    
     response = await ai.models.generateContent({
-      model: IMAGE_GENERATOR_FALLBACK,
+      model: IMAGE_GENERATOR_MODEL,
       contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
       config: {
         responseModalities: [Modality.TEXT, Modality.IMAGE],
       },
     });
+  } catch (primaryError: any) {
+    console.log("[Image Generator] Generation failed:", primaryError.message);
+    throw primaryError;
   }
 
   const candidate = response.candidates?.[0];
@@ -446,7 +413,7 @@ async function generateImageOnly(
   const mimeType = imagePart.inlineData.mimeType || "image/png";
   const textPart = candidate?.content?.parts?.find((part: any) => part.text);
 
-  console.log("[Image Generator] Complete with model:", modelUsed);
+  console.log("[Image Generator] Complete with model:", IMAGE_GENERATOR_MODEL);
 
   return {
     imageBase64: imagePart.inlineData.data,
