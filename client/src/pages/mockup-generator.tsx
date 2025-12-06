@@ -273,18 +273,18 @@ export default function MockupGenerator() {
 
     const styleName = selectedStyle || "minimal";
     const productName = selectedProductType || "t-shirt";
-    const color = selectedColors[0] || "white";
+    const colors = selectedColors.length > 0 ? selectedColors : ["White"];
     const scene = environmentPrompt || "studio";
 
     const generatedImages: string[] = [];
-    const totalAngles = selectedAngles.length;
+    const totalExpected = selectedAngles.length * colors.length;
 
     try {
       await mockupApi.generateBatch(
         uploadedImage,
         {
           productType: productName,
-          productColor: color,
+          productColors: colors,
           angles: selectedAngles,
           scene: scene,
           style: styleName,
@@ -324,16 +324,35 @@ export default function MockupGenerator() {
                 const imageUrl = `data:${event.data.mimeType};base64,${event.data.imageData}`;
                 generatedImages.push(imageUrl);
                 setGeneratedMockups([...generatedImages]);
-                const progress = 10 + Math.round((generatedImages.length / totalAngles) * 85);
+                const progress = 10 + Math.round((generatedImages.length / totalExpected) * 85);
                 setGenerationProgress(Math.min(progress, 95));
               }
               break;
             case "image_error":
-              console.error(`Failed to generate ${event.data.angle} view`);
+              console.error(`Failed to generate ${event.data.angle} ${event.data.color || ''} view`);
+              toast({
+                title: "Image Error",
+                description: `Failed to generate ${event.data.angle} view. Continuing with others...`,
+                variant: "destructive",
+              });
               break;
             case "complete":
               setGenerationProgress(100);
               setGenerationStage("Complete!");
+              break;
+            case "stream_end":
+              if (!event.data.success && generatedImages.length === 0) {
+                setIsGenerating(false);
+                setGenerationProgress(0);
+                toast({
+                  title: "Generation Failed",
+                  description: "No images were produced. Please try again.",
+                  variant: "destructive",
+                });
+              }
+              break;
+            case "batch_error":
+              console.error("Batch error:", event.data.message);
               break;
             case "error":
               throw new Error(event.data.message || "Generation failed");
@@ -1785,12 +1804,24 @@ export default function MockupGenerator() {
                               
                               <div className="bg-muted/30 rounded-2xl p-6 w-full mb-8 border border-border">
                                 <div className="flex justify-between items-center mb-4 pb-4 border-b border-border">
-                                  <span className="text-sm font-medium text-muted-foreground">Selected Product</span>
+                                  <span className="text-sm font-medium text-muted-foreground">Product</span>
                                   <span className="font-bold">{selectedProductType || "T-Shirt"}</span>
+                                </div>
+                                <div className="flex justify-between items-center mb-4 pb-4 border-b border-border">
+                                  <span className="text-sm font-medium text-muted-foreground">Model</span>
+                                  <span className="font-bold">{useModel ? `${modelDetails.sex === "MALE" ? "Male" : "Female"} - ${modelDetails.ethnicity.charAt(0) + modelDetails.ethnicity.slice(1).toLowerCase().replace("_", " ")}` : "Flat Lay"}</span>
                                 </div>
                                 <div className="flex justify-between items-center mb-4 pb-4 border-b border-border">
                                   <span className="text-sm font-medium text-muted-foreground">Style</span>
                                   <span className="font-bold">{selectedStyle || "Minimal"}</span>
+                                </div>
+                                <div className="flex justify-between items-center mb-4 pb-4 border-b border-border">
+                                  <span className="text-sm font-medium text-muted-foreground">Colors</span>
+                                  <span className="font-bold">{selectedColors.length > 0 ? selectedColors.slice(0, 3).join(", ") + (selectedColors.length > 3 ? ` +${selectedColors.length - 3}` : "") : "White"}</span>
+                                </div>
+                                <div className="flex justify-between items-center mb-4 pb-4 border-b border-border">
+                                  <span className="text-sm font-medium text-muted-foreground">Angles</span>
+                                  <span className="font-bold">{selectedAngles.length > 0 ? selectedAngles.join(", ") : "front"}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
                                   <span className="text-sm font-medium text-muted-foreground">Total Output</span>

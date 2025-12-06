@@ -599,7 +599,7 @@ export async function registerRoutes(
       const {
         designImage,
         productType = "t-shirt",
-        productColor = "white",
+        productColors = ["White"],
         angles = ["front"],
         scene = "studio",
         style = "minimal",
@@ -625,6 +625,34 @@ export async function registerRoutes(
 
       const base64Data = designImage.replace(/^data:image\/\w+;base64,/, "");
 
+      const colorNameToHex: Record<string, string> = {
+        "White": "#FFFFFF",
+        "Black": "#000000",
+        "Sport Grey": "#9E9E9E",
+        "Dark Heather": "#545454",
+        "Charcoal": "#424242",
+        "Navy": "#1A237E",
+        "Royal": "#0D47A1",
+        "Light Blue": "#ADD8E6",
+        "Red": "#D32F2F",
+        "Cardinal": "#880E4F",
+        "Maroon": "#4A148C",
+        "Orange": "#F57C00",
+        "Gold": "#FBC02D",
+        "Yellow": "#FFEB3B",
+        "Irish Green": "#388E3C",
+        "Military Green": "#558B2F",
+        "Forest": "#1B5E20",
+        "Purple": "#7B1FA2",
+        "Light Pink": "#F8BBD0",
+        "Sand": "#F5F5DC",
+      };
+
+      const colors = (Array.isArray(productColors) ? productColors : [productColors]).map(colorName => ({
+        name: colorName,
+        hex: colorNameToHex[colorName] || "#FFFFFF"
+      }));
+
       if (modelDetails) {
         const eliteGenerator = await import("./services/eliteMockupGenerator");
         const knowledge = await import("./services/knowledge");
@@ -636,9 +664,6 @@ export async function registerRoutes(
           p.subcategory?.toLowerCase().includes(productType.toLowerCase())
         ) || knowledge.getDTGProducts()[0];
 
-        const colorHex = productColor === "white" ? "#FFFFFF" : 
-                         productColor === "black" ? "#000000" : "#FFFFFF";
-
         let personaLockFailed = false;
         let batchCompleted = false;
 
@@ -647,7 +672,7 @@ export async function registerRoutes(
             journey: "DTG",
             designImage: base64Data,
             product: product,
-            colors: [{ name: productColor, hex: colorHex }],
+            colors: colors,
             angles: angles as any[],
             modelDetails: modelDetails,
             brandStyle: style.toUpperCase().replace(/\s+/g, '_') as any || 'ECOMMERCE_CLEAN',
@@ -750,42 +775,45 @@ export async function registerRoutes(
       const designAnalysis = await analyzeDesign(base64Data);
       sendEvent("analysis", { analysis: designAnalysis });
 
-      const totalAngles = angles.length;
-      let completedAngles = 0;
+      const totalJobs = angles.length * colors.length;
+      let completedJobs = 0;
 
-      for (const angle of angles) {
-        sendEvent("status", { 
-          stage: "generating", 
-          message: `Generating ${angle} view (${completedAngles + 1}/${totalAngles})...`,
-          progress: 10 + Math.round((completedAngles / totalAngles) * 80)
-        });
-
-        const { prompt, negativePrompts } = await generateMockupPrompt(designAnalysis, {
-          designBase64: base64Data,
-          productType,
-          productColor,
-          scene,
-          angle,
-          style,
-        });
-
-        const result = await generateMockup(base64Data, prompt, negativePrompts);
-
-        if (result) {
-          sendEvent("image", {
-            angle,
-            imageData: result.imageData,
-            mimeType: result.mimeType,
+      for (const color of colors) {
+        for (const angle of angles) {
+          sendEvent("status", { 
+            stage: "generating", 
+            message: `Generating ${color.name} ${angle} view (${completedJobs + 1}/${totalJobs})...`,
+            progress: 10 + Math.round((completedJobs / totalJobs) * 80)
           });
-        } else {
-          sendEvent("image_error", { angle, error: "Failed to generate" });
-        }
 
-        completedAngles++;
+          const { prompt, negativePrompts } = await generateMockupPrompt(designAnalysis, {
+            designBase64: base64Data,
+            productType,
+            productColor: color.name,
+            scene,
+            angle,
+            style,
+          });
+
+          const result = await generateMockup(base64Data, prompt, negativePrompts);
+
+          if (result) {
+            sendEvent("image", {
+              angle,
+              color: color.name,
+              imageData: result.imageData,
+              mimeType: result.mimeType,
+            });
+          } else {
+            sendEvent("image_error", { angle, color: color.name, error: "Failed to generate" });
+          }
+
+          completedJobs++;
+        }
       }
 
       sendEvent("status", { stage: "complete", message: "All mockups generated!", progress: 100 });
-      sendEvent("complete", { success: true, totalGenerated: completedAngles });
+      sendEvent("complete", { success: true, totalGenerated: completedJobs });
 
       res.end();
     } catch (error) {
