@@ -163,11 +163,22 @@ The Elite Mockup Generator uses a multi-lock approach to ensure consistent, high
 - `lightingSetups.ts` - Studio/natural lighting
 - `materialRealism.ts` - Fabric physics, print methods
 - `somaticProfiles.ts` - Body type generator
-- `productBlueprints.ts` - DTG/AOP product specs
+- `productBlueprints.ts` - Product specs for 43 products (8 Apparel, 12 Accessories, 23 Home & Living)
 - `humanRealism.ts` - Photorealism checklist
 - `ethnicFeatures.ts` - Cultural appearance traits
 - `names.ts` - Name library by ethnicity/sex
 - `unifiedPersonas.ts` - 48 character personas
+
+**Product Categories (POD-Industry Standard)**
+- **Apparel (8)**: T-shirts (DTG), hoodies, sweatshirts, leggings (AOP), joggers (AOP)
+- **Accessories (12)**: Tote bags, backpacks, phone cases, laptop sleeves, mouse pads, socks, flip flops, face masks
+- **Home & Living (23)**: Mugs, tumblers, water bottles, posters (5 sizes), framed posters (5 sizes), canvas, blankets, pillows, notebooks, postcards, stickers, magnets, coasters
+
+All products include:
+- Print area dimensions aligned with Printify/Printful standards
+- Pixel dimensions at 300 DPI (150 DPI for large home decor)
+- Construction blueprints (materials, print methods, special considerations)
+- Available colors per product type
 
 **Queue System**
 - 3 concurrent jobs maximum
@@ -176,7 +187,7 @@ The Elite Mockup Generator uses a multi-lock approach to ensure consistent, high
 - SSE streaming for progress updates
 
 **API Endpoints**
-- `GET /api/elite-mockup/products` - List DTG/AOP products
+- `GET /api/elite-mockup/products` - List all products (DTG, AOP, Accessories, Home & Living)
 - `GET /api/elite-mockup/brand-styles` - List brand styles
 - `POST /api/elite-mockup/analyze` - Analyze design image
 - `POST /api/elite-mockup/generate` - Generate mockup batch (SSE)
