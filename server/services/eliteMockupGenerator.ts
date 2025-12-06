@@ -768,21 +768,22 @@ export async function generateMockupBatch(
     try {
       personaLock = await generatePersonaLock(request.modelDetails);
       
-      personaHeadshot = await generatePersonaHeadshot(personaLock);
-      personaLock.headshot = personaHeadshot;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      const batchError: BatchGenerationError = {
-        type: 'persona_lock_failed',
-        message: 'Failed to generate persona anchor headshot. Wearable mockups require a consistent model reference.',
-        details: errorMessage
-      };
-      
-      if (onError) {
-        onError(batchError);
+      try {
+        personaHeadshot = await generatePersonaHeadshot(personaLock);
+        personaLock.headshot = personaHeadshot;
+        console.log("Persona headshot generated successfully");
+      } catch (headshotError) {
+        console.warn("Persona headshot generation failed, proceeding without it:", headshotError);
+        if (onError) {
+          onError({
+            type: 'persona_lock_failed',
+            message: 'Headshot generation skipped - proceeding with text-based persona description',
+            details: headshotError instanceof Error ? headshotError.message : String(headshotError)
+          });
+        }
       }
-      
-      throw new Error(`Persona Lock failed: ${errorMessage}. Cannot proceed with wearable mockups without headshot anchor.`);
+    } catch (error) {
+      console.warn("Persona lock generation failed, proceeding without model:", error);
     }
   }
 
