@@ -326,12 +326,12 @@ const AOP_PRODUCT_CATEGORIES: ProductCategory[] = [
     name: "Apparel", 
     icon: Shirt,
     items: [
-      { name: "Men's Cut & Sew Tee", icon: Shirt },
-      { name: "Women's Tee", icon: Shirt },
-      { name: "Unisex Sweatshirt", icon: Layers },
-      { name: "One-Piece Swimsuit", icon: Umbrella },
-      { name: "Leggings", icon: Layers },
-      { name: "Joggers", icon: Layers },
+      { name: "AOP Men's Cut & Sew Tee", icon: Shirt },
+      { name: "Unisex AOP Hoodie", icon: Cloud },
+      { name: "Unisex AOP Sweatshirt", icon: Layers },
+      { name: "AOP Women's Tee", icon: Shirt },
+      { name: "AOP Women's Leggings", icon: Layers },
+      { name: "AOP One-Piece Swimsuit", icon: Umbrella },
     ]
   },
   { 
@@ -339,18 +339,15 @@ const AOP_PRODUCT_CATEGORIES: ProductCategory[] = [
     icon: Watch, 
     items: [
       { name: "AOP Tote Bag", icon: ShoppingBag },
-      { name: "AOP Backpack", icon: ShoppingBag },
-      { name: "Socks", icon: Footprints },
-      { name: "Face Mask", icon: Smile },
     ] 
   },
   { 
     name: "Home & Living", 
     icon: Coffee, 
     items: [
-      { name: "Square Pillow", icon: Layers },
-      { name: "Fleece Blanket", icon: Layers },
-      { name: "Beach Towel", icon: Layers },
+      { name: "AOP Square Pillow", icon: Layers },
+      { name: "AOP Fleece Blanket", icon: Layers },
+      { name: "AOP Beach Towel", icon: Layers },
     ] 
   }
 ];
