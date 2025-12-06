@@ -88,6 +88,21 @@ export interface SizeChartEntry {
   sleeve: number;
 }
 
+export interface PrintSpecification {
+  printAreaWidth: number;
+  printAreaHeight: number;
+  printAreaWidthPixels: number;
+  printAreaHeightPixels: number;
+  dpi: number;
+  placement: string;
+  placementDescription: string;
+  bleed?: number;
+  safeZone?: number;
+  wrapAround?: boolean;
+  surfaceType: 'flat' | 'curved' | 'flexible' | 'rigid';
+  notes?: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -99,6 +114,7 @@ export interface Product {
   defaultPlacement?: string;
   genderTarget: GenderTarget;
   sizeChart?: SizeChartEntry[];
+  printSpec?: PrintSpecification;
 }
 
 export interface ProductColor {

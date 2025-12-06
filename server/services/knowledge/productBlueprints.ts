@@ -1,4 +1,4 @@
-import { Product, ProductColor, SizeChartEntry } from '../../../shared/mockupTypes';
+import { Product, ProductColor, SizeChartEntry, PrintSpecification } from '../../../shared/mockupTypes';
 
 export const STANDARD_SIZE_CHART: SizeChartEntry[] = [
   { size: 'XS', chest: 34, length: 27, sleeve: 8 },
@@ -161,7 +161,19 @@ export const DTG_PRODUCTS: Product[] = [
     availableColors: STANDARD_DTG_COLORS,
     defaultPlacement: 'center-chest',
     genderTarget: 'unisex',
-    sizeChart: STANDARD_SIZE_CHART
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 12,
+      printAreaHeight: 16,
+      printAreaWidthPixels: 3600,
+      printAreaHeightPixels: 4800,
+      dpi: 300,
+      placement: 'center-chest',
+      placementDescription: 'Centered on chest, horizontally centered between shoulder seams, vertically positioned 3-4 inches below collar',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Design should not extend to side seams or collar'
+    }
   },
   {
     id: 'bella-3001',
@@ -173,7 +185,19 @@ export const DTG_PRODUCTS: Product[] = [
     availableColors: BELLA_CANVAS_COLORS,
     defaultPlacement: 'center-chest',
     genderTarget: 'unisex',
-    sizeChart: STANDARD_SIZE_CHART
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 12,
+      printAreaHeight: 16,
+      printAreaWidthPixels: 3600,
+      printAreaHeightPixels: 4800,
+      dpi: 300,
+      placement: 'center-chest',
+      placementDescription: 'Centered on chest, horizontally centered between shoulder seams, vertically positioned 3-4 inches below collar',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Design should not extend to side seams or collar'
+    }
   },
   {
     id: 'gildan-18000',
@@ -185,7 +209,19 @@ export const DTG_PRODUCTS: Product[] = [
     availableColors: SWEATSHIRT_COLORS,
     defaultPlacement: 'center-chest-large',
     genderTarget: 'unisex',
-    sizeChart: STANDARD_SIZE_CHART
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 12,
+      printAreaHeight: 14,
+      printAreaWidthPixels: 3600,
+      printAreaHeightPixels: 4200,
+      dpi: 300,
+      placement: 'center-chest',
+      placementDescription: 'Centered on chest, below the hood/collar area, avoid zipper area if applicable',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Consider fabric thickness and texture absorption'
+    }
   },
   {
     id: 'gildan-18500',
@@ -197,7 +233,19 @@ export const DTG_PRODUCTS: Product[] = [
     availableColors: SWEATSHIRT_COLORS,
     defaultPlacement: 'above-pocket',
     genderTarget: 'unisex',
-    sizeChart: STANDARD_SIZE_CHART
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 12,
+      printAreaHeight: 14,
+      printAreaWidthPixels: 3600,
+      printAreaHeightPixels: 4200,
+      dpi: 300,
+      placement: 'center-chest',
+      placementDescription: 'Centered on chest, below the hood/collar area, avoid zipper area if applicable',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Consider fabric thickness and texture absorption'
+    }
   }
 ];
 
@@ -212,7 +260,20 @@ export const AOP_PRODUCTS: Product[] = [
     availableColors: AOP_BASE_COLORS,
     defaultPlacement: 'full-coverage',
     genderTarget: 'unisex',
-    sizeChart: STANDARD_SIZE_CHART
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 32,
+      printAreaHeight: 38,
+      printAreaWidthPixels: 4800,
+      printAreaHeightPixels: 5700,
+      dpi: 150,
+      placement: 'full-surface',
+      placementDescription: 'Edge-to-edge seamless sublimation covering entire garment',
+      bleed: 0.25,
+      wrapAround: true,
+      surfaceType: 'flexible',
+      notes: 'Pattern must tile seamlessly across front and back panels'
+    }
   },
   {
     id: 'aop-hoodie',
@@ -224,7 +285,20 @@ export const AOP_PRODUCTS: Product[] = [
     availableColors: AOP_BASE_COLORS,
     defaultPlacement: 'full-coverage-panels',
     genderTarget: 'unisex',
-    sizeChart: STANDARD_SIZE_CHART
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 38,
+      printAreaHeight: 42,
+      printAreaWidthPixels: 5700,
+      printAreaHeightPixels: 6300,
+      dpi: 150,
+      placement: 'full-surface',
+      placementDescription: 'Edge-to-edge seamless sublimation covering entire garment including hood',
+      bleed: 0.25,
+      wrapAround: true,
+      surfaceType: 'flexible',
+      notes: 'Pattern must align at hood seams and across panels'
+    }
   },
   {
     id: 'aop-leggings',
@@ -236,7 +310,20 @@ export const AOP_PRODUCTS: Product[] = [
     availableColors: AOP_BASE_COLORS,
     defaultPlacement: '360-coverage',
     genderTarget: 'unisex',
-    sizeChart: STANDARD_SIZE_CHART
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 36,
+      printAreaHeight: 42,
+      printAreaWidthPixels: 5400,
+      printAreaHeightPixels: 6300,
+      dpi: 150,
+      placement: 'full-surface',
+      placementDescription: 'Edge-to-edge seamless sublimation covering entire garment',
+      bleed: 0.25,
+      wrapAround: true,
+      surfaceType: 'flexible',
+      notes: 'Pattern must tile seamlessly across panels and seams'
+    }
   },
   {
     id: 'aop-joggers',
@@ -248,7 +335,20 @@ export const AOP_PRODUCTS: Product[] = [
     availableColors: AOP_BASE_COLORS,
     defaultPlacement: 'full-coverage-side-panel',
     genderTarget: 'unisex',
-    sizeChart: STANDARD_SIZE_CHART
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 40,
+      printAreaHeight: 44,
+      printAreaWidthPixels: 6000,
+      printAreaHeightPixels: 6600,
+      dpi: 150,
+      placement: 'full-surface',
+      placementDescription: 'Edge-to-edge seamless sublimation covering entire garment',
+      bleed: 0.25,
+      wrapAround: true,
+      surfaceType: 'flexible',
+      notes: 'Pattern must align at inseam and side seams'
+    }
   }
 ];
 
@@ -262,7 +362,19 @@ export const ACCESSORY_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: BAG_COLORS,
     defaultPlacement: 'front-center',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 15,
+      printAreaHeight: 15,
+      printAreaWidthPixels: 4500,
+      printAreaHeightPixels: 4500,
+      dpi: 300,
+      placement: 'front-center',
+      placementDescription: 'Centered on front panel of bag',
+      safeZone: 0.5,
+      surfaceType: 'flexible',
+      notes: 'Canvas material, design should be at least 1 inch from edges'
+    }
   },
   {
     id: 'drawstring-bag',
@@ -273,7 +385,18 @@ export const ACCESSORY_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: BAG_COLORS,
     defaultPlacement: 'front-center',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 13,
+      printAreaHeight: 17,
+      printAreaWidthPixels: 3900,
+      printAreaHeightPixels: 5100,
+      dpi: 300,
+      placement: 'front-center',
+      placementDescription: 'Centered on front of bag',
+      safeZone: 0.5,
+      surfaceType: 'flexible'
+    }
   },
   {
     id: 'backpack',
@@ -284,7 +407,18 @@ export const ACCESSORY_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: BAG_COLORS,
     defaultPlacement: 'front-pocket',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 12,
+      printAreaHeight: 15,
+      printAreaWidthPixels: 3600,
+      printAreaHeightPixels: 4500,
+      dpi: 300,
+      placement: 'front-pocket',
+      placementDescription: 'Centered on front pocket panel',
+      safeZone: 0.5,
+      surfaceType: 'flexible'
+    }
   },
   {
     id: 'duffle-bag',
@@ -295,7 +429,18 @@ export const ACCESSORY_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: BAG_COLORS,
     defaultPlacement: 'side-panel',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 14,
+      printAreaHeight: 10,
+      printAreaWidthPixels: 4200,
+      printAreaHeightPixels: 3000,
+      dpi: 300,
+      placement: 'side-panel',
+      placementDescription: 'Centered on side panel of bag',
+      safeZone: 0.5,
+      surfaceType: 'flexible'
+    }
   },
   {
     id: 'phone-case-iphone-14',
@@ -306,7 +451,19 @@ export const ACCESSORY_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: PHONE_CASE_COLORS,
     defaultPlacement: 'full-surface',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 2.5,
+      printAreaHeight: 5,
+      printAreaWidthPixels: 750,
+      printAreaHeightPixels: 1500,
+      dpi: 300,
+      placement: 'back-full',
+      placementDescription: 'Full back cover, avoid camera cutout area',
+      bleed: 0.125,
+      surfaceType: 'rigid',
+      notes: 'Design wraps around edges slightly'
+    }
   },
   {
     id: 'phone-case-iphone-15',
@@ -317,7 +474,19 @@ export const ACCESSORY_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: PHONE_CASE_COLORS,
     defaultPlacement: 'full-surface',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 2.5,
+      printAreaHeight: 5,
+      printAreaWidthPixels: 750,
+      printAreaHeightPixels: 1500,
+      dpi: 300,
+      placement: 'back-full',
+      placementDescription: 'Full back cover, avoid camera cutout area',
+      bleed: 0.125,
+      surfaceType: 'rigid',
+      notes: 'Design wraps around edges slightly'
+    }
   },
   {
     id: 'laptop-sleeve-13',
@@ -328,7 +497,17 @@ export const ACCESSORY_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: BAG_COLORS,
     defaultPlacement: 'front-center',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 12,
+      printAreaHeight: 8,
+      printAreaWidthPixels: 3600,
+      printAreaHeightPixels: 2400,
+      dpi: 300,
+      placement: 'front-center',
+      placementDescription: 'Centered on front panel of sleeve',
+      surfaceType: 'flexible'
+    }
   },
   {
     id: 'laptop-sleeve-15',
@@ -339,7 +518,17 @@ export const ACCESSORY_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: BAG_COLORS,
     defaultPlacement: 'front-center',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 14,
+      printAreaHeight: 9,
+      printAreaWidthPixels: 4200,
+      printAreaHeightPixels: 2700,
+      dpi: 300,
+      placement: 'front-center',
+      placementDescription: 'Centered on front panel of sleeve',
+      surfaceType: 'flexible'
+    }
   },
   {
     id: 'mouse-pad',
@@ -350,7 +539,18 @@ export const ACCESSORY_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: [{ name: 'Black', hex: '#000000', category: 'dark' }],
     defaultPlacement: 'full-surface',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 9.25,
+      printAreaHeight: 7.75,
+      printAreaWidthPixels: 2775,
+      printAreaHeightPixels: 2325,
+      dpi: 300,
+      placement: 'full-surface',
+      placementDescription: 'Edge-to-edge print on top surface',
+      bleed: 0.125,
+      surfaceType: 'flat'
+    }
   },
   {
     id: 'flip-flops',
@@ -361,7 +561,17 @@ export const ACCESSORY_PRODUCTS: Product[] = [
     isWearable: true,
     availableColors: FLIP_FLOP_COLORS,
     defaultPlacement: 'strap-wrap',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 3,
+      printAreaHeight: 8,
+      printAreaWidthPixels: 900,
+      printAreaHeightPixels: 2400,
+      dpi: 300,
+      placement: 'strap-top',
+      placementDescription: 'Print on top of each strap',
+      surfaceType: 'curved'
+    }
   },
   {
     id: 'socks',
@@ -372,7 +582,17 @@ export const ACCESSORY_PRODUCTS: Product[] = [
     isWearable: true,
     availableColors: SOCK_COLORS,
     defaultPlacement: 'shin-area',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 3.5,
+      printAreaHeight: 6,
+      printAreaWidthPixels: 1050,
+      printAreaHeightPixels: 1800,
+      dpi: 300,
+      placement: 'shin-area',
+      placementDescription: 'Print on outer shin area of sock',
+      surfaceType: 'flexible'
+    }
   },
   {
     id: 'face-mask',
@@ -383,7 +603,17 @@ export const ACCESSORY_PRODUCTS: Product[] = [
     isWearable: true,
     availableColors: FACE_MASK_COLORS,
     defaultPlacement: 'front-center',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 7,
+      printAreaHeight: 4.5,
+      printAreaWidthPixels: 2100,
+      printAreaHeightPixels: 1350,
+      dpi: 300,
+      placement: 'front-full',
+      placementDescription: 'Full front panel coverage',
+      surfaceType: 'flexible'
+    }
   }
 ];
 
@@ -397,7 +627,19 @@ export const HOME_LIVING_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: MUG_COLORS,
     defaultPlacement: 'wrap-around',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 8.25,
+      printAreaHeight: 3.5,
+      printAreaWidthPixels: 2475,
+      printAreaHeightPixels: 1050,
+      dpi: 300,
+      placement: 'wrap-around',
+      placementDescription: 'Continuous wrap-around print from handle to handle',
+      wrapAround: true,
+      surfaceType: 'curved',
+      notes: 'Design wraps around cylindrical surface'
+    }
   },
   {
     id: 'mug-15oz',
@@ -408,7 +650,18 @@ export const HOME_LIVING_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: MUG_COLORS,
     defaultPlacement: 'wrap-around',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 8.5,
+      printAreaHeight: 4,
+      printAreaWidthPixels: 2550,
+      printAreaHeightPixels: 1200,
+      dpi: 300,
+      placement: 'wrap-around',
+      placementDescription: 'Continuous wrap-around print from handle to handle',
+      wrapAround: true,
+      surfaceType: 'curved'
+    }
   },
   {
     id: 'tumbler-20oz',
@@ -419,7 +672,18 @@ export const HOME_LIVING_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: MUG_COLORS,
     defaultPlacement: 'wrap-around',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 9,
+      printAreaHeight: 7,
+      printAreaWidthPixels: 2700,
+      printAreaHeightPixels: 2100,
+      dpi: 300,
+      placement: 'wrap-around',
+      placementDescription: '360-degree wrap-around print',
+      wrapAround: true,
+      surfaceType: 'curved'
+    }
   },
   {
     id: 'water-bottle',
@@ -430,7 +694,18 @@ export const HOME_LIVING_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: MUG_COLORS,
     defaultPlacement: 'wrap-around',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 7,
+      printAreaHeight: 8,
+      printAreaWidthPixels: 2100,
+      printAreaHeightPixels: 2400,
+      dpi: 300,
+      placement: 'wrap-around',
+      placementDescription: 'Wrap-around print on bottle body',
+      wrapAround: true,
+      surfaceType: 'curved'
+    }
   },
   {
     id: 'poster-8x10',
@@ -441,7 +716,18 @@ export const HOME_LIVING_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: POSTER_COLORS,
     defaultPlacement: 'full-surface',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 8,
+      printAreaHeight: 10,
+      printAreaWidthPixels: 2400,
+      printAreaHeightPixels: 3000,
+      dpi: 300,
+      placement: 'full-bleed',
+      placementDescription: 'Edge-to-edge print with 0.125" bleed',
+      bleed: 0.125,
+      surfaceType: 'flat'
+    }
   },
   {
     id: 'poster-11x14',
@@ -452,7 +738,18 @@ export const HOME_LIVING_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: POSTER_COLORS,
     defaultPlacement: 'full-surface',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 11,
+      printAreaHeight: 14,
+      printAreaWidthPixels: 3300,
+      printAreaHeightPixels: 4200,
+      dpi: 300,
+      placement: 'full-bleed',
+      placementDescription: 'Edge-to-edge print with 0.125" bleed',
+      bleed: 0.125,
+      surfaceType: 'flat'
+    }
   },
   {
     id: 'poster-16x20',
@@ -463,7 +760,18 @@ export const HOME_LIVING_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: POSTER_COLORS,
     defaultPlacement: 'full-surface',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 16,
+      printAreaHeight: 20,
+      printAreaWidthPixels: 4800,
+      printAreaHeightPixels: 6000,
+      dpi: 300,
+      placement: 'full-bleed',
+      placementDescription: 'Edge-to-edge print with 0.125" bleed',
+      bleed: 0.125,
+      surfaceType: 'flat'
+    }
   },
   {
     id: 'poster-18x24',
@@ -474,7 +782,18 @@ export const HOME_LIVING_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: POSTER_COLORS,
     defaultPlacement: 'full-surface',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 18,
+      printAreaHeight: 24,
+      printAreaWidthPixels: 2700,
+      printAreaHeightPixels: 3600,
+      dpi: 150,
+      placement: 'full-bleed',
+      placementDescription: 'Edge-to-edge print with 0.125" bleed',
+      bleed: 0.125,
+      surfaceType: 'flat'
+    }
   },
   {
     id: 'poster-24x36',
@@ -485,7 +804,18 @@ export const HOME_LIVING_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: POSTER_COLORS,
     defaultPlacement: 'full-surface',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 24,
+      printAreaHeight: 36,
+      printAreaWidthPixels: 3600,
+      printAreaHeightPixels: 5400,
+      dpi: 150,
+      placement: 'full-bleed',
+      placementDescription: 'Edge-to-edge print with 0.125" bleed',
+      bleed: 0.125,
+      surfaceType: 'flat'
+    }
   },
   {
     id: 'framed-poster-8x10',
@@ -496,7 +826,19 @@ export const HOME_LIVING_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: POSTER_COLORS,
     defaultPlacement: 'full-surface',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 8,
+      printAreaHeight: 10,
+      printAreaWidthPixels: 2400,
+      printAreaHeightPixels: 3000,
+      dpi: 300,
+      placement: 'full-bleed',
+      placementDescription: 'Edge-to-edge print with 0.125" bleed',
+      bleed: 0.125,
+      surfaceType: 'flat',
+      notes: 'Frame adds 1" border around print'
+    }
   },
   {
     id: 'framed-poster-11x14',
@@ -507,7 +849,19 @@ export const HOME_LIVING_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: POSTER_COLORS,
     defaultPlacement: 'full-surface',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 11,
+      printAreaHeight: 14,
+      printAreaWidthPixels: 3300,
+      printAreaHeightPixels: 4200,
+      dpi: 300,
+      placement: 'full-bleed',
+      placementDescription: 'Edge-to-edge print with 0.125" bleed',
+      bleed: 0.125,
+      surfaceType: 'flat',
+      notes: 'Frame adds 1" border around print'
+    }
   },
   {
     id: 'framed-poster-16x20',
@@ -518,7 +872,19 @@ export const HOME_LIVING_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: POSTER_COLORS,
     defaultPlacement: 'full-surface',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 16,
+      printAreaHeight: 20,
+      printAreaWidthPixels: 4800,
+      printAreaHeightPixels: 6000,
+      dpi: 300,
+      placement: 'full-bleed',
+      placementDescription: 'Edge-to-edge print with 0.125" bleed',
+      bleed: 0.125,
+      surfaceType: 'flat',
+      notes: 'Frame adds 1" border around print'
+    }
   },
   {
     id: 'framed-poster-18x24',
@@ -529,7 +895,19 @@ export const HOME_LIVING_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: POSTER_COLORS,
     defaultPlacement: 'full-surface',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 18,
+      printAreaHeight: 24,
+      printAreaWidthPixels: 2700,
+      printAreaHeightPixels: 3600,
+      dpi: 150,
+      placement: 'full-bleed',
+      placementDescription: 'Edge-to-edge print with 0.125" bleed',
+      bleed: 0.125,
+      surfaceType: 'flat',
+      notes: 'Frame adds 1" border around print'
+    }
   },
   {
     id: 'framed-poster-24x36',
@@ -540,7 +918,19 @@ export const HOME_LIVING_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: POSTER_COLORS,
     defaultPlacement: 'full-surface',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 24,
+      printAreaHeight: 36,
+      printAreaWidthPixels: 3600,
+      printAreaHeightPixels: 5400,
+      dpi: 150,
+      placement: 'full-bleed',
+      placementDescription: 'Edge-to-edge print with 0.125" bleed',
+      bleed: 0.125,
+      surfaceType: 'flat',
+      notes: 'Frame adds 1" border around print'
+    }
   },
   {
     id: 'canvas-8x10',
@@ -551,7 +941,19 @@ export const HOME_LIVING_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: CANVAS_COLORS,
     defaultPlacement: 'full-surface',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 8,
+      printAreaHeight: 10,
+      printAreaWidthPixels: 2400,
+      printAreaHeightPixels: 3000,
+      dpi: 300,
+      placement: 'gallery-wrap',
+      placementDescription: 'Image wraps around 1.5" deep canvas edges',
+      bleed: 1.5,
+      wrapAround: true,
+      surfaceType: 'flexible'
+    }
   },
   {
     id: 'blanket-50x60',
@@ -562,7 +964,18 @@ export const HOME_LIVING_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: BLANKET_COLORS,
     defaultPlacement: 'full-surface',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 50,
+      printAreaHeight: 60,
+      printAreaWidthPixels: 7500,
+      printAreaHeightPixels: 9000,
+      dpi: 150,
+      placement: 'full-surface',
+      placementDescription: 'Edge-to-edge sublimation print',
+      bleed: 0.5,
+      surfaceType: 'flexible'
+    }
   },
   {
     id: 'pillow-case-18x18',
@@ -573,7 +986,17 @@ export const HOME_LIVING_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: PILLOW_COLORS,
     defaultPlacement: 'front-only',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 18,
+      printAreaHeight: 18,
+      printAreaWidthPixels: 5400,
+      printAreaHeightPixels: 5400,
+      dpi: 300,
+      placement: 'front-full',
+      placementDescription: 'Full front panel print',
+      surfaceType: 'flexible'
+    }
   },
   {
     id: 'pillow-case-20x12',
@@ -584,7 +1007,17 @@ export const HOME_LIVING_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: PILLOW_COLORS,
     defaultPlacement: 'front-only',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 20,
+      printAreaHeight: 12,
+      printAreaWidthPixels: 6000,
+      printAreaHeightPixels: 3600,
+      dpi: 300,
+      placement: 'front-full',
+      placementDescription: 'Full front panel print',
+      surfaceType: 'flexible'
+    }
   },
   {
     id: 'notebook-a5',
@@ -595,7 +1028,17 @@ export const HOME_LIVING_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: STATIONERY_COLORS,
     defaultPlacement: 'cover-front',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 5.8,
+      printAreaHeight: 8.3,
+      printAreaWidthPixels: 1740,
+      printAreaHeightPixels: 2490,
+      dpi: 300,
+      placement: 'front-cover',
+      placementDescription: 'Full front cover print',
+      surfaceType: 'flat'
+    }
   },
   {
     id: 'postcard-4x6',
@@ -606,7 +1049,18 @@ export const HOME_LIVING_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: STATIONERY_COLORS,
     defaultPlacement: 'full-surface',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 4,
+      printAreaHeight: 6,
+      printAreaWidthPixels: 1200,
+      printAreaHeightPixels: 1800,
+      dpi: 300,
+      placement: 'full-bleed',
+      placementDescription: 'Edge-to-edge print with bleed',
+      bleed: 0.125,
+      surfaceType: 'flat'
+    }
   },
   {
     id: 'sticker-sheet',
@@ -617,7 +1071,17 @@ export const HOME_LIVING_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: STATIONERY_COLORS,
     defaultPlacement: 'full-surface',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 6,
+      printAreaHeight: 4,
+      printAreaWidthPixels: 1800,
+      printAreaHeightPixels: 1200,
+      dpi: 300,
+      placement: 'die-cut',
+      placementDescription: 'Individual die-cut shapes on sheet',
+      surfaceType: 'flat'
+    }
   },
   {
     id: 'magnet-3x3',
@@ -628,7 +1092,17 @@ export const HOME_LIVING_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: STATIONERY_COLORS,
     defaultPlacement: 'full-surface',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 3,
+      printAreaHeight: 3,
+      printAreaWidthPixels: 900,
+      printAreaHeightPixels: 900,
+      dpi: 300,
+      placement: 'full-surface',
+      placementDescription: 'Full surface print',
+      surfaceType: 'flat'
+    }
   },
   {
     id: 'coaster',
@@ -639,7 +1113,18 @@ export const HOME_LIVING_PRODUCTS: Product[] = [
     isWearable: false,
     availableColors: COASTER_COLORS,
     defaultPlacement: 'full-surface',
-    genderTarget: 'unisex'
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 3.75,
+      printAreaHeight: 3.75,
+      printAreaWidthPixels: 1125,
+      printAreaHeightPixels: 1125,
+      dpi: 300,
+      placement: 'full-surface',
+      placementDescription: 'Full top surface print',
+      surfaceType: 'flat',
+      notes: 'Cork backing, waterproof coating applied'
+    }
   }
 ];
 
