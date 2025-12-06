@@ -349,6 +349,209 @@ export const AOP_PRODUCTS: Product[] = [
       surfaceType: 'flexible',
       notes: 'Pattern must align at inseam and side seams'
     }
+  },
+  {
+    id: 'aop-mens-cut-sew-tee',
+    name: 'AOP Men\'s Cut & Sew Tee',
+    category: 'Apparel',
+    subcategory: 'T-Shirts',
+    productType: 'aop-apparel',
+    isWearable: true,
+    availableColors: AOP_BASE_COLORS,
+    defaultPlacement: 'full-coverage',
+    genderTarget: 'mens',
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 34,
+      printAreaHeight: 40,
+      printAreaWidthPixels: 5100,
+      printAreaHeightPixels: 6000,
+      dpi: 150,
+      placement: 'full-surface',
+      placementDescription: 'Edge-to-edge cut and sew sublimation with panel construction',
+      bleed: 0.25,
+      wrapAround: true,
+      surfaceType: 'flexible',
+      notes: 'Cut and sew construction allows seamless pattern alignment across panels'
+    }
+  },
+  {
+    id: 'aop-womens-tee',
+    name: 'AOP Women\'s Tee',
+    category: 'Apparel',
+    subcategory: 'T-Shirts',
+    productType: 'aop-apparel',
+    isWearable: true,
+    availableColors: AOP_BASE_COLORS,
+    defaultPlacement: 'full-coverage',
+    genderTarget: 'womens',
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 30,
+      printAreaHeight: 36,
+      printAreaWidthPixels: 4500,
+      printAreaHeightPixels: 5400,
+      dpi: 150,
+      placement: 'full-surface',
+      placementDescription: 'Edge-to-edge seamless sublimation with fitted silhouette',
+      bleed: 0.25,
+      wrapAround: true,
+      surfaceType: 'flexible',
+      notes: 'Fitted feminine silhouette with shorter sleeves'
+    }
+  },
+  {
+    id: 'aop-sweatshirt',
+    name: 'Unisex AOP Sweatshirt',
+    category: 'Apparel',
+    subcategory: 'Sweatshirts',
+    productType: 'aop-apparel',
+    isWearable: true,
+    availableColors: AOP_BASE_COLORS,
+    defaultPlacement: 'full-coverage',
+    genderTarget: 'unisex',
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 36,
+      printAreaHeight: 40,
+      printAreaWidthPixels: 5400,
+      printAreaHeightPixels: 6000,
+      dpi: 150,
+      placement: 'full-surface',
+      placementDescription: 'Edge-to-edge seamless sublimation covering entire garment',
+      bleed: 0.25,
+      wrapAround: true,
+      surfaceType: 'flexible',
+      notes: 'Pattern must align at seams, solid color ribbing at collar, cuffs, and waistband'
+    }
+  },
+  {
+    id: 'aop-swimsuit',
+    name: 'AOP One-Piece Swimsuit',
+    category: 'Apparel',
+    subcategory: 'Swimwear',
+    productType: 'aop-apparel',
+    isWearable: true,
+    availableColors: AOP_BASE_COLORS,
+    defaultPlacement: 'full-coverage',
+    genderTarget: 'womens',
+    sizeChart: [
+      { size: 'XS', chest: 32, length: 24, sleeve: 0 },
+      { size: 'S', chest: 34, length: 25, sleeve: 0 },
+      { size: 'M', chest: 36, length: 26, sleeve: 0 },
+      { size: 'L', chest: 38, length: 27, sleeve: 0 },
+      { size: 'XL', chest: 40, length: 28, sleeve: 0 },
+      { size: '2XL', chest: 42, length: 29, sleeve: 0 }
+    ],
+    printSpec: {
+      printAreaWidth: 28,
+      printAreaHeight: 32,
+      printAreaWidthPixels: 4200,
+      printAreaHeightPixels: 4800,
+      dpi: 150,
+      placement: 'full-surface',
+      placementDescription: 'Edge-to-edge seamless sublimation on chlorine-resistant fabric',
+      bleed: 0.25,
+      wrapAround: true,
+      surfaceType: 'flexible',
+      notes: '82% polyester/18% spandex blend, UPF 38+, four-way stretch'
+    }
+  },
+  {
+    id: 'aop-tote-bag',
+    name: 'AOP Tote Bag',
+    category: 'Accessories',
+    subcategory: 'Bags',
+    productType: 'aop-accessory',
+    isWearable: false,
+    availableColors: AOP_BASE_COLORS,
+    defaultPlacement: 'full-coverage',
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 16,
+      printAreaHeight: 16,
+      printAreaWidthPixels: 4800,
+      printAreaHeightPixels: 4800,
+      dpi: 300,
+      placement: 'full-surface',
+      placementDescription: 'Edge-to-edge seamless sublimation on both sides',
+      bleed: 0.25,
+      wrapAround: true,
+      surfaceType: 'flexible',
+      notes: 'Pattern covers both front and back panels, solid color handles'
+    }
+  },
+  {
+    id: 'aop-square-pillow',
+    name: 'AOP Square Pillow',
+    category: 'Home & Living',
+    subcategory: 'Pillows',
+    productType: 'aop-home',
+    isWearable: false,
+    availableColors: AOP_BASE_COLORS,
+    defaultPlacement: 'full-coverage',
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 18,
+      printAreaHeight: 18,
+      printAreaWidthPixels: 5400,
+      printAreaHeightPixels: 5400,
+      dpi: 300,
+      placement: 'full-surface',
+      placementDescription: 'Edge-to-edge seamless sublimation on pillow cover',
+      bleed: 0.5,
+      wrapAround: true,
+      surfaceType: 'flexible',
+      notes: '100% polyester cover, hidden zipper, pillow insert included'
+    }
+  },
+  {
+    id: 'aop-fleece-blanket',
+    name: 'AOP Fleece Blanket',
+    category: 'Home & Living',
+    subcategory: 'Blankets',
+    productType: 'aop-home',
+    isWearable: false,
+    availableColors: AOP_BASE_COLORS,
+    defaultPlacement: 'full-coverage',
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 60,
+      printAreaHeight: 80,
+      printAreaWidthPixels: 6000,
+      printAreaHeightPixels: 8000,
+      dpi: 100,
+      placement: 'full-surface',
+      placementDescription: 'Edge-to-edge seamless sublimation on ultra-soft fleece',
+      bleed: 0.5,
+      wrapAround: false,
+      surfaceType: 'flexible',
+      notes: '100% polyester fleece, double-sided print, hemmed edges'
+    }
+  },
+  {
+    id: 'aop-beach-towel',
+    name: 'AOP Beach Towel',
+    category: 'Home & Living',
+    subcategory: 'Towels',
+    productType: 'aop-home',
+    isWearable: false,
+    availableColors: AOP_BASE_COLORS,
+    defaultPlacement: 'full-coverage',
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 30,
+      printAreaHeight: 60,
+      printAreaWidthPixels: 4500,
+      printAreaHeightPixels: 9000,
+      dpi: 150,
+      placement: 'full-surface',
+      placementDescription: 'Edge-to-edge seamless sublimation on microfiber towel',
+      bleed: 0.5,
+      wrapAround: false,
+      surfaceType: 'flexible',
+      notes: '100% polyester microfiber, quick-dry, lightweight and absorbent'
+    }
   }
 ];
 
@@ -1218,6 +1421,39 @@ export function getGarmentBlueprint(product: Product): GarmentBlueprint {
     };
   }
 
+  if (name.includes('swimsuit') || name.includes('swimwear')) {
+    return {
+      fit: 'Form-fitting, athletic cut',
+      hem: 'Serged edges with elastic leg openings',
+      collarType: 'Scoop neckline with hidden elastic',
+      sleeveType: 'N/A - Sleeveless with wide straps',
+      extraFeatures: '82% polyester/18% spandex, UPF 38+, chlorine-resistant, four-way stretch',
+      aopConstruction: isAop ? 'Full panel sublimation, pattern continuous across front and back, no solid trim areas' : undefined
+    };
+  }
+
+  if (name.includes('cut') && name.includes('sew')) {
+    return {
+      fit: 'Regular fit with athletic cut',
+      hem: 'Straight hem with no side slits',
+      collarType: 'Ribbed crewneck',
+      sleeveType: 'Set-in short sleeves',
+      extraFeatures: 'Cut and sew construction for seamless pattern alignment',
+      aopConstruction: isAop ? 'Pattern aligns seamlessly across all panels, solid color collar using accent color' : undefined
+    };
+  }
+
+  if (name.includes('women') && name.includes('tee')) {
+    return {
+      fit: 'Fitted feminine silhouette',
+      hem: 'Curved hem',
+      collarType: 'Ribbed crewneck, slightly scooped',
+      sleeveType: 'Set-in short sleeves, cap style',
+      extraFeatures: 'Tailored fit with shorter sleeves',
+      aopConstruction: isAop ? 'Solid color collar and sleeve hems using dominant accent color' : undefined
+    };
+  }
+
   return {
     fit: 'Regular fit (not slim, not oversized)',
     hem: 'Straight hem with no side slits',
@@ -1266,11 +1502,53 @@ export function getProductBlueprint(product: Product): AccessoryBlueprint | null
     'home-decor-wall-art',
     'home-decor-textile',
     'home-decor-stationery',
-    'home-decor-tableware'
+    'home-decor-tableware',
+    'aop-accessory',
+    'aop-home'
   ];
   
   if (!validProductTypes.includes(productType as string)) {
     return null;
+  }
+
+  if (id === 'aop-tote-bag') {
+    return {
+      printArea: { width: '16', height: '16', unit: 'inches' },
+      material: '100% polyester canvas, sturdy construction',
+      construction: 'Full sublimation on front and back panels, solid color handles and seams',
+      printMethod: 'Edge-to-edge sublimation, 4800 x 4800 px at 300dpi',
+      extraFeatures: 'Pattern covers both sides, handles in accent color from pattern'
+    };
+  }
+
+  if (id === 'aop-square-pillow') {
+    return {
+      printArea: { width: '18', height: '18', unit: 'inches' },
+      material: '100% polyester cover, soft and durable',
+      construction: 'Full sublimation cover with hidden zipper, polyester fill insert',
+      printMethod: 'Edge-to-edge sublimation, 5400 x 5400 px at 300dpi',
+      extraFeatures: 'Pattern on front side, solid white back, machine washable'
+    };
+  }
+
+  if (id === 'aop-fleece-blanket') {
+    return {
+      printArea: { width: '60', height: '80', unit: 'inches' },
+      material: '100% polyester fleece, ultra-soft plush texture',
+      construction: 'Full sublimation print, hemmed edges all around',
+      printMethod: 'Edge-to-edge sublimation, 6000 x 8000 px at 100dpi',
+      extraFeatures: 'Double-sided print available, lightweight and cozy'
+    };
+  }
+
+  if (id === 'aop-beach-towel') {
+    return {
+      printArea: { width: '30', height: '60', unit: 'inches' },
+      material: '100% polyester microfiber, quick-dry technology',
+      construction: 'Full sublimation print, hemmed edges',
+      printMethod: 'Edge-to-edge sublimation, 4500 x 9000 px at 150dpi',
+      extraFeatures: 'Sand-resistant, lightweight, absorbent, folds compact'
+    };
   }
 
   if (id === 'mug-11oz') {

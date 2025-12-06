@@ -291,7 +291,8 @@ export function buildRenderSpecification(
   materialCondition: MaterialPresetKey = 'BRAND_NEW',
   lightingPreset?: string,
   environmentPrompt?: string,
-  currentSize?: string
+  currentSize?: string,
+  patternScale?: number
 ): RenderSpecification {
   const style = BRAND_STYLES[brandStyle];
   const cameraSpec = getCameraSpecsForAngle(angle);
@@ -377,14 +378,36 @@ ${getFullHumanRealismPrompt()}
 Product displayed on invisible mannequin or flat lay (no human model).
 ===== END DISPLAY MODE =====` : "";
 
-  const colorLockBlock = `
+  const patternScaleInches = patternScale ? Math.round((patternScale / 100) * 12) : 6;
+  
+  const aopColorRules = journey === 'AOP' ? `
+===== AOP COLOR DERIVATION RULES =====
+[CRITICAL - IGNORE USER COLOR SELECTION FOR AOP]
+- BASE COLOR: Derive the garment's base/background color from the OVERALL PERCEIVED BACKGROUND of the seamless pattern image
+- The base color is NOT "${color.name}" - analyze the pattern and determine the dominant background color
+- TRIM COLOR: Sample the most prominent NON-BACKGROUND accent color from the pattern
+${designAnalysis.aopAccentColor ? `- Suggested accent color for trim: ${designAnalysis.aopAccentColor}` : '- Analyze pattern to find the most prominent accent color'}
+- Use this trim color for: collar, cuffs, waistband, or any solid-colored construction elements
+- The trim color MUST be consistent across ALL mockups in this batch
+===== END AOP COLOR RULES =====` : '';
+
+  const colorLockBlock = journey === 'AOP' ? `
+===== COLOR LOCK (AOP MODE) =====
+[LOCKED - COLORS DERIVED FROM PATTERN]
+- Pattern analysis: Use the seamless pattern image as the source of truth for ALL colors
+- Base color: Extract from pattern background (NOT the user's color selection)
+- Trim/accent color: ${designAnalysis.aopAccentColor || 'Extract most prominent non-background color from pattern'}
+- This trim color must be used for: collars, cuffs, waistbands, handles, edges
+- Design colors: Pattern colors must be reproduced with EXACT fidelity
+- The same trim color must appear on ALL mockups in this batch
+${aopColorRules}
+===== END COLOR LOCK =====` : `
 ===== COLOR LOCK =====
 [LOCKED - EXACT COLORS REQUIRED]
 - Product base color: ${color.name} (${color.hex})
 - This EXACT color must be visible on all non-printed areas of the product
 - Design colors: ${designAnalysis.dominantColors.join(", ")}
 - Design colors must be reproduced accurately without color shift
-${journey === 'AOP' && designAnalysis.aopAccentColor ? `- AOP accent color (collar/cuffs): ${designAnalysis.aopAccentColor}` : ''}
 ===== END COLOR LOCK =====`;
 
   const sizeFitLockBlock = product.isWearable && personaLock ? `
@@ -517,14 +540,23 @@ CONSTRUCTION LOCK:
 - Pattern must tile seamlessly across all panels
 - No visible seam interruption of pattern
 - Pattern aligns at side seams, shoulder seams, and armholes
+${garmentBlueprint ? `- Product-specific construction: ${garmentBlueprint}` : ''}
 
-SCALE LOCK:
-- Pattern elements maintain consistent physical size (not percentage-based)
-- Same element should be same size on front and back panels
+SCALE LOCK (CRITICAL - PHYSICAL UNITS):
+- Pattern scale: The pattern repeats exactly every ${patternScaleInches} inches
+- This is a PHYSICAL measurement, not a percentage
+- The pattern tile size must be ${patternScaleInches}" x ${patternScaleInches}" on the final garment
+- Same element should be same physical size on front and back panels
 - Scale should not distort at edges or seams
+- Maintain IDENTICAL pattern scale across ALL mockups in this batch
 
-PHYSICS LOCK:
-- Fabric weight and drape appropriate for sublimation polyester
+PHYSICS LOCK (FABRIC vs PATTERN SEPARATION):
+[CRITICAL - DO NOT CONFUSE PATTERN TEXTURE WITH FABRIC TEXTURE]
+- The visual texture in the pattern (e.g., a "knit" or "woven" look) is just a 2D design
+- The ACTUAL fabric physics must be: sublimation polyester (lightweight, smooth, slightly shiny)
+- DO NOT render the garment as heavy/thick just because the pattern looks like a sweater texture
+- A t-shirt with a "knit sweater" pattern must still look like a lightweight polyester t-shirt
+- Fabric weight and drape: appropriate for sublimation polyester, NOT for the pattern's visual appearance
 - Pattern conforms to body contours naturally
 - Folds and creases affect pattern realistically (compression in valleys, stretch on peaks)
 ${fabricPhysics ? `
@@ -1037,7 +1069,8 @@ export async function generateMockupBatch(
       request.materialCondition,
       request.lightingPreset,
       request.environmentPrompt,
-      job.modelDetails?.modelSize
+      job.modelDetails?.modelSize,
+      request.patternScale
     );
 
     const result = await generateMockupWithRetry(

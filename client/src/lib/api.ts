@@ -478,6 +478,9 @@ export const mockupApi = {
         ethnicity: string;
         modelSize: string;
       };
+      journey?: 'DTG' | 'AOP';
+      patternScale?: number;
+      isSeamlessPattern?: boolean;
     } = {},
     onEvent: MockupEventCallback
   ): Promise<void> => {

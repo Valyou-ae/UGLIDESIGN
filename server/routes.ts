@@ -605,6 +605,9 @@ export async function registerRoutes(
         scene = "studio",
         style = "minimal",
         modelDetails,
+        journey = "DTG",
+        patternScale,
+        isSeamlessPattern,
       } = req.body;
 
       if (!designImage || typeof designImage !== "string") {
@@ -720,10 +723,14 @@ export async function registerRoutes(
 
         sendEvent("status", { stage: "analyzing", message: "Analyzing your design...", progress: 5 });
 
-        const product = knowledge.getDTGProducts().find(p => 
+        const isAopJourney = journey === "AOP";
+        const productSource = isAopJourney ? knowledge.getAOPProducts() : knowledge.getDTGProducts();
+        
+        const product = productSource.find(p => 
           p.name.toLowerCase().includes(productType.toLowerCase()) ||
-          p.subcategory?.toLowerCase().includes(productType.toLowerCase())
-        ) || knowledge.getDTGProducts()[0];
+          p.subcategory?.toLowerCase().includes(productType.toLowerCase()) ||
+          p.id.toLowerCase().includes(productType.toLowerCase())
+        ) || productSource[0];
 
         const sizeMap: Record<string, string> = {
           "XS": "XS",
@@ -787,8 +794,9 @@ export async function registerRoutes(
             });
 
             const batch = await eliteGenerator.generateMockupBatch({
-              journey: "DTG",
+              journey: isAopJourney ? "AOP" : "DTG",
               designImage: base64Data,
+              isSeamlessPattern: isAopJourney ? (isSeamlessPattern ?? true) : undefined,
               product: product,
               colors: colors,
               angles: angles as any[],
@@ -797,7 +805,8 @@ export async function registerRoutes(
               lightingPreset: 'three-point-classic',
               materialCondition: 'BRAND_NEW',
               environmentPrompt: scene,
-              existingPersonaLock: sharedPersonaLock
+              existingPersonaLock: sharedPersonaLock,
+              patternScale: isAopJourney ? patternScale : undefined
             }, (completed, total, job) => {
               const completedOverall = (sizeIndex * jobsPerSize) + completed;
               const progress = 10 + Math.round((completedOverall / totalJobs) * 85);
