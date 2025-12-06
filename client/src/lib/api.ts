@@ -67,9 +67,8 @@ export const imagesApi = {
   create: (data: {
     imageUrl: string;
     prompt: string;
-    style: string;
-    aspectRatio: string;
-    generationType: string;
+    style?: string;
+    aspectRatio?: string;
   }) =>
     fetchApi<{ image: any }>("/images", {
       method: "POST",
@@ -98,8 +97,8 @@ export const affiliateApi = {
     amount: number;
     bankName: string;
     accountNumber: string;
-    accountName: string;
-    routingNumber?: string;
+    accountHolderName: string;
+    routingNumber: string;
   }) =>
     fetchApi<{ withdrawal: any }>("/affiliate/withdraw", {
       method: "POST",
