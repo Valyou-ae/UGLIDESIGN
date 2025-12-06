@@ -325,12 +325,16 @@ export interface MockupEventData {
   imageData?: string;
   mimeType?: string;
   angle?: string;
+  color?: string;
+  jobId?: string;
   error?: string;
   success?: boolean;
   totalGenerated?: number;
   headshotImage?: string;
   suggestion?: string;
   details?: string;
+  timestamp?: number;
+  type?: string;
 }
 
 export type MockupEventType = 
@@ -462,7 +466,7 @@ export const mockupApi = {
     designImage: string,
     options: {
       productType?: string;
-      productColor?: string;
+      productColors?: string[];
       angles?: string[];
       scene?: string;
       style?: string;
