@@ -1855,7 +1855,24 @@ export default function MockupGenerator() {
                                   animate={{ width: `${generationProgress}%` }}
                                 />
                               </div>
-                              <p className="text-xs text-muted-foreground">{generationProgress}% complete</p>
+                              <p className="text-xs text-muted-foreground mb-4">{generationProgress}% complete</p>
+                              
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => {
+                                  setIsGenerating(false);
+                                  setGenerationProgress(0);
+                                  setGenerationStage("");
+                                  toast({
+                                    title: "Generation Cancelled",
+                                    description: "You can restart the generation anytime.",
+                                  });
+                                }}
+                                className="text-muted-foreground hover:text-foreground"
+                              >
+                                Cancel Generation
+                              </Button>
                             </div>
                           ) : (
                             <div className="flex-1 flex flex-col h-full overflow-hidden">
@@ -1867,11 +1884,23 @@ export default function MockupGenerator() {
                                 <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3">
                                   <Button variant="outline" onClick={() => setJourney(null)} className="flex-1 sm:flex-none">Start Over</Button>
                                   <Button 
+                                    variant="outline"
+                                    onClick={() => {
+                                      setGeneratedMockups([]);
+                                      handleGenerate();
+                                    }}
+                                    className="flex-1 sm:flex-none"
+                                    data-testid="button-regenerate"
+                                  >
+                                    <RefreshCw className="mr-2 h-4 w-4" />
+                                    Regenerate
+                                  </Button>
+                                  <Button 
                                     className="bg-indigo-600 hover:bg-indigo-700 text-white flex-1 sm:flex-none"
                                     onClick={() => generatedMockups.forEach((img, i) => downloadImage(img, `mockup_${i}.png`))}
                                   >
                                     <Download className="mr-2 h-4 w-4" />
-                                    Download ZIP
+                                    Download All
                                   </Button>
                                 </div>
                               </div>
