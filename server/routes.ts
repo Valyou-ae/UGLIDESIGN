@@ -720,13 +720,19 @@ export async function registerRoutes(
         const jobsPerSize = angles.length * colors.length;
         const totalJobs = jobsPerSize * totalSizes;
 
-        console.log("Starting elite mockup generation with:", {
-          product: product?.name,
-          colors: colors.map(c => c?.name),
-          angles: angles,
-          sizes: sizesToGenerate,
-          modelDetails: mappedModelDetails
+        console.log("=== ELITE MOCKUP GENERATION DEBUG ===");
+        console.log("Product:", product?.name);
+        console.log("Colors:", colors.map(c => c?.name));
+        console.log("Angles:", angles);
+        console.log("Sizes to generate:", sizesToGenerate);
+        console.log("Model details:", {
+          age: mappedModelDetails.age,
+          sex: mappedModelDetails.sex,
+          ethnicity: mappedModelDetails.ethnicity,
+          modelSize: mappedModelDetails.modelSize
         });
+        console.log("Total jobs expected:", totalJobs);
+        console.log("=====================================");
 
         sendEvent("status", { stage: "preparing", message: "Preparing model reference...", progress: 8 });
 
