@@ -1,4 +1,16 @@
-import { Product, ProductColor } from '../../../shared/mockupTypes';
+import { Product, ProductColor, SizeChartEntry } from '../../../shared/mockupTypes';
+
+export const STANDARD_SIZE_CHART: SizeChartEntry[] = [
+  { size: 'XS', chest: 34, length: 27, sleeve: 8 },
+  { size: 'S', chest: 36, length: 28, sleeve: 8.5 },
+  { size: 'M', chest: 38, length: 29, sleeve: 9 },
+  { size: 'L', chest: 42, length: 30, sleeve: 9.5 },
+  { size: 'XL', chest: 46, length: 31, sleeve: 10 },
+  { size: '2XL', chest: 50, length: 32, sleeve: 10.5 },
+  { size: '3XL', chest: 54, length: 33, sleeve: 11 },
+  { size: '4XL', chest: 58, length: 34, sleeve: 11.5 },
+  { size: '5XL', chest: 62, length: 35, sleeve: 12 }
+];
 
 const STANDARD_DTG_COLORS: ProductColor[] = [
   { name: 'White', hex: '#FFFFFF', category: 'light' },
@@ -86,7 +98,9 @@ export const DTG_PRODUCTS: Product[] = [
     productType: 'dtg-apparel',
     isWearable: true,
     availableColors: STANDARD_DTG_COLORS,
-    defaultPlacement: 'center-chest'
+    defaultPlacement: 'center-chest',
+    genderTarget: 'unisex',
+    sizeChart: STANDARD_SIZE_CHART
   },
   {
     id: 'bella-3001',
@@ -96,7 +110,9 @@ export const DTG_PRODUCTS: Product[] = [
     productType: 'dtg-apparel',
     isWearable: true,
     availableColors: BELLA_CANVAS_COLORS,
-    defaultPlacement: 'center-chest'
+    defaultPlacement: 'center-chest',
+    genderTarget: 'unisex',
+    sizeChart: STANDARD_SIZE_CHART
   },
   {
     id: 'gildan-18000',
@@ -106,7 +122,9 @@ export const DTG_PRODUCTS: Product[] = [
     productType: 'dtg-apparel',
     isWearable: true,
     availableColors: SWEATSHIRT_COLORS,
-    defaultPlacement: 'center-chest-large'
+    defaultPlacement: 'center-chest-large',
+    genderTarget: 'unisex',
+    sizeChart: STANDARD_SIZE_CHART
   },
   {
     id: 'gildan-18500',
@@ -116,7 +134,9 @@ export const DTG_PRODUCTS: Product[] = [
     productType: 'dtg-apparel',
     isWearable: true,
     availableColors: SWEATSHIRT_COLORS,
-    defaultPlacement: 'above-pocket'
+    defaultPlacement: 'above-pocket',
+    genderTarget: 'unisex',
+    sizeChart: STANDARD_SIZE_CHART
   }
 ];
 
@@ -129,7 +149,9 @@ export const AOP_PRODUCTS: Product[] = [
     productType: 'aop-apparel',
     isWearable: true,
     availableColors: AOP_BASE_COLORS,
-    defaultPlacement: 'full-coverage'
+    defaultPlacement: 'full-coverage',
+    genderTarget: 'unisex',
+    sizeChart: STANDARD_SIZE_CHART
   },
   {
     id: 'aop-hoodie',
@@ -139,7 +161,9 @@ export const AOP_PRODUCTS: Product[] = [
     productType: 'aop-apparel',
     isWearable: true,
     availableColors: AOP_BASE_COLORS,
-    defaultPlacement: 'full-coverage-panels'
+    defaultPlacement: 'full-coverage-panels',
+    genderTarget: 'unisex',
+    sizeChart: STANDARD_SIZE_CHART
   },
   {
     id: 'aop-leggings',
@@ -149,7 +173,9 @@ export const AOP_PRODUCTS: Product[] = [
     productType: 'aop-apparel',
     isWearable: true,
     availableColors: AOP_BASE_COLORS,
-    defaultPlacement: '360-coverage'
+    defaultPlacement: '360-coverage',
+    genderTarget: 'unisex',
+    sizeChart: STANDARD_SIZE_CHART
   },
   {
     id: 'aop-joggers',
@@ -159,7 +185,9 @@ export const AOP_PRODUCTS: Product[] = [
     productType: 'aop-apparel',
     isWearable: true,
     availableColors: AOP_BASE_COLORS,
-    defaultPlacement: 'full-coverage-side-panel'
+    defaultPlacement: 'full-coverage-side-panel',
+    genderTarget: 'unisex',
+    sizeChart: STANDARD_SIZE_CHART
   }
 ];
 

@@ -71,6 +71,15 @@ export type ProductType =
   | 'hard-good-mug'
   | 'home-decor';
 
+export type GenderTarget = 'mens' | 'womens' | 'unisex';
+
+export interface SizeChartEntry {
+  size: string;
+  chest: number;
+  length: number;
+  sleeve: number;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -80,6 +89,8 @@ export interface Product {
   isWearable: boolean;
   availableColors: ProductColor[];
   defaultPlacement?: string;
+  genderTarget: GenderTarget;
+  sizeChart?: SizeChartEntry[];
 }
 
 export interface ProductColor {

@@ -132,6 +132,12 @@ const MOCKUP_ANGLES = [
   { id: 'closeup', name: 'Close-up View', description: 'Detailed shot of the design and fabric.', icon: Search, recommended: true },
 ];
 
+const getGenderFromCategory = (category: string): Sex | null => {
+  if (category.toLowerCase().includes("men's") && !category.toLowerCase().includes("women's")) return "MALE";
+  if (category.toLowerCase().includes("women's")) return "FEMALE";
+  return null;
+};
+
 export default function MockupGenerator() {
   const [journey, setJourney] = useState<JourneyType>(null);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -150,6 +156,7 @@ export default function MockupGenerator() {
     modelSize: "M"
   });
   const [useModel, setUseModel] = useState<boolean>(true);
+  const [genderAutoSelected, setGenderAutoSelected] = useState<boolean>(true);
   const [personaHeadshot, setPersonaHeadshot] = useState<string | null>(null);
   // Seamless Pattern State
   const [seamlessPhase, setSeamlessPhase] = useState<'analyzing' | 'generating' | 'selecting'>('analyzing');
@@ -731,7 +738,14 @@ export default function MockupGenerator() {
                                 return (
                                   <button 
                                     key={cat.name}
-                                    onClick={() => setActiveCategory(cat.name)}
+                                    onClick={() => {
+                                      setActiveCategory(cat.name);
+                                      const autoGender = getGenderFromCategory(cat.name);
+                                      if (autoGender) {
+                                        setModelDetails(prev => ({...prev, sex: autoGender}));
+                                        setGenderAutoSelected(true);
+                                      }
+                                    }}
                                     className={cn(
                                       "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap shrink-0 lg:w-full lg:justify-between lg:px-3 lg:py-3 lg:rounded-xl",
                                       isActive 
@@ -1078,12 +1092,22 @@ export default function MockupGenerator() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
                               <div className="space-y-4">
                                 <div className="space-y-2">
-                                  <label className="text-sm font-semibold text-foreground">Sex</label>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <label className="text-sm font-semibold text-foreground">Sex</label>
+                                    {genderAutoSelected && getGenderFromCategory(activeCategory) && (
+                                      <span className="text-xs text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-400 px-2 py-0.5 rounded-full">
+                                        Auto-selected based on product
+                                      </span>
+                                    )}
+                                  </div>
                                   <div className="flex gap-2">
                                     {(["MALE", "FEMALE"] as Sex[]).map((sex) => (
                                       <button
                                         key={sex}
-                                        onClick={() => setModelDetails({...modelDetails, sex})}
+                                        onClick={() => {
+                                          setModelDetails({...modelDetails, sex});
+                                          setGenderAutoSelected(false);
+                                        }}
                                         className={cn(
                                           "flex-1 py-3 px-4 rounded-lg border-2 font-medium transition-all",
                                           modelDetails.sex === sex
