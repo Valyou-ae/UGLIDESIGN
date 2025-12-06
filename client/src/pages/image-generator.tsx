@@ -126,11 +126,9 @@ type Agent = {
 };
 
 const AGENTS: Agent[] = [
-  { id: 1, name: "Text Sentinel", status: "idle", message: "Checking spelling...", icon: Bot, activeColor: "#3B82F6" },
-  { id: 2, name: "Style Architect", status: "idle", message: "Enhancing style...", icon: Sparkles, activeColor: "#8B5CF6" },
-  { id: 3, name: "Visual Synthesizer", status: "idle", message: "Generating image...", icon: Palette, activeColor: "#EC4899" },
-  { id: 4, name: "Master Refiner", status: "idle", message: "Refining details...", icon: SlidersHorizontal, activeColor: "#F59E0B" },
-  { id: 5, name: "Quality Analyst", status: "idle", message: "Analyzing quality...", icon: BrainCircuit, activeColor: "#10B981" },
+  { id: 1, name: "Prompt Analyst", status: "idle", message: "Analyzing prompt...", icon: BrainCircuit, activeColor: "#3B82F6" },
+  { id: 2, name: "Style Architect", status: "idle", message: "Creating cinematic DNA...", icon: Sparkles, activeColor: "#8B5CF6" },
+  { id: 3, name: "Image Generator", status: "idle", message: "Generating image...", icon: Palette, activeColor: "#EC4899" },
 ];
 
 const STYLE_PRESETS = [
@@ -295,14 +293,12 @@ export default function ImageGenerator() {
     setCurrentAttempt(1);
     setAgents(AGENTS.map(a => ({ ...a, status: "idle" })));
 
-    // Map phase names to agent indices for visual updates
+    // Map phase names to agent indices for visual updates (AI Studio 3-phase flow)
     const phaseToAgentMap: Record<string, number> = {
-      text_sentinel: 0,
-      style_architect: 1,
-      image_generator: 2,
-      ocr_validator: 3,
-      retry: 3,
-      complete: 4,
+      analysis: 0,        // Phase 1: Initial analysis (text + deep)
+      draft_prompt: 1,    // Phase 2: Creating cinematic draft prompt
+      image_generation: 2,// Phase 3: Generating image
+      complete: 2,
     };
 
     try {
@@ -314,10 +310,8 @@ export default function ImageGenerator() {
         onProgress: (update) => {
           setProgressPhase(update.phase);
           setProgressMessage(update.message);
-          if (update.attempt) setCurrentAttempt(update.attempt);
-          if (update.maxAttempts) setMaxAttempts(update.maxAttempts);
 
-          // Update agents based on phase
+          // Update agents based on phase (AI Studio 3-phase flow)
           const agentIndex = phaseToAgentMap[update.phase] ?? -1;
           if (agentIndex >= 0) {
             setAgents(prev => prev.map((a, i) => {

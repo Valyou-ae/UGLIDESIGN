@@ -3,11 +3,9 @@ import { imagesApi } from "@/lib/api";
 import { useState, useCallback } from "react";
 
 export type ProgressPhase = 
-  | "text_sentinel" 
-  | "style_architect" 
-  | "image_generator" 
-  | "ocr_validator" 
-  | "retry" 
+  | "analysis"        // Phase 1: Initial analysis (text + deep)
+  | "draft_prompt"    // Phase 2: Creating cinematic draft prompt
+  | "image_generation"// Phase 3: Generating image
   | "complete" 
   | "error" 
   | "done";
@@ -15,8 +13,16 @@ export type ProgressPhase =
 export interface ProgressUpdate {
   phase: ProgressPhase;
   message: string;
-  attempt?: number;
-  maxAttempts?: number;
+}
+
+export interface TextInfo {
+  texts: Array<{
+    content: string;
+    surface: string;
+    style: string;
+    importance: "primary" | "secondary" | "decorative";
+  }>;
+  artDirection: string;
 }
 
 export interface GenerateWithProgressOptions {
@@ -24,6 +30,7 @@ export interface GenerateWithProgressOptions {
   style?: string;
   aspectRatio?: string;
   enhanceWithAI?: boolean;
+  processTextInPrompt?: boolean;
   onProgress?: (update: ProgressUpdate) => void;
 }
 
@@ -65,7 +72,7 @@ export function useImages() {
   });
 
   const generateImageWithProgress = useCallback(async (options: GenerateWithProgressOptions) => {
-    const { prompt, style, aspectRatio, enhanceWithAI, onProgress } = options;
+    const { prompt, style, aspectRatio, processTextInPrompt = true, onProgress } = options;
     setIsStreamGenerating(true);
 
     return new Promise<any>((resolve, reject) => {
@@ -73,7 +80,7 @@ export function useImages() {
         prompt,
         ...(style && { style }),
         ...(aspectRatio && { aspectRatio }),
-        ...(enhanceWithAI !== undefined && { enhanceWithAI: String(enhanceWithAI) }),
+        processTextInPrompt: String(processTextInPrompt),
       });
 
       const eventSource = new EventSource(`/api/generate-image-stream?${params.toString()}`);
