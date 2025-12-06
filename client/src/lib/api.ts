@@ -239,7 +239,7 @@ export const generateApi = {
 
   draft: async (
     prompt: string,
-    options: { stylePreset?: string; aspectRatio?: string } = {},
+    options: { stylePreset?: string; aspectRatio?: string; detail?: string } = {},
     onEvent: GenerationEventCallback
   ): Promise<void> => {
     try {
@@ -269,6 +269,7 @@ export const generateApi = {
       qualityLevel?: string;
       aspectRatio?: string;
       enableCuration?: boolean;
+      detail?: string;
     } = {},
     onEvent: GenerationEventCallback
   ): Promise<void> => {

@@ -95,7 +95,8 @@ export async function enhancePrompt(
   analysis: PromptAnalysis,
   mode: "draft" | "final",
   stylePreset: string,
-  qualityLevel: string
+  qualityLevel: string,
+  detailLevel: string = "medium"
 ): Promise<{ enhancedPrompt: string; negativePrompts: string[] }> {
   const modeInstructions = mode === "draft"
     ? `Create a concise but effective prompt focusing on three key Cinematic DNA components:
@@ -109,12 +110,19 @@ export async function enhancePrompt(
        - Texture: Surface details, material rendering, atmospheric elements
        - Composition: Rule of thirds, leading lines, framing elements`;
 
+  const detailInstructions = {
+    low: "Keep details minimal and clean. Focus on broad shapes and simple compositions. Avoid intricate textures or complex patterns.",
+    medium: "Include moderate detail. Balance between visual clarity and interesting textures. Standard level of complexity.",
+    high: "Maximize detail and texture. Include intricate patterns, micro-details, surface imperfections, and rich textures throughout the image."
+  };
+
   const systemInstruction = `You are the Style Architect, a master prompt engineer for AI image generation.
 
 ${modeInstructions}
 
 Style Preset: ${stylePreset}
 Quality Level: ${qualityLevel}
+Detail Level: ${detailLevel} - ${detailInstructions[detailLevel as keyof typeof detailInstructions] || detailInstructions.medium}
 
 Analysis Context:
 - Subject: ${analysis.subject}
