@@ -6,15 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import logo from "@assets/minimal-modern-wordmark-logo-text-ugli-i_7VuJ3CXPRueyRNWmv9BnCw_YaTvFRB9TpS_XzP-6PzYkA-removebg-preview_1764450493822.png";
 
 export default function Signup() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const { signup, isSigningUp } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
+    username: "",
     email: "",
     password: "",
     confirmPassword: ""
@@ -25,7 +26,7 @@ export default function Signup() {
     setFormData(prev => ({ ...prev, [id]: value }));
   };
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (formData.password !== formData.confirmPassword) {
@@ -37,17 +38,24 @@ export default function Signup() {
       return;
     }
 
-    setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await signup({ 
+        username: formData.username, 
+        email: formData.email, 
+        password: formData.password 
+      });
       toast({
         title: "Account created!",
         description: "Welcome to AI Creative Studio.",
       });
       setLocation("/home");
-    }, 1500);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Signup failed",
+        description: error.message || "An error occurred during signup",
+      });
+    }
   };
 
   return (
@@ -126,19 +134,20 @@ export default function Signup() {
           <div className="grid gap-4 md:gap-6">
             <form onSubmit={handleSignup} className="grid gap-3 md:gap-4">
               <div className="grid gap-1.5 md:gap-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="username">Username</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
-                    id="name"
-                    placeholder="John Doe"
+                    id="username"
+                    placeholder="johndoe"
                     type="text"
-                    autoComplete="name"
-                    disabled={isLoading}
-                    value={formData.name}
+                    autoComplete="username"
+                    disabled={isSigningUp}
+                    value={formData.username}
                     onChange={handleChange}
                     className="pl-10 h-10 md:h-11 rounded-xl"
                     required
+                    data-testid="input-username"
                   />
                 </div>
               </div>
@@ -154,11 +163,12 @@ export default function Signup() {
                     autoCapitalize="none"
                     autoComplete="email"
                     autoCorrect="off"
-                    disabled={isLoading}
+                    disabled={isSigningUp}
                     value={formData.email}
                     onChange={handleChange}
                     className="pl-10 h-10 md:h-11 rounded-xl"
                     required
+                    data-testid="input-email"
                   />
                 </div>
               </div>
@@ -170,10 +180,11 @@ export default function Signup() {
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    disabled={isLoading}
+                    disabled={isSigningUp}
                     value={formData.password}
                     onChange={handleChange}
                     className="pl-10 h-10 md:h-11 rounded-xl pr-10"
+                    data-testid="input-password"
                     required
                   />
                   <button
@@ -197,21 +208,23 @@ export default function Signup() {
                   <Input
                     id="confirmPassword"
                     type={showPassword ? "text" : "password"}
-                    disabled={isLoading}
+                    disabled={isSigningUp}
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     className="pl-10 h-10 md:h-11 rounded-xl pr-10"
                     required
+                    data-testid="input-confirm-password"
                   />
                 </div>
               </div>
 
               <Button 
                 type="submit" 
-                disabled={isLoading} 
+                disabled={isSigningUp} 
                 className="h-10 md:h-11 rounded-xl bg-gradient-to-r from-[#7C3AED] to-[#9333EA] hover:brightness-110 text-white font-bold shadow-lg shadow-purple-600/20 transition-all hover:-translate-y-[1px] mt-2"
+                data-testid="button-signup"
               >
-                {isLoading ? (
+                {isSigningUp ? (
                   <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>

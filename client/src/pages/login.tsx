@@ -8,42 +8,41 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import logo from "@assets/background_removed_image__LcvHHcLTd23zHU05GadTg_1764458169732.png";
 
 export default function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const { login, isLoggingIn } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      if (email === "team@ugli.design" && password === "ugli@design") {
-        setIsLoading(false);
-        setLocation("/home");
-      } else {
-        setIsLoading(false);
-        toast({
-          variant: "destructive",
-          title: "Invalid credentials",
-          description: "Please check your email and password.",
-        });
-      }
-    }, 1500);
+    try {
+      await login({ username, password });
+      toast({
+        title: "Welcome back!",
+        description: "Successfully logged in to your account.",
+      });
+      setLocation("/home");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Login failed",
+        description: error.message || "Invalid credentials",
+      });
+    }
   };
 
   const handleGoogleLogin = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      setLocation("/home");
-    }, 1500);
+    toast({
+      title: "Coming Soon",
+      description: "Google login will be available soon!",
+    });
   };
 
   return (
@@ -166,24 +165,25 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Email Form */}
+            {/* Login Form */}
             <form onSubmit={handleLogin} className="grid gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="username">Username</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
-                    id="email"
-                    placeholder="name@example.com"
-                    type="email"
+                    id="username"
+                    placeholder="Enter your username"
+                    type="text"
                     autoCapitalize="none"
-                    autoComplete="email"
+                    autoComplete="username"
                     autoCorrect="off"
-                    disabled={isLoading}
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={isLoggingIn}
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                     className="pl-10 h-11 rounded-xl"
                     required
+                    data-testid="input-username"
                   />
                 </div>
               </div>
@@ -202,11 +202,12 @@ export default function Login() {
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    disabled={isLoading}
+                    disabled={isLoggingIn}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10 h-11 rounded-xl pr-10"
                     required
+                    data-testid="input-password"
                   />
                   <button
                     type="button"
@@ -234,10 +235,11 @@ export default function Login() {
 
               <Button 
                 type="submit" 
-                disabled={isLoading} 
+                disabled={isLoggingIn} 
                 className="h-11 rounded-xl bg-gradient-to-r from-[#7C3AED] to-[#9333EA] hover:brightness-110 text-white font-bold shadow-lg shadow-purple-600/20 transition-all hover:-translate-y-[1px]"
+                data-testid="button-login"
               >
-                {isLoading ? (
+                {isLoggingIn ? (
                   <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
