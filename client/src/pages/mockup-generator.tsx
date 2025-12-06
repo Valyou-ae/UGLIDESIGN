@@ -218,6 +218,11 @@ const getGenderFromCategory = (category: string): Sex | null => {
   return null;
 };
 
+const isNonWearableCategory = (category: string): boolean => {
+  const nonWearable = ["accessories", "home & living"];
+  return nonWearable.some(nw => category.toLowerCase().includes(nw));
+};
+
 export default function MockupGenerator() {
   const [journey, setJourney] = useState<JourneyType>(null);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -320,13 +325,24 @@ export default function MockupGenerator() {
 
   const handleNext = () => {
     if (currentStepIndex < steps.length - 1) {
-      setCurrentStepIndex(currentStepIndex + 1);
+      let nextIndex = currentStepIndex + 1;
+      // Skip model step for non-wearable categories (Accessories, Home & Living)
+      if (steps[nextIndex] === "model" && isNonWearableCategory(activeCategory)) {
+        setUseModel(false);
+        nextIndex = nextIndex + 1;
+      }
+      setCurrentStepIndex(nextIndex);
     }
   };
 
   const handleBack = () => {
     if (currentStepIndex > 0) {
-      setCurrentStepIndex(currentStepIndex - 1);
+      let prevIndex = currentStepIndex - 1;
+      // Skip model step when going back for non-wearable categories
+      if (steps[prevIndex] === "model" && isNonWearableCategory(activeCategory)) {
+        prevIndex = prevIndex - 1;
+      }
+      setCurrentStepIndex(Math.max(0, prevIndex));
     } else {
       setJourney(null);
     }
@@ -823,10 +839,16 @@ export default function MockupGenerator() {
                                     key={cat.name}
                                     onClick={() => {
                                       setActiveCategory(cat.name);
-                                      const autoGender = getGenderFromCategory(cat.name);
-                                      if (autoGender) {
-                                        setModelDetails(prev => ({...prev, sex: autoGender}));
-                                        setGenderAutoSelected(true);
+                                      // For non-wearable categories, auto-set to no model
+                                      if (isNonWearableCategory(cat.name)) {
+                                        setUseModel(false);
+                                      } else {
+                                        setUseModel(true);
+                                        const autoGender = getGenderFromCategory(cat.name);
+                                        if (autoGender) {
+                                          setModelDetails(prev => ({...prev, sex: autoGender}));
+                                          setGenderAutoSelected(true);
+                                        }
                                       }
                                     }}
                                     className={cn(
