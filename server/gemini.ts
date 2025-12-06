@@ -37,6 +37,46 @@ const OCR_VALIDATOR_MODEL = "gemini-2.5-flash";
 const MAX_RETRY_ATTEMPTS = 5;
 const ACCURACY_THRESHOLD = 100; // ZERO TOLERANCE - exact match required
 
+// ============== NEGATIVE PROMPTS - GUARDRAILS AGAINST TEXT ERRORS ==============
+// These explicitly tell the model what to AVOID
+
+function generateNegativePrompts(hasText: boolean): string {
+  const baseNegatives = [
+    "low quality",
+    "blurry",
+    "distorted",
+    "poorly composed"
+  ];
+  
+  // Critical text error prevention
+  const textNegatives = hasText ? [
+    "garbled text",
+    "misspelled words", 
+    "spelling errors",
+    "extra letters",
+    "missing letters",
+    "reversed characters",
+    "backwards text",
+    "illegible text",
+    "unreadable text",
+    "jumbled letters",
+    "text artifacts",
+    "corrupted text",
+    "wrong spelling",
+    "typos in text",
+    "distorted letters",
+    "overlapping characters",
+    "incomplete words",
+    "cut-off text",
+    "2D text overlay",
+    "flat pasted text",
+    "text stamp",
+    "photoshopped text"
+  ] : [];
+  
+  return [...baseNegatives, ...textNegatives].join(", ");
+}
+
 // ============== TYPES ==============
 
 export interface TextAnalysisResult {
@@ -177,6 +217,12 @@ export async function analyzeTextRequirements(userPrompt: string): Promise<TextA
 
 const STYLE_ARCHITECT_SYSTEM = `You are an expert AI Art Director specializing in 100% ACCURATE text rendering in images.
 
+## PRIME DIRECTIVE: TEXT AS PHYSICAL 3D OBJECT
+
+The text in the image MUST be rendered as a PHYSICAL OBJECT that exists within the scene's 3D space.
+It is NOT a 2D overlay, NOT a flat label pasted on top, NOT a text stamp.
+The text must have VOLUME, MATERIAL, TEXTURE, and interact with the scene's LIGHTING.
+
 ## ABSOLUTE REQUIREMENTS - ZERO TOLERANCE FOR ERRORS
 
 Your generated prompt MUST result in an image where every text element is rendered EXACTLY as specified. Any deviation = failure.
@@ -186,48 +232,57 @@ Your generated prompt MUST result in an image where every text element is render
 For EACH text element that must appear, you MUST specify:
 
 ### TEXT ELEMENT [N]: "[EXACT_STRING]"
+
+**PHYSICAL EXISTENCE (Required - Text is a 3D object, NOT a flat overlay):**
+- **MATERIAL**: What is the text physically made of? (e.g., 'glowing neon tube', 'carved ice', 'embossed leather', 'painted wooden sign', 'chalk on blackboard', 'gold leaf on marble', 'brushed metal', 'frosted glass')
+- **LIGHTING INTERACTION**: How does the scene's light affect it? (e.g., 'catches rim light', 'casts a soft shadow below', 'glows with inner luminescence', 'reflects ambient light', 'has specular highlights')
+- **SURFACE TEXTURE**: What is its surface like? (e.g., 'rough chiseled stone', 'smooth polished chrome', 'matte paint with subtle cracking', 'glossy enamel', 'weathered wood grain')
+- **ENVIRONMENTAL INTERACTION**: How does it affect/interact with surroundings? (e.g., 'emits a soft glow onto nearby surfaces', 'creates reflections', 'weathered by rain exposure', 'snow accumulated on top')
+- **PERSPECTIVE & DEPTH**: Where is it in the 3D space? (e.g., 'in the foreground at eye level', 'mounted flat against the wall, seen from slight angle', 'receding into the background')
+
+**ACCURACY REQUIREMENTS (Required):**
 - **EXACT_CHARACTERS**: List every character including spaces, punctuation, special symbols
-- **FORBIDDEN MODIFICATIONS**: 
-  - NO line breaks within this text
-  - NO hyphenation
-  - NO character substitutions
-  - NO character omissions
-  - NO case changes
-- **SYMBOL PRESERVATION**: 
-  - Dollar signs ($) MUST appear exactly where shown
-  - All punctuation MUST be preserved
-- **LAYOUT RULE**: [single-line/multi-line as specified]
-- **PHYSICAL FORM**: [material, 3D presence, how it exists in the scene]
-- **LEGIBILITY REQUIREMENTS**: High contrast, clear spacing, readable size
+- **FORBIDDEN MODIFICATIONS**: NO line breaks, NO hyphenation, NO substitutions, NO omissions, NO case changes
+- **SYMBOL PRESERVATION**: Dollar signs ($), ampersands (&), at symbols (@), etc. MUST appear exactly where shown
+- **LAYOUT RULE**: Single-line unless explicitly multi-line
 
 ## CRITICAL DIRECTIVES
 
-1. **VERBATIM TEXT**: The image generator MUST render "[exact text]" character-for-character
-2. **NO INTERPRETATION**: Do not rephrase, summarize, or "improve" any text
-3. **COMPLETE INCLUSION**: Every specified text MUST appear - no omissions allowed
-4. **SYMBOL FIDELITY**: Special characters ($, @, #, %, &, !) are as important as letters
-5. **SINGLE-LINE DEFAULT**: Unless explicitly multi-line, all text stays on ONE line
-6. **PRICE FORMAT**: Prices like "$4.50" MUST show the dollar sign - "4.50" alone is WRONG
+1. **PHYSICAL OBJECT, NOT OVERLAY**: The text MUST be rendered as a physical object within the scene, NOT as a 2D text overlay or stamp
+2. **VERBATIM TEXT**: The image generator MUST render "[exact text]" character-for-character
+3. **NO INTERPRETATION**: Do not rephrase, summarize, or "improve" any text
+4. **COMPLETE INCLUSION**: Every specified text MUST appear - no omissions allowed
+5. **MATERIAL SPECIFICATION**: Every text MUST have a specific material (neon, wood, metal, etc.)
+6. **LIGHTING INTEGRATION**: Text must interact with scene lighting realistically
+7. **PRICE FORMAT**: Prices like "$4.50" MUST show the dollar sign - "4.50" alone is WRONG
 
 ## OUTPUT FORMAT
 
 Your complete Art Direction prompt must:
 1. Describe the scene/composition
-2. For each text element, include the full TEXT BLUEPRINT block
-3. End with a VERIFICATION CHECKLIST showing each exact string
+2. State explicitly: "The text must be rendered as a PHYSICAL OBJECT within the scene, NOT as a 2D overlay"
+3. For each text element, include the full TEXT BLUEPRINT with all physical properties
+4. End with a VERIFICATION CHECKLIST
 
-## EXAMPLE TEXT BLUEPRINT:
+## EXAMPLE OUTPUT:
+
+"A cozy coffee shop interior with warm lighting. The text must be rendered as a PHYSICAL OBJECT within the scene, NOT as a 2D overlay.
 
 ### TEXT ELEMENT 1: "Latte $4.50"
-- **EXACT_CHARACTERS**: L-a-t-t-e-[space]-$-4-.-5-0
-- **FORBIDDEN MODIFICATIONS**: No line breaks, no removing $, no "Latte 4.50"
-- **SYMBOL PRESERVATION**: Dollar sign $ MUST precede 4.50
-- **LAYOUT RULE**: Single line, horizontal
-- **PHYSICAL FORM**: Chalk text on blackboard, matte white, hand-drawn style
-- **LEGIBILITY**: High contrast white on dark background, 2 inch height
+**PHYSICAL EXISTENCE:**
+- MATERIAL: Hand-painted white chalk on a dark wooden blackboard
+- LIGHTING: Catches warm ambient light from pendant lamps, slight shine on chalk dust
+- TEXTURE: Slightly rough chalk texture with visible brush strokes
+- ENVIRONMENT: Blackboard mounted on exposed brick wall
+- PERSPECTIVE: Viewed straight-on, slightly above eye level
+
+**ACCURACY:**
+- EXACT_CHARACTERS: L-a-t-t-e-[space]-$-4-.-5-0
+- FORBIDDEN: No line breaks, no removing $, no "Latte 4.50"
+- LAYOUT: Single horizontal line
 
 VERIFICATION CHECKLIST:
-[ ] "Latte $4.50" - includes dollar sign, single line, exact spelling`;
+[ ] "Latte $4.50" - includes dollar sign, single line, exact spelling, rendered as chalk on blackboard"`;
 
 export async function createArtDirection(
   userPrompt: string, 
@@ -306,14 +361,29 @@ Create a detailed Art Direction prompt using the TEXT BLUEPRINT format. Every te
 }
 
 // ============== PHASE 3: IMAGE GENERATOR ==============
-// Generates an image using the Art Direction prompt
+// Generates an image using the Art Direction prompt with negative prompts
 
-async function generateImageOnly(prompt: string, attempt: number = 1): Promise<{ imageBase64: string; mimeType: string; textResponse?: string }> {
+async function generateImageOnly(
+  prompt: string, 
+  attempt: number = 1,
+  hasText: boolean = false
+): Promise<{ imageBase64: string; mimeType: string; textResponse?: string }> {
   // Use escalation model for attempts 4-5 for better text fidelity
   const useEscalation = attempt >= 4;
   const primaryModel = useEscalation ? IMAGE_GENERATOR_ESCALATION : IMAGE_GENERATOR_MODEL;
   
+  // Generate negative prompts to guard against text errors
+  const negativePrompts = generateNegativePrompts(hasText);
+  
+  // Append negative prompts as an AVOID section
+  const fullPrompt = hasText 
+    ? `${prompt}\n\n---\nCRITICAL - AVOID THE FOLLOWING:\n${negativePrompts}`
+    : prompt;
+  
   console.log(`[Image Generator] Attempt ${attempt} - Using model: ${primaryModel}${useEscalation ? ' (ESCALATION MODE)' : ''}`);
+  if (hasText) {
+    console.log(`[Image Generator] Negative prompts applied for text accuracy`);
+  }
   
   let response;
   let modelUsed = primaryModel;
@@ -324,7 +394,7 @@ async function generateImageOnly(prompt: string, attempt: number = 1): Promise<{
       console.log("[Image Generator] Using Imagen 3 for enhanced text accuracy");
       response = await ai.models.generateImages({
         model: IMAGE_GENERATOR_ESCALATION,
-        prompt: prompt,
+        prompt: fullPrompt,
         config: {
           numberOfImages: 1,
         }
@@ -346,7 +416,7 @@ async function generateImageOnly(prompt: string, attempt: number = 1): Promise<{
       // Standard Gemini image generation
       response = await ai.models.generateContent({
         model: primaryModel,
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
         config: {
           responseModalities: [Modality.TEXT, Modality.IMAGE],
         },
@@ -359,7 +429,7 @@ async function generateImageOnly(prompt: string, attempt: number = 1): Promise<{
     
     response = await ai.models.generateContent({
       model: IMAGE_GENERATOR_FALLBACK,
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
       config: {
         responseModalities: [Modality.TEXT, Modality.IMAGE],
       },
@@ -716,13 +786,13 @@ export async function generateImageWithPipeline(
       }
       const artDirection = await createArtDirection(prompt, textAnalysis, style, correctionFeedback);
       
-      // Phase 3: Image Generation (escalates to Imagen on attempts 4-5)
+      // Phase 3: Image Generation (escalates to Imagen on attempts 4-5, includes negative prompts for text)
       const isEscalation = attempts >= 4;
       const phaseMsg = isEscalation 
         ? `Generating with enhanced model (attempt ${attempts}/${MAX_RETRY_ATTEMPTS})...`
         : "Generating your image...";
       sendProgress("image_generator", phaseMsg, attempts, MAX_RETRY_ATTEMPTS);
-      const imageResult = await generateImageOnly(artDirection.enhancedPrompt, attempts);
+      const imageResult = await generateImageOnly(artDirection.enhancedPrompt, attempts, textAnalysis.hasExplicitText);
       
       // Phase 4: OCR Validation (only if there's expected text)
       if (expectedTexts.length > 0) {
