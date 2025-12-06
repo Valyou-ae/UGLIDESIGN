@@ -198,8 +198,16 @@ interface MockupDetails {
   src: string;
   angle: string;
   color: string;
+  size: string;
   brandStyle: string;
   index: number;
+}
+
+interface GeneratedMockupData {
+  src: string;
+  angle: string;
+  color: string;
+  size: string;
 }
 
 const DTG_STEPS: WizardStep[] = ["upload", "product", "model", "style", "scene", "angles", "generate"];
@@ -249,7 +257,7 @@ export default function MockupGenerator() {
   const [selectedVariationId, setSelectedVariationId] = useState<string | null>(null);
   const [patternScale, setPatternScale] = useState(50);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedMockups, setGeneratedMockups] = useState<string[]>([]);
+  const [generatedMockups, setGeneratedMockups] = useState<GeneratedMockupData[]>([]);
   const [expectedMockupsCount, setExpectedMockupsCount] = useState(0);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [generationStage, setGenerationStage] = useState("");
@@ -311,9 +319,13 @@ export default function MockupGenerator() {
 
     if (restore === 'true' && journeyParam) {
       setJourney(journeyParam);
-      // Fast forward to result
-      setUploadedImage("https://images.unsplash.com/photo-1529374255404-311a2a4f1fd9?auto=format&fit=crop&w=1000&q=80"); // Mock restored upload
-      setGeneratedMockups([moodMinimal, moodUrban, moodNatural, moodBold]);
+      setUploadedImage("https://images.unsplash.com/photo-1529374255404-311a2a4f1fd9?auto=format&fit=crop&w=1000&q=80");
+      setGeneratedMockups([
+        { src: moodMinimal, angle: 'front', color: 'White', size: 'M' },
+        { src: moodUrban, angle: 'three-quarter', color: 'White', size: 'M' },
+        { src: moodNatural, angle: 'side', color: 'White', size: 'M' },
+        { src: moodBold, angle: 'closeup', color: 'White', size: 'M' }
+      ]);
       setCurrentStepIndex(journeyParam === "AOP" ? AOP_STEPS.length - 1 : DTG_STEPS.length - 1);
     }
   }, []);
@@ -384,7 +396,7 @@ export default function MockupGenerator() {
 
     if (intervalRef.current) clearInterval(intervalRef.current);
 
-    const generatedImages: string[] = [];
+    const generatedImages: GeneratedMockupData[] = [];
 
     try {
       await mockupApi.generateBatch(
@@ -430,7 +442,13 @@ export default function MockupGenerator() {
             case "image":
               if (event.data.imageData && event.data.mimeType) {
                 const imageUrl = `data:${event.data.mimeType};base64,${event.data.imageData}`;
-                generatedImages.push(imageUrl);
+                const mockupData: GeneratedMockupData = {
+                  src: imageUrl,
+                  angle: event.data.angle || 'front',
+                  color: event.data.color || 'White',
+                  size: event.data.size || 'M'
+                };
+                generatedImages.push(mockupData);
                 setGeneratedMockups([...generatedImages]);
                 const progress = 10 + Math.round((generatedImages.length / totalExpected) * 85);
                 setGenerationProgress(Math.min(progress, 95));
@@ -2031,7 +2049,7 @@ export default function MockupGenerator() {
                                   </Button>
                                   <Button 
                                     className="bg-indigo-600 hover:bg-indigo-700 text-white flex-1 sm:flex-none"
-                                    onClick={() => generatedMockups.forEach((img, i) => downloadImage(img, `mockup_${i}.png`))}
+                                    onClick={() => generatedMockups.forEach((mockup, i) => downloadImage(mockup.src, `mockup_${mockup.size}_${mockup.angle}_${i}.png`))}
                                     disabled={isGenerating || generatedMockups.length === 0}
                                   >
                                     <Download className="mr-2 h-4 w-4" />
@@ -2177,63 +2195,64 @@ export default function MockupGenerator() {
 
                               <div className="flex-1 overflow-y-auto min-h-0 -mx-4 px-4 md:mx-0 md:px-0">
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 pb-20">
-                                  {generatedMockups.map((img, i) => (
-                                    <motion.div
-                                      key={`mockup-${i}`}
-                                      initial={{ opacity: 0, scale: 0.95 }}
-                                      animate={{ opacity: 1, scale: 1 }}
-                                      transition={{ duration: 0.3 }}
-                                      className="group relative aspect-[3/4] rounded-xl overflow-hidden border border-border cursor-pointer"
-                                    >
-                                      <img src={img} alt={`Mockup ${i + 1}`} className="w-full h-full object-cover" />
-                                      
-                                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-4">
-                                        <div className="flex items-center justify-end gap-2">
-                                          <Button 
-                                            size="icon" 
-                                            className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              const angleId = selectedAngles[i % selectedAngles.length];
-                                              const angleName = angleId === 'front' ? 'Front View' : 
-                                                               angleId === 'three-quarter' ? 'Three-Quarter' :
-                                                               angleId === 'side' ? 'Side Profile' :
-                                                               angleId === 'closeup' ? 'Close-up View' : 'View';
-                                              const colorName = selectedColors[Math.floor(i / selectedAngles.length) % selectedColors.length] || 'White';
-                                              const styleName = BRAND_STYLES.find(s => s.id === selectedStyle)?.name || "Minimal";
-                                              setSelectedMockupDetails({
-                                                src: img,
-                                                angle: angleName,
-                                                color: colorName,
-                                                brandStyle: styleName,
-                                                index: i
-                                              });
-                                            }}
-                                          >
-                                            <Maximize className="h-3.5 w-3.5" />
-                                          </Button>
-                                          <Button 
-                                            size="sm" 
-                                            className="h-8 px-3 text-xs bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              downloadImage(img, `mockup_${i}.png`);
-                                            }}
-                                          >
-                                            <Download className="h-3.5 w-3.5 mr-1.5" />
-                                            Download
-                                          </Button>
+                                  {generatedMockups.map((mockup, i) => {
+                                    const angleName = mockup.angle === 'front' ? 'Front View' : 
+                                                     mockup.angle === 'three-quarter' ? 'Three-Quarter View' :
+                                                     mockup.angle === 'side' ? 'Side View' :
+                                                     mockup.angle === 'closeup' ? 'Close-up View' : mockup.angle;
+                                    return (
+                                      <motion.div
+                                        key={`mockup-${i}`}
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{ duration: 0.3 }}
+                                        className="group relative aspect-[3/4] rounded-xl overflow-hidden border border-border cursor-pointer"
+                                      >
+                                        <img src={mockup.src} alt={`Mockup ${i + 1}`} className="w-full h-full object-cover" />
+                                        
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-4">
+                                          <div className="flex items-center justify-end gap-2">
+                                            <Button 
+                                              size="icon" 
+                                              className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                const styleName = BRAND_STYLES.find(s => s.id === selectedStyle)?.name || "Minimal";
+                                                setSelectedMockupDetails({
+                                                  src: mockup.src,
+                                                  angle: angleName,
+                                                  color: mockup.color,
+                                                  size: mockup.size,
+                                                  brandStyle: styleName,
+                                                  index: i
+                                                });
+                                              }}
+                                            >
+                                              <Maximize className="h-3.5 w-3.5" />
+                                            </Button>
+                                            <Button 
+                                              size="sm" 
+                                              className="h-8 px-3 text-xs bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                downloadImage(mockup.src, `mockup_${mockup.size}_${mockup.angle}_${i}.png`);
+                                              }}
+                                            >
+                                              <Download className="h-3.5 w-3.5 mr-1.5" />
+                                              Download
+                                            </Button>
+                                          </div>
                                         </div>
-                                      </div>
 
-                                      <Badge className="absolute top-2 left-2 bg-black/50 backdrop-blur-md text-[10px] border-0 text-white font-normal px-2 py-0.5">
-                                        {selectedAngles[i % selectedAngles.length] === 'front' ? 'Front View' : 
-                                         selectedAngles[i % selectedAngles.length] === 'three-quarter' ? 'Three-Quarter View' :
-                                         selectedAngles[i % selectedAngles.length] === 'side' ? 'Side View' :
-                                         selectedAngles[i % selectedAngles.length] === 'closeup' ? 'Close-up View' : 'View'}
-                                      </Badge>
-                                    </motion.div>
-                                  ))}
+                                        <Badge className="absolute top-2 left-2 bg-black/50 backdrop-blur-md text-[10px] border-0 text-white font-normal px-2 py-0.5">
+                                          {angleName}
+                                        </Badge>
+                                        <Badge className="absolute top-2 right-2 bg-indigo-600/80 backdrop-blur-md text-[10px] border-0 text-white font-semibold px-2 py-0.5">
+                                          {mockup.size}
+                                        </Badge>
+                                      </motion.div>
+                                    );
+                                  })}
                                   
                                   {isGenerating && Array.from({ length: Math.max(0, expectedMockupsCount - generatedMockups.length) }).map((_, i) => (
                                     <motion.div
