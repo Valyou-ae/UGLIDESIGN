@@ -69,6 +69,8 @@ export interface SomaticProfile {
 export type ProductType = 
   | 'dtg-apparel' 
   | 'aop-apparel' 
+  | 'aop-accessory'
+  | 'aop-home'
   | 'hard-good-mug'
   | 'hard-good-drinkware'
   | 'hard-good-phone-case'
@@ -389,6 +391,9 @@ export interface MockupGenerationRequest {
   environmentPrompt?: string;
   patternScale?: number;
   existingPersonaLock?: PersonaLockData;
+  patternImage?: string;
+  aopBaseColor?: string;
+  aopTrimColor?: string;
 }
 
 export interface MockupRefinementRequest {

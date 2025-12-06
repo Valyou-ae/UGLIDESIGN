@@ -218,6 +218,143 @@ interface GeneratedMockupData {
 const DTG_STEPS: WizardStep[] = ["upload", "product", "model", "style", "scene", "angles", "generate"];
 const AOP_STEPS: WizardStep[] = ["upload", "seamless", "product", "model", "style", "scene", "angles", "generate"];
 
+interface ProductItem {
+  name: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+interface ProductCategory {
+  name: string;
+  icon: React.ComponentType<{ className?: string }>;
+  items: ProductItem[];
+}
+
+const DTG_PRODUCT_CATEGORIES: ProductCategory[] = [
+  { 
+    name: "Men's Clothing", 
+    icon: User,
+    items: [
+      { name: "T-shirts", icon: Shirt },
+      { name: "Polo shirts", icon: Award },
+      { name: "Tank tops", icon: Sun },
+      { name: "3/4 sleeve shirts", icon: MoveHorizontal },
+      { name: "Long sleeve shirts", icon: Wind },
+      { name: "Embroidered shirts", icon: Tag },
+      { name: "Jackets & vests", icon: Shield },
+      { name: "Hoodies", icon: Cloud },
+      { name: "Sweatshirts", icon: Layers },
+      { name: "Knitwear", icon: Grid },
+    ]
+  },
+  { 
+    name: "Women's Clothing", 
+    icon: Heart,
+    items: [
+      { name: "T-shirts", icon: Shirt },
+      { name: "Polo shirts", icon: Award },
+      { name: "Tank tops", icon: Sun },
+      { name: "Crop tops", icon: Scissors },
+      { name: "Embroidered shirts", icon: Tag },
+      { name: "3/4 sleeve shirts", icon: MoveHorizontal },
+      { name: "Long sleeve shirts", icon: Wind },
+      { name: "Dresses", icon: Umbrella }, 
+      { name: "Knitwear", icon: Grid },
+      { name: "Jackets", icon: Shield },
+      { name: "Hoodies", icon: Cloud },
+      { name: "Sweatshirts", icon: Layers },
+    ]
+  },
+  { 
+    name: "Kids' Clothing", 
+    icon: Smile, 
+    items: [
+      { name: "T-shirts", icon: Shirt },
+      { name: "All-over shirts", icon: Grid },
+      { name: "3/4 sleeve shirts", icon: MoveHorizontal },
+      { name: "Long sleeve shirts", icon: Wind },
+      { name: "Hoodies", icon: Cloud },
+      { name: "Sweatshirts", icon: Layers },
+      { name: "Hats", icon: Smile }, 
+      { name: "Leggings", icon: Layers },
+      { name: "Baby bodysuits", icon: Baby },
+    ] 
+  }, 
+  { 
+    name: "Accessories", 
+    icon: Watch, 
+    items: [
+      { name: "Tote bags", icon: ShoppingBag },
+      { name: "Duffle bags", icon: ShoppingBag },
+      { name: "Drawstring bags", icon: ShoppingBag },
+      { name: "Backpacks", icon: ShoppingBag },
+      { name: "Handbags", icon: ShoppingBag },
+      { name: "Flip flops", icon: Footprints },
+      { name: "Shoes", icon: Footprints },
+      { name: "Socks", icon: Footprints },
+      { name: "Phone cases", icon: Smartphone },
+      { name: "Laptop cases", icon: Laptop },
+      { name: "Mouse pads", icon: Monitor },
+      { name: "Face masks", icon: Smile },
+    ] 
+  },
+  { 
+    name: "Home & Living", 
+    icon: Coffee, 
+    items: [
+      { name: "Wall art", icon: Frame },
+      { name: "Posters", icon: StickyNote },
+      { name: "Framed posters", icon: Frame },
+      { name: "Blankets", icon: Layers },
+      { name: "Pillow cases", icon: Layers },
+      { name: "Magnets", icon: StickyNote },
+      { name: "Tableware", icon: Utensils },
+      { name: "Water bottles", icon: Coffee },
+      { name: "Mugs", icon: Coffee },
+      { name: "Tumblers", icon: Coffee },
+      { name: "Coasters", icon: Coffee },
+      { name: "Postcards", icon: StickyNote },
+      { name: "Notebooks", icon: BookOpen },
+      { name: "Stickers", icon: StickyNote },
+      { name: "Aprons", icon: Scissors },
+      { name: "Towels", icon: Layers },
+    ] 
+  }
+];
+
+const AOP_PRODUCT_CATEGORIES: ProductCategory[] = [
+  { 
+    name: "Apparel", 
+    icon: Shirt,
+    items: [
+      { name: "Men's Cut & Sew Tee", icon: Shirt },
+      { name: "Women's Tee", icon: Shirt },
+      { name: "Unisex Sweatshirt", icon: Layers },
+      { name: "One-Piece Swimsuit", icon: Umbrella },
+      { name: "Leggings", icon: Layers },
+      { name: "Joggers", icon: Layers },
+    ]
+  },
+  { 
+    name: "Accessories", 
+    icon: Watch, 
+    items: [
+      { name: "AOP Tote Bag", icon: ShoppingBag },
+      { name: "AOP Backpack", icon: ShoppingBag },
+      { name: "Socks", icon: Footprints },
+      { name: "Face Mask", icon: Smile },
+    ] 
+  },
+  { 
+    name: "Home & Living", 
+    icon: Coffee, 
+    items: [
+      { name: "Square Pillow", icon: Layers },
+      { name: "Fleece Blanket", icon: Layers },
+      { name: "Beach Towel", icon: Layers },
+    ] 
+  }
+];
+
 const MOCKUP_ANGLES = [
   { id: 'front', name: 'Front View', description: 'Direct frontal shot - the hero image.', icon: PersonStanding, recommended: true },
   { id: 'three-quarter', name: 'Three-Quarter', description: '45° angle to show dimension and fit.', icon: View, recommended: true },
@@ -286,6 +423,22 @@ export default function MockupGenerator() {
 
   const steps = journey === "AOP" ? AOP_STEPS : DTG_STEPS;
   const currentStep = steps[currentStepIndex];
+  
+  const productCategories = journey === "AOP" ? AOP_PRODUCT_CATEGORIES : DTG_PRODUCT_CATEGORIES;
+  
+  const activeProductCategory = productCategories.find(c => c.name === activeCategory);
+  const effectiveActiveCategory = activeProductCategory ? activeCategory : productCategories[0]?.name || "";
+  const effectiveItems = activeProductCategory?.items || productCategories[0]?.items || [];
+  
+  useEffect(() => {
+    if (journey && productCategories.length > 0) {
+      const firstCategory = productCategories[0].name;
+      if (!productCategories.find(c => c.name === activeCategory)) {
+        setActiveCategory(firstCategory);
+        setSelectedProductType(null);
+      }
+    }
+  }, [journey, activeCategory, productCategories]);
 
   // Generate pattern variations when entering seamless step
   const generatePatternVariations = useCallback(async () => {
@@ -467,9 +620,15 @@ export default function MockupGenerator() {
 
     const generatedImages: GeneratedMockupData[] = [];
 
+    const isAopJourney = journey === "AOP";
+    const selectedPattern = isAopJourney && selectedVariationId 
+      ? seamlessVariations.find(v => v.id === selectedVariationId)
+      : null;
+    const designToUse = selectedPattern?.url || uploadedImage;
+
     try {
       await mockupApi.generateBatch(
-        uploadedImage,
+        designToUse,
         {
           productType: productName,
           productColors: colors,
@@ -478,6 +637,9 @@ export default function MockupGenerator() {
           scene: scene,
           style: styleName,
           modelDetails: useModel ? modelDetails : undefined,
+          journey: journey || "DTG",
+          patternScale: isAopJourney ? patternScale : undefined,
+          isSeamlessPattern: isAopJourney,
         },
         (event: MockupEvent) => {
           switch (event.type) {
@@ -831,98 +993,8 @@ export default function MockupGenerator() {
                             </div>
 
                             <div className="flex lg:flex-col overflow-x-auto pb-2 lg:pb-0 gap-2 lg:gap-1 no-scrollbar -mx-4 px-4 lg:mx-0 lg:px-0">
-                              {[
-                                { 
-                                  name: "Men's Clothing", 
-                                  icon: User,
-                                  items: [
-                                    { name: "T-shirts", icon: Shirt },
-                                    { name: "Polo shirts", icon: Award },
-                                    { name: "Tank tops", icon: Sun },
-                                    { name: "3/4 sleeve shirts", icon: MoveHorizontal },
-                                    { name: "Long sleeve shirts", icon: Wind },
-                                    { name: "Embroidered shirts", icon: Tag },
-                                    { name: "Jackets & vests", icon: Shield },
-                                    { name: "Hoodies", icon: Cloud },
-                                    { name: "Sweatshirts", icon: Layers },
-                                    { name: "Knitwear", icon: Grid },
-                                  ]
-                                },
-                                { 
-                                  name: "Women's Clothing", 
-                                  icon: Heart,
-                                  items: [
-                                    { name: "T-shirts", icon: Shirt },
-                                    { name: "Polo shirts", icon: Award },
-                                    { name: "Tank tops", icon: Sun },
-                                    { name: "Crop tops", icon: Scissors },
-                                    { name: "Embroidered shirts", icon: Tag },
-                                    { name: "3/4 sleeve shirts", icon: MoveHorizontal },
-                                    { name: "Long sleeve shirts", icon: Wind },
-                                    { name: "Dresses", icon: Umbrella }, 
-                                    { name: "Knitwear", icon: Grid },
-                                    { name: "Jackets", icon: Shield },
-                                    { name: "Hoodies", icon: Cloud },
-                                    { name: "Sweatshirts", icon: Layers },
-                                  ]
-                                },
-                                { 
-                                  name: "Kids' Clothing", 
-                                  icon: Smile, 
-                                  items: [
-                                    { name: "T-shirts", icon: Shirt },
-                                    { name: "All-over shirts", icon: Grid },
-                                    { name: "3/4 sleeve shirts", icon: MoveHorizontal },
-                                    { name: "Long sleeve shirts", icon: Wind },
-                                    { name: "Hoodies", icon: Cloud },
-                                    { name: "Sweatshirts", icon: Layers },
-                                    { name: "Hats", icon: Smile }, 
-                                    { name: "Leggings", icon: Layers },
-                                    { name: "Baby bodysuits", icon: Baby },
-                                  ] 
-                                }, 
-                                { 
-                                  name: "Accessories", 
-                                  icon: Watch, 
-                                  items: [
-                                    { name: "Tote bags", icon: ShoppingBag },
-                                    { name: "Duffle bags", icon: ShoppingBag },
-                                    { name: "Drawstring bags", icon: ShoppingBag },
-                                    { name: "Backpacks", icon: ShoppingBag },
-                                    { name: "Handbags", icon: ShoppingBag },
-                                    { name: "Flip flops", icon: Footprints },
-                                    { name: "Shoes", icon: Footprints },
-                                    { name: "Socks", icon: Footprints },
-                                    { name: "Phone cases", icon: Smartphone },
-                                    { name: "Laptop cases", icon: Laptop },
-                                    { name: "Mouse pads", icon: Monitor },
-                                    { name: "Face masks", icon: Smile },
-                                  ] 
-                                },
-                                { 
-                                  name: "Home & Living", 
-                                  icon: Coffee, 
-                                  items: [
-                                    { name: "Wall art", icon: Frame },
-                                    { name: "Posters", icon: StickyNote },
-                                    { name: "Framed posters", icon: Frame },
-                                    { name: "Blankets", icon: Layers },
-                                    { name: "Pillow cases", icon: Layers },
-                                    { name: "Magnets", icon: StickyNote },
-                                    { name: "Tableware", icon: Utensils },
-                                    { name: "Water bottles", icon: Coffee },
-                                    { name: "Mugs", icon: Coffee },
-                                    { name: "Tumblers", icon: Coffee },
-                                    { name: "Coasters", icon: Coffee },
-                                    { name: "Postcards", icon: StickyNote },
-                                    { name: "Notebooks", icon: BookOpen },
-                                    { name: "Stickers", icon: StickyNote },
-                                    { name: "Aprons", icon: Scissors },
-                                    { name: "Towels", icon: Layers },
-                                  ] 
-                                }
-                              ].map((cat) => {
-                                const isActive = activeCategory === cat.name;
+                              {productCategories.map((cat) => {
+                                const isActive = effectiveActiveCategory === cat.name;
                                 return (
                                   <button 
                                     key={cat.name}
@@ -965,92 +1037,7 @@ export default function MockupGenerator() {
                               <h3 className="text-lg font-bold">Choose Product</h3>
                             </div>
                             <div className="grid grid-cols-3 sm:grid-cols-3 gap-2 lg:gap-3 lg:overflow-y-auto pr-2 pb-4 content-start h-auto lg:h-full min-h-0">
-                              {[
-                                { 
-                                  name: "Men's Clothing", 
-                                  items: [
-                                    { name: "T-shirts", icon: Shirt },
-                                    { name: "Polo shirts", icon: Award },
-                                    { name: "Tank tops", icon: Sun },
-                                    { name: "3/4 sleeve shirts", icon: MoveHorizontal },
-                                    { name: "Long sleeve shirts", icon: Wind },
-                                    { name: "Embroidered shirts", icon: Tag },
-                                    { name: "Jackets & vests", icon: Shield },
-                                    { name: "Hoodies", icon: Cloud },
-                                    { name: "Sweatshirts", icon: Layers },
-                                    { name: "Knitwear", icon: Grid },
-                                  ]
-                                },
-                                { 
-                                  name: "Women's Clothing", 
-                                  items: [
-                                    { name: "T-shirts", icon: Shirt },
-                                    { name: "Polo shirts", icon: Award },
-                                    { name: "Tank tops", icon: Sun },
-                                    { name: "Crop tops", icon: Scissors },
-                                    { name: "Embroidered shirts", icon: Tag },
-                                    { name: "3/4 sleeve shirts", icon: MoveHorizontal },
-                                    { name: "Long sleeve shirts", icon: Wind },
-                                    { name: "Dresses", icon: Umbrella }, 
-                                    { name: "Knitwear", icon: Grid },
-                                    { name: "Jackets", icon: Shield },
-                                    { name: "Hoodies", icon: Cloud },
-                                    { name: "Sweatshirts", icon: Layers },
-                                  ]
-                                },
-                                { 
-                                  name: "Kids' Clothing", 
-                                  items: [
-                                    { name: "T-shirts", icon: Shirt },
-                                    { name: "All-over shirts", icon: Grid },
-                                    { name: "3/4 sleeve shirts", icon: MoveHorizontal },
-                                    { name: "Long sleeve shirts", icon: Wind },
-                                    { name: "Hoodies", icon: Cloud },
-                                    { name: "Sweatshirts", icon: Layers },
-                                    { name: "Hats", icon: Smile }, 
-                                    { name: "Leggings", icon: Layers },
-                                    { name: "Baby bodysuits", icon: Baby },
-                                  ] 
-                                }, 
-                                { 
-                                  name: "Accessories", 
-                                  items: [
-                                    { name: "Tote bags", icon: ShoppingBag },
-                                    { name: "Duffle bags", icon: ShoppingBag },
-                                    { name: "Drawstring bags", icon: ShoppingBag },
-                                    { name: "Backpacks", icon: ShoppingBag },
-                                    { name: "Handbags", icon: ShoppingBag },
-                                    { name: "Flip flops", icon: Footprints },
-                                    { name: "Shoes", icon: Footprints },
-                                    { name: "Socks", icon: Footprints },
-                                    { name: "Phone cases", icon: Smartphone },
-                                    { name: "Laptop cases", icon: Laptop },
-                                    { name: "Mouse pads", icon: Monitor },
-                                    { name: "Face masks", icon: Smile },
-                                  ] 
-                                },
-                                { 
-                                  name: "Home & Living", 
-                                  items: [
-                                    { name: "Wall art", icon: Frame },
-                                    { name: "Posters", icon: StickyNote },
-                                    { name: "Framed posters", icon: Frame },
-                                    { name: "Blankets", icon: Layers },
-                                    { name: "Pillow cases", icon: Layers },
-                                    { name: "Magnets", icon: StickyNote },
-                                    { name: "Tableware", icon: Utensils },
-                                    { name: "Water bottles", icon: Coffee },
-                                    { name: "Mugs", icon: Coffee },
-                                    { name: "Tumblers", icon: Coffee },
-                                    { name: "Coasters", icon: Coffee },
-                                    { name: "Postcards", icon: StickyNote },
-                                    { name: "Notebooks", icon: BookOpen },
-                                    { name: "Stickers", icon: StickyNote },
-                                    { name: "Aprons", icon: Scissors },
-                                    { name: "Towels", icon: Layers },
-                                  ] 
-                                }
-                              ].find(c => c.name === activeCategory)?.items.map((item) => {
+                              {effectiveItems.map((item) => {
                                 const isSelected = selectedProductType === item.name;
                                 return (
                                   <div 
