@@ -304,3 +304,180 @@ export const generateApi = {
       body: JSON.stringify({ prompt, stylePreset }),
     }),
 };
+
+// Mockup API Types
+export interface DesignAnalysis {
+  dominantColors: string[];
+  style: string;
+  complexity: string;
+  suggestedPlacement: string;
+  hasTransparency: boolean;
+  designType: string;
+}
+
+export interface MockupEventData {
+  stage?: string;
+  message?: string;
+  progress?: number;
+  analysis?: DesignAnalysis;
+  prompt?: string;
+  negativePrompts?: string[];
+  imageData?: string;
+  mimeType?: string;
+  angle?: string;
+  error?: string;
+  success?: boolean;
+  totalGenerated?: number;
+}
+
+export type MockupEventType = 
+  | "status" 
+  | "analysis" 
+  | "prompt" 
+  | "image" 
+  | "image_error" 
+  | "complete" 
+  | "error";
+
+export interface MockupEvent {
+  type: MockupEventType;
+  data: MockupEventData;
+}
+
+export type MockupEventCallback = (event: MockupEvent) => void;
+
+function parseMockupSSEStream(
+  response: Response,
+  onEvent: MockupEventCallback
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder();
+
+    if (!reader) {
+      reject(new Error("No response body"));
+      return;
+    }
+
+    let buffer = "";
+    let currentEventType: MockupEventType = "status";
+
+    const processBuffer = () => {
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        
+        if (line === "") {
+          continue;
+        }
+
+        if (line.startsWith("event: ")) {
+          currentEventType = line.slice(7).trim() as MockupEventType;
+        } else if (line.startsWith("data: ")) {
+          try {
+            const jsonStr = line.slice(6);
+            const data = JSON.parse(jsonStr);
+            onEvent({ type: currentEventType, data });
+          } catch (e) {
+            console.error("Failed to parse mockup SSE data:", line, e);
+          }
+        }
+      }
+    };
+
+    const read = async () => {
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            if (buffer.trim()) {
+              processBuffer();
+            }
+            break;
+          }
+
+          buffer += decoder.decode(value, { stream: true });
+          processBuffer();
+        }
+        resolve();
+      } catch (error) {
+        reject(error);
+      }
+    };
+
+    read();
+  });
+}
+
+// Mockup API
+export const mockupApi = {
+  analyze: (designImage: string) =>
+    fetchApi<{ analysis: DesignAnalysis }>("/mockup/analyze", {
+      method: "POST",
+      body: JSON.stringify({ designImage }),
+    }),
+
+  generate: async (
+    designImage: string,
+    options: {
+      productType?: string;
+      productColor?: string;
+      scene?: string;
+      angle?: string;
+      style?: string;
+    } = {},
+    onEvent: MockupEventCallback
+  ): Promise<void> => {
+    try {
+      const response = await fetch("/api/mockup/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ designImage, ...options }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Mockup generation failed");
+      }
+
+      await parseMockupSSEStream(response, onEvent);
+    } catch (error) {
+      console.error("Mockup generation error:", error);
+      throw error;
+    }
+  },
+
+  generateBatch: async (
+    designImage: string,
+    options: {
+      productType?: string;
+      productColor?: string;
+      angles?: string[];
+      scene?: string;
+      style?: string;
+    } = {},
+    onEvent: MockupEventCallback
+  ): Promise<void> => {
+    try {
+      const response = await fetch("/api/mockup/generate-batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ designImage, ...options }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Batch mockup generation failed");
+      }
+
+      await parseMockupSSEStream(response, onEvent);
+    } catch (error) {
+      console.error("Batch mockup generation error:", error);
+      throw error;
+    }
+  },
+};

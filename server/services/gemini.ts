@@ -343,3 +343,234 @@ export async function generateMultipleImages(
   await Promise.all(promises);
   return results;
 }
+
+export interface DesignAnalysis {
+  dominantColors: string[];
+  style: string;
+  complexity: string;
+  suggestedPlacement: string;
+  hasTransparency: boolean;
+  designType: string;
+}
+
+export async function analyzeDesign(imageBase64: string): Promise<DesignAnalysis> {
+  const systemInstruction = `You are an expert product design analyst. Analyze this uploaded design image for use on product mockups.
+
+Analyze the following aspects:
+1. Dominant colors (list 3-5 main colors as hex codes or color names)
+2. Style (minimalist, bold, vintage, modern, artistic, photographic, etc.)
+3. Complexity (simple, moderate, complex, highly detailed)
+4. Suggested placement (center chest, full front, small logo, all-over print, etc.)
+5. Has transparency (true/false - does the image have transparent background)
+6. Design type (logo, illustration, photograph, text-based, pattern, graphic)
+
+Respond with JSON:
+{
+  "dominantColors": ["#color1", "#color2", "#color3"],
+  "style": "style description",
+  "complexity": "simple|moderate|complex|highly detailed",
+  "suggestedPlacement": "placement suggestion",
+  "hasTransparency": true or false,
+  "designType": "type of design"
+}`;
+
+  try {
+    const response = await genAI.models.generateContent({
+      model: MODELS.FAST_ANALYSIS,
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              inlineData: {
+                data: imageBase64,
+                mimeType: "image/png",
+              },
+            },
+            {
+              text: "Analyze this design for product mockup placement.",
+            },
+          ],
+        },
+      ],
+      config: {
+        systemInstruction: systemInstruction,
+        responseMimeType: "application/json",
+        temperature: 0,
+        topP: 1,
+        topK: 1,
+      },
+    });
+
+    const rawJson = response.text;
+    if (rawJson) {
+      return JSON.parse(rawJson) as DesignAnalysis;
+    }
+
+    return getDefaultDesignAnalysis();
+  } catch (error) {
+    console.error("Design analysis failed:", error);
+    return getDefaultDesignAnalysis();
+  }
+}
+
+function getDefaultDesignAnalysis(): DesignAnalysis {
+  return {
+    dominantColors: ["#000000", "#FFFFFF"],
+    style: "modern",
+    complexity: "moderate",
+    suggestedPlacement: "center chest",
+    hasTransparency: false,
+    designType: "graphic",
+  };
+}
+
+export interface MockupGenerationParams {
+  designBase64: string;
+  productType: string;
+  productColor: string;
+  scene: string;
+  angle: string;
+  style: string;
+}
+
+export async function generateMockupPrompt(
+  designAnalysis: DesignAnalysis,
+  params: MockupGenerationParams
+): Promise<{ prompt: string; negativePrompts: string[] }> {
+  const systemInstruction = `You are a professional product photography art director. Create a detailed prompt for generating a photorealistic product mockup.
+
+Design Analysis:
+- Colors: ${designAnalysis.dominantColors.join(", ")}
+- Style: ${designAnalysis.style}
+- Complexity: ${designAnalysis.complexity}
+- Design Type: ${designAnalysis.designType}
+
+Product Details:
+- Product: ${params.productType}
+- Product Color: ${params.productColor}
+- Scene/Background: ${params.scene}
+- Camera Angle: ${params.angle}
+- Mood/Style: ${params.style}
+
+Create a prompt that will generate a professional product photo with the design printed/applied on the product. The prompt should describe:
+1. The product with accurate proportions and fabric/material texture
+2. The design placement and how it looks on the product
+3. Professional studio lighting or scene-appropriate lighting
+4. The background/environment matching the scene
+5. The camera angle and perspective
+
+Respond with JSON:
+{
+  "prompt": "detailed prompt for image generation",
+  "negativePrompts": ["things to avoid"]
+}`;
+
+  try {
+    const response = await genAI.models.generateContent({
+      model: MODELS.FAST_ANALYSIS,
+      contents: [{ role: "user", parts: [{ text: `Generate a mockup prompt for a ${params.productType} with a ${designAnalysis.designType} design.` }] }],
+      config: {
+        systemInstruction: systemInstruction,
+        responseMimeType: "application/json",
+        temperature: 0,
+        topP: 1,
+        topK: 1,
+      },
+    });
+
+    const rawJson = response.text;
+    if (rawJson) {
+      const result = JSON.parse(rawJson);
+      return {
+        prompt: result.prompt || `Professional product photo of a ${params.productColor} ${params.productType} with a ${designAnalysis.designType} design, ${params.scene} background, ${params.angle} view, photorealistic, 8K quality`,
+        negativePrompts: result.negativePrompts || ["blurry", "low quality", "distorted", "watermark"],
+      };
+    }
+
+    return {
+      prompt: `Professional product photo of a ${params.productColor} ${params.productType} with a custom printed design, ${params.scene} background, ${params.angle} view, photorealistic studio lighting, 8K quality, commercial product photography`,
+      negativePrompts: ["blurry", "low quality", "distorted", "watermark", "text", "logo"],
+    };
+  } catch (error) {
+    console.error("Mockup prompt generation failed:", error);
+    return {
+      prompt: `Professional product photo of a ${params.productColor} ${params.productType} with a custom printed design, ${params.scene} background, ${params.angle} view, photorealistic studio lighting, 8K quality`,
+      negativePrompts: ["blurry", "low quality", "distorted", "watermark"],
+    };
+  }
+}
+
+export async function generateMockup(
+  designBase64: string,
+  prompt: string,
+  negativePrompts: string[]
+): Promise<GeneratedImageResult | null> {
+  try {
+    const fullPrompt = negativePrompts.length > 0
+      ? `${prompt}\n\nApply the provided design image onto the product accurately. Maintain the design's colors and details.\n\nAvoid: ${negativePrompts.join(", ")}`
+      : `${prompt}\n\nApply the provided design image onto the product accurately. Maintain the design's colors and details.`;
+
+    const response = await genAI.models.generateContent({
+      model: MODELS.IMAGE_GENERATION,
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              inlineData: {
+                data: designBase64,
+                mimeType: "image/png",
+              },
+            },
+            {
+              text: fullPrompt,
+            },
+          ],
+        },
+      ],
+      config: {
+        responseModalities: [Modality.TEXT, Modality.IMAGE],
+      },
+    });
+
+    const candidates = response.candidates;
+    if (!candidates || candidates.length === 0) {
+      console.error("No candidates in mockup response");
+      return null;
+    }
+
+    const content = candidates[0].content;
+    if (!content || !content.parts) {
+      console.error("No content parts in mockup response");
+      return null;
+    }
+
+    let imageData = "";
+    let mimeType = "image/png";
+    let textResponse = "";
+
+    for (const part of content.parts) {
+      if (part.text) {
+        textResponse = part.text;
+      } else if (part.inlineData && part.inlineData.data) {
+        imageData = part.inlineData.data;
+        mimeType = part.inlineData.mimeType || "image/png";
+      }
+    }
+
+    if (imageData) {
+      return {
+        imageData,
+        mimeType,
+        text: textResponse || undefined,
+      };
+    }
+
+    console.error("No image data in mockup response");
+    return null;
+  } catch (error) {
+    console.error("Mockup generation failed:", error);
+    return null;
+  }
+}

@@ -90,6 +90,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
+import { mockupApi, MockupEvent } from "@/lib/api";
 
 // Import sample mood images
 import moodMinimal from "@assets/generated_images/mood_image_for_minimalist_luxury_style.png";
@@ -232,47 +233,97 @@ export default function MockupGenerator() {
     }
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
+    if (!uploadedImage) {
+      toast({
+        title: "No design uploaded",
+        description: "Please upload a design image first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsGenerating(true);
     setGenerationProgress(0);
-    setGenerationStage("Initializing engine...");
+    setGenerationStage("Initializing...");
+    setGeneratedMockups([]);
 
-    // Clear any existing interval
     if (intervalRef.current) clearInterval(intervalRef.current);
 
-    const stages = [
-      { pct: 10, text: "Analyzing product geometry..." },
-      { pct: 30, text: "Mapping textures..." },
-      { pct: 50, text: "Calculating lighting & shadows..." },
-      { pct: 75, text: "Rendering 12 angles..." },
-      { pct: 90, text: "Applying post-processing..." },
-      { pct: 100, text: "Finalizing..." }
-    ];
+    const styleName = selectedStyle || "minimal";
+    const productName = selectedProductType || "t-shirt";
+    const color = selectedColors[0] || "white";
+    const scene = environmentPrompt || "studio";
 
-    let currentStage = 0;
+    const generatedImages: string[] = [];
+    const totalAngles = selectedAngles.length;
 
-    intervalRef.current = setInterval(() => {
-      if (currentStage >= stages.length) {
-        if (intervalRef.current) clearInterval(intervalRef.current);
-        setIsGenerating(false);
-        setGeneratedMockups([
-          moodMinimal, // Placeholder results
-          moodUrban,
-          moodNatural,
-          moodBold
-        ]);
+    try {
+      await mockupApi.generateBatch(
+        uploadedImage,
+        {
+          productType: productName,
+          productColor: color,
+          angles: selectedAngles,
+          scene: scene,
+          style: styleName,
+        },
+        (event: MockupEvent) => {
+          switch (event.type) {
+            case "status":
+              if (event.data.message) {
+                setGenerationStage(event.data.message);
+              }
+              if (event.data.progress !== undefined) {
+                setGenerationProgress(event.data.progress);
+              }
+              break;
+            case "analysis":
+              setGenerationStage("Design analyzed, generating mockups...");
+              setGenerationProgress(10);
+              break;
+            case "image":
+              if (event.data.imageData && event.data.mimeType) {
+                const imageUrl = `data:${event.data.mimeType};base64,${event.data.imageData}`;
+                generatedImages.push(imageUrl);
+                setGeneratedMockups([...generatedImages]);
+                const progress = 10 + Math.round((generatedImages.length / totalAngles) * 85);
+                setGenerationProgress(Math.min(progress, 95));
+              }
+              break;
+            case "image_error":
+              console.error(`Failed to generate ${event.data.angle} view`);
+              break;
+            case "complete":
+              setGenerationProgress(100);
+              setGenerationStage("Complete!");
+              break;
+            case "error":
+              throw new Error(event.data.message || "Generation failed");
+          }
+        }
+      );
+
+      setIsGenerating(false);
+      if (generatedImages.length > 0) {
         toast({
           title: "Mockups Generated!",
-          description: "Your professional product photos are ready.",
+          description: `${generatedImages.length} professional product photo${generatedImages.length > 1 ? 's' : ''} ready.`,
           className: "bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-900/50 dark:text-green-400",
         });
-        return;
+      } else {
+        throw new Error("No images were generated");
       }
-
-      setGenerationProgress(stages[currentStage].pct);
-      setGenerationStage(stages[currentStage].text);
-      currentStage++;
-    }, 600); // Slightly faster simulation
+    } catch (error: any) {
+      console.error("Mockup generation failed:", error);
+      setIsGenerating(false);
+      setGenerationProgress(0);
+      toast({
+        title: "Generation Failed",
+        description: error.message || "Failed to generate mockups. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

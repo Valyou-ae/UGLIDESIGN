@@ -505,5 +505,170 @@ export async function registerRoutes(
     }
   });
 
+  // ============== MOCKUP GENERATION ROUTES ==============
+
+  const {
+    analyzeDesign,
+    generateMockupPrompt,
+    generateMockup,
+  } = await import("./services/gemini");
+
+  app.post("/api/mockup/analyze", requireAuth, async (req, res) => {
+    try {
+      const { designImage } = req.body;
+      if (!designImage || typeof designImage !== "string") {
+        return res.status(400).json({ message: "Design image is required" });
+      }
+
+      const base64Data = designImage.replace(/^data:image\/\w+;base64,/, "");
+      const analysis = await analyzeDesign(base64Data);
+      res.json({ analysis });
+    } catch (error) {
+      console.error("Design analysis error:", error);
+      res.status(500).json({ message: "Analysis failed" });
+    }
+  });
+
+  app.post("/api/mockup/generate", requireAuth, async (req, res) => {
+    try {
+      const {
+        designImage,
+        productType = "t-shirt",
+        productColor = "white",
+        scene = "studio",
+        angle = "front",
+        style = "minimal",
+      } = req.body;
+
+      if (!designImage || typeof designImage !== "string") {
+        return res.status(400).json({ message: "Design image is required" });
+      }
+
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+      res.flushHeaders();
+
+      const sendEvent = (event: string, data: any) => {
+        res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+      };
+
+      const base64Data = designImage.replace(/^data:image\/\w+;base64,/, "");
+
+      sendEvent("status", { stage: "analyzing", message: "Analyzing your design..." });
+
+      const designAnalysis = await analyzeDesign(base64Data);
+      sendEvent("analysis", { analysis: designAnalysis });
+
+      sendEvent("status", { stage: "prompting", message: "Creating mockup prompt..." });
+
+      const { prompt, negativePrompts } = await generateMockupPrompt(designAnalysis, {
+        designBase64: base64Data,
+        productType,
+        productColor,
+        scene,
+        angle,
+        style,
+      });
+      sendEvent("prompt", { prompt, negativePrompts });
+
+      sendEvent("status", { stage: "generating", message: "Generating mockup image..." });
+
+      const result = await generateMockup(base64Data, prompt, negativePrompts);
+
+      if (result) {
+        sendEvent("image", {
+          imageData: result.imageData,
+          mimeType: result.mimeType,
+        });
+        sendEvent("complete", { success: true, message: "Mockup generated successfully" });
+      } else {
+        sendEvent("error", { message: "Failed to generate mockup" });
+      }
+
+      res.end();
+    } catch (error) {
+      console.error("Mockup generation error:", error);
+      res.write(`event: error\ndata: ${JSON.stringify({ message: "Mockup generation failed" })}\n\n`);
+      res.end();
+    }
+  });
+
+  app.post("/api/mockup/generate-batch", requireAuth, async (req, res) => {
+    try {
+      const {
+        designImage,
+        productType = "t-shirt",
+        productColor = "white",
+        angles = ["front"],
+        scene = "studio",
+        style = "minimal",
+      } = req.body;
+
+      if (!designImage || typeof designImage !== "string") {
+        return res.status(400).json({ message: "Design image is required" });
+      }
+
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+      res.flushHeaders();
+
+      const sendEvent = (event: string, data: any) => {
+        res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+      };
+
+      const base64Data = designImage.replace(/^data:image\/\w+;base64,/, "");
+
+      sendEvent("status", { stage: "analyzing", message: "Analyzing your design...", progress: 5 });
+
+      const designAnalysis = await analyzeDesign(base64Data);
+      sendEvent("analysis", { analysis: designAnalysis });
+
+      const totalAngles = angles.length;
+      let completedAngles = 0;
+
+      for (const angle of angles) {
+        sendEvent("status", { 
+          stage: "generating", 
+          message: `Generating ${angle} view (${completedAngles + 1}/${totalAngles})...`,
+          progress: 10 + Math.round((completedAngles / totalAngles) * 80)
+        });
+
+        const { prompt, negativePrompts } = await generateMockupPrompt(designAnalysis, {
+          designBase64: base64Data,
+          productType,
+          productColor,
+          scene,
+          angle,
+          style,
+        });
+
+        const result = await generateMockup(base64Data, prompt, negativePrompts);
+
+        if (result) {
+          sendEvent("image", {
+            angle,
+            imageData: result.imageData,
+            mimeType: result.mimeType,
+          });
+        } else {
+          sendEvent("image_error", { angle, error: "Failed to generate" });
+        }
+
+        completedAngles++;
+      }
+
+      sendEvent("status", { stage: "complete", message: "All mockups generated!", progress: 100 });
+      sendEvent("complete", { success: true, totalGenerated: completedAngles });
+
+      res.end();
+    } catch (error) {
+      console.error("Batch mockup generation error:", error);
+      res.write(`event: error\ndata: ${JSON.stringify({ message: "Batch generation failed" })}\n\n`);
+      res.end();
+    }
+  });
+
   return httpServer;
 }
