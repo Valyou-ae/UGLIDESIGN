@@ -291,19 +291,29 @@ export default function ImageGenerator() {
 
     const handleEvent = (event: GenerationEvent) => {
       const { type, data } = event;
+      console.log("SSE Event:", type, data);
 
       if (type === "status" && data.agent && data.status) {
-        setAgents(prev => prev.map(a => {
-          if (a.name === data.agent) {
-            return { ...a, status: data.status as Agent["status"], message: data.message || a.message };
-          }
-          return a;
-        }));
+        setAgents(prev => {
+          const updated = prev.map(a => {
+            if (a.name === data.agent) {
+              return { ...a, status: data.status as Agent["status"], message: data.message || a.message };
+            }
+            return a;
+          });
+          
+          const completedCount = updated.filter(a => a.status === "complete").length;
+          const workingCount = updated.filter(a => a.status === "working").length;
+          const agentProgress = Math.min(90, (completedCount * 20) + (workingCount * 10));
+          setProgress(agentProgress);
+          
+          return updated;
+        });
       }
 
       if (type === "progress" && data.completed !== undefined && data.total !== undefined) {
         const progressPercent = Math.round((data.completed / data.total) * 100);
-        setProgress(progressPercent);
+        setProgress(prev => Math.max(prev, progressPercent));
         totalExpected = data.total;
       }
 
@@ -484,13 +494,20 @@ export default function ImageGenerator() {
     }
   }, []);
 
-  // Helper function to get progress text
-  const getProgressText = (prog: number) => {
-    if (prog < 20) return "Initializing AI Agents...";
-    if (prog < 40) return "Analyzing prompt structure...";
-    if (prog < 60) return "Synthesizing visual elements...";
-    if (prog < 80) return "Refining details and textures...";
-    return "Final polishing...";
+  // Helper function to get progress text based on active agent
+  const getProgressText = () => {
+    const workingAgent = agents.find(a => a.status === "working");
+    if (workingAgent) {
+      return workingAgent.message;
+    }
+    const completedCount = agents.filter(a => a.status === "complete").length;
+    if (completedCount === agents.length) {
+      return "Generation complete!";
+    }
+    if (completedCount > 0) {
+      return "Processing...";
+    }
+    return "Initializing AI Agents...";
   };
 
   return (
@@ -878,7 +895,7 @@ export default function ImageGenerator() {
                     {/* Progress Bar & Percentage */}
                     <div className="w-3/4 mt-3 space-y-1.5">
                       <div className="flex justify-between items-center px-1">
-                        <span className="text-[10px] font-medium text-white/80">{getProgressText(progress)}</span>
+                        <span className="text-[10px] font-medium text-white/80">{getProgressText()}</span>
                         <span className="text-[10px] font-bold text-white">{progress}%</span>
                       </div>
                       <div className="h-1.5 w-full bg-black/20 rounded-full overflow-hidden backdrop-blur-sm">
