@@ -95,7 +95,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useToast } from "@/hooks/use-toast";
 import { useImages, type ProgressUpdate, type ProgressPhase } from "@/hooks/use-images";
 import { useAuth } from "@/hooks/use-auth";
-import { TextCompositor } from "@/components/text-compositor";
 
 // Import generated images for the gallery
 import cyberpunkCity from "@assets/generated_images/futuristic_cyberpunk_city_street_at_night_with_neon_lights_and_rain.png";
@@ -189,11 +188,6 @@ export default function ImageGenerator() {
   const [progressMessage, setProgressMessage] = useState<string>("");
   const [currentAttempt, setCurrentAttempt] = useState<number>(1);
   const [maxAttempts, setMaxAttempts] = useState<number>(3);
-  // Text Compositor state
-  const [showCompositor, setShowCompositor] = useState(false);
-  const [compositorImage, setCompositorImage] = useState<string>("");
-  const [compositorDetectedTexts, setCompositorDetectedTexts] = useState<string[]>([]);
-  const [pendingImageData, setPendingImageData] = useState<{ id: string; prompt: string } | null>(null);
   const [settings, setSettings] = useState({
     style: "auto",
     quality: "standard",
@@ -341,46 +335,24 @@ export default function ImageGenerator() {
       setAgents(prev => prev.map(a => ({ ...a, status: "complete" })));
       setProgressMessage("Complete!");
 
-      // Check if compositor is needed (text was detected in prompt)
-      const detectedTexts = result.detectedTexts || [];
-      const needsCompositor = result.needsCompositor || detectedTexts.length > 0;
+      const newImage: GeneratedImage = {
+        id: result.image.id,
+        src: result.image.imageUrl,
+        prompt: result.enhancedPrompt || prompt,
+        style: settings.style,
+        aspectRatio: settings.aspectRatio,
+        timestamp: "Just now",
+        isNew: true,
+        isFavorite: result.image.isFavorite || false
+      };
 
-      if (needsCompositor && detectedTexts.length > 0) {
-        // Store image data and open compositor for text overlay
-        setCompositorImage(result.image.imageUrl);
-        setCompositorDetectedTexts(detectedTexts);
-        setPendingImageData({ 
-          id: result.image.id, 
-          prompt: result.enhancedPrompt || prompt 
-        });
-        setShowCompositor(true);
-        
-        toast({
-          title: "Add Your Text!",
-          description: `Image ready with ${detectedTexts.length} text element${detectedTexts.length > 1 ? 's' : ''} to add. Use the compositor for 100% accuracy.`,
-          className: "bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-900/20 dark:border-blue-900/50 dark:text-blue-400",
-        });
-      } else {
-        // No text needed, add image directly
-        const newImage: GeneratedImage = {
-          id: result.image.id,
-          src: result.image.imageUrl,
-          prompt: result.enhancedPrompt || prompt,
-          style: settings.style,
-          aspectRatio: settings.aspectRatio,
-          timestamp: "Just now",
-          isNew: true,
-          isFavorite: result.image.isFavorite || false
-        };
+      setGenerations(prev => [newImage, ...prev]);
 
-        setGenerations(prev => [newImage, ...prev]);
-
-        toast({
-          title: "Image Generated!",
-          description: result.enhancedPrompt ? "Your prompt was enhanced by AI." : "Your creation is ready.",
-          className: "bg-purple-50 border-purple-200 text-purple-800 dark:bg-purple-900/20 dark:border-purple-900/50 dark:text-purple-400",
-        });
-      }
+      toast({
+        title: "Image Generated!",
+        description: result.enhancedPrompt ? "Your prompt was enhanced by AI." : "Your creation is ready.",
+        className: "bg-purple-50 border-purple-200 text-purple-800 dark:bg-purple-900/20 dark:border-purple-900/50 dark:text-purple-400",
+      });
 
     } catch (error: any) {
       setStatus("idle");
@@ -420,67 +392,6 @@ export default function ImageGenerator() {
       e.preventDefault();
       handleGenerate();
     }
-  };
-
-  // Handle compositor save - creates final composited image
-  const handleCompositorSave = (compositeImageUrl: string) => {
-    if (pendingImageData) {
-      const newImage: GeneratedImage = {
-        id: pendingImageData.id + "-composited",
-        src: compositeImageUrl,
-        prompt: pendingImageData.prompt,
-        style: settings.style,
-        aspectRatio: settings.aspectRatio,
-        timestamp: "Just now",
-        isNew: true,
-        isFavorite: false
-      };
-
-      setGenerations(prev => [newImage, ...prev]);
-
-      toast({
-        title: "Image Complete!",
-        description: "Your text has been added with 100% accuracy.",
-        className: "bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-900/50 dark:text-green-400",
-      });
-    }
-
-    // Reset compositor state
-    setShowCompositor(false);
-    setCompositorImage("");
-    setCompositorDetectedTexts([]);
-    setPendingImageData(null);
-  };
-
-  // Handle compositor close - user cancelled, save blank image
-  const handleCompositorClose = () => {
-    if (pendingImageData) {
-      // Save the blank placeholder image anyway
-      const newImage: GeneratedImage = {
-        id: pendingImageData.id,
-        src: compositorImage,
-        prompt: pendingImageData.prompt,
-        style: settings.style,
-        aspectRatio: settings.aspectRatio,
-        timestamp: "Just now",
-        isNew: true,
-        isFavorite: false
-      };
-
-      setGenerations(prev => [newImage, ...prev]);
-
-      toast({
-        title: "Image Saved",
-        description: "Saved without text. You can edit it later.",
-        className: "bg-yellow-50 border-yellow-200 text-yellow-800 dark:bg-yellow-900/20 dark:border-yellow-900/50 dark:text-yellow-400",
-      });
-    }
-
-    // Reset compositor state
-    setShowCompositor(false);
-    setCompositorImage("");
-    setCompositorDetectedTexts([]);
-    setPendingImageData(null);
   };
 
   // Initialize with some sample images if empty
@@ -530,16 +441,6 @@ export default function ImageGenerator() {
 
   return (
     <div className="h-screen bg-background flex font-sans text-foreground overflow-hidden">
-      {/* Text Compositor Modal */}
-      {showCompositor && (
-        <TextCompositor
-          backgroundImage={compositorImage}
-          detectedTexts={compositorDetectedTexts}
-          onSave={handleCompositorSave}
-          onClose={handleCompositorClose}
-        />
-      )}
-      
       <Sidebar className="hidden md:flex border-r border-border/50" />
       
       <main className="flex-1 flex flex-col relative h-full overflow-hidden bg-background text-foreground">
