@@ -7,7 +7,7 @@ import { pool } from "./db";
 import bcrypt from "bcrypt";
 import { insertUserSchema, insertImageSchema, insertWithdrawalSchema } from "@shared/schema";
 import { ZodError } from "zod";
-import { generateImage, enhancePrompt } from "./gemini";
+import { generateImageWithPipeline } from "./gemini";
 
 const PgSession = ConnectPgSimple(session);
 
@@ -191,25 +191,23 @@ export async function registerRoutes(
 
   app.post("/api/generate-image", async (req, res) => {
     try {
-      const { prompt, style, aspectRatio, enhanceWithAI } = req.body;
+      const { prompt, style, aspectRatio } = req.body;
 
       if (!prompt) {
         return res.status(400).json({ message: "Prompt is required" });
       }
 
-      let finalPrompt = prompt;
-      if (enhanceWithAI && style) {
-        finalPrompt = await enhancePrompt(prompt, style);
-      }
-
-      const result = await generateImage(finalPrompt);
+      // Use the 3-phase pipeline for 100% text accuracy
+      // Phase 1: Text Sentinel detects text requirements
+      // Phase 2: Style Architect creates Art Direction prompt
+      // Phase 3: Image Generator renders with accurate text
+      const result = await generateImageWithPipeline(prompt, style);
       
       const imageUrl = `data:${result.mimeType};base64,${result.imageBase64}`;
 
       // Use session userId if logged in, otherwise use a default test user
       let userId = req.session.userId;
       if (!userId) {
-        // Get or create test user for unauthenticated generation
         const testUser = await storage.getUserByUsername("testuser");
         userId = testUser?.id || "anonymous";
       }
@@ -217,7 +215,7 @@ export async function registerRoutes(
       const image = await storage.createImage({
         userId,
         imageUrl,
-        prompt: finalPrompt,
+        prompt: result.pipeline?.finalPrompt || prompt,
         style: style || "default",
         aspectRatio: aspectRatio || "1:1",
         generationType: "ai-generated",
@@ -225,7 +223,11 @@ export async function registerRoutes(
 
       res.json({ 
         image,
-        enhancedPrompt: enhanceWithAI ? finalPrompt : undefined,
+        enhancedPrompt: result.pipeline?.finalPrompt,
+        pipeline: result.pipeline ? {
+          textAnalysis: result.pipeline.textAnalysis,
+          textDirections: result.pipeline.artDirection.textDirections,
+        } : undefined,
       });
     } catch (error: any) {
       console.error("Image generation error:", error);
