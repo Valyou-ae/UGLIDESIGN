@@ -589,7 +589,16 @@ ${environmentBlock}
 
 ===== NEGATIVE PROMPTS (MUST AVOID) =====
 ${negativePrompts}
-===== END NEGATIVES =====`;
+===== END NEGATIVES =====
+
+${product.isWearable && personaLock ? `===== FINAL IDENTITY REMINDER =====
+[CRITICAL - READ BEFORE GENERATING]
+If a reference photo was provided, the person in your output MUST be the SAME person.
+- Same face, same hair, same beard/facial hair (if any)
+- Same skin tone, same ethnicity
+- DO NOT substitute with a different person
+- The result should be immediately recognizable as the same individual
+===== END REMINDER =====` : ''}`;
 
   const locks: RenderSpecification['locks'] = {
     product: {
@@ -773,7 +782,30 @@ export async function generateSingleMockup(
         inlineData: { data: personaHeadshot, mimeType: "image/png" }
       });
       parts.push({
-        text: "REFERENCE: This is the model's face. The generated image MUST feature this EXACT same person."
+        text: `===== CRITICAL IDENTITY REFERENCE =====
+[MANDATORY - HIGHEST PRIORITY INSTRUCTION]
+
+This photo shows the EXACT person who MUST appear in the generated mockup image.
+
+STRICT IDENTITY MATCHING REQUIREMENTS:
+1. FACE: Copy this EXACT face - same bone structure, nose shape, lip shape, eye spacing
+2. HAIR: EXACT same hairstyle, hair color, hair length, and texture
+3. BEARD/FACIAL HAIR: If present, EXACT same style, length, and coverage
+4. SKIN: EXACT same skin tone and complexion
+5. EYES: EXACT same eye color, shape, and expression style
+6. AGE: Same apparent age - do not make younger or older
+7. BODY TYPE: Same build and proportions (adjusted for garment size if specified)
+
+DO NOT:
+- Change any facial features
+- Alter hair style or color
+- Add or remove facial hair
+- Change skin tone or ethnicity
+- Substitute with a similar-looking person
+
+The person in your output image MUST be immediately recognizable as the SAME individual shown in this reference photo.
+
+===== END IDENTITY REFERENCE =====`
       });
     }
 

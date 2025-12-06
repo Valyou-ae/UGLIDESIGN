@@ -2336,24 +2336,6 @@ export default function MockupGenerator() {
 
                               <div className="flex-1 overflow-y-auto min-h-0 -mx-4 px-4 md:mx-0 md:px-0">
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 pb-20">
-                                  {personaHeadshot && useModel && (
-                                    <motion.div
-                                      initial={{ opacity: 0, scale: 0.95 }}
-                                      animate={{ opacity: 1, scale: 1 }}
-                                      transition={{ duration: 0.3 }}
-                                      className="relative aspect-[3/4] rounded-xl overflow-hidden border-2 border-indigo-500/50 bg-gradient-to-b from-indigo-500/10 to-transparent"
-                                    >
-                                      <img src={personaHeadshot} alt="Character Reference" className="w-full h-full object-cover" />
-                                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3">
-                                        <p className="text-white text-xs font-medium text-center">Character Reference</p>
-                                        <p className="text-white/70 text-[10px] text-center">All mockups feature this model</p>
-                                      </div>
-                                      <Badge className="absolute top-2 left-2 bg-indigo-600 text-[10px] border-0 text-white font-semibold px-2 py-0.5">
-                                        <User className="h-3 w-3 mr-1" />
-                                        Persona Lock
-                                      </Badge>
-                                    </motion.div>
-                                  )}
                                   {generatedMockups.map((mockup, i) => {
                                     const angleName = mockup.angle === 'front' ? 'Front View' : 
                                                      mockup.angle === 'three-quarter' ? 'Three-Quarter View' :
