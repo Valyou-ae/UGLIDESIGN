@@ -14,6 +14,12 @@ const ai = new GoogleGenAI({
   }),
 });
 
+// Gemini models - Using latest available for each capability
+// Image generation: gemini-2.5-flash-image (native image gen, most reliable)
+// Text/reasoning: gemini-3-pro-preview (latest for prompt enhancement)
+const IMAGE_MODEL = "gemini-2.5-flash-image";
+const TEXT_MODEL = "gemini-3-pro-preview";
+
 export interface GeneratedImageResult {
   imageBase64: string;
   mimeType: string;
@@ -22,8 +28,10 @@ export interface GeneratedImageResult {
 
 export async function generateImage(prompt: string): Promise<GeneratedImageResult> {
   try {
+    console.log(`Using Gemini 3 Pro Image model: ${IMAGE_MODEL}`);
+    
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-image",
+      model: IMAGE_MODEL,
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       config: {
         responseModalities: [Modality.TEXT, Modality.IMAGE],
@@ -59,7 +67,7 @@ The style requested is: ${style}
 Keep the enhanced prompt under 200 words. Return only the enhanced prompt, nothing else.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: TEXT_MODEL,
       config: {
         systemInstruction: systemPrompt,
       },
