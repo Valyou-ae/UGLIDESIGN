@@ -126,11 +126,9 @@ type Agent = {
 };
 
 const AGENTS: Agent[] = [
-  { id: 1, name: "Text Sentinel", status: "idle", message: "Checking spelling...", icon: Bot, activeColor: "#3B82F6" },
+  { id: 1, name: "Text Sentinel", status: "idle", message: "Analyzing prompt...", icon: Bot, activeColor: "#3B82F6" },
   { id: 2, name: "Style Architect", status: "idle", message: "Enhancing style...", icon: Sparkles, activeColor: "#8B5CF6" },
   { id: 3, name: "Visual Synthesizer", status: "idle", message: "Generating image...", icon: Palette, activeColor: "#EC4899" },
-  { id: 4, name: "Master Refiner", status: "idle", message: "Refining details...", icon: SlidersHorizontal, activeColor: "#F59E0B" },
-  { id: 5, name: "Quality Analyst", status: "idle", message: "Analyzing quality...", icon: BrainCircuit, activeColor: "#10B981" },
 ];
 
 const STYLE_PRESETS = [
@@ -295,8 +293,10 @@ export default function ImageGenerator() {
           });
           const completedCount = updated.filter(a => a.status === "complete").length;
           const workingCount = updated.filter(a => a.status === "working").length;
-          const agentProgress = Math.min(90, (completedCount * 20) + (workingCount * 10));
-          setProgress(agentProgress);
+          const baseProgress = Math.round((completedCount / 3) * 100);
+          const workingBonus = workingCount > 0 ? 5 : 0;
+          const agentProgress = Math.min(100, baseProgress + workingBonus);
+          setProgress(prev => Math.max(prev, agentProgress));
           return updated;
         });
       }
@@ -466,7 +466,7 @@ export default function ImageGenerator() {
 
     const generatedImages: GeneratedImage[] = [];
     let imageCount = 0;
-    let totalExpected = settings.quality === "draft" ? 4 : 1;
+    let totalExpected = 1;
 
     const handleEvent = (event: GenerationEvent) => {
       const { type, data } = event;
@@ -483,8 +483,10 @@ export default function ImageGenerator() {
           
           const completedCount = updated.filter(a => a.status === "complete").length;
           const workingCount = updated.filter(a => a.status === "working").length;
-          const agentProgress = Math.min(90, (completedCount * 20) + (workingCount * 10));
-          setProgress(agentProgress);
+          const baseProgress = Math.round((completedCount / 3) * 100);
+          const workingBonus = workingCount > 0 ? 5 : 0;
+          const agentProgress = Math.min(100, baseProgress + workingBonus);
+          setProgress(prev => Math.max(prev, agentProgress));
           
           return updated;
         });
@@ -848,12 +850,12 @@ export default function ImageGenerator() {
                   exit={{ height: 0, opacity: 0, y: -10 }}
                   className="overflow-hidden"
                 >
-                  <div className="bg-muted/30 border border-border rounded-xl p-3 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 shadow-inner mb-4">
+                  <div className="bg-muted/30 border border-border rounded-xl p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 shadow-inner mb-4">
                     
                     {/* Quality */}
-                    <div className="space-y-1.5 col-span-1">
+                    <div className="space-y-1.5 col-span-1 sm:col-span-2 md:col-span-1">
                       <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block px-0.5">Quality</label>
-                      <div className="flex gap-1.5">
+                      <div className="grid grid-cols-4 gap-1">
                         {QUALITY_PRESETS.map(q => (
                           <TooltipProvider key={q.id}>
                             <Tooltip>
@@ -861,14 +863,14 @@ export default function ImageGenerator() {
                                 <button
                                   onClick={() => setSettings({...settings, quality: q.id})}
                                   className={cn(
-                                    "flex-1 h-9 rounded-lg flex items-center justify-center gap-1.5 transition-all border",
+                                    "h-9 rounded-lg flex items-center justify-center gap-1 transition-all border",
                                     settings.quality === q.id 
                                       ? "bg-background border-primary/50 text-primary shadow-sm" 
                                       : "bg-background/50 border-transparent text-muted-foreground hover:bg-background hover:text-foreground"
                                   )}
                                 >
-                                  <q.icon className={cn("h-3.5 w-3.5", settings.quality === q.id ? "text-primary" : "opacity-70")} />
-                                  <span className="text-[10px] font-medium">{q.name}</span>
+                                  <q.icon className={cn("h-3.5 w-3.5 shrink-0", settings.quality === q.id ? "text-primary" : "opacity-70")} />
+                                  <span className="text-[9px] font-medium truncate hidden lg:inline">{q.name}</span>
                                 </button>
                               </TooltipTrigger>
                               <TooltipContent side="bottom"><p>{q.tooltip}</p></TooltipContent>
@@ -879,9 +881,9 @@ export default function ImageGenerator() {
                     </div>
 
                     {/* Aspect Ratio */}
-                    <div className="space-y-1.5 col-span-1">
+                    <div className="space-y-1.5 col-span-1 sm:col-span-2 md:col-span-1">
                       <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block px-0.5">Ratio</label>
-                      <div className="flex gap-1.5">
+                      <div className="grid grid-cols-5 gap-1">
                         {ASPECT_RATIOS.map(r => (
                           <TooltipProvider key={r.id}>
                             <Tooltip>
@@ -889,17 +891,16 @@ export default function ImageGenerator() {
                                 <button
                                   onClick={() => setSettings({...settings, aspectRatio: r.id})}
                                   className={cn(
-                                    "flex-1 h-9 rounded-lg flex items-center justify-center gap-1 transition-all border",
+                                    "h-9 rounded-lg flex items-center justify-center transition-all border",
                                     settings.aspectRatio === r.id 
                                       ? "bg-background border-primary/50 text-primary shadow-sm" 
                                       : "bg-background/50 border-transparent text-muted-foreground hover:bg-background hover:text-foreground"
                                   )}
                                 >
-                                  <r.icon className={cn("h-3.5 w-3.5", settings.aspectRatio === r.id ? "text-primary" : "opacity-70")} />
-                                  <span className="text-[9px] text-muted-foreground/70 font-medium hidden sm:inline">{r.ratioText}</span>
+                                  <r.icon className={cn("h-3.5 w-3.5 shrink-0", settings.aspectRatio === r.id ? "text-primary" : "opacity-70")} />
                                 </button>
                               </TooltipTrigger>
-                              <TooltipContent side="bottom"><p>{r.label}</p></TooltipContent>
+                              <TooltipContent side="bottom"><p>{r.label} ({r.ratioText})</p></TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
                         ))}
@@ -907,7 +908,7 @@ export default function ImageGenerator() {
                     </div>
 
                     {/* Style */}
-                    <div className="space-y-1.5 col-span-1">
+                    <div className="space-y-1.5">
                       <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block px-0.5">Style</label>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -941,7 +942,7 @@ export default function ImageGenerator() {
                     </div>
 
                     {/* Previews (Variations) */}
-                    <div className="space-y-1.5 col-span-1">
+                    <div className="space-y-1.5">
                       <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block px-0.5">Count</label>
                       <div className="flex bg-background/50 rounded-lg p-0.5 h-9 items-center border border-transparent hover:border-border/50 transition-colors">
                         {["1", "2", "4"].map(v => (
@@ -962,7 +963,7 @@ export default function ImageGenerator() {
                     </div>
 
                     {/* Master Refiner */}
-                    <div className="space-y-1.5 col-span-2 md:col-span-4 lg:col-span-1">
+                    <div className="space-y-1.5 col-span-1 sm:col-span-2 md:col-span-1">
                       <div className="flex items-center justify-between h-[15px]">
                         <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block px-0.5">Refiner</label>
                         <Switch 
@@ -973,7 +974,7 @@ export default function ImageGenerator() {
                       </div>
                       
                       <div className={cn(
-                        "grid grid-cols-4 lg:grid-cols-2 gap-1.5 transition-all duration-300 h-9",
+                        "flex gap-1.5 transition-all duration-300 h-9",
                         settings.refiner ? "opacity-100" : "opacity-40 pointer-events-none grayscale"
                       )}>
                         {REFINER_PRESETS.slice(0, 2).map(preset => (

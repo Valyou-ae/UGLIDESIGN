@@ -320,8 +320,6 @@ export async function registerRoutes(
     analyzePrompt,
     enhancePrompt,
     generateImage: generateGeminiImage,
-    generateMultipleImages,
-    scoreImage,
   } = await import("./services/gemini");
 
   app.post("/api/generate/analyze", requireAuth, async (req, res) => {
@@ -373,33 +371,23 @@ export async function registerRoutes(
       sendEvent("enhancement", { enhancedPrompt, negativePrompts });
       sendEvent("status", { agent: "Style Architect", status: "complete", message: "Prompt enhanced" });
 
-      sendEvent("status", { agent: "Visual Synthesizer", status: "working", message: "Generating images..." });
+      sendEvent("status", { agent: "Visual Synthesizer", status: "working", message: "Generating image..." });
 
-      const imageCount = 4;
-      let completedCount = 0;
+      const result = await generateGeminiImage(enhancedPrompt, negativePrompts);
 
-      await generateMultipleImages(
-        enhancedPrompt,
-        negativePrompts,
-        imageCount,
-        (index, result) => {
-          completedCount++;
-          if (result) {
-            sendEvent("image", {
-              index,
-              imageData: result.imageData,
-              mimeType: result.mimeType,
-              progress: `${completedCount}/${imageCount}`,
-            });
-          } else {
-            sendEvent("image_error", { index, error: "Generation failed" });
-          }
-          sendEvent("progress", { completed: completedCount, total: imageCount });
-        }
-      );
+      if (result) {
+        sendEvent("image", {
+          index: 0,
+          imageData: result.imageData,
+          mimeType: result.mimeType,
+          progress: "1/1",
+        });
+      } else {
+        sendEvent("image_error", { index: 0, error: "Generation failed" });
+      }
 
       sendEvent("status", { agent: "Visual Synthesizer", status: "complete", message: "Generation complete" });
-      sendEvent("complete", { message: "Draft generation complete", totalImages: completedCount });
+      sendEvent("complete", { message: "Draft generation complete", totalImages: result ? 1 : 0 });
 
       res.end();
     } catch (error) {
@@ -416,7 +404,6 @@ export async function registerRoutes(
         stylePreset = "auto",
         qualityLevel = "standard",
         aspectRatio = "1:1",
-        enableCuration = true,
       } = req.body;
 
       if (!prompt || typeof prompt !== "string") {
@@ -450,63 +437,24 @@ export async function registerRoutes(
       sendEvent("enhancement", { enhancedPrompt, negativePrompts });
       sendEvent("status", { agent: "Style Architect", status: "complete", message: "Master prompt ready" });
 
-      sendEvent("status", { agent: "Visual Synthesizer", status: "working", message: "Generating candidates..." });
+      sendEvent("status", { agent: "Visual Synthesizer", status: "working", message: "Generating image..." });
 
-      const candidateCount = enableCuration ? 8 : 2;
-      const candidates: { index: number; imageData: string; mimeType: string; score?: number }[] = [];
+      const result = await generateGeminiImage(enhancedPrompt, negativePrompts);
 
-      await generateMultipleImages(
-        enhancedPrompt,
-        negativePrompts,
-        candidateCount,
-        (index, result) => {
-          if (result) {
-            candidates.push({
-              index,
-              imageData: result.imageData,
-              mimeType: result.mimeType,
-            });
-            sendEvent("candidate", {
-              index,
-              progress: `${candidates.length}/${candidateCount}`,
-            });
-          }
-        }
-      );
-
-      sendEvent("status", { agent: "Visual Synthesizer", status: "complete", message: "Candidates generated" });
-
-      if (enableCuration && candidates.length > 1) {
-        sendEvent("status", { agent: "Quality Analyst", status: "working", message: "Scoring images..." });
-
-        for (const candidate of candidates) {
-          const score = await scoreImage(candidate.imageData, prompt);
-          candidate.score = score.overall;
-          sendEvent("score", { index: candidate.index, score });
-        }
-
-        candidates.sort((a, b) => (b.score || 0) - (a.score || 0));
-        sendEvent("status", { agent: "Quality Analyst", status: "complete", message: "Best images selected" });
-      }
-
-      sendEvent("status", { agent: "Master Refiner", status: "working", message: "Applying final polish..." });
-
-      const bestCandidate = candidates[0];
-
-      if (bestCandidate) {
+      if (result) {
         sendEvent("final_image", {
-          index: bestCandidate.index,
-          imageData: bestCandidate.imageData,
-          mimeType: bestCandidate.mimeType,
-          score: bestCandidate.score,
+          index: 0,
+          imageData: result.imageData,
+          mimeType: result.mimeType,
         });
+      } else {
+        sendEvent("image_error", { index: 0, error: "Generation failed" });
       }
 
-      sendEvent("status", { agent: "Master Refiner", status: "complete", message: "Refinement complete" });
+      sendEvent("status", { agent: "Visual Synthesizer", status: "complete", message: "Generation complete" });
       sendEvent("complete", {
         message: "Final generation complete",
-        totalCandidates: candidates.length,
-        selectedCount: bestCandidate ? 1 : 0,
+        totalImages: result ? 1 : 0,
       });
 
       res.end();
