@@ -32,8 +32,8 @@ const STYLE_MODEL = "gemini-flash-lite-latest";
 const STYLE_TEMPERATURE = 0.7;
 
 // Phase 3: Image Generation - Model selection based on text presence
-const IMAGE_MODEL_FAST = "gemini-2.5-flash-preview-05-20"; // Fast model for no-text prompts
-const IMAGE_MODEL_TEXT = "gemini-2.0-flash-exp"; // Text-capable model for text prompts
+const IMAGE_MODEL_FAST = "gemini-2.5-flash-image"; // Fast model for no-text prompts
+const IMAGE_MODEL_TEXT = "gemini-3-pro-image-preview"; // Best text accuracy for text prompts
 
 // ============== TYPES ==============
 
