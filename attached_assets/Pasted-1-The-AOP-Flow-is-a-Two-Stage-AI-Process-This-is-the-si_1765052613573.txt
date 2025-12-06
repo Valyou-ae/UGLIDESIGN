@@ -1,0 +1,32 @@
+1. The AOP Flow is a Two-Stage AI Process
+This is the single most important architectural difference. Unlike DTG which is a single API call per mockup, the AOP journey has a potential preliminary AI step:
+Stage 1 (Conditional): The Seamless Pattern Generation.
+The flow begins at StepUpload, which has a special checkbox: "This design is already a seamless pattern."
+If the user does not check this box, they are taken to aop/components/StepSeamless.tsx.
+Here, clicking "Generate AI Pattern" triggers the generateAiCreativePattern function (aop/services/aopGenerationService.ts). This function makes a dedicated Gemini API call with the sole purpose of converting the user's static design into a tileable, seamless pattern.
+This newly generated pattern File object is then stored in the state (selectedSeamlessVariation) and becomes the actual design image for the rest of the flow.
+Stage 2: The Mockup Generation.
+All subsequent mockup generations for the batch use this seamless pattern file, not the user's original upload.
+Replit Implementation Note: This means your state management needs to handle this branching logic correctly. The design file used for the final mockups might be different from the one the user initially uploaded.
+2. The Pattern File is the "Single Source of Truth"
+For AOP, the seamless pattern file is more than just the design; it's the source of truth for multiple critical prompt parameters. The buildMasterPrompt function is hard-coded to rely on this principle:
+AOP Base Color: The prompt explicitly instructs the AI to ignore the user's color selection and instead derive the garment's base color from the overall perceived background color of the pattern file.
+AOP Trim Color: The prompt commands the AI to sample the most prominent non-background accent color from the pattern file and use that for the collar, cuffs, or waistband.
+The Design Itself: Of course, the pattern itself is used as the design.
+Replit Implementation Note: This is why the UI for AOP products only shows "White Base" in the color selection step. It's a placeholder because the true color authority is the pattern image.
+3. Garment Blueprints are Product-Aware
+A major breakthrough in our debugging was realizing that AOP instructions cannot be generic. The system is now "smart" about the product being rendered.
+This logic lives in services/knowledge/productBlueprints.ts.
+The getGarmentBlueprint function checks the product's subcategory.
+If it's "Leggings," it generates a prompt rule for a solid-colored waistband.
+If it's "T-Shirts" or "Hoodies," it generates a rule for a solid-colored collar and cuffs.
+If it's an item like a blanket, it generates no trim rule at all.
+Replit Implementation Note: When adding new AOP products to constants.ts, you must update the logic in productBlueprints.ts to provide the correct construction rules for that new product type to avoid inconsistencies.
+4. The Critical Fabric Physics Rule
+This is a subtle but powerful rule that was essential for realism.
+The AOP prompt contains a directive that explicitly separates the 2D visual asset (the pattern file) from the 3D physical garment.
+It forbids the AI from inferring the garment's fabric type from the pattern's texture. This is what prevents a t-shirt with a "knit sweater" pattern from being incorrectly rendered as a thick, heavy sweater. It forces the AI to render the physics of the actual product fabric (e.g., polyester) and apply the pattern as a surface print.
+Replit Implementation Note: This rule is a core part of the buildMasterPrompt function and is a key piece of the "secret sauce" that makes the AOP mockups look correct.
+5. File and State Management
+Because this is a client-side application, the generated seamless pattern and the Persona Lock headshot are not saved to a server. They are generated, converted to File objects, and held in the Zustand store for the duration of the user's session. They are displayed in the UI using URL.createObjectURL(). This is an efficient, serverless approach that should translate perfectly to the Replit environment.
+Understanding these five key points will be crucial for a successful AOP implementation in Replit. They represent the core architectural decisions that finally solved the consistency issues we faced.
