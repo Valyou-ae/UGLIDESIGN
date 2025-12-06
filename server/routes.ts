@@ -666,7 +666,7 @@ export async function registerRoutes(
           "HISPANIC": "Hispanic",
           "SOUTH_ASIAN": "Indian",
           "INDIAN": "Indian",
-          "MIDDLE_EASTERN": "Indian",
+          "MIDDLE_EASTERN": "Middle Eastern",
           "SOUTHEAST_ASIAN": "Southeast Asian",
           "MIXED": "Diverse",
           "INDIGENOUS": "Indigenous",
