@@ -375,11 +375,30 @@ ${materialPreset.promptAddition}
 
   const designLockBlock = `
 ===== DESIGN LOCK =====
-[LOCKED - DESIGN APPLICATION RULES]
+[LOCKED - DESIGN APPLICATION AND SIZE RULES]
+[THE DESIGN MUST BE THE SAME SIZE IN EVERY SHOT]
+
 - Design style: ${designAnalysis.style}
 - Design complexity: ${designAnalysis.complexity}
 - Design type: ${designAnalysis.designType}
 - Placement: ${designAnalysis.suggestedPlacement}
+
+===== DESIGN SIZE LOCK (CRITICAL) =====
+[MANDATORY - IDENTICAL DESIGN SIZE ACROSS ALL ANGLES]
+- Print area: 12 inches wide x 14 inches tall (standard DTG chest print)
+- The design occupies approximately 30-40% of the shirt front visible area
+- Design size must be IDENTICAL whether viewed from front, side, three-quarter, or any angle
+- DO NOT make the design smaller in some shots and larger in others
+- When the camera angle changes, the design should appear the SAME physical size on the garment
+- The design height should span from below the collar to approximately mid-torso
+- Only the close-up shot should show the design larger (because the camera is zoomed in)
+
+SIZE CONSISTENCY RULES:
+1. FRONT VIEW: Design visible as standard chest print, ~12" wide
+2. THREE-QUARTER VIEW: Same design, same size, visible at an angle (appears slightly compressed due to perspective)
+3. SIDE VIEW: Design may be partially visible from the side, but same physical size
+4. CLOSE-UP VIEW: Zoomed in on the design, so it appears larger (this is expected)
+
 ${journey === 'DTG' ? `
 DTG PRINT METHOD:
 - Design printed directly onto fabric surface
