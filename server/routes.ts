@@ -221,18 +221,17 @@ export async function registerRoutes(
         generationType: "ai-generated",
       });
 
+      // Extract detected texts for client-side compositor
+      const detectedTexts = result.pipeline?.textAnalysis?.extractedTexts?.map(t => t.text) || [];
+      
       res.json({ 
         image,
         enhancedPrompt: result.pipeline?.finalPrompt,
+        detectedTexts, // For client-side Text Compositor
+        needsCompositor: detectedTexts.length > 0, // Flag to show compositor UI
         pipeline: result.pipeline ? {
           textAnalysis: result.pipeline.textAnalysis,
           textDirections: result.pipeline.artDirection.textDirections,
-          ocrValidation: result.pipeline.ocrValidation ? {
-            accuracyScore: result.pipeline.ocrValidation.accuracyScore,
-            passedValidation: result.pipeline.ocrValidation.passedValidation,
-            extractedTexts: result.pipeline.ocrValidation.extractedTexts,
-            matchDetails: result.pipeline.ocrValidation.matchDetails,
-          } : undefined,
           attempts: result.pipeline.attempts,
         } : undefined,
       });
@@ -293,6 +292,9 @@ export async function registerRoutes(
         generationType: "ai-generated",
       });
 
+      // Extract detected texts for client-side compositor
+      const detectedTexts = result.pipeline?.textAnalysis?.extractedTexts?.map(t => t.text) || [];
+      
       // Send final result
       const finalData = JSON.stringify({
         phase: "done",
@@ -300,15 +302,11 @@ export async function registerRoutes(
         result: {
           image,
           enhancedPrompt: result.pipeline?.finalPrompt,
+          detectedTexts, // For client-side Text Compositor
+          needsCompositor: detectedTexts.length > 0, // Flag to show compositor UI
           pipeline: result.pipeline ? {
             textAnalysis: result.pipeline.textAnalysis,
             textDirections: result.pipeline.artDirection.textDirections,
-            ocrValidation: result.pipeline.ocrValidation ? {
-              accuracyScore: result.pipeline.ocrValidation.accuracyScore,
-              passedValidation: result.pipeline.ocrValidation.passedValidation,
-              extractedTexts: result.pipeline.ocrValidation.extractedTexts,
-              matchDetails: result.pipeline.ocrValidation.matchDetails,
-            } : undefined,
             attempts: result.pipeline.attempts,
           } : undefined,
         }

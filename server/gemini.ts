@@ -173,102 +173,85 @@ export async function analyzeTextRequirements(userPrompt: string): Promise<TextA
 }
 
 // ============== PHASE 2: STYLE ARCHITECT ==============
-// Creates detailed Art Direction prompts with physical text properties
+// Creates Art Direction prompts with BLANK PLACEHOLDERS for text
+// Text will be added client-side for 100% accuracy
 
-const STYLE_ARCHITECT_SYSTEM = `You are an expert AI Art Director specializing in 100% ACCURATE text rendering in images.
+const STYLE_ARCHITECT_SYSTEM = `You are an expert AI Art Director. Your job is to create stunning images with BLANK PLACEHOLDERS where text will be added later by a graphic designer.
 
-## ABSOLUTE REQUIREMENTS - ZERO TOLERANCE FOR ERRORS
+## CORE PRINCIPLE: SEPARATION OF CONCERNS
 
-Your generated prompt MUST result in an image where every text element is rendered EXACTLY as specified. Any deviation = failure.
+The AI creates beautiful artwork. Text is added separately with pixel-perfect accuracy.
+This guarantees 100% text accuracy because text rendering is handled by a design tool, not AI interpretation.
 
-## MANDATORY TEXT BLUEPRINT FORMAT
+## YOUR TASK
 
-For EACH text element that must appear, you MUST specify:
+When the user wants text in their image (signs, posters, labels, etc.), you must:
+1. Create a beautiful, high-quality image
+2. Include a BLANK, EMPTY space where the text would go
+3. Make the blank space look natural and intentional (empty sign, blank banner, clear label area)
+4. DO NOT attempt to render any text - leave it completely blank
 
-### TEXT ELEMENT [N]: "[EXACT_STRING]"
-- **EXACT_CHARACTERS**: List every character including spaces, punctuation, special symbols
-- **FORBIDDEN MODIFICATIONS**: 
-  - NO line breaks within this text
-  - NO hyphenation
-  - NO character substitutions
-  - NO character omissions
-  - NO case changes
-- **SYMBOL PRESERVATION**: 
-  - Dollar signs ($) MUST appear exactly where shown
-  - All punctuation MUST be preserved
-- **LAYOUT RULE**: [single-line/multi-line as specified]
-- **PHYSICAL FORM**: [material, 3D presence, how it exists in the scene]
-- **LEGIBILITY REQUIREMENTS**: High contrast, clear spacing, readable size
+## BLANK PLACEHOLDER REQUIREMENTS
 
-## CRITICAL DIRECTIVES
+For each text element requested, create a visually appealing blank area:
+- **Signs**: Create beautiful signs that are intentionally left blank/empty
+- **Posters**: Design poster layouts with prominent empty title/text areas
+- **Labels**: Include blank label spaces with appropriate backgrounds
+- **Banners**: Create banner shapes that are clean and empty
+- **Menus**: Design menu boards with blank lines where items would go
 
-1. **VERBATIM TEXT**: The image generator MUST render "[exact text]" character-for-character
-2. **NO INTERPRETATION**: Do not rephrase, summarize, or "improve" any text
-3. **COMPLETE INCLUSION**: Every specified text MUST appear - no omissions allowed
-4. **SYMBOL FIDELITY**: Special characters ($, @, #, %, &, !) are as important as letters
-5. **SINGLE-LINE DEFAULT**: Unless explicitly multi-line, all text stays on ONE line
-6. **PRICE FORMAT**: Prices like "$4.50" MUST show the dollar sign - "4.50" alone is WRONG
+## PROMPT STRUCTURE
 
-## OUTPUT FORMAT
+Your enhanced prompt should:
+1. Describe the full scene with rich visual details
+2. Explicitly state that text areas are "intentionally left blank" or "empty"
+3. Describe the blank area's visual properties (material, color, lighting)
+4. Ensure the blank area has good contrast for text overlay
 
-Your complete Art Direction prompt must:
-1. Describe the scene/composition
-2. For each text element, include the full TEXT BLUEPRINT block
-3. End with a VERIFICATION CHECKLIST showing each exact string
+## EXAMPLES
 
-## EXAMPLE TEXT BLUEPRINT:
+**User wants**: "A coffee shop sign that says 'The Daily Grind'"
+**Your prompt**: "A charming rustic coffee shop entrance featuring a beautifully weathered wooden sign board that is intentionally left blank and empty. The sign has a warm honey-colored wood grain texture with decorative iron brackets. Soft morning light illuminates the blank surface, creating perfect contrast for text overlay. The blank area is prominent, centered, and well-lit."
 
-### TEXT ELEMENT 1: "Latte $4.50"
-- **EXACT_CHARACTERS**: L-a-t-t-e-[space]-$-4-.-5-0
-- **FORBIDDEN MODIFICATIONS**: No line breaks, no removing $, no "Latte 4.50"
-- **SYMBOL PRESERVATION**: Dollar sign $ MUST precede 4.50
-- **LAYOUT RULE**: Single line, horizontal
-- **PHYSICAL FORM**: Chalk text on blackboard, matte white, hand-drawn style
-- **LEGIBILITY**: High contrast white on dark background, 2 inch height
+**User wants**: "Movie poster for 'Quantum Leap' in retro 80s style"
+**Your prompt**: "A dynamic retro 80s style movie poster with vibrant neon colors, chrome effects, and a dramatic composition. The poster features a prominent blank title area at the top - a clean, empty space with subtle gradient glow effects, perfectly sized for a movie title. The blank area is intentionally empty, designed for text overlay. Below are abstract sci-fi visual elements with purple and blue neon lighting."
 
-VERIFICATION CHECKLIST:
-[ ] "Latte $4.50" - includes dollar sign, single line, exact spelling`;
+**User wants**: "Coffee menu with Espresso $3, Latte $4.50"
+**Your prompt**: "An artisanal coffee shop chalkboard menu with a beautiful dark slate background and decorative chalk border art. The menu features multiple intentionally blank horizontal lines where menu items would be written - clean empty spaces with subtle chalk dust texture. Small decorative coffee cup illustrations frame the edges. The blank lines are evenly spaced and ready for text overlay."
+
+## CRITICAL RULES
+
+1. NEVER attempt to render actual text characters
+2. ALWAYS create blank/empty spaces where text was requested
+3. Make blank areas visually integrated and natural-looking
+4. Ensure good contrast between blank area and background for text overlay
+5. Describe the blank area's surface/material for design context`;
 
 export async function createArtDirection(
   userPrompt: string, 
   textAnalysis: TextAnalysisResult,
   style?: string,
-  correctionFeedback?: string
+  _correctionFeedback?: string // No longer needed - text added client-side
 ): Promise<ArtDirectionResult> {
   try {
-    console.log("[Style Architect] Creating Art Direction...");
+    console.log("[Style Architect] Creating Art Direction with blank placeholders...");
     
-    let textRequirements = "";
+    let textPlaceholderInstructions = "";
     if (textAnalysis.hasExplicitText && textAnalysis.extractedTexts.length > 0) {
-      textRequirements = "\n\n## MANDATORY TEXT ELEMENTS - ZERO TOLERANCE FOR ERRORS\n\n";
+      textPlaceholderInstructions = "\n\n## TEXT ELEMENTS REQUIRING BLANK PLACEHOLDERS\n\n";
+      textPlaceholderInstructions += "The following text was requested. Create BLANK PLACEHOLDER AREAS for each:\n\n";
       textAnalysis.extractedTexts.forEach((t, i) => {
-        const chars = t.text.split('').map(c => {
-          if (c === ' ') return '[SPACE]';
-          if (c === '$') return '[DOLLAR]';
-          return c;
-        }).join('-');
-        
-        textRequirements += `### TEXT ELEMENT ${i + 1}: "${t.text}"\n`;
-        textRequirements += `- **CHARACTER SEQUENCE**: ${chars}\n`;
-        textRequirements += `- **CONTEXT**: ${t.context}\n`;
-        textRequirements += `- **IMPORTANCE**: ${t.importance}\n`;
-        textRequirements += `- **FORBIDDEN**: NO line breaks, NO omissions, NO substitutions\n`;
-        if (t.text.includes('$')) {
-          textRequirements += `- **CRITICAL**: Dollar sign ($) MUST be rendered - "${t.text}" not "${t.text.replace(/\$/g, '')}"\n`;
-        }
-        textRequirements += `\n`;
+        textPlaceholderInstructions += `${i + 1}. "${t.text}" - Context: ${t.context} (${t.importance})\n`;
+        textPlaceholderInstructions += `   → Create a blank ${t.context} area where this text will be overlaid later\n`;
       });
-      textRequirements += "## ABSOLUTE REQUIREMENT\nEvery text element above MUST appear in the final image EXACTLY as specified. Missing even ONE character = FAILURE.";
+      textPlaceholderInstructions += "\nREMEMBER: Do NOT render any text. Create beautiful BLANK spaces where text will be added by the graphic designer.";
     }
 
     const styleNote = style && style !== "auto" ? `\nRequested visual style: ${style}` : "";
     
-    // Include correction feedback if this is a retry - with verbatim error details
-    const correctionNote = correctionFeedback ? `\n\n## ⚠️ CRITICAL ERRORS FROM PREVIOUS ATTEMPT - MUST FIX\n\n${correctionFeedback}\n\n## CORRECTION INSTRUCTIONS\nThe above errors are UNACCEPTABLE. You MUST ensure the EXACT text appears. Study each character carefully.` : "";
-    
-    const fullPrompt = `## USER REQUEST\n${userPrompt}${styleNote}${textRequirements}${correctionNote}
+    const fullPrompt = `## USER REQUEST\n${userPrompt}${styleNote}${textPlaceholderInstructions}
 
-Create a detailed Art Direction prompt using the TEXT BLUEPRINT format. Every text element MUST be rendered with 100% character accuracy.`;
+Create an Art Direction prompt for an image with BLANK PLACEHOLDER areas where text will be added later. The image should be beautiful and complete, with intentionally empty spaces designed for text overlay.`;
 
     const response = await ai.models.generateContent({
       model: STYLE_ARCHITECT_MODEL,
@@ -674,143 +657,59 @@ export async function generateImageWithPipeline(
   onProgress?: ProgressCallback
 ): Promise<GeneratedImageResult> {
   console.log("=".repeat(60));
-  console.log("[Pipeline] Starting 4-phase image generation with OCR verification");
+  console.log("[Pipeline] Starting 2-phase image generation (blank placeholder workflow)");
+  console.log("[Pipeline] Text will be added client-side for 100% accuracy");
   console.log("=".repeat(60));
   
   // Helper to send progress updates
-  const sendProgress = (phase: string, message: string, attempt?: number, maxAttempts?: number) => {
+  const sendProgress = (phase: string, message: string) => {
     if (onProgress) {
-      onProgress(phase, message, attempt, maxAttempts);
+      onProgress(phase, message);
     }
   };
   
   sendProgress("text_sentinel", "Analyzing your prompt for text...");
   
-  // Phase 1: Text Sentinel
+  // Phase 1: Text Sentinel - Extract text for client-side compositor
   const textAnalysis = await analyzeTextRequirements(prompt);
-  const expectedTexts = textAnalysis.extractedTexts.map(t => t.text);
+  const detectedTexts = textAnalysis.extractedTexts.map(t => t.text);
   
   if (textAnalysis.hasExplicitText) {
-    sendProgress("text_sentinel", `Found ${expectedTexts.length} text elements to render`);
+    sendProgress("text_sentinel", `Found ${detectedTexts.length} text elements - creating blank placeholders`);
+    console.log("[Pipeline] Detected texts for compositor:", detectedTexts);
   } else {
     sendProgress("text_sentinel", "No explicit text detected - standard generation");
   }
   
-  let bestResult: { imageBase64: string; mimeType: string; textResponse?: string } | null = null;
-  let bestValidation: OCRValidationResult | null = null;
-  let bestArtDirection: ArtDirectionResult | null = null;
-  let attempts = 0;
-  let correctionFeedback: string | undefined;
+  // Phase 2: Style Architect - Create prompt with BLANK PLACEHOLDERS
+  sendProgress("style_architect", "Designing layout with blank text areas...");
+  const artDirection = await createArtDirection(prompt, textAnalysis, style);
   
-  // Retry loop with OCR verification
-  while (attempts < MAX_RETRY_ATTEMPTS) {
-    attempts++;
-    console.log(`\n[Pipeline] Attempt ${attempts}/${MAX_RETRY_ATTEMPTS}`);
-    
-    try {
-      // Phase 2: Style Architect (with correction feedback for retries)
-      if (attempts === 1) {
-        sendProgress("style_architect", "Creating detailed art direction...", attempts, MAX_RETRY_ATTEMPTS);
-      } else {
-        sendProgress("style_architect", `Refining art direction (attempt ${attempts}/${MAX_RETRY_ATTEMPTS})...`, attempts, MAX_RETRY_ATTEMPTS);
-      }
-      const artDirection = await createArtDirection(prompt, textAnalysis, style, correctionFeedback);
-      
-      // Phase 3: Image Generation (escalates to Imagen on attempts 4-5)
-      const isEscalation = attempts >= 4;
-      const phaseMsg = isEscalation 
-        ? `Generating with enhanced model (attempt ${attempts}/${MAX_RETRY_ATTEMPTS})...`
-        : "Generating your image...";
-      sendProgress("image_generator", phaseMsg, attempts, MAX_RETRY_ATTEMPTS);
-      const imageResult = await generateImageOnly(artDirection.enhancedPrompt, attempts);
-      
-      // Phase 4: OCR Validation (only if there's expected text)
-      if (expectedTexts.length > 0) {
-        sendProgress("ocr_validator", "Verifying text accuracy...", attempts, MAX_RETRY_ATTEMPTS);
-        const validation = await validateImageText(
-          imageResult.imageBase64,
-          imageResult.mimeType,
-          expectedTexts
-        );
-        
-        // Track best result
-        if (!bestValidation || validation.accuracyScore > bestValidation.accuracyScore) {
-          bestResult = imageResult;
-          bestValidation = validation;
-          bestArtDirection = artDirection;
-        }
-        
-        // Check if passed validation
-        if (validation.passedValidation) {
-          console.log(`[Pipeline] ✅ Validation PASSED on attempt ${attempts} with ${validation.accuracyScore}% accuracy`);
-          sendProgress("complete", `Text accuracy: ${validation.accuracyScore}% ✓`, attempts, MAX_RETRY_ATTEMPTS);
-          return {
-            imageBase64: imageResult.imageBase64,
-            mimeType: imageResult.mimeType,
-            textResponse: imageResult.textResponse,
-            pipeline: {
-              textAnalysis,
-              artDirection,
-              finalPrompt: artDirection.enhancedPrompt,
-              ocrValidation: validation,
-              attempts
-            }
-          };
-        }
-        
-        // Prepare correction feedback for next attempt with verbatim error details
-        correctionFeedback = generateCorrectionFeedback(validation, expectedTexts);
-        console.log(`[Pipeline] ❌ Validation FAILED (${validation.accuracyScore}% accuracy). Retrying with corrections...`);
-        
-        if (attempts < MAX_RETRY_ATTEMPTS) {
-          sendProgress("retry", `Accuracy ${validation.accuracyScore}% - improving... (attempt ${attempts + 1}/${MAX_RETRY_ATTEMPTS})`, attempts + 1, MAX_RETRY_ATTEMPTS);
-        }
-        
-      } else {
-        // No text to validate, return immediately
-        console.log("[Pipeline] No text to validate, returning image");
-        sendProgress("complete", "Image generated successfully!");
-        return {
-          imageBase64: imageResult.imageBase64,
-          mimeType: imageResult.mimeType,
-          textResponse: imageResult.textResponse,
-          pipeline: {
-            textAnalysis,
-            artDirection,
-            finalPrompt: artDirection.enhancedPrompt,
-            attempts
-          }
-        };
-      }
-      
-    } catch (error: any) {
-      console.error(`[Pipeline] Attempt ${attempts} failed:`, error.message);
-      sendProgress("error", `Attempt ${attempts} failed, retrying...`, attempts, MAX_RETRY_ATTEMPTS);
-      if (attempts >= MAX_RETRY_ATTEMPTS) {
-        throw error;
-      }
+  // Phase 3: Image Generation - Generate image with blank areas
+  sendProgress("image_generator", "Generating your image with blank text areas...");
+  const imageResult = await generateImageOnly(artDirection.enhancedPrompt);
+  
+  // Complete - No OCR needed, text will be added client-side
+  if (textAnalysis.hasExplicitText) {
+    sendProgress("complete", `Image ready! Add your text: ${detectedTexts.join(', ')}`);
+  } else {
+    sendProgress("complete", "Image generated successfully!");
+  }
+  
+  console.log("[Pipeline] ✅ Image generated with blank placeholders");
+  console.log("[Pipeline] Detected texts for client compositor:", detectedTexts);
+  
+  return {
+    imageBase64: imageResult.imageBase64,
+    mimeType: imageResult.mimeType,
+    textResponse: imageResult.textResponse,
+    pipeline: {
+      textAnalysis,
+      artDirection,
+      finalPrompt: artDirection.enhancedPrompt,
+      attempts: 1
     }
-  }
-  
-  // Return best result after all attempts
-  if (bestResult && bestArtDirection) {
-    console.log(`[Pipeline] Returning best result from ${attempts} attempts (${bestValidation?.accuracyScore}% accuracy)`);
-    sendProgress("complete", `Best result: ${bestValidation?.accuracyScore}% accuracy (${attempts} attempts)`);
-    return {
-      imageBase64: bestResult.imageBase64,
-      mimeType: bestResult.mimeType,
-      textResponse: bestResult.textResponse,
-      pipeline: {
-        textAnalysis,
-        artDirection: bestArtDirection,
-        finalPrompt: bestArtDirection.enhancedPrompt,
-        ocrValidation: bestValidation || undefined,
-        attempts
-      }
-    };
-  }
-  
-  throw new Error("Failed to generate image after maximum attempts");
+  };
 }
 
 // ============== LEGACY FUNCTIONS (for backward compatibility) ==============
