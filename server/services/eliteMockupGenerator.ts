@@ -121,8 +121,8 @@ Respond with JSON:
 }`;
 
   try {
-    const response = await genAI.models.generateContent({
-      model: MODELS.FAST_ANALYSIS,
+    const model = genAI.getGenerativeModel({ model: MODELS.FAST_ANALYSIS });
+    const response = await model.generateContent({
       contents: [
         {
           role: "user",
@@ -132,16 +132,16 @@ Respond with JSON:
           ]
         }
       ],
-      config: {
-        systemInstruction,
+      generationConfig: {
         responseMimeType: "application/json",
         temperature: 0,
         topP: 1,
         topK: 1
-      }
+      },
+      systemInstruction
     });
 
-    const rawJson = response.text;
+    const rawJson = response.text();
     if (rawJson) {
       return JSON.parse(rawJson) as DesignAnalysis;
     }
@@ -246,10 +246,10 @@ STYLE:
   
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      const response = await genAI.models.generateContent({
-        model: MODELS.IMAGE_GENERATION,
+      const model = genAI.getGenerativeModel({ model: MODELS.IMAGE_GENERATION });
+      const response = await model.generateContent({
         contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
-        config: { responseModalities: [Modality.TEXT, Modality.IMAGE] }
+        generationConfig: { responseModalities: [Modality.TEXT, Modality.IMAGE] }
       });
 
       const candidates = response.candidates;
@@ -678,10 +678,10 @@ export async function generateSingleMockup(
       text: `Apply this design to the product as specified:\n\n${renderSpec.fullPrompt}`
     });
 
-    const response = await genAI.models.generateContent({
-      model: MODELS.IMAGE_GENERATION,
+    const model = genAI.getGenerativeModel({ model: MODELS.IMAGE_GENERATION });
+    const response = await model.generateContent({
       contents: [{ role: "user", parts }],
-      config: { responseModalities: [Modality.TEXT, Modality.IMAGE] }
+      generationConfig: { responseModalities: [Modality.TEXT, Modality.IMAGE] }
     });
 
     const candidates = response.candidates;
