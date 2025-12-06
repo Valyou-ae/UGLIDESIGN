@@ -207,6 +207,10 @@ export default function ImageGenerator() {
     document.body.removeChild(link);
   };
 
+  const isUnsavedImage = (id: string): boolean => {
+    return id.includes('-') && !id.startsWith('sample-');
+  };
+
   const saveToLibrary = async (image: GeneratedImage) => {
     if (!user) {
       toast({ title: "Please log in", description: "You need to be logged in to save images.", variant: "destructive" });
@@ -214,12 +218,21 @@ export default function ImageGenerator() {
     }
     setIsSaving(true);
     try {
-      await imagesApi.create({
+      const response = await imagesApi.create({
         imageUrl: image.src,
         prompt: image.prompt,
         style: image.style || "auto",
         aspectRatio: image.aspectRatio || "1:1",
       });
+      const savedImage = response.image;
+      setGenerations(prev => prev.map(g => 
+        g.id === image.id 
+          ? { ...g, id: String(savedImage.id), isFavorite: savedImage.isFavorite || false } 
+          : g
+      ));
+      if (selectedImage && selectedImage.id === image.id) {
+        setSelectedImage(prev => prev ? { ...prev, id: String(savedImage.id), isFavorite: savedImage.isFavorite || false } : null);
+      }
       toast({ title: "Saved to Library", description: "Image has been saved to your creations." });
     } catch (error) {
       toast({ title: "Save Failed", description: error instanceof Error ? error.message : "Could not save image.", variant: "destructive" });
@@ -234,10 +247,13 @@ export default function ImageGenerator() {
       return;
     }
     
-    if (id.startsWith("sample-")) {
+    if (id.startsWith("sample-") || isUnsavedImage(id)) {
       setGenerations(prev => prev.map(g => g.id === id ? { ...g, isFavorite: !g.isFavorite } : g));
       if (selectedImage && selectedImage.id === id) {
         setSelectedImage(prev => prev ? { ...prev, isFavorite: !prev.isFavorite } : null);
+      }
+      if (isUnsavedImage(id)) {
+        toast({ title: "Save First", description: "Save the image to persist your favorite.", className: "bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-900/20 dark:border-amber-900/50 dark:text-amber-400" });
       }
       return;
     }
