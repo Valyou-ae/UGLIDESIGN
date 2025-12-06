@@ -1,6 +1,18 @@
 import { GoogleGenAI, Modality } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+// Use user's GEMINI_API_KEY if available, otherwise use AI Integrations
+const apiKey = process.env.GEMINI_API_KEY || process.env.AI_INTEGRATIONS_GEMINI_API_KEY || "";
+const baseUrl = process.env.AI_INTEGRATIONS_GEMINI_BASE_URL;
+
+const ai = new GoogleGenAI({
+  apiKey,
+  ...(baseUrl && {
+    httpOptions: {
+      apiVersion: "",
+      baseUrl,
+    },
+  }),
+});
 
 export interface GeneratedImageResult {
   imageBase64: string;
@@ -11,46 +23,30 @@ export interface GeneratedImageResult {
 export async function generateImage(prompt: string): Promise<GeneratedImageResult> {
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash-preview-image-generation",
+      model: "gemini-2.5-flash-image",
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       config: {
         responseModalities: [Modality.TEXT, Modality.IMAGE],
       },
     });
 
-    const candidates = response.candidates;
-    if (!candidates || candidates.length === 0) {
-      throw new Error("No response from Gemini");
+    const candidate = response.candidates?.[0];
+    const imagePart = candidate?.content?.parts?.find((part: any) => part.inlineData);
+    
+    if (!imagePart?.inlineData?.data) {
+      throw new Error("No image data in response");
     }
 
-    const content = candidates[0].content;
-    if (!content || !content.parts) {
-      throw new Error("Empty response content");
-    }
-
-    let imageBase64 = "";
-    let mimeType = "image/png";
-    let textResponse = "";
-
-    for (const part of content.parts) {
-      if (part.text) {
-        textResponse = part.text;
-      } else if (part.inlineData && part.inlineData.data) {
-        imageBase64 = part.inlineData.data;
-        mimeType = part.inlineData.mimeType || "image/png";
-      }
-    }
-
-    if (!imageBase64) {
-      throw new Error("No image generated");
-    }
+    const mimeType = imagePart.inlineData.mimeType || "image/png";
+    const textPart = candidate?.content?.parts?.find((part: any) => part.text);
 
     return {
-      imageBase64,
+      imageBase64: imagePart.inlineData.data,
       mimeType,
-      textResponse,
+      textResponse: textPart?.text,
     };
   } catch (error: any) {
+    console.error("Gemini image generation error:", error);
     throw new Error(`Failed to generate image: ${error.message}`);
   }
 }
