@@ -284,15 +284,6 @@ export default function ImageGenerator() {
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
     
-    if (!isAuthenticated) {
-      toast({
-        variant: "destructive",
-        title: "Login Required",
-        description: "Please log in to generate images.",
-      });
-      return;
-    }
-    
     setStatus("generating");
     setProgress(0);
     setAgents(AGENTS.map(a => ({ ...a, status: "idle" })));

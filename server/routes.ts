@@ -189,7 +189,7 @@ export async function registerRoutes(
 
   // ============== IMAGE GENERATION ROUTES ==============
 
-  app.post("/api/generate-image", requireAuth, async (req, res) => {
+  app.post("/api/generate-image", async (req, res) => {
     try {
       const { prompt, style, aspectRatio, enhanceWithAI } = req.body;
 
@@ -206,8 +206,16 @@ export async function registerRoutes(
       
       const imageUrl = `data:${result.mimeType};base64,${result.imageBase64}`;
 
+      // Use session userId if logged in, otherwise use a default test user
+      let userId = req.session.userId;
+      if (!userId) {
+        // Get or create test user for unauthenticated generation
+        const testUser = await storage.getUserByUsername("testuser");
+        userId = testUser?.id || "anonymous";
+      }
+
       const image = await storage.createImage({
-        userId: req.session.userId!,
+        userId,
         imageUrl,
         prompt: finalPrompt,
         style: style || "default",
