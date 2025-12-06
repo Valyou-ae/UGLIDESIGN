@@ -1,0 +1,73 @@
+Product Requirements Document: Elite Mockup Generator
+Version: 2.0
+Status: For Development & Stakeholder Review
+Date: [Current Date]
+1. Introduction & Purpose
+The Elite Mockup Generator is a professional-grade, AI-powered web application designed to create photorealistic product mockups with an unprecedented level of consistency and creative control. The primary problem this product solves is the inherent unreliability and inconsistency of AI image generation for commercial use cases. Standard AI tools often fail to maintain model identity, design integrity, color accuracy, and product specifications across a batch of images, rendering them unusable for professional e-commerce and marketing.
+This product addresses that gap by implementing a robust, multi-layered "Lock-In" system that transforms the creative Gemini API into a precise, deterministic tool for mockup generation.
+2. Goals & Objectives
+Primary Goal: Achieve Unparalleled Consistency. To ensure that every mockup in a generated batch is 100% consistent across four critical pillars:
+Model Identity: The same person, every time.
+Design Integrity: The user's artwork, unaltered.
+Color Accuracy: The exact selected product color.
+Size & Fit: A realistic representation of the garment's size.
+Secondary Goal: Provide Rich Creative Flexibility. To empower users with deep creative control over the aesthetic and context of their mockups, including environments, lighting, brand styles, and material conditions.
+Tertiary Goal: Deliver a Professional & Reliable User Experience. To provide a seamless, guided workflow that is fast, reliable, and handles technical complexities (like API key management and concurrent generation) gracefully.
+3. Success Metrics
+Generation Consistency Rate: > 98% of images in a batch must be visually consistent across the four core pillars (Model, Design, Color, Size).
+Generation Failure Rate: < 2% of individual generation jobs should fail or produce a corrupted/unusable image.
+Task Completion Rate: > 95% of users who start the generation process should be able to complete it and view their results.
+Average Render Time: For common "E-Commerce Clean" jobs, the average generation time per image should be under 45 seconds.
+User Satisfaction: Qualitative feedback indicating that the mockups are professional, consistent, and save the user significant time compared to manual creation or other AI tools.
+4. User Persona
+Name: Sarah, The Etsy Seller
+Bio: Sarah runs a successful print-on-demand (POD) Etsy shop specializing in graphic t-shirts and apparel. She is a talented designer but not a professional photographer or AI expert.
+Pain Points:
+"When I use other AI tools, the model looks like a different person in every picture. It's unprofessional."
+"The AI often 're-draws' my design, changing the font or altering my artwork. I need it to be exactly what I uploaded."
+"I select a 'Navy' shirt, but the AI gives me five different shades of blue. I can't use that for my product listings."
+"It takes me hours to generate, curate, and edit a full set of mockups for a single design. It's a huge time sink."
+Goals:
+To quickly generate a full set of high-quality, professional-looking mockups for a new design.
+To have confidence that the model, design, and colors will be perfectly consistent across all images.
+To create beautiful lifestyle shots that match her brand's aesthetic without needing to hire a photographer.
+5. Functional Requirements (Features)
+5.1 The "Lock-In" Consistency System (Core IP)
+This is the application's primary value proposition, ensuring deterministic outputs from a creative AI.
+F-1.1 Persona Lock (Visual Anchor): For every batch, the system first generates a single, high-fidelity, neutral "passport photo" of the selected model. This headshot is then used as a non-negotiable visual reference in all subsequent mockup prompts to lock the model's identity.
+F-1.2 Asset & Spec Locks (Prompt Architecture): The core prompt is architected as a "Render Specification" with unbreakable rules:
+Design Lock: The user's artwork is treated as an immutable asset and must be a 1:1 copy.
+Color Lock: The exact hex code of the garment color is specified.
+Size & Fit Lock: The garment size is specified and must fit the model realistically.
+Camera & Pose Lock: Explicit, professional framing and posing commands for each angle prevent inconsistencies.
+F-1.3 AOP-Specific Locks: A product-aware system provides specialized rules for All-Over-Print items:
+AOP Construction Logic: Provides specific blueprints for different garments (e.g., "solid waistband" for leggings vs. "solid collar/cuffs" for t-shirts).
+AOP Scale Lock: Uses absolute physical measurements (e.g., "repeats every 6 inches") instead of ambiguous percentages for pattern scale.
+AOP Physics Lock: Explicitly separates the 2D visual texture of a pattern (e.g., a "knit" look) from the 3D physical properties of the garment fabric (e.g., polyester) to ensure realism.
+5.2 User Workflow & Generation
+A guided, multi-step wizard for a seamless user experience.
+F-2.1 Dual Journeys (DTG/AOP): A clear initial choice between Direct-to-Garment and All-Over-Print workflows.
+F-2.2 Asset Upload & Prep:
+Upload: A drag-and-drop/file-picker interface for uploading user designs.
+Validation: Client-side validation for file type, size, and dimensions.
+Compression: Automatic compression for large images to improve performance.
+AI Seamless Pattern Generation: For the AOP journey, an AI-powered step to convert any design into a perfectly tileable pattern.
+F-2.3 Creative Customization: A series of steps allowing the user to define:
+Product: A rich catalog of apparel, accessories, and home goods.
+Model: Detailed selection of Age, Sex, Ethnicity, and Size.
+Creative Direction: Selection of Brand Style, Platform, and a custom text prompt for the environment/scene.
+Variants: Multi-selection of garment colors and camera angles for batch generation.
+F-2.4 Generation & Results:
+Concurrent Queue: A robust queue that processes up to 3 jobs concurrently, with rate limiting and automatic retries.
+Progress UI: A locked UI during generation with a clear progress bar and status messages.
+Results Grid: A gallery of the final generated images.
+Refinement: The ability to regenerate any individual image with an additional text prompt for fine-tuning.
+5.3 Technical & Platform Requirements
+F-3.1 API Key Management: Securely integrates with the AI Studio environment to require users to select a paid API key from a Google Cloud project, with graceful error handling for invalid keys.
+F-3.2 Performance Optimization ("Fast Path"): An intelligent system that detects common e-commerce use cases (e.g., 'E-Commerce Clean' style with no custom environment) and simplifies the prompt to dramatically reduce render times.
+F-3.3 Data Integrity: The application is built on a comprehensive and complete knowledge base of over 300 detailed character personas, ensuring the "Persona Lock" system has a high-quality data source and eliminating the inconsistencies caused by data gaps in previous versions.
+6. Future Considerations (Out of Scope for v2.0)
+Expansion of the product and persona knowledge bases (e.g., adding Kids, Seniors, more product types).
+Video Mockup Generation for platforms like TikTok and Instagram Reels.
+Direct integration with e-commerce platforms (Shopify, Etsy) to push generated mockups to product listings.
+A/B testing different prompt structures to further optimize for speed and quality.

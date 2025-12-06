@@ -1,0 +1,125 @@
+Software Requirements Specification (SRS) for Elite Mockup Generator
+Version 1.0
+Date: [Current Date]
+1. Introduction
+1.1 Purpose
+This document provides a detailed specification of the requirements for the "Elite Mockup Generator" web application. Its purpose is to serve as a comprehensive guide for developers, designers, and stakeholders, outlining the system's functionality, constraints, and operational environment. The application is designed to generate professional, high-quality, photorealistic mockups of print-on-demand products using Google's Gemini API.
+1.2 Scope
+The Elite Mockup Generator is a browser-based tool that guides users through a multi-step process to generate customized product mockups. The scope includes:
+Two distinct user journeys: Direct-to-Garment (DTG) and All-Over-Print (AOP).
+User-driven customization of product type, model characteristics, creative style, colors, angles, and environment.
+AI-powered generation of seamless patterns for the AOP journey.
+A sophisticated, knowledge-based prompt engineering system to ensure high-quality, consistent, and realistic outputs from the Gemini API.
+A queuing system for batch-generating multiple mockup variants.
+A results interface for viewing, downloading, and refining generated images.
+The application is intended to run within the Google AI Studio environment, relying on its infrastructure for API key management.
+1.3 Definitions, Acronyms, and Abbreviations
+SRS: Software Requirements Specification
+UI: User Interface
+UX: User Experience
+API: Application Programming Interface
+DTG: Direct-to-Garment. A printing method where a design is applied to a specific area of a product.
+AOP: All-Over-Print. A printing method where a seamless pattern covers the entire surface of a product.
+POD: Print-on-Demand.
+Persona Lock: A generated, consistent visual reference (headshot) of a model used to maintain identity across multiple image generations.
+KB: Knowledge Base. Refers to the collection of data files in services/knowledge/ that codify domain expertise.
+1.4 References
+Google Gemini API Documentation
+Google AI Studio Platform Documentation
+1.5 Overview
+This document is organized into three main sections. Section 1 provides an introduction and overview. Section 2 describes the overall product, its functions, user characteristics, and constraints. Section 3 details the specific functional, non-functional, and interface requirements of the system.
+2. Overall Description
+2.1 Product Perspective
+The application is a self-contained, single-page web application (SPA) built with React and TypeScript. It functions as a client-side interface that communicates directly with the Google Gemini API. It is dependent on the Google AI Studio environment for hosting and API key authentication via the window.aistudio object.
+2.2 Product Functions
+The primary functions of the Elite Mockup Generator are:
+Guided Mockup Creation: To provide a step-by-step wizard that captures all necessary parameters for generating a high-quality mockup.
+AI-Powered Image Generation: To construct complex, context-aware prompts based on user input and an internal knowledge base, and use them to generate images via the Gemini API.
+Persona Consistency: To generate and utilize a "Persona Lock" image to ensure the same model appears across a batch of generated mockups.
+AOP Pattern Creation: To transform a standard design into a seamless, tileable pattern for AOP products.
+Batch Processing: To queue and manage the generation of multiple image variants (combinations of colors and angles).
+Image Refinement: To allow users to refine and regenerate individual images with additional text prompts.
+2.3 User Characteristics
+The target user is a professional or semi-professional designer, artist, or entrepreneur in the print-on-demand industry. Users are expected to have their own design assets and a basic understanding of mockup concepts. No coding or AI prompting expertise is required.
+2.4 Constraints
+The application must use the @google/genai library for all Gemini API interactions.
+API key management must be handled exclusively through the window.aistudio interface. The application must not store or directly prompt for API keys.
+The application must be a client-side only SPA, with no backend server components.
+The system must adhere to the Gemini API's rate limits and usage policies.
+The application must be responsive and functional on modern web browsers (Chrome, Firefox, Safari, Edge).
+2.5 Assumptions and Dependencies
+The user's environment will have the window.aistudio object available and functional.
+The user has access to a paid Google Cloud project and can select a valid Gemini API key when prompted.
+The Gemini API models specified in the code (e.g., gemini-3-pro-image-preview) are available and operational.
+The user has a stable internet connection for API requests.
+3. Specific Requirements
+3.1 Functional Requirements
+FR-1: API Key Management
+FR-1.1: On startup, the system shall check for a pre-selected API key using window.aistudio.hasSelectedApiKey().
+FR-1.2: If no key is found, the system shall display a modal that blocks all other functionality.
+FR-1.3: The modal shall inform the user of the need for a paid API key and provide a link to the billing documentation.
+FR-1.4: The modal shall contain a button that, when clicked, calls window.aistudio.openSelectKey() to initiate the key selection process.
+FR-1.5: If an API call fails with an error indicating an invalid key ("entity was not found"), the system shall revert to the API key selection modal.
+FR-2: User Journey Selection
+FR-2.1: The initial screen after API key confirmation shall present the user with two choices: "DTG (Direct to Garment)" and "AOP (All-Over Print)".
+FR-2.2: The user's selection shall determine the subsequent steps in the creation wizard.
+FR-3: Design Upload and Validation
+FR-3.1: The system shall provide an interface for the user to upload a single image file via drag-and-drop or a file selection dialog.
+FR-3.2: The system shall validate the uploaded file against the following criteria:
+File Type: Must be image/png, image/jpeg, or image/webp.
+File Size: Must not exceed 10 MB.
+Dimensions: Both width and height must be between 300px and 4096px.
+FR-3.3: If validation fails, the system shall display a clear, user-friendly error message.
+FR-3.4: If the file size exceeds 2 MB, the system shall automatically compress the image to a JPEG format with a maximum dimension of 2048px before storing it in the application state.
+FR-3.5 (AOP Journey): The system shall display a checkbox labeled "This design is already a seamless pattern". If checked, the AOP pattern generation step (FR-4) shall be skipped.
+FR-4: AOP Seamless Pattern Generation
+FR-4.1: This step is only active in the AOP journey if the user did not indicate their upload was already seamless.
+FR-4.2: The system shall provide a button to "Generate AI Pattern".
+FR-4.3: Clicking this button shall trigger an API call to Gemini using the uploaded design to generate a seamless, tileable pattern.
+FR-4.4: The generated pattern(s) shall be displayed as selectable thumbnails. The first generated pattern will be selected by default.
+FR-4.5: The system shall provide a slider to control "Pattern Scale" from 10% to 100%. This value will be used to calculate the physical repeat size of the pattern in the final mockup prompt.
+FR-5: Creative Direction
+FR-5.1 (Brand Style): The system shall present a selection of predefined brand styles (e.g., E-Commerce Clean, Editorial Fashion). The user must select one.
+FR-5.2 (Platform): The system shall present a selection of platforms (e.g., Amazon, Etsy, Shopify). The user must select one.
+FR-5.3 (Scene): The system shall provide a text area for the user to describe the mockup's background environment. A minimum of 5 characters is required. A list of inspirational suggestions shall be provided.
+FR-6: Product & Variant Selection
+FR-6.1 (Product): The system shall allow users to select a product from a predefined catalog, filterable by category and subcategory. The product list must be filtered to show only items compatible with the selected journey (DTG or AOP).
+FR-6.2 (Colors): Upon product selection, the system shall display the product's available colors as swatches. The user must be able to select one or more colors. "Select All" and "Deselect All" functionality shall be provided.
+FR-6.3 (Angles): The system shall display a selection of available camera angles (e.g., Front, Three-Quarter). The user must be able to select one or more angles.
+FR-7: Model Customization
+FR-7.1: The system shall provide dropdown menus to select the model's Age Group, Sex, Ethnicity, and clothing Size.
+FR-7.2: This step shall be automatically skipped if the selected product is a non-wearable item (e.g., mug, pillow, blanket).
+FR-8: Mockup Generation
+FR-8.1: The final step shall display a summary of the user's selections and the total number of images to be generated.
+FR-8.2: The system shall provide an "Advanced Options" section where users can override the automatically recommended Lighting Preset and Material Condition.
+FR-8.3: A "Generate" button shall initiate the generation process.
+FR-8.4 (Persona Lock): For wearable products, the system shall first generate a single, neutral, forward-facing headshot of the model (the "Persona Lock") to be used as a visual reference in all subsequent generation calls for that batch.
+FR-8.5 (Prompt Construction): For each job, the system shall construct a detailed, multi-part prompt synthesizing all user selections and data from the internal knowledge base (somatic profiles, contour distortion rules, lighting, materials, camera angles, negative prompts, etc.).
+FR-8.6 (Queueing): The system shall add all generation tasks (one for each color/angle combination) to a generation queue.
+FR-8.7 (Execution): The queue shall process up to 3 jobs concurrently, respecting API rate limits. It will automatically retry failed jobs up to 3 times.
+FR-8.8 (Progress): During generation, the UI shall be locked, and a progress bar and status message will indicate the current state of the batch process.
+FR-9: Results Display and Refinement
+FR-9.1: Upon completion, generated images shall be displayed in a grid.
+FR-9.2: Each image card shall display the color and angle of the variant.
+FR-9.3: Each card shall provide a button to download the high-resolution image.
+FR-9.4: Each card shall include a text input and a "Refine" button. Entering a prompt and clicking the button shall regenerate only that specific image, incorporating the refinement while keeping all original parameters (seed, model, product, etc.) consistent.
+3.2 External Interface Requirements
+3.2.1 User Interfaces
+The application shall present a clean, modern, and intuitive user interface that guides the user through the mockup creation process. It will feature a progress bar indicating the current step and total steps. The layout will be responsive, adapting to both desktop and tablet screen sizes.
+3.2.2 Software Interfaces
+Google Gemini API: The system will interface with the Gemini API via the @google/genai library. All image generation will be performed through ai.models.generateContent requests.
+Google AI Studio Window Object: The system will interface with the window.aistudio object for API key management, specifically hasSelectedApiKey() and openSelectKey().
+3.3 Non-Functional Requirements
+3.3.1 Performance
+3.3.1.1: The UI shall remain responsive and interactive at all times, except during the final batch generation process.
+3.3.1.2: Image validation and compression on upload should complete within 5 seconds for typical files.
+3.3.1.3: The generation queue shall manage API calls to stay within the Gemini API's rate limits (currently 10 requests per minute).
+3.3.2 Usability
+3.3.2.1: The step-by-step wizard format shall make the creation process easy to follow for non-technical users.
+3.3.2.2: All interactive elements shall have clear labels, tooltips for complex options, and visual feedback (e.g., hover states, selection states).
+3.3.2.3: Error messages shall be clear, concise, and provide actionable advice.
+3.3.3 Reliability
+3.3.3.1: The application shall include a global error boundary to catch unexpected runtime errors and provide a graceful failure state with an option to reload.
+3.3.3.2: The generation queue shall implement a retry mechanism to handle transient API failures.
+3.3.4 Security
+3.3.4.1: The application must not handle, store, or transmit the user's API key. All key management is delegated to the secure AI Studio environment.
