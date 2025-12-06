@@ -339,7 +339,7 @@ export async function registerRoutes(
 
   app.post("/api/generate/draft", requireAuth, async (req, res) => {
     try {
-      const { prompt, stylePreset = "auto", aspectRatio = "1:1" } = req.body;
+      const { prompt, stylePreset = "auto", aspectRatio = "1:1", detail = "medium" } = req.body;
       if (!prompt || typeof prompt !== "string") {
         return res.status(400).json({ message: "Prompt is required" });
       }
@@ -366,7 +366,8 @@ export async function registerRoutes(
         analysis,
         "draft",
         stylePreset,
-        "draft"
+        "draft",
+        detail
       );
       sendEvent("enhancement", { enhancedPrompt, negativePrompts });
       sendEvent("status", { agent: "Style Architect", status: "complete", message: "Prompt enhanced" });
@@ -402,8 +403,9 @@ export async function registerRoutes(
       const {
         prompt,
         stylePreset = "auto",
-        qualityLevel = "standard",
+        qualityLevel = "premium",
         aspectRatio = "1:1",
+        detail = "medium",
       } = req.body;
 
       if (!prompt || typeof prompt !== "string") {
@@ -432,7 +434,8 @@ export async function registerRoutes(
         analysis,
         "final",
         stylePreset,
-        qualityLevel
+        qualityLevel,
+        detail
       );
       sendEvent("enhancement", { enhancedPrompt, negativePrompts });
       sendEvent("status", { agent: "Style Architect", status: "complete", message: "Master prompt ready" });

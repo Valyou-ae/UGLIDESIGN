@@ -54,7 +54,9 @@ import {
   LayoutGrid,
   ImageIcon as ImageIconLucide,
   Mic,
-  MicOff
+  MicOff,
+  Minus,
+  Plus
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -148,10 +150,14 @@ const STYLE_PRESETS = [
 ];
 
 const QUALITY_PRESETS = [
-  { id: "draft", name: "Draft", icon: Zap, tooltip: "Fast preview, good for iteration" },
-  { id: "standard", name: "Standard", icon: Sparkles, tooltip: "Balanced quality and speed" },
-  { id: "premium", name: "Premium", icon: BookOpen, tooltip: "Maximum quality, slower" }, // Using BookOpen as generic gem replacement
-  { id: "ultra", name: "Ultra", icon: Zap, tooltip: "Extreme detail, longest generation" }, // Using Zap as generic flame replacement
+  { id: "draft", name: "Draft", icon: Zap, tooltip: "Fast generation using Gemini 2.5 Flash" },
+  { id: "premium", name: "Premium", icon: Sparkles, tooltip: "Higher quality using upgraded model" },
+];
+
+const DETAIL_LEVELS = [
+  { id: "low", name: "Low", icon: Minus, tooltip: "Minimal detail, faster" },
+  { id: "medium", name: "Medium", icon: Circle, tooltip: "Balanced detail level" },
+  { id: "high", name: "High", icon: Plus, tooltip: "Maximum detail and texture" },
 ];
 
 const ASPECT_RATIOS = [
@@ -162,13 +168,6 @@ const ASPECT_RATIOS = [
   { id: "3:4", label: "Tall", ratioText: "3:4", icon: Smartphone, tooltip: "Tall - Portrait photos, posters" },
 ];
 
-const REFINER_PRESETS = [
-  { id: "cinematic", name: "Cinematic", icon: Clapperboard },
-  { id: "sharp", name: "Sharp Detail", icon: Crosshair },
-  { id: "soft", name: "Soft Glow", icon: Sun },
-  { id: "vibrant", name: "Vibrant", icon: Palette },
-  { id: "moody", name: "Moody", icon: Moon },
-];
 
 export default function ImageGenerator() {
   const [prompt, setPrompt] = useState("A futuristic city with neon lights and flying cars in cyberpunk style");
@@ -184,14 +183,14 @@ export default function ImageGenerator() {
   const [isListening, setIsListening] = useState(false);
   const [settings, setSettings] = useState({
     style: "auto",
-    quality: "standard",
+    quality: "draft",
+    detail: "medium",
     aspectRatio: "1:1",
-    variations: "4",
-    refiner: false,
-    refinerPreset: "cinematic",
+    variations: "1",
     aiCuration: true,
     autoOptimize: true
   });
+  const [qualityAutoUpgraded, setQualityAutoUpgraded] = useState(false);
   
   const { toast } = useToast();
   const { user } = useAuth();
@@ -457,8 +456,29 @@ export default function ImageGenerator() {
     }
   }, [generations, activeFilter]);
 
+  const isTextHeavyPrompt = (text: string): boolean => {
+    const wordCount = text.trim().split(/\s+/).length;
+    const charCount = text.length;
+    const hasTextRenderingKeywords = /\b(text|write|letter|word|font|typography|quote|sign|banner|label|caption|title|heading)\b/i.test(text);
+    const hasQuotedText = /"[^"]+"|'[^']+'/.test(text);
+    return wordCount > 30 || charCount > 180 || hasTextRenderingKeywords || hasQuotedText;
+  };
+
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
+    
+    let effectiveQuality = settings.quality;
+    
+    if (settings.quality === "draft" && isTextHeavyPrompt(prompt) && !qualityAutoUpgraded) {
+      effectiveQuality = "premium";
+      setSettings(prev => ({ ...prev, quality: "premium" }));
+      setQualityAutoUpgraded(true);
+      toast({
+        title: "Quality Upgraded to Premium",
+        description: "Your prompt contains detailed text or is complex. Using Premium mode for better results.",
+        className: "bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-900/20 dark:border-amber-900/50 dark:text-amber-400",
+      });
+    }
     
     setStatus("generating");
     setProgress(0);
@@ -561,10 +581,14 @@ export default function ImageGenerator() {
     };
 
     try {
-      if (settings.quality === "draft") {
+      if (effectiveQuality === "draft") {
         await generateApi.draft(
           prompt,
-          { stylePreset: settings.style, aspectRatio: settings.aspectRatio },
+          { 
+            stylePreset: settings.style, 
+            aspectRatio: settings.aspectRatio,
+            detail: settings.detail
+          },
           handleEvent
         );
       } else {
@@ -572,9 +596,10 @@ export default function ImageGenerator() {
           prompt,
           { 
             stylePreset: settings.style, 
-            qualityLevel: settings.quality,
+            qualityLevel: effectiveQuality,
             aspectRatio: settings.aspectRatio,
-            enableCuration: settings.aiCuration
+            enableCuration: settings.aiCuration,
+            detail: settings.detail
           },
           handleEvent
         );
@@ -853,24 +878,27 @@ export default function ImageGenerator() {
                   <div className="bg-muted/30 border border-border rounded-xl p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 shadow-inner mb-4">
                     
                     {/* Quality */}
-                    <div className="space-y-1.5 col-span-1 sm:col-span-2 md:col-span-1">
+                    <div className="space-y-1.5">
                       <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block px-0.5">Quality</label>
-                      <div className="grid grid-cols-4 gap-1">
+                      <div className="grid grid-cols-2 gap-1">
                         {QUALITY_PRESETS.map(q => (
                           <TooltipProvider key={q.id}>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <button
-                                  onClick={() => setSettings({...settings, quality: q.id})}
+                                  onClick={() => {
+                                    setSettings({...settings, quality: q.id});
+                                    setQualityAutoUpgraded(false);
+                                  }}
                                   className={cn(
-                                    "h-9 rounded-lg flex items-center justify-center gap-1 transition-all border",
+                                    "h-9 rounded-lg flex items-center justify-center gap-1.5 transition-all border",
                                     settings.quality === q.id 
                                       ? "bg-background border-primary/50 text-primary shadow-sm" 
                                       : "bg-background/50 border-transparent text-muted-foreground hover:bg-background hover:text-foreground"
                                   )}
                                 >
                                   <q.icon className={cn("h-3.5 w-3.5 shrink-0", settings.quality === q.id ? "text-primary" : "opacity-70")} />
-                                  <span className="text-[9px] font-medium truncate hidden lg:inline">{q.name}</span>
+                                  <span className="text-[10px] font-medium">{q.name}</span>
                                 </button>
                               </TooltipTrigger>
                               <TooltipContent side="bottom"><p>{q.tooltip}</p></TooltipContent>
@@ -881,7 +909,7 @@ export default function ImageGenerator() {
                     </div>
 
                     {/* Aspect Ratio */}
-                    <div className="space-y-1.5 col-span-1 sm:col-span-2 md:col-span-1">
+                    <div className="space-y-1.5">
                       <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block px-0.5">Ratio</label>
                       <div className="grid grid-cols-5 gap-1">
                         {ASPECT_RATIOS.map(r => (
@@ -901,6 +929,34 @@ export default function ImageGenerator() {
                                 </button>
                               </TooltipTrigger>
                               <TooltipContent side="bottom"><p>{r.label} ({r.ratioText})</p></TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Details */}
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block px-0.5">Details</label>
+                      <div className="grid grid-cols-3 gap-1">
+                        {DETAIL_LEVELS.map(d => (
+                          <TooltipProvider key={d.id}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  onClick={() => setSettings({...settings, detail: d.id})}
+                                  className={cn(
+                                    "h-9 rounded-lg flex items-center justify-center gap-1 transition-all border",
+                                    settings.detail === d.id 
+                                      ? "bg-background border-primary/50 text-primary shadow-sm" 
+                                      : "bg-background/50 border-transparent text-muted-foreground hover:bg-background hover:text-foreground"
+                                  )}
+                                >
+                                  <d.icon className={cn("h-3.5 w-3.5 shrink-0", settings.detail === d.id ? "text-primary" : "opacity-70")} />
+                                  <span className="text-[10px] font-medium hidden sm:inline">{d.name}</span>
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent side="bottom"><p>{d.tooltip}</p></TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
                         ))}
@@ -962,40 +1018,7 @@ export default function ImageGenerator() {
                       </div>
                     </div>
 
-                    {/* Master Refiner */}
-                    <div className="space-y-1.5 col-span-1 sm:col-span-2 md:col-span-1">
-                      <div className="flex items-center justify-between h-[15px]">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block px-0.5">Refiner</label>
-                        <Switch 
-                          checked={settings.refiner}
-                          onCheckedChange={(c) => setSettings({...settings, refiner: c})}
-                          className="scale-75 origin-right data-[state=checked]:bg-primary"
-                        />
-                      </div>
-                      
-                      <div className={cn(
-                        "flex gap-1.5 transition-all duration-300 h-9",
-                        settings.refiner ? "opacity-100" : "opacity-40 pointer-events-none grayscale"
-                      )}>
-                        {REFINER_PRESETS.slice(0, 2).map(preset => (
-                          <button
-                            key={preset.id}
-                            onClick={() => setSettings({...settings, refinerPreset: preset.id})}
-                            disabled={!settings.refiner}
-                            className={cn(
-                              "h-full rounded-md flex items-center justify-center gap-1 px-1 text-[9px] font-medium transition-all border",
-                              settings.refinerPreset === preset.id 
-                                ? "bg-primary/10 border-primary/30 text-primary" 
-                                : "bg-background/30 border-transparent text-muted-foreground hover:bg-background/50"
-                            )}
-                          >
-                            <preset.icon className="h-3 w-3 shrink-0" />
-                            <span className="truncate hidden xl:inline">{preset.name}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
+                    
                   </div>
                 </motion.div>
               )}
