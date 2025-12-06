@@ -3,7 +3,7 @@
  * Central export for all Elite Mockup Generator knowledge modules
  */
 
-export { BRAND_STYLES, getBrandStyle } from './brandStyles';
+export { BRAND_STYLES } from './brandStyles';
 
 export { CAMERA_SPECS, getCameraSpecsForAngle } from './productAngleDetails';
 
@@ -47,9 +47,7 @@ export { ETHNIC_FEATURE_MAP, getEthnicFeatures } from './ethnicFeatures';
 
 export {
   getSomaticProfile,
-  getSomaticProfilePrompt,
-  AVAILABLE_ETHNICITIES,
-  AVAILABLE_SIZES
+  getSomaticProfilePrompt
 } from './somaticProfiles';
 
 export {

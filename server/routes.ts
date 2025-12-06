@@ -670,5 +670,257 @@ export async function registerRoutes(
     }
   });
 
+  // ============== ELITE MOCKUP GENERATOR ROUTES ==============
+  const {
+    analyzeDesignForMockup,
+    generatePersonaLock,
+    generatePersonaHeadshot,
+    buildRenderSpecification,
+    generateMockupBatch,
+    refineMockup,
+    generateMockupWithRetry
+  } = await import("./services/eliteMockupGenerator");
+
+  const {
+    getProduct,
+    getDTGProducts,
+    getAOPProducts,
+    getAllProducts,
+    BRAND_STYLES
+  } = await import("./services/knowledge");
+
+  app.get("/api/elite-mockup/products", requireAuth, async (_req, res) => {
+    try {
+      const dtgProducts = getDTGProducts();
+      const aopProducts = getAOPProducts();
+      res.json({ dtgProducts, aopProducts });
+    } catch (error) {
+      console.error("Products fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch products" });
+    }
+  });
+
+  app.get("/api/elite-mockup/brand-styles", requireAuth, async (_req, res) => {
+    try {
+      const styles = Object.values(BRAND_STYLES).map(style => ({
+        id: style.id,
+        name: style.name,
+        description: style.description,
+        moodKeywords: style.moodKeywords
+      }));
+      res.json({ styles });
+    } catch (error) {
+      console.error("Brand styles fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch brand styles" });
+    }
+  });
+
+  app.post("/api/elite-mockup/analyze", requireAuth, async (req, res) => {
+    try {
+      const { designImage } = req.body;
+      if (!designImage || typeof designImage !== "string") {
+        return res.status(400).json({ message: "Design image is required" });
+      }
+
+      const base64Data = designImage.replace(/^data:image\/\w+;base64,/, "");
+      const analysis = await analyzeDesignForMockup(base64Data);
+      res.json({ analysis });
+    } catch (error) {
+      console.error("Elite design analysis error:", error);
+      res.status(500).json({ message: "Analysis failed" });
+    }
+  });
+
+  app.post("/api/elite-mockup/generate", requireAuth, async (req, res) => {
+    try {
+      const {
+        journey = "DTG",
+        designImage,
+        product,
+        colors,
+        angles,
+        modelDetails,
+        brandStyle = "ECOMMERCE_CLEAN",
+        lightingPreset,
+        materialCondition,
+        environmentPrompt
+      } = req.body;
+
+      if (!designImage || typeof designImage !== "string") {
+        return res.status(400).json({ message: "Design image is required" });
+      }
+
+      if (!product || !colors || !angles) {
+        return res.status(400).json({ message: "Product, colors, and angles are required" });
+      }
+
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+      res.setHeader("X-Accel-Buffering", "no");
+      res.flushHeaders();
+
+      const sendEvent = (event: string, data: any) => {
+        res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+        if (typeof (res as any).flush === 'function') {
+          (res as any).flush();
+        }
+      };
+
+      const base64Data = designImage.replace(/^data:image\/\w+;base64,/, "");
+
+      const validatedBrandStyle = brandStyle || 'ECOMMERCE_CLEAN';
+      const validatedMaterialCondition = materialCondition || 'BRAND_NEW';
+      const validatedLightingPreset = lightingPreset || 'three-point-classic';
+
+      sendEvent("status", { stage: "analyzing", message: "Analyzing your design...", progress: 5 });
+
+      let batchCompleted = false;
+      let personaLockFailed = false;
+
+      try {
+        const batch = await generateMockupBatch({
+          journey,
+          designImage: base64Data,
+          product,
+          colors,
+          angles,
+          modelDetails,
+          brandStyle: validatedBrandStyle,
+          lightingPreset: validatedLightingPreset,
+          materialCondition: validatedMaterialCondition,
+          environmentPrompt
+        }, (completed, total, job) => {
+          const progress = 10 + Math.round((completed / total) * 85);
+          
+          if (job.status === 'completed' && job.result) {
+            sendEvent("image", {
+              jobId: job.id,
+              angle: job.angle,
+              color: job.color.name,
+              imageData: job.result.imageData,
+              mimeType: job.result.mimeType
+            });
+          } else if (job.status === 'failed') {
+            sendEvent("image_error", {
+              jobId: job.id,
+              angle: job.angle,
+              color: job.color.name,
+              error: job.error || "Generation failed"
+            });
+          }
+
+          sendEvent("status", {
+            stage: "generating",
+            message: `Generated ${completed}/${total} mockups...`,
+            progress
+          });
+        }, (error) => {
+          if (error.type === 'persona_lock_failed') {
+            personaLockFailed = true;
+            sendEvent("persona_lock_failed", {
+              message: error.message,
+              details: error.details,
+              suggestion: "Try again or use a different model configuration"
+            });
+          } else {
+            sendEvent("batch_error", {
+              type: error.type,
+              message: error.message,
+              details: error.details
+            });
+          }
+        });
+
+        if (!personaLockFailed) {
+          batchCompleted = true;
+
+          if (batch.personaLockImage) {
+            sendEvent("persona_lock", {
+              headshotImage: batch.personaLockImage
+            });
+          }
+
+          sendEvent("batch_complete", {
+            batchId: batch.id,
+            status: batch.status,
+            totalJobs: batch.jobs.length,
+            completedJobs: batch.jobs.filter(j => j.status === 'completed').length,
+            failedJobs: batch.jobs.filter(j => j.status === 'failed').length
+          });
+
+          sendEvent("status", { stage: "complete", message: "All mockups generated!", progress: 100 });
+        } else {
+          sendEvent("status", { 
+            stage: "failed", 
+            message: "Model generation failed - please try again", 
+            progress: 0 
+          });
+        }
+      } catch (batchErr) {
+        const errorMessage = batchErr instanceof Error ? batchErr.message : String(batchErr);
+        const isPersonaLockError = errorMessage.includes('Persona Lock failed');
+        
+        if (isPersonaLockError) {
+          sendEvent("persona_lock_failed", {
+            message: 'Could not generate a consistent model reference for this configuration.',
+            details: errorMessage,
+            suggestion: "Please try again or adjust model selection (different age, ethnicity, or size)"
+          });
+        } else {
+          sendEvent("batch_error", {
+            type: 'batch_failed',
+            message: 'Mockup generation encountered an error.',
+            details: errorMessage
+          });
+        }
+
+        sendEvent("status", { 
+          stage: "failed", 
+          message: isPersonaLockError 
+            ? "Model generation failed - please try again" 
+            : "Generation failed", 
+          progress: 0 
+        });
+      }
+
+      sendEvent("stream_end", { 
+        success: batchCompleted && !personaLockFailed,
+        timestamp: Date.now() 
+      });
+      res.end();
+    } catch (error) {
+      console.error("Elite mockup generation error:", error);
+      res.write(`event: error\ndata: ${JSON.stringify({ message: "Elite mockup generation failed", type: "system_error" })}\n\n`);
+      res.end();
+    }
+  });
+
+  app.post("/api/elite-mockup/refine", requireAuth, async (req, res) => {
+    try {
+      const { originalJob, refinementPrompt, originalDesignImage } = req.body;
+
+      if (!originalJob || !refinementPrompt || !originalDesignImage) {
+        return res.status(400).json({ message: "Original job, refinement prompt, and original design are required" });
+      }
+
+      const base64Data = originalDesignImage.replace(/^data:image\/\w+;base64,/, "");
+      const result = await refineMockup(originalJob, refinementPrompt, base64Data);
+
+      if (result) {
+        res.json({
+          success: true,
+          imageData: result.imageData,
+          mimeType: result.mimeType
+        });
+      } else {
+        res.status(500).json({ message: "Refinement failed" });
+      }
+    } catch (error) {
+      console.error("Elite mockup refinement error:", error);
+      res.status(500).json({ message: "Refinement failed" });
+    }
+  });
+
   return httpServer;
 }

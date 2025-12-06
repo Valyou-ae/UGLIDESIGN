@@ -108,10 +108,79 @@ Preferred communication style: Simple, everyday language.
 - Attached assets in `/attached_assets` for design specifications
 - Custom Vite plugin for OpenGraph meta tag updates (vite-plugin-meta-images.ts)
 
-**Third-Party Services (Planned/Mocked)**
-- Google Gemini API for AI image generation (referenced in design specs)
+**Third-Party Services**
+- Google Gemini API for AI image generation
 - Stripe for payment processing (imports present in dependencies)
 - Email service via nodemailer (listed in dependencies)
+
+## Elite Mockup Generator (Lock-In System)
+
+**Architecture**
+- Location: `server/services/eliteMockupGenerator.ts`
+- Knowledge Base: `server/services/knowledge/` (13 modules)
+- Types: `shared/mockupTypes.ts`
+
+**Lock-In Consistency System**
+The Elite Mockup Generator uses a multi-lock approach to ensure consistent, high-quality mockups:
+
+1. **Persona Lock** - For wearable products, generates a passport-style headshot first as a visual anchor. All subsequent mockups must feature this EXACT same person. Includes:
+   - Unified persona library (48 personas across 3 age groups)
+   - Somatic profiles (body type by age/sex/ethnicity/size)
+   - Ethnic feature integration (hair/eye colors, styles)
+
+2. **Product Lock** - Enforces product specifications:
+   - Product ID, name, category, type
+   - Print method (DTG or AOP)
+   - Material condition (Brand New, Lived In, Vintage)
+
+3. **Color Lock** - Exact color matching:
+   - Product base color (hex code)
+   - Design color preservation
+   - AOP accent colors
+
+4. **Design Lock** - Design application rules:
+   - DTG: Direct-to-garment print following contours
+   - AOP: Seamless edge-to-edge sublimation
+
+5. **Camera/Pose Lock** - Consistent camera settings:
+   - Lens type, focal length, aperture
+   - 5 angle presets (front, three-quarter, side, closeup, size-chart)
+
+6. **Lighting Lock** - Consistent lighting across shots:
+   - 11 lighting presets (6 studio, 5 natural)
+   - Color temperature, light ratios
+
+7. **AOP Physics Locks** (for All-Over Print):
+   - Construction Lock: Seamless panel alignment
+   - Scale Lock: Physical units (not percentage)
+   - Physics Lock: Fabric drape and contour conformity
+
+**Knowledge Base Modules**
+- `brandStyles.ts` - 5 brand style presets
+- `productAngleDetails.ts` - Camera specs for 5 angles
+- `negativePrompts.ts` - AI artifact prevention
+- `contourDistortion.ts` - Body contour mapping
+- `lightingSetups.ts` - Studio/natural lighting
+- `materialRealism.ts` - Fabric physics, print methods
+- `somaticProfiles.ts` - Body type generator
+- `productBlueprints.ts` - DTG/AOP product specs
+- `humanRealism.ts` - Photorealism checklist
+- `ethnicFeatures.ts` - Cultural appearance traits
+- `names.ts` - Name library by ethnicity/sex
+- `unifiedPersonas.ts` - 48 character personas
+
+**Queue System**
+- 3 concurrent jobs maximum
+- 10 requests per minute rate limit
+- 3x auto-retry with exponential backoff
+- SSE streaming for progress updates
+
+**API Endpoints**
+- `GET /api/elite-mockup/products` - List DTG/AOP products
+- `GET /api/elite-mockup/brand-styles` - List brand styles
+- `POST /api/elite-mockup/analyze` - Analyze design image
+- `POST /api/elite-mockup/generate` - Generate mockup batch (SSE)
+- `POST /api/elite-mockup/refine` - Refine existing mockup
 
 **Notable Architectural Decisions**
 - Monorepo structure with shared schema (`/shared/schema.ts`)
