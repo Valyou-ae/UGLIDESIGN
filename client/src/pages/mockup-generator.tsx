@@ -260,6 +260,7 @@ export default function MockupGenerator() {
   const [seamlessPhase, setSeamlessPhase] = useState<'analyzing' | 'generating' | 'selecting'>('analyzing');
   const [seamlessVariations, setSeamlessVariations] = useState<PatternVariation[]>([]);
   const [isGeneratingPatterns, setIsGeneratingPatterns] = useState(false);
+  const [isGeneratingAIPattern, setIsGeneratingAIPattern] = useState(false);
   const [selectedVariationId, setSelectedVariationId] = useState<string | null>(null);
   const [patternScale, setPatternScale] = useState(50);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -327,6 +328,50 @@ export default function MockupGenerator() {
       generatePatternVariations();
     }
   }, [currentStep, seamlessPhase, isGeneratingPatterns, seamlessVariations.length, generatePatternVariations]);
+
+  // Generate AI-enhanced pattern via API
+  const generateAIEnhancedPattern = useCallback(async () => {
+    if (!uploadedImage || isGeneratingAIPattern) return;
+    
+    setIsGeneratingAIPattern(true);
+    
+    try {
+      const response = await fetch('/api/seamless-pattern/ai-enhanced', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ designImage: uploadedImage }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success && data.patternUrl) {
+        // Update the AI Enhanced variation with the generated pattern
+        setSeamlessVariations(prev => prev.map(v => 
+          v.id === 'ai_enhanced' 
+            ? { ...v, url: data.patternUrl, isRecommended: false }
+            : v
+        ));
+        // Auto-select the AI Enhanced pattern
+        setSelectedVariationId('ai_enhanced');
+        
+        toast({
+          title: "AI Pattern Generated",
+          description: "Your AI-enhanced seamless pattern is ready!",
+        });
+      } else {
+        throw new Error(data.message || 'Failed to generate AI pattern');
+      }
+    } catch (error) {
+      console.error('AI pattern generation failed:', error);
+      toast({
+        title: "AI Pattern Failed",
+        description: "Could not generate AI-enhanced pattern. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingAIPattern(false);
+    }
+  }, [uploadedImage, isGeneratingAIPattern, toast]);
 
   // Cleanup interval on unmount
   useEffect(() => {
@@ -1408,20 +1453,75 @@ export default function MockupGenerator() {
                                     const isAi = variation.id === 'ai_enhanced';
                                     
                                     if (isAi) {
+                                      const hasAIPattern = variation.url && variation.url.length > 0;
+                                      
+                                      // If AI pattern has been generated, show it like the other patterns
+                                      if (hasAIPattern) {
+                                        return (
+                                          <div
+                                            key={variation.id}
+                                            onClick={() => setSelectedVariationId(variation.id)}
+                                            className={cn(
+                                              "relative aspect-square rounded-xl overflow-hidden border-4 transition-all duration-200 cursor-pointer group",
+                                              isSelected 
+                                                ? "border-purple-600 shadow-lg shadow-purple-500/25 scale-105 z-10" 
+                                                : "border-transparent hover:border-purple-200 dark:hover:border-purple-800 hover:shadow-lg"
+                                            )}
+                                          >
+                                            <div 
+                                              className="w-full h-full bg-muted"
+                                              style={{
+                                                backgroundImage: `url(${variation.url})`,
+                                                backgroundSize: '33.33%',
+                                                backgroundRepeat: 'repeat'
+                                              }}
+                                            />
+                                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 pt-4">
+                                              <span className="text-xs font-bold text-white block truncate">{variation.name}</span>
+                                            </div>
+                                            <div className="absolute top-2 right-2 bg-purple-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 shadow-sm">
+                                              <Sparkles className="h-3 w-3 fill-current" />
+                                              AI
+                                            </div>
+                                            {isSelected && (
+                                              <div className="absolute inset-0 bg-purple-600/30 flex items-center justify-center backdrop-blur-[1px]">
+                                                <CheckCircle2 className="h-12 w-12 text-white drop-shadow-md" />
+                                              </div>
+                                            )}
+                                          </div>
+                                        );
+                                      }
+                                      
+                                      // Show generate button for AI Enhanced
                                       return (
                                         <div 
                                           key={variation.id}
-                                          className="relative aspect-square rounded-xl border-4 border-dashed border-border bg-card/50 flex flex-col items-center justify-center text-center p-4 group cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors"
+                                          className="relative aspect-square rounded-xl border-4 border-dashed border-purple-300 dark:border-purple-700 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 flex flex-col items-center justify-center text-center p-4 group cursor-pointer hover:border-purple-400 dark:hover:border-purple-600 transition-all"
                                         >
-                                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 pt-4">
-                                            <span className="text-xs font-bold text-white block truncate">{variation.name}</span>
-                                          </div>
-                                          <p className="text-xs text-muted-foreground mb-3">{variation.description}</p>
-                                          <Button size="sm" className="h-7 text-[10px] bg-purple-600 hover:bg-purple-700 text-white gap-1.5">
-                                            <Sparkles className="h-3 w-3" />
-                                            Generate
+                                          <Sparkles className="h-8 w-8 text-purple-500 mb-2" />
+                                          <span className="text-xs font-bold text-purple-900 dark:text-purple-100 mb-1">{variation.name}</span>
+                                          <p className="text-[10px] text-purple-600 dark:text-purple-400 mb-3">{variation.description}</p>
+                                          <Button 
+                                            size="sm" 
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              generateAIEnhancedPattern();
+                                            }}
+                                            disabled={isGeneratingAIPattern}
+                                            className="h-7 text-[10px] bg-purple-600 hover:bg-purple-700 text-white gap-1.5"
+                                          >
+                                            {isGeneratingAIPattern ? (
+                                              <>
+                                                <Loader2 className="h-3 w-3 animate-spin" />
+                                                Generating...
+                                              </>
+                                            ) : (
+                                              <>
+                                                <Sparkles className="h-3 w-3" />
+                                                Generate
+                                              </>
+                                            )}
                                           </Button>
-                                          <span className="text-[10px] text-muted-foreground mt-2">API Key required</span>
                                         </div>
                                       );
                                     }

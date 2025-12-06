@@ -1212,5 +1212,48 @@ export async function registerRoutes(
     }
   });
 
+  // ============== AI SEAMLESS PATTERN ROUTES ==============
+  const { generateAISeamlessPattern } = await import("./services/gemini");
+
+  app.post("/api/seamless-pattern/ai-enhanced", requireAuth, async (req, res) => {
+    try {
+      const { designImage } = req.body;
+
+      if (!designImage || typeof designImage !== "string") {
+        return res.status(400).json({ message: "Design image is required" });
+      }
+
+      const base64Match = designImage.match(/^data:image\/(\w+);base64,(.+)$/);
+      if (!base64Match) {
+        return res.status(400).json({ message: "Invalid image format. Expected base64 data URL." });
+      }
+
+      const mimeType = `image/${base64Match[1]}`;
+      const base64Data = base64Match[2];
+
+      const result = await generateAISeamlessPattern(base64Data, mimeType);
+
+      if (result) {
+        res.json({
+          success: true,
+          patternUrl: `data:${result.mimeType};base64,${result.imageData}`,
+          mimeType: result.mimeType,
+          description: result.text
+        });
+      } else {
+        res.status(500).json({ 
+          success: false, 
+          message: "Failed to generate AI-enhanced pattern. Please try again." 
+        });
+      }
+    } catch (error) {
+      console.error("AI seamless pattern generation error:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "AI pattern generation failed" 
+      });
+    }
+  });
+
   return httpServer;
 }

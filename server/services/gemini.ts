@@ -574,3 +574,93 @@ export async function generateMockup(
     return null;
   }
 }
+
+/**
+ * Generate an AI-enhanced seamless pattern from an input image
+ * Uses Gemini's image generation capabilities to create creative seamless patterns
+ */
+export async function generateAISeamlessPattern(
+  imageBase64: string,
+  mimeType: string = "image/png"
+): Promise<GeneratedImageResult | null> {
+  const prompt = `Transform this design into a SEAMLESS TILEABLE PATTERN.
+
+CRITICAL REQUIREMENTS:
+1. The output MUST tile perfectly - when placed side by side or stacked, edges must match exactly with no visible seams
+2. Maintain the artistic style and color palette of the original design
+3. Create a visually balanced, repeating pattern that works as an all-over print
+4. Ensure elements flow naturally across the tile boundaries
+5. The pattern should be suitable for fabric printing (clothing, accessories)
+
+TECHNICAL SPECIFICATIONS:
+- Output a square 1024x1024 pixel seamless tile
+- Edges must wrap perfectly (left matches right, top matches bottom)
+- Maintain consistent color depth and contrast
+- Preserve fine details from the original design
+
+Generate a beautiful, creative seamless pattern based on this design:`;
+
+  try {
+    const response = await genAI.models.generateContent({
+      model: MODELS.IMAGE_GENERATION,
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              inlineData: {
+                mimeType: mimeType,
+                data: imageBase64,
+              },
+            },
+            {
+              text: prompt,
+            },
+          ],
+        },
+      ],
+      config: {
+        responseModalities: [Modality.TEXT, Modality.IMAGE],
+      },
+    });
+
+    const candidates = response.candidates;
+    if (!candidates || candidates.length === 0) {
+      console.error("No candidates in seamless pattern response");
+      return null;
+    }
+
+    const content = candidates[0].content;
+    if (!content || !content.parts) {
+      console.error("No content parts in seamless pattern response");
+      return null;
+    }
+
+    let imageData = "";
+    let resultMimeType = "image/png";
+    let textResponse = "";
+
+    for (const part of content.parts) {
+      if (part.text) {
+        textResponse = part.text;
+      } else if (part.inlineData && part.inlineData.data) {
+        imageData = part.inlineData.data;
+        resultMimeType = part.inlineData.mimeType || "image/png";
+      }
+    }
+
+    if (imageData) {
+      return {
+        imageData,
+        mimeType: resultMimeType,
+        text: textResponse || undefined,
+      };
+    }
+
+    console.error("No image data in seamless pattern response");
+    return null;
+  } catch (error) {
+    console.error("AI seamless pattern generation failed:", error);
+    return null;
+  }
+}
