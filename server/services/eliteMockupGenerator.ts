@@ -89,7 +89,7 @@ interface RenderSpecification {
   fullPrompt: string;
 }
 
-interface PersonaLock {
+export interface PersonaLock {
   persona: UnifiedPersona;
   headshot?: string;
   somaticDescription: string;
@@ -846,7 +846,11 @@ export async function generateMockupBatch(
   let personaLock: PersonaLock | undefined;
   let personaHeadshot: string | undefined;
 
-  if (request.product.isWearable && request.modelDetails) {
+  if (request.existingPersonaLock) {
+    personaLock = request.existingPersonaLock as PersonaLock;
+    personaHeadshot = personaLock.headshot;
+    console.log("Reusing existing persona lock for consistent model appearance");
+  } else if (request.product.isWearable && request.modelDetails) {
     try {
       personaLock = await generatePersonaLock(request.modelDetails);
       
@@ -904,6 +908,7 @@ export async function generateMockupBatch(
     materialCondition: request.materialCondition,
     environmentPrompt: request.environmentPrompt,
     personaLockImage: personaHeadshot,
+    personaLock: personaLock,
     jobs,
     status: 'processing',
     createdAt: Date.now()

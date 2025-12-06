@@ -768,6 +768,8 @@ export async function registerRoutes(
 
         sendEvent("status", { stage: "preparing", message: "Preparing model reference...", progress: 8 });
 
+        let sharedPersonaLock: any = undefined;
+
         try {
           for (let sizeIndex = 0; sizeIndex < sizesToGenerate.length; sizeIndex++) {
             const currentSize = sizesToGenerate[sizeIndex];
@@ -794,7 +796,8 @@ export async function registerRoutes(
               brandStyle: mappedStyle as any,
               lightingPreset: 'three-point-classic',
               materialCondition: 'BRAND_NEW',
-              environmentPrompt: scene
+              environmentPrompt: scene,
+              existingPersonaLock: sharedPersonaLock
             }, (completed, total, job) => {
               const completedOverall = (sizeIndex * jobsPerSize) + completed;
               const progress = 10 + Math.round((completedOverall / totalJobs) * 85);
@@ -843,6 +846,11 @@ export async function registerRoutes(
 
             if (personaLockFailed) {
               break;
+            }
+
+            if (sizeIndex === 0 && batch.personaLock) {
+              sharedPersonaLock = batch.personaLock;
+              console.log("PERSONA LOCK CAPTURED - will reuse for all subsequent sizes");
             }
 
             if (sizeIndex === 0 && batch.personaLockImage) {

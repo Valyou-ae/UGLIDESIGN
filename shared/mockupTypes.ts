@@ -326,6 +326,7 @@ export interface MockupBatch {
   materialCondition?: MaterialPresetKey;
   environmentPrompt?: string;
   personaLockImage?: string;
+  personaLock?: PersonaLockData;
   jobs: GenerationJob[];
   status: 'pending' | 'processing' | 'completed' | 'partial' | 'failed';
   createdAt: number;
@@ -367,6 +368,12 @@ export interface NegativePromptCategory {
 
 export type JourneyType = 'DTG' | 'AOP';
 
+export interface PersonaLockData {
+  persona: UnifiedPersona;
+  headshot?: string;
+  somaticDescription: string;
+}
+
 export interface MockupGenerationRequest {
   journey: JourneyType;
   designImage: string;
@@ -381,6 +388,7 @@ export interface MockupGenerationRequest {
   materialCondition?: MaterialPresetKey;
   environmentPrompt?: string;
   patternScale?: number;
+  existingPersonaLock?: PersonaLockData;
 }
 
 export interface MockupRefinementRequest {
