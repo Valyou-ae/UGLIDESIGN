@@ -302,11 +302,16 @@ export function buildRenderSpecification(
   const personaLockBlock = product.isWearable && personaLock ? `
 ===== PERSONA LOCK (CONSISTENCY ANCHOR) =====
 [LOCKED - DO NOT DEVIATE FROM THESE IDENTITY DETAILS]
+[THIS SAME PERSON MUST APPEAR IN EVERY SHOT]
+
+PRIMARY IDENTITY:
 - Persona ID: ${personaLock.persona.id}
 - Name: ${personaLock.persona.name}
 - Age: ${personaLock.persona.age}
 - Sex: ${personaLock.persona.sex} (MUST be ${personaLock.persona.sex.toLowerCase()} - do not show opposite sex)
-- Ethnicity: ${personaLock.persona.ethnicity}
+- Ethnicity: ${personaLock.persona.ethnicity} (CRITICAL - see enforcement below)
+
+PHYSICAL CHARACTERISTICS:
 - Height: ${personaLock.persona.height}
 - Weight: ${personaLock.persona.weight}
 - Build: ${personaLock.persona.build}
@@ -316,11 +321,31 @@ export function buildRenderSpecification(
 - Facial features: ${personaLock.persona.facialFeatures}
 - Full description: ${personaLock.somaticDescription}
 
-CRITICAL IDENTITY ENFORCEMENT:
-- Sex: The model MUST be ${personaLock.persona.sex.toLowerCase()}. Do not show a ${personaLock.persona.sex === 'Male' ? 'female' : 'male'}.
-- Ethnicity: The model MUST have ${personaLock.persona.ethnicity} ethnic appearance with appropriate skin tone, facial features, and hair characteristics.
-- Body Size: The model body MUST match the specified build (${personaLock.persona.build}) and weight (${personaLock.persona.weight}).
-- If a reference headshot image is provided, this person MUST appear EXACTLY as shown in that headshot. Match all facial features, hair, skin tone, and identity markers precisely.
+===== CRITICAL IDENTITY ENFORCEMENT =====
+[MANDATORY - FAILURE TO MATCH THESE IS NOT ACCEPTABLE]
+
+1. SEX ENFORCEMENT:
+   - The model MUST be ${personaLock.persona.sex.toLowerCase()}
+   - Do NOT show a ${personaLock.persona.sex === 'Male' ? 'female' : 'male'} under any circumstances
+
+2. ETHNICITY ENFORCEMENT (HIGHEST PRIORITY):
+   - Ethnicity: ${personaLock.persona.ethnicity}
+   - Skin tone: ${personaLock.persona.skinTone} (EXACT MATCH REQUIRED)
+   - Facial features: ${personaLock.persona.facialFeatures}
+   - Eye shape/color: ${personaLock.persona.eyeColor}
+   - Hair texture/color: ${personaLock.persona.hairColor}, ${personaLock.persona.hairStyle}
+   - DO NOT substitute one ethnicity for another (e.g., do not show Asian when Middle Eastern is specified)
+   - DO NOT blend ethnic features incorrectly
+
+3. BODY SIZE ENFORCEMENT:
+   - Build: ${personaLock.persona.build}
+   - Weight: ${personaLock.persona.weight}
+   - The body MUST match these specifications exactly
+
+4. CROSS-SHOT CONSISTENCY:
+   - This EXACT same person must appear in ALL angle shots
+   - Same face, same body, same features across front, side, three-quarter, and close-up views
+   - If a reference headshot image is provided, match that EXACT person in every shot
 
 ${getFullHumanRealismPrompt()}
 ===== END PERSONA LOCK =====` : product.isWearable ? `
@@ -448,14 +473,24 @@ ${getContourDistortionPrompt()}
     : "";
 
   const environmentBlock = `
-===== ENVIRONMENT =====
+===== ENVIRONMENT LOCK =====
+[LOCKED - IDENTICAL ENVIRONMENT ACROSS ALL ANGLES]
+CRITICAL: This EXACT environment must be used for ALL shots in this batch.
+Do NOT change the background, location, or setting between different angle shots.
+
 - Brand style: ${style.name}
 - Mood: ${style.description}
 - Atmosphere: ${style.atmosphere}
 - Setting: ${environmentPrompt || style.preferredEnvironment}
 - Color palette mood: ${style.colorPalette}
 ${style.platformNotes}
-===== END ENVIRONMENT =====`;
+
+CONSISTENCY REQUIREMENT:
+- The SAME physical location/studio must appear in every shot
+- Background elements must remain IDENTICAL (if studio, use same backdrop color; if outdoor, use same location)
+- Lighting conditions must match the environment (studio lighting for studio, natural for outdoor)
+- DO NOT mix studio shots with outdoor shots - pick ONE and maintain throughout
+===== END ENVIRONMENT LOCK =====`;
 
   const negativePrompts = getNegativePrompts(product.productType, product.isWearable && !!personaLock);
 
