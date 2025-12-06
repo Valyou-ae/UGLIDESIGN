@@ -251,33 +251,8 @@ export const DTG_PRODUCTS: Product[] = [
 
 export const AOP_PRODUCTS: Product[] = [
   {
-    id: 'aop-tshirt',
-    name: 'All-Over Print T-Shirt',
-    category: 'Apparel',
-    subcategory: 'T-Shirts',
-    productType: 'aop-apparel',
-    isWearable: true,
-    availableColors: AOP_BASE_COLORS,
-    defaultPlacement: 'full-coverage',
-    genderTarget: 'unisex',
-    sizeChart: STANDARD_SIZE_CHART,
-    printSpec: {
-      printAreaWidth: 32,
-      printAreaHeight: 38,
-      printAreaWidthPixels: 4800,
-      printAreaHeightPixels: 5700,
-      dpi: 150,
-      placement: 'full-surface',
-      placementDescription: 'Edge-to-edge seamless sublimation covering entire garment',
-      bleed: 0.25,
-      wrapAround: true,
-      surfaceType: 'flexible',
-      notes: 'Pattern must tile seamlessly across front and back panels'
-    }
-  },
-  {
     id: 'aop-hoodie',
-    name: 'All-Over Print Hoodie',
+    name: 'Unisex AOP Hoodie',
     category: 'Apparel',
     subcategory: 'Hoodies',
     productType: 'aop-apparel',
@@ -301,15 +276,15 @@ export const AOP_PRODUCTS: Product[] = [
     }
   },
   {
-    id: 'aop-leggings',
-    name: 'All-Over Print Leggings',
+    id: 'aop-womens-leggings',
+    name: 'AOP Women\'s Leggings',
     category: 'Apparel',
     subcategory: 'Leggings',
     productType: 'aop-apparel',
     isWearable: true,
     availableColors: AOP_BASE_COLORS,
     defaultPlacement: '360-coverage',
-    genderTarget: 'unisex',
+    genderTarget: 'womens',
     sizeChart: STANDARD_SIZE_CHART,
     printSpec: {
       printAreaWidth: 36,
@@ -323,31 +298,6 @@ export const AOP_PRODUCTS: Product[] = [
       wrapAround: true,
       surfaceType: 'flexible',
       notes: 'Pattern must tile seamlessly across panels and seams'
-    }
-  },
-  {
-    id: 'aop-joggers',
-    name: 'All-Over Print Joggers',
-    category: 'Apparel',
-    subcategory: 'Joggers',
-    productType: 'aop-apparel',
-    isWearable: true,
-    availableColors: AOP_BASE_COLORS,
-    defaultPlacement: 'full-coverage-side-panel',
-    genderTarget: 'unisex',
-    sizeChart: STANDARD_SIZE_CHART,
-    printSpec: {
-      printAreaWidth: 40,
-      printAreaHeight: 44,
-      printAreaWidthPixels: 6000,
-      printAreaHeightPixels: 6600,
-      dpi: 150,
-      placement: 'full-surface',
-      placementDescription: 'Edge-to-edge seamless sublimation covering entire garment',
-      bleed: 0.25,
-      wrapAround: true,
-      surfaceType: 'flexible',
-      notes: 'Pattern must align at inseam and side seams'
     }
   },
   {
