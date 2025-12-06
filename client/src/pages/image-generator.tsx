@@ -93,7 +93,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { generateApi, GenerationEvent } from "@/lib/api";
+import { generateApi, imagesApi, GenerationEvent } from "@/lib/api";
+import { useAuth } from "@/hooks/use-auth";
 
 // Import generated images for the gallery
 import cyberpunkCity from "@assets/generated_images/futuristic_cyberpunk_city_street_at_night_with_neon_lights_and_rain.png";
@@ -195,7 +196,10 @@ export default function ImageGenerator() {
   });
   
   const { toast } = useToast();
+  const { user } = useAuth();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isVarying, setIsVarying] = useState(false);
 
   const downloadImage = (url: string, filename: string) => {
     const link = document.createElement('a');
@@ -206,8 +210,183 @@ export default function ImageGenerator() {
     document.body.removeChild(link);
   };
 
-  const toggleFavorite = (id: string) => {
+  const saveToLibrary = async (image: GeneratedImage) => {
+    if (!user) {
+      toast({ title: "Please log in", description: "You need to be logged in to save images.", variant: "destructive" });
+      return;
+    }
+    setIsSaving(true);
+    try {
+      await imagesApi.create({
+        imageUrl: image.src,
+        prompt: image.prompt,
+        style: image.style || "auto",
+        aspectRatio: image.aspectRatio || "1:1",
+      });
+      toast({ title: "Saved to Library", description: "Image has been saved to your creations." });
+    } catch (error) {
+      toast({ title: "Save Failed", description: error instanceof Error ? error.message : "Could not save image.", variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const toggleFavorite = async (id: string) => {
+    if (!user) {
+      toast({ title: "Please log in", description: "You need to be logged in to save favorites.", variant: "destructive" });
+      return;
+    }
+    
+    if (id.startsWith("sample-")) {
+      setGenerations(prev => prev.map(g => g.id === id ? { ...g, isFavorite: !g.isFavorite } : g));
+      if (selectedImage && selectedImage.id === id) {
+        setSelectedImage(prev => prev ? { ...prev, isFavorite: !prev.isFavorite } : null);
+      }
+      return;
+    }
+    
+    const prevFavorite = generations.find(g => g.id === id)?.isFavorite;
     setGenerations(prev => prev.map(g => g.id === id ? { ...g, isFavorite: !g.isFavorite } : g));
+    if (selectedImage && selectedImage.id === id) {
+      setSelectedImage(prev => prev ? { ...prev, isFavorite: !prev.isFavorite } : null);
+    }
+    try {
+      await imagesApi.toggleFavorite(id);
+    } catch (error) {
+      setGenerations(prev => prev.map(g => g.id === id ? { ...g, isFavorite: prevFavorite } : g));
+      if (selectedImage && selectedImage.id === id) {
+        setSelectedImage(prev => prev ? { ...prev, isFavorite: prevFavorite } : null);
+      }
+      toast({ title: "Failed", description: "Could not update favorite status.", variant: "destructive" });
+    }
+  };
+
+  const handleVary = async (image: GeneratedImage) => {
+    if (!user) {
+      toast({ title: "Please log in", description: "You need to be logged in to create variations.", variant: "destructive" });
+      return;
+    }
+    if (isVarying || status === "generating") return;
+    setIsVarying(true);
+    setSelectedImage(null);
+    setPrompt(image.prompt);
+    
+    const imageStyle = image.style || "auto";
+    const imageAspectRatio = image.aspectRatio || "1:1";
+    
+    toast({ title: "Generating Variation", description: "Creating a new variation of your image..." });
+    
+    setStatus("generating");
+    setProgress(0);
+    setAgents(AGENTS.map(a => ({ ...a, status: "idle" })));
+
+    let imageCount = 0;
+
+    const handleEvent = (event: GenerationEvent) => {
+      const { type, data } = event;
+
+      if (type === "status" && data.agent && data.status) {
+        setAgents(prev => {
+          const updated = prev.map(a => {
+            if (a.name === data.agent) {
+              return { ...a, status: data.status as Agent["status"], message: data.message || a.message };
+            }
+            return a;
+          });
+          const completedCount = updated.filter(a => a.status === "complete").length;
+          const workingCount = updated.filter(a => a.status === "working").length;
+          const agentProgress = Math.min(90, (completedCount * 20) + (workingCount * 10));
+          setProgress(agentProgress);
+          return updated;
+        });
+      }
+
+      if (type === "image" && data.imageData && data.mimeType) {
+        imageCount++;
+        const newImage: GeneratedImage = {
+          id: `${Date.now()}-${imageCount}`,
+          src: `data:${data.mimeType};base64,${data.imageData}`,
+          prompt: image.prompt,
+          style: imageStyle,
+          aspectRatio: imageAspectRatio,
+          timestamp: "Just now",
+          isNew: true,
+          isFavorite: false
+        };
+        setGenerations(prev => [newImage, ...prev]);
+      }
+
+      if (type === "final_image" && data.imageData && data.mimeType) {
+        imageCount++;
+        const newImage: GeneratedImage = {
+          id: `${Date.now()}-${imageCount}`,
+          src: `data:${data.mimeType};base64,${data.imageData}`,
+          prompt: image.prompt,
+          style: imageStyle,
+          aspectRatio: imageAspectRatio,
+          timestamp: "Just now",
+          isNew: true,
+          isFavorite: false
+        };
+        setGenerations(prev => [newImage, ...prev]);
+      }
+
+      if (type === "complete") {
+        setProgress(100);
+        setAgents(prev => prev.map(a => ({ ...a, status: "complete" })));
+        setStatus("complete");
+        toast({ title: "Variation Complete", description: "New variation has been created." });
+        setTimeout(() => {
+          setStatus("idle");
+          setAgents(AGENTS.map(a => ({ ...a, status: "idle" })));
+          setProgress(0);
+          setIsVarying(false);
+        }, 3000);
+      }
+
+      if (type === "error") {
+        setStatus("idle");
+        setAgents(AGENTS.map(a => ({ ...a, status: "idle" })));
+        setProgress(0);
+        setIsVarying(false);
+        toast({ title: "Variation Failed", description: data.message || "Could not create variation.", variant: "destructive" });
+      }
+    };
+
+    try {
+      await generateApi.draft(image.prompt, { stylePreset: imageStyle, aspectRatio: imageAspectRatio }, handleEvent);
+    } catch (error) {
+      setStatus("idle");
+      setAgents(AGENTS.map(a => ({ ...a, status: "idle" })));
+      setProgress(0);
+      setIsVarying(false);
+      toast({ title: "Variation Failed", description: error instanceof Error ? error.message : "Could not create variation.", variant: "destructive" });
+    }
+  };
+
+  const handleDeleteImage = async (id: string) => {
+    if (id.startsWith("sample-")) {
+      setGenerations(prev => prev.filter(g => g.id !== id));
+      setImageToDelete(null);
+      toast({ title: "Image Removed", description: "Sample image has been removed from view." });
+      return;
+    }
+    
+    if (!user) {
+      toast({ title: "Please log in", description: "You need to be logged in to delete images.", variant: "destructive" });
+      setImageToDelete(null);
+      return;
+    }
+    
+    try {
+      await imagesApi.delete(id);
+      setGenerations(prev => prev.filter(g => g.id !== id));
+      setImageToDelete(null);
+      toast({ title: "Image Deleted", description: "The image has been removed." });
+    } catch (error) {
+      setImageToDelete(null);
+      toast({ title: "Delete Failed", description: error instanceof Error ? error.message : "Could not delete image.", variant: "destructive" });
+    }
   };
 
   const toggleVoiceInput = () => {
@@ -442,16 +621,7 @@ export default function ImageGenerator() {
     }, 3000);
   };
 
-  const handleDeleteConfirm = (id: string) => {
-    setGenerations(prev => prev.filter(g => g.id !== id));
-    setImageToDelete(null);
-    toast({
-      title: "Image Deleted",
-      description: "The image has been permanently removed.",
-      className: "bg-red-50 border-red-200 text-red-800 dark:bg-red-900/20 dark:border-red-900/50 dark:text-red-400",
-    });
-  };
-
+  
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -459,40 +629,65 @@ export default function ImageGenerator() {
     }
   };
 
-  // Initialize with some sample images if empty
+  // Load user's saved images from API or use sample images
   useEffect(() => {
-    if (generations.length === 0) {
-      setGenerations([
-        {
-          id: "1",
-          src: oilPainting,
-          prompt: "Oil painting portrait of a young woman with flowers in her hair",
-          style: "oil",
-          aspectRatio: "1:1",
-          timestamp: "2 hours ago",
-          isFavorite: false
-        },
-        {
-          id: "2",
-          src: fantasyLandscape,
-          prompt: "Epic fantasy landscape with mountains and a dragon flying",
-          style: "fantasy",
-          aspectRatio: "16:9",
-          timestamp: "5 hours ago",
-          isFavorite: true
-        },
-        {
-          id: "3",
-          src: scifiSpaceship,
-          prompt: "Sci-fi spaceship landing on an alien planet with two moons",
-          style: "scifi",
-          aspectRatio: "16:9",
-          timestamp: "1 day ago",
-          isFavorite: false
+    const loadImages = async () => {
+      if (user) {
+        try {
+          const { images } = await imagesApi.getAll();
+          if (images && images.length > 0) {
+            const loadedImages: GeneratedImage[] = images.map((img: any) => ({
+              id: img.id,
+              src: img.imageUrl,
+              prompt: img.prompt,
+              style: img.style || "auto",
+              aspectRatio: img.aspectRatio || "1:1",
+              timestamp: new Date(img.createdAt).toLocaleDateString(),
+              isFavorite: img.isFavorite || false
+            }));
+            setGenerations(loadedImages);
+            return;
+          }
+        } catch (error) {
+          console.error("Failed to load images:", error);
         }
-      ]);
-    }
-  }, []);
+      }
+      
+      if (generations.length === 0) {
+        setGenerations([
+          {
+            id: "sample-1",
+            src: oilPainting,
+            prompt: "Oil painting portrait of a young woman with flowers in her hair",
+            style: "oil",
+            aspectRatio: "1:1",
+            timestamp: "Sample",
+            isFavorite: false
+          },
+          {
+            id: "sample-2",
+            src: fantasyLandscape,
+            prompt: "Epic fantasy landscape with mountains and a dragon flying",
+            style: "fantasy",
+            aspectRatio: "16:9",
+            timestamp: "Sample",
+            isFavorite: false
+          },
+          {
+            id: "sample-3",
+            src: scifiSpaceship,
+            prompt: "Sci-fi spaceship landing on an alien planet with two moons",
+            style: "scifi",
+            aspectRatio: "16:9",
+            timestamp: "Sample",
+            isFavorite: false
+          }
+        ]);
+      }
+    };
+    
+    loadImages();
+  }, [user]);
 
   // Helper function to get progress text based on active agent
   const getProgressText = () => {
@@ -1022,17 +1217,22 @@ export default function ImageGenerator() {
                       <Button 
                         variant="ghost" 
                         className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
-                        onClick={() => downloadImage(selectedImage.src, `generated_${selectedImage.id}.png`)}
+                        onClick={() => saveToLibrary(selectedImage)}
+                        disabled={isSaving}
+                        data-testid="button-save-library"
                       >
-                        <Download className="h-5 w-5" />
-                        <span className="text-[10px]">Save</span>
+                        <Download className={cn("h-5 w-5", isSaving && "animate-pulse")} />
+                        <span className="text-[10px]">{isSaving ? "Saving..." : "Save"}</span>
                       </Button>
                       
                       <Button 
                         variant="ghost" 
                         className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
+                        onClick={() => handleVary(selectedImage)}
+                        disabled={isVarying || status === "generating"}
+                        data-testid="button-vary"
                       >
-                        <RefreshCw className="h-5 w-5" />
+                        <RefreshCw className={cn("h-5 w-5", isVarying && "animate-spin")} />
                         <span className="text-[10px]">Vary</span>
                       </Button>
 
@@ -1042,7 +1242,9 @@ export default function ImageGenerator() {
                         onClick={() => {
                           setPrompt(selectedImage.prompt);
                           setSelectedImage(null);
+                          toast({ title: "Prompt Loaded", description: "Edit the prompt and generate a new image." });
                         }}
+                        data-testid="button-edit"
                       >
                         <Edit className="h-5 w-5" />
                         <span className="text-[10px]">Edit</span>
@@ -1057,6 +1259,7 @@ export default function ImageGenerator() {
                             : "bg-muted/30 hover:bg-muted text-foreground"
                         )}
                         onClick={() => toggleFavorite(selectedImage.id)}
+                        data-testid="button-like"
                       >
                         <Star className={cn("h-5 w-5", selectedImage.isFavorite && "fill-current")} />
                         <span className="text-[10px]">Like</span>
@@ -1122,7 +1325,7 @@ export default function ImageGenerator() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction 
-              onClick={() => imageToDelete && handleDeleteConfirm(imageToDelete.id)}
+              onClick={() => imageToDelete && handleDeleteImage(imageToDelete.id)}
               className="bg-red-600 hover:bg-red-700 text-white focus:ring-red-600"
             >
               Delete Forever
