@@ -311,12 +311,46 @@ export const HUMAN_SUBJECT_NEGATIVES: NegativePromptCategory = {
   ]
 };
 
+export const DESIGN_MODIFICATION_NEGATIVES: NegativePromptCategory = {
+  id: 'design-modification',
+  name: 'Design Modification Prevention',
+  description: 'Prevents unwanted changes to the provided design',
+  severity: 'critical',
+  applicableFor: ['mockups', 'product-photography'],
+  prompts: [
+    'modified design',
+    'altered design',
+    'changed design colors',
+    'added border to design',
+    'added outline to design',
+    'removed border from design',
+    'removed outline from design',
+    'redrawn design',
+    'recreated design',
+    'reinterpreted design',
+    'simplified design',
+    'stylized design',
+    'filtered design',
+    'color shifted design',
+    'different design than reference',
+    'wrong design colors',
+    'inconsistent design appearance',
+    'design with added elements',
+    'design with missing elements',
+    'design with wrong proportions',
+    'cartoon version of design',
+    'sketch version of design',
+    'painted version of design'
+  ]
+};
+
 export function getNegativePrompts(productType?: string, includesHuman?: boolean): string {
   let negatives: string[] = [];
 
   negatives.push(...TECHNICAL_FLAWS.prompts);
   negatives.push(...AI_ARTIFACTS.prompts);
   negatives.push(...UNWANTED_STYLES.prompts);
+  negatives.push(...DESIGN_MODIFICATION_NEGATIVES.prompts);
 
   if (productType === 'apparel' || productType === 't-shirt' || productType === 'clothing' || productType === 'dtg-apparel' || productType === 'aop-apparel') {
     negatives.push(...APPAREL_NEGATIVES.prompts);
