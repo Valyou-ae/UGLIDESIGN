@@ -709,9 +709,25 @@ export async function registerRoutes(
           p.subcategory?.toLowerCase().includes(productType.toLowerCase())
         ) || knowledge.getDTGProducts()[0];
 
-        const sizesToGenerate: string[] = Array.isArray(productSizes) && productSizes.length > 0 
+        const sizeMap: Record<string, string> = {
+          "XS": "XS",
+          "S": "S",
+          "M": "M",
+          "L": "L",
+          "XL": "XL",
+          "2XL": "XXL",
+          "XXL": "XXL",
+          "3XL": "XXXL",
+          "XXXL": "XXXL",
+          "4XL": "XXXL",
+          "5XL": "XXXL"
+        };
+
+        const rawSizes: string[] = Array.isArray(productSizes) && productSizes.length > 0 
           ? productSizes 
           : [mappedModelDetails.modelSize || 'M'];
+        
+        const sizesToGenerate: string[] = rawSizes.map(s => sizeMap[s] || s);
 
         let personaLockFailed = false;
         let batchCompleted = false;
