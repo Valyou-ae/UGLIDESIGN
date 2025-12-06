@@ -87,7 +87,7 @@ export function getRandomPersona(filters?: PersonaFilters): UnifiedPersona {
       personas = personas.filter(p => p.sex === filters.sex);
     }
 
-    if (filters.ethnicity) {
+    if (filters.ethnicity && filters.ethnicity !== 'Diverse') {
       personas = personas.filter(p => p.ethnicity === filters.ethnicity);
     }
 
