@@ -295,17 +295,28 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createContact(data: InsertContact): Promise<CrmContact> {
+    const insertData = {
+      ...data,
+      tags: data.tags ? (data.tags as string[]) : undefined,
+    };
     const [contact] = await db
       .insert(crmContacts)
-      .values(data)
+      .values(insertData)
       .returning();
     return contact;
   }
 
   async updateContact(id: string, data: Partial<InsertContact>): Promise<CrmContact | undefined> {
+    const updateData: Record<string, any> = {
+      ...data,
+      updatedAt: new Date(),
+    };
+    if (data.tags) {
+      updateData.tags = data.tags as string[];
+    }
     const [contact] = await db
       .update(crmContacts)
-      .set({ ...data, updatedAt: new Date() })
+      .set(updateData)
       .where(eq(crmContacts.id, id))
       .returning();
     return contact || undefined;
