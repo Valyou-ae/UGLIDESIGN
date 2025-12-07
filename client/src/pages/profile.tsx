@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   MapPin, 
   Link as LinkIcon, 
@@ -11,7 +11,9 @@ import {
   Layers, 
   Grid,
   List,
-  Filter
+  Filter,
+  LogOut,
+  Loader2
 } from "lucide-react";
 import { Sidebar } from "@/components/sidebar";
 import { Button } from "@/components/ui/button";
@@ -20,24 +22,91 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
+import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
+import { imagesApi } from "@/lib/api";
+import { useLocation } from "wouter";
 
 export default function Profile() {
   const [activeTab, setActiveTab] = useState("projects");
+  const { user, isLoading: authLoading, logout, isAuthenticated } = useAuth();
+  const [, setLocation] = useLocation();
 
-  const projects = [
-    { id: 1, image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop", title: "Abstract Waves", type: "Image", likes: 124 },
-    { id: 2, image: "https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?q=80&w=1000&auto=format&fit=crop", title: "Neon City", type: "Image", likes: 89 },
-    { id: 3, image: "https://images.unsplash.com/photo-1633596683562-4a47eb4983c5?q=80&w=1000&auto=format&fit=crop", title: "T-Shirt Mockup", type: "Mockup", likes: 56 },
-    { id: 4, image: "https://images.unsplash.com/photo-1620641788421-7f1c3333298d?q=80&w=1000&auto=format&fit=crop", title: "Glass Planet", type: "Image", likes: 210 },
-    { id: 5, image: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000&auto=format&fit=crop", title: "Retro Car", type: "Image", likes: 145 },
-    { id: 6, image: "https://images.unsplash.com/photo-1614728263952-84ea256f9679?q=80&w=1000&auto=format&fit=crop", title: "Cyber Samurai", type: "Image", likes: 302 },
-  ];
+  const { data: statsData, isLoading: statsLoading } = useQuery({
+    queryKey: ["user", "stats"],
+    queryFn: async () => {
+      const res = await fetch("/api/user/stats", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch stats");
+      return res.json();
+    },
+    enabled: isAuthenticated,
+  });
 
-  const collections = [
-    { id: 1, title: "Cyberpunk Aesthetics", count: 12, image: "https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?q=80&w=1000&auto=format&fit=crop" },
-    { id: 2, title: "Minimalist Mockups", count: 8, image: "https://images.unsplash.com/photo-1633596683562-4a47eb4983c5?q=80&w=1000&auto=format&fit=crop" },
-    { id: 3, title: "Abstract Textures", count: 24, image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop" },
-  ];
+  const { data: imagesData, isLoading: imagesLoading } = useQuery({
+    queryKey: ["images"],
+    queryFn: imagesApi.getAll,
+    enabled: isAuthenticated,
+  });
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setLocation("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
+  if (authLoading) {
+    return (
+      <div className="h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || !user) {
+    return (
+      <div className="h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-bold mb-4">Please sign in to view your profile</h2>
+          <Button onClick={() => setLocation("/login")}>Sign In</Button>
+        </div>
+      </div>
+    );
+  }
+
+  const displayName = user.displayName || user.firstName && user.lastName 
+    ? `${user.firstName || ''} ${user.lastName || ''}`.trim() 
+    : user.username;
+
+  const initials = displayName
+    .split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2) || user.username.slice(0, 2).toUpperCase();
+
+  const joinDate = user.createdAt 
+    ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+    : 'Recently';
+
+  const stats = statsData || { imageCount: 0, mockupCount: 0, bgRemovedCount: 0 };
+  const totalProjects = stats.imageCount + stats.mockupCount + stats.bgRemovedCount;
+
+  const images = imagesData?.images || [];
+  const favoriteCount = images.filter((img: any) => img.isFavorite).length;
+
+  const projects = images.map((img: any) => ({
+    id: img.id,
+    image: img.imageUrl,
+    title: img.prompt?.slice(0, 30) + (img.prompt?.length > 30 ? '...' : '') || 'Untitled',
+    type: img.generationType === 'mockup' ? 'Mockup' : img.generationType === 'bg-removed' ? 'Background' : 'Image',
+    likes: img.isFavorite ? 1 : 0,
+    isFavorite: img.isFavorite
+  }));
+
+  const socialLinks = user.socialLinks || [];
 
   return (
     <div className="h-screen bg-background flex font-sans text-foreground overflow-hidden">
@@ -54,24 +123,10 @@ export default function Profile() {
             variant="destructive" 
             size="sm" 
             className="absolute top-6 right-6 z-20 shadow-lg bg-black/20 hover:bg-red-600 backdrop-blur-md border border-white/10"
-            onClick={() => window.location.href = '/login'}
+            onClick={handleLogout}
+            data-testid="button-logout"
           >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              width="24" 
-              height="24" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              className="h-4 w-4 mr-2"
-            >
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" x2="9" y1="12" y2="12" />
-            </svg>
+            <LogOut className="h-4 w-4 mr-2" />
             Sign Out
           </Button>
         </div>
@@ -82,8 +137,10 @@ export default function Profile() {
             <div className="relative">
               <div className="rounded-full p-1.5 bg-background">
                 <Avatar className="h-32 w-32 border-4 border-background shadow-xl">
-                  <AvatarImage src="https://github.com/shadcn.png" />
-                  <AvatarFallback className="text-4xl">JD</AvatarFallback>
+                  <AvatarImage src="" />
+                  <AvatarFallback className="text-4xl bg-gradient-to-br from-[#B94E30] to-[#E3B436] text-white" data-testid="text-user-initials">
+                    {initials}
+                  </AvatarFallback>
                 </Avatar>
               </div>
               <div className="absolute bottom-2 right-2 h-6 w-6 bg-green-500 border-4 border-background rounded-full" />
@@ -92,38 +149,48 @@ export default function Profile() {
             <div className="flex-1 pt-2">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <h1 className="text-3xl font-bold text-foreground">John Doe</h1>
-                  <p className="text-muted-foreground text-lg">@johndoe</p>
+                  <h1 className="text-3xl font-bold text-foreground" data-testid="text-display-name">{displayName}</h1>
+                  <p className="text-muted-foreground text-lg" data-testid="text-username">@{user.username}</p>
                 </div>
                 <div className="flex gap-3">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" data-testid="button-share">
                     <Share2 className="h-4 w-4 mr-2" />
                     Share
                   </Button>
-                  <Button size="sm" className="bg-gradient-to-r from-[#B94E30] to-[#8B3A24] hover:shadow-lg hover:shadow-[#B94E30]/20 border-0 text-white">
+                  <Button 
+                    size="sm" 
+                    className="bg-gradient-to-r from-[#B94E30] to-[#8B3A24] hover:shadow-lg hover:shadow-[#B94E30]/20 border-0 text-white"
+                    onClick={() => setLocation("/settings")}
+                    data-testid="button-edit-profile"
+                  >
                     <Edit className="h-4 w-4 mr-2" />
                     Edit Profile
                   </Button>
                 </div>
               </div>
               
-              <p className="mt-4 text-foreground/80 max-w-2xl leading-relaxed">
-                Digital artist and prompt engineer. Passionate about exploring the boundaries of AI-generated art. 
-                Building the future of visual storytelling one prompt at a time. 🎨✨
-              </p>
+              {user.bio && (
+                <p className="mt-4 text-foreground/80 max-w-2xl leading-relaxed" data-testid="text-bio">
+                  {user.bio}
+                </p>
+              )}
               
               <div className="flex flex-wrap gap-4 mt-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1.5">
-                  <MapPin className="h-4 w-4" />
-                  San Francisco, CA
-                </div>
-                <div className="flex items-center gap-1.5 hover:text-primary cursor-pointer transition-colors">
-                  <LinkIcon className="h-4 w-4" />
-                  johndoe.design
-                </div>
-                <div className="flex items-center gap-1.5">
+                {socialLinks.length > 0 && socialLinks[0]?.url && (
+                  <a 
+                    href={socialLinks[0].url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 hover:text-primary cursor-pointer transition-colors"
+                    data-testid="link-website"
+                  >
+                    <LinkIcon className="h-4 w-4" />
+                    {socialLinks[0].label || 'Website'}
+                  </a>
+                )}
+                <div className="flex items-center gap-1.5" data-testid="text-join-date">
                   <Calendar className="h-4 w-4" />
-                  Joined March 2024
+                  Joined {joinDate}
                 </div>
               </div>
             </div>
@@ -132,12 +199,16 @@ export default function Profile() {
           {/* Stats Row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
             {[
-              { label: "Projects", value: "124", icon: ImageIcon },
-              { label: "Likes Received", value: "8.5k", icon: Heart },
-              { label: "Collections", value: "12", icon: Layers },
-              { label: "Following", value: "248", icon: Grid },
+              { label: "Images", value: stats.imageCount.toString(), icon: ImageIcon },
+              { label: "Mockups", value: stats.mockupCount.toString(), icon: Layers },
+              { label: "Backgrounds", value: stats.bgRemovedCount.toString(), icon: Grid },
+              { label: "Favorites", value: favoriteCount.toString(), icon: Heart },
             ].map((stat, i) => (
-              <div key={i} className="bg-card border border-border rounded-xl p-4 flex items-center gap-4 shadow-sm hover:border-primary/50 transition-colors group cursor-default">
+              <div 
+                key={i} 
+                className="bg-card border border-border rounded-xl p-4 flex items-center gap-4 shadow-sm hover:border-primary/50 transition-colors group cursor-default"
+                data-testid={`stat-${stat.label.toLowerCase()}`}
+              >
                 <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                   <stat.icon className="h-5 w-5" />
                 </div>
@@ -153,9 +224,9 @@ export default function Profile() {
           <Tabs defaultValue="projects" className="w-full" onValueChange={setActiveTab}>
             <div className="flex items-center justify-between mb-6">
               <TabsList className="bg-muted/50 p-1 rounded-xl">
-                <TabsTrigger value="projects" className="rounded-lg px-6">Projects</TabsTrigger>
-                <TabsTrigger value="collections" className="rounded-lg px-6">Collections</TabsTrigger>
-                <TabsTrigger value="about" className="rounded-lg px-6">About</TabsTrigger>
+                <TabsTrigger value="projects" className="rounded-lg px-6" data-testid="tab-projects">Projects</TabsTrigger>
+                <TabsTrigger value="favorites" className="rounded-lg px-6" data-testid="tab-favorites">Favorites</TabsTrigger>
+                <TabsTrigger value="about" className="rounded-lg px-6" data-testid="tab-about">About</TabsTrigger>
               </TabsList>
               
               <div className="flex gap-2">
@@ -173,97 +244,155 @@ export default function Profile() {
             </div>
 
             <TabsContent value="projects" className="mt-0">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {projects.map((project) => (
-                  <motion.div 
-                    key={project.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="group relative aspect-[4/3] rounded-2xl overflow-hidden bg-muted cursor-pointer"
-                  >
-                    <img 
-                      src={project.image} 
-                      alt={project.title} 
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
-                      <div className="flex justify-between items-end">
-                        <div>
-                          <Badge variant="secondary" className="mb-2 bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm">
-                            {project.type}
-                          </Badge>
-                          <h3 className="text-white font-bold text-lg">{project.title}</h3>
-                        </div>
-                        <div className="flex items-center gap-1 text-white/90">
-                          <Heart className="h-4 w-4 fill-white/90" />
-                          <span className="text-sm font-medium">{project.likes}</span>
+              {imagesLoading ? (
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : projects.length === 0 ? (
+                <div className="text-center py-20 text-muted-foreground">
+                  <ImageIcon className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                  <h3 className="text-xl font-semibold mb-2">No projects yet</h3>
+                  <p className="mb-4">Start creating to see your work here!</p>
+                  <Button onClick={() => setLocation("/image-gen")} data-testid="button-create-first">
+                    Create Your First Image
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {projects.map((project: any) => (
+                    <motion.div 
+                      key={project.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="group relative aspect-[4/3] rounded-2xl overflow-hidden bg-muted cursor-pointer"
+                      data-testid={`card-project-${project.id}`}
+                    >
+                      <img 
+                        src={project.image} 
+                        alt={project.title} 
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
+                        <div className="flex justify-between items-end">
+                          <div>
+                            <Badge variant="secondary" className="mb-2 bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm">
+                              {project.type}
+                            </Badge>
+                            <h3 className="text-white font-bold text-lg">{project.title}</h3>
+                          </div>
+                          {project.isFavorite && (
+                            <div className="flex items-center gap-1 text-white/90">
+                              <Heart className="h-4 w-4 fill-red-500 text-red-500" />
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
-                
-                {/* Add New Project Card */}
-                <div className="border-2 border-dashed border-border rounded-2xl flex flex-col items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer min-h-[240px]">
-                  <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-3">
-                    <MoreHorizontal className="h-6 w-6" />
-                  </div>
-                  <p className="font-medium">Load More</p>
+                    </motion.div>
+                  ))}
                 </div>
-              </div>
+              )}
             </TabsContent>
 
-            <TabsContent value="collections" className="mt-0">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {collections.map((collection) => (
-                  <motion.div 
-                    key={collection.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="group cursor-pointer"
-                  >
-                    <div className="aspect-[16/10] rounded-2xl overflow-hidden bg-muted mb-3 relative">
-                      <img 
-                        src={collection.image} 
-                        alt={collection.title} 
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="secondary" className="rounded-full">View Collection</Button>
-                      </div>
+            <TabsContent value="favorites" className="mt-0">
+              {imagesLoading ? (
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {projects.filter((p: any) => p.isFavorite).length === 0 ? (
+                    <div className="col-span-full text-center py-20 text-muted-foreground">
+                      <Heart className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                      <h3 className="text-xl font-semibold mb-2">No favorites yet</h3>
+                      <p>Like your creations to see them here!</p>
                     </div>
-                    <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors">{collection.title}</h3>
-                    <p className="text-sm text-muted-foreground">{collection.count} items</p>
-                  </motion.div>
-                ))}
-              </div>
+                  ) : (
+                    projects.filter((p: any) => p.isFavorite).map((project: any) => (
+                      <motion.div 
+                        key={project.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="group cursor-pointer"
+                        data-testid={`card-favorite-${project.id}`}
+                      >
+                        <div className="aspect-[16/10] rounded-2xl overflow-hidden bg-muted mb-3 relative">
+                          <img 
+                            src={project.image} 
+                            alt={project.title} 
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                          <div className="absolute top-3 right-3">
+                            <Heart className="h-5 w-5 fill-red-500 text-red-500" />
+                          </div>
+                        </div>
+                        <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors">{project.title}</h3>
+                        <p className="text-sm text-muted-foreground">{project.type}</p>
+                      </motion.div>
+                    ))
+                  )}
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="about">
               <div className="bg-card border border-border rounded-2xl p-8 max-w-2xl">
                 <h3 className="text-xl font-bold mb-4">About Me</h3>
                 <div className="space-y-4 text-muted-foreground leading-relaxed">
-                  <p>
-                    Hello! I'm John, a passionate digital artist based in San Francisco. I've been working with AI generation tools since the early days of GANs and have evolved my workflow to incorporate the latest diffusion models.
-                  </p>
-                  <p>
-                    My work focuses on the intersection of organic textures and cyberpunk aesthetics. I love creating prompts that challenge the AI to blend contrasting styles into cohesive visual narratives.
-                  </p>
-                  <p>
-                    When I'm not generating art, I'm usually hiking in the Bay Area or experimenting with 3D printing. Feel free to reach out if you want to collaborate on a project!
-                  </p>
+                  {user.bio ? (
+                    <p data-testid="text-about-bio">{user.bio}</p>
+                  ) : (
+                    <p className="text-muted-foreground/60 italic">
+                      No bio yet. Add one in your settings to tell others about yourself!
+                    </p>
+                  )}
                 </div>
                 
+                {socialLinks.length > 0 && (
+                  <>
+                    <Separator className="my-8" />
+                    <h3 className="text-xl font-bold mb-4">Links</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {socialLinks.map((link: any, i: number) => (
+                        <a 
+                          key={i}
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2"
+                        >
+                          <Badge variant="secondary" className="px-3 py-1 cursor-pointer hover:bg-primary/20">
+                            <LinkIcon className="h-3 w-3 mr-1" />
+                            {link.label || 'Link'}
+                          </Badge>
+                        </a>
+                      ))}
+                    </div>
+                  </>
+                )}
+
                 <Separator className="my-8" />
                 
-                <h3 className="text-xl font-bold mb-4">Skills & Tools</h3>
-                <div className="flex flex-wrap gap-2">
-                  {["Midjourney", "Stable Diffusion", "DALL-E 3", "Photoshop", "Blender", "Prompt Engineering", "Character Design", "Environment Art"].map((skill) => (
-                    <Badge key={skill} variant="secondary" className="px-3 py-1">
-                      {skill}
-                    </Badge>
-                  ))}
+                <h3 className="text-xl font-bold mb-4">Account Info</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Email</span>
+                    <span className="font-medium" data-testid="text-email">{user.email}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Username</span>
+                    <span className="font-medium">@{user.username}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Member since</span>
+                    <span className="font-medium">{joinDate}</span>
+                  </div>
+                  {user.affiliateCode && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Affiliate Code</span>
+                      <span className="font-medium font-mono" data-testid="text-affiliate-code">{user.affiliateCode}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </TabsContent>

@@ -17,6 +17,8 @@ export const users = pgTable("users", {
   referredBy: varchar("referred_by"),
   stripeCustomerId: text("stripe_customer_id"),
   stripeSubscriptionId: text("stripe_subscription_id"),
+  passwordResetToken: text("password_reset_token"),
+  passwordResetExpires: timestamp("password_reset_expires"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

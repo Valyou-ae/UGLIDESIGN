@@ -14,6 +14,7 @@ import Settings from "@/pages/settings";
 import HelpSupport from "@/pages/help-support";
 import Login from "@/pages/login";
 import ForgotPassword from "@/pages/forgot-password";
+import ResetPassword from "@/pages/reset-password";
 import Signup from "@/pages/signup";
 import Profile from "@/pages/profile";
 import NotFound from "@/pages/not-found";
@@ -34,6 +35,7 @@ function Router() {
       <Route path="/home" component={Home} />
       <Route path="/login" component={Login} />
       <Route path="/forgot-password" component={ForgotPassword} />
+      <Route path="/reset-password" component={ResetPassword} />
       <Route path="/signup" component={Signup} />
       <Route path="/profile" component={Profile} />
       <Route path="/discover" component={Discover} />
