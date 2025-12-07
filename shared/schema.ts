@@ -24,6 +24,7 @@ export const users = pgTable("users", {
   bio: text("bio"),
   profileImageUrl: varchar("profile_image_url"),
   socialLinks: jsonb("social_links").$type<{ label: string; url: string }[]>().default([]),
+  role: text("role").default("user").notNull(),
   affiliateCode: text("affiliate_code").unique(),
   referredBy: varchar("referred_by"),
   stripeCustomerId: text("stripe_customer_id"),
@@ -67,6 +68,46 @@ export const withdrawalRequests = pgTable("withdrawal_requests", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const crmContacts = pgTable("crm_contacts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  name: text("name").notNull(),
+  email: text("email"),
+  phone: text("phone"),
+  company: text("company"),
+  status: text("status").default("lead").notNull(),
+  source: text("source"),
+  notes: text("notes"),
+  tags: jsonb("tags").$type<string[]>().default([]),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const crmDeals = pgTable("crm_deals", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  contactId: varchar("contact_id").references(() => crmContacts.id),
+  title: text("title").notNull(),
+  value: integer("value").default(0),
+  stage: text("stage").default("lead").notNull(),
+  probability: integer("probability").default(0),
+  expectedCloseDate: timestamp("expected_close_date"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const crmActivities = pgTable("crm_activities", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  contactId: varchar("contact_id").references(() => crmContacts.id),
+  dealId: varchar("deal_id").references(() => crmDeals.id),
+  type: text("type").notNull(),
+  subject: text("subject").notNull(),
+  description: text("description"),
+  dueDate: timestamp("due_date"),
+  completed: boolean("completed").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   email: true,
@@ -93,6 +134,23 @@ export const insertWithdrawalSchema = createInsertSchema(withdrawalRequests).omi
   status: true,
 });
 
+export const insertContactSchema = createInsertSchema(crmContacts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertDealSchema = createInsertSchema(crmDeals).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertActivitySchema = createInsertSchema(crmActivities).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpdateProfile = z.infer<typeof updateProfileSchema>;
 export type User = typeof users.$inferSelect;
@@ -102,3 +160,9 @@ export type InsertImage = z.infer<typeof insertImageSchema>;
 export type WithdrawalRequest = typeof withdrawalRequests.$inferSelect;
 export type InsertWithdrawal = z.infer<typeof insertWithdrawalSchema>;
 export type AffiliateCommission = typeof affiliateCommissions.$inferSelect;
+export type CrmContact = typeof crmContacts.$inferSelect;
+export type InsertContact = z.infer<typeof insertContactSchema>;
+export type CrmDeal = typeof crmDeals.$inferSelect;
+export type InsertDeal = z.infer<typeof insertDealSchema>;
+export type CrmActivity = typeof crmActivities.$inferSelect;
+export type InsertActivity = z.infer<typeof insertActivitySchema>;
