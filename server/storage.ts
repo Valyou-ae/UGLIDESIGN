@@ -1,6 +1,29 @@
-import { users, generatedImages, withdrawalRequests, affiliateCommissions, type User, type InsertUser, type UpdateProfile, type GeneratedImage, type InsertImage, type WithdrawalRequest, type InsertWithdrawal, type AffiliateCommission, type UpsertUser } from "@shared/schema";
+import { 
+  users, 
+  generatedImages, 
+  withdrawalRequests, 
+  affiliateCommissions, 
+  crmContacts, 
+  crmDeals, 
+  crmActivities,
+  type User, 
+  type InsertUser, 
+  type UpdateProfile, 
+  type GeneratedImage, 
+  type InsertImage, 
+  type WithdrawalRequest, 
+  type InsertWithdrawal, 
+  type AffiliateCommission, 
+  type UpsertUser,
+  type CrmContact,
+  type InsertContact,
+  type CrmDeal,
+  type InsertDeal,
+  type CrmActivity,
+  type InsertActivity
+} from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, count } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -31,6 +54,30 @@ export interface IStorage {
   getUserWithResetToken(email: string): Promise<User | undefined>;
   updatePassword(userId: string, hashedPassword: string): Promise<User | undefined>;
   clearPasswordResetToken(userId: string): Promise<void>;
+
+  getContacts(): Promise<CrmContact[]>;
+  getContact(id: string): Promise<CrmContact | undefined>;
+  createContact(data: InsertContact): Promise<CrmContact>;
+  updateContact(id: string, data: Partial<InsertContact>): Promise<CrmContact | undefined>;
+  deleteContact(id: string): Promise<void>;
+
+  getDeals(): Promise<CrmDeal[]>;
+  getDeal(id: string): Promise<CrmDeal | undefined>;
+  getDealsByContact(contactId: string): Promise<CrmDeal[]>;
+  createDeal(data: InsertDeal): Promise<CrmDeal>;
+  updateDeal(id: string, data: Partial<InsertDeal>): Promise<CrmDeal | undefined>;
+  deleteDeal(id: string): Promise<void>;
+
+  getActivities(): Promise<CrmActivity[]>;
+  getActivitiesByContact(contactId: string): Promise<CrmActivity[]>;
+  getActivitiesByDeal(dealId: string): Promise<CrmActivity[]>;
+  createActivity(data: InsertActivity): Promise<CrmActivity>;
+  updateActivity(id: string, data: Partial<InsertActivity>): Promise<CrmActivity | undefined>;
+  deleteActivity(id: string): Promise<void>;
+
+  getAllUsers(): Promise<User[]>;
+  updateUserRole(userId: string, role: string): Promise<User | undefined>;
+  getAnalytics(): Promise<{ totalUsers: number; totalImages: number; totalCommissions: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -230,6 +277,158 @@ export class DatabaseStorage implements IStorage {
       .update(users)
       .set({ passwordResetToken: null, passwordResetExpires: null })
       .where(eq(users.id, userId));
+  }
+
+  async getContacts(): Promise<CrmContact[]> {
+    return db
+      .select()
+      .from(crmContacts)
+      .orderBy(desc(crmContacts.createdAt));
+  }
+
+  async getContact(id: string): Promise<CrmContact | undefined> {
+    const [contact] = await db
+      .select()
+      .from(crmContacts)
+      .where(eq(crmContacts.id, id));
+    return contact || undefined;
+  }
+
+  async createContact(data: InsertContact): Promise<CrmContact> {
+    const [contact] = await db
+      .insert(crmContacts)
+      .values(data)
+      .returning();
+    return contact;
+  }
+
+  async updateContact(id: string, data: Partial<InsertContact>): Promise<CrmContact | undefined> {
+    const [contact] = await db
+      .update(crmContacts)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(crmContacts.id, id))
+      .returning();
+    return contact || undefined;
+  }
+
+  async deleteContact(id: string): Promise<void> {
+    await db.delete(crmContacts).where(eq(crmContacts.id, id));
+  }
+
+  async getDeals(): Promise<CrmDeal[]> {
+    return db
+      .select()
+      .from(crmDeals)
+      .orderBy(desc(crmDeals.createdAt));
+  }
+
+  async getDeal(id: string): Promise<CrmDeal | undefined> {
+    const [deal] = await db
+      .select()
+      .from(crmDeals)
+      .where(eq(crmDeals.id, id));
+    return deal || undefined;
+  }
+
+  async getDealsByContact(contactId: string): Promise<CrmDeal[]> {
+    return db
+      .select()
+      .from(crmDeals)
+      .where(eq(crmDeals.contactId, contactId))
+      .orderBy(desc(crmDeals.createdAt));
+  }
+
+  async createDeal(data: InsertDeal): Promise<CrmDeal> {
+    const [deal] = await db
+      .insert(crmDeals)
+      .values(data)
+      .returning();
+    return deal;
+  }
+
+  async updateDeal(id: string, data: Partial<InsertDeal>): Promise<CrmDeal | undefined> {
+    const [deal] = await db
+      .update(crmDeals)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(crmDeals.id, id))
+      .returning();
+    return deal || undefined;
+  }
+
+  async deleteDeal(id: string): Promise<void> {
+    await db.delete(crmDeals).where(eq(crmDeals.id, id));
+  }
+
+  async getActivities(): Promise<CrmActivity[]> {
+    return db
+      .select()
+      .from(crmActivities)
+      .orderBy(desc(crmActivities.createdAt));
+  }
+
+  async getActivitiesByContact(contactId: string): Promise<CrmActivity[]> {
+    return db
+      .select()
+      .from(crmActivities)
+      .where(eq(crmActivities.contactId, contactId))
+      .orderBy(desc(crmActivities.createdAt));
+  }
+
+  async getActivitiesByDeal(dealId: string): Promise<CrmActivity[]> {
+    return db
+      .select()
+      .from(crmActivities)
+      .where(eq(crmActivities.dealId, dealId))
+      .orderBy(desc(crmActivities.createdAt));
+  }
+
+  async createActivity(data: InsertActivity): Promise<CrmActivity> {
+    const [activity] = await db
+      .insert(crmActivities)
+      .values(data)
+      .returning();
+    return activity;
+  }
+
+  async updateActivity(id: string, data: Partial<InsertActivity>): Promise<CrmActivity | undefined> {
+    const [activity] = await db
+      .update(crmActivities)
+      .set(data)
+      .where(eq(crmActivities.id, id))
+      .returning();
+    return activity || undefined;
+  }
+
+  async deleteActivity(id: string): Promise<void> {
+    await db.delete(crmActivities).where(eq(crmActivities.id, id));
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return db
+      .select()
+      .from(users)
+      .orderBy(desc(users.createdAt));
+  }
+
+  async updateUserRole(userId: string, role: string): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({ role, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return user || undefined;
+  }
+
+  async getAnalytics(): Promise<{ totalUsers: number; totalImages: number; totalCommissions: number }> {
+    const [usersCount] = await db.select({ count: count() }).from(users);
+    const [imagesCount] = await db.select({ count: count() }).from(generatedImages);
+    const [commissionsCount] = await db.select({ count: count() }).from(affiliateCommissions);
+    
+    return {
+      totalUsers: usersCount?.count || 0,
+      totalImages: imagesCount?.count || 0,
+      totalCommissions: commissionsCount?.count || 0,
+    };
   }
 }
 
