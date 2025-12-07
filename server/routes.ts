@@ -205,7 +205,7 @@ export async function registerRoutes(
       let customerId = user.stripeCustomerId;
       
       if (!customerId) {
-        const customer = await stripeService.createCustomer(user.email, userId);
+        const customer = await stripeService.createCustomer(user.email || '', userId);
         customerId = customer.id;
         await storage.updateStripeCustomerId(userId, customerId);
       }

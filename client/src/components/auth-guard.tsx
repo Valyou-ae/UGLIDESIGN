@@ -1,4 +1,4 @@
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 import { Redirect, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Spinner } from "@/components/ui/spinner";
@@ -28,10 +28,11 @@ export function AuthGuard({ children }: GuardProps) {
 
 export function AdminGuard({ children }: GuardProps) {
   const { user, isLoading, isAuthenticated } = useAuth();
-  const [, setLocation] = useLocation();
+  const toastShownRef = useRef(false);
 
   useEffect(() => {
-    if (!isLoading && isAuthenticated && user?.role !== "admin") {
+    if (!isLoading && isAuthenticated && user?.role !== "admin" && !toastShownRef.current) {
+      toastShownRef.current = true;
       toast({
         title: "Access Denied",
         description: "You don't have permission to access this page.",
