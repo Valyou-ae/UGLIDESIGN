@@ -33,7 +33,8 @@ export default function AdminContacts() {
     queryFn: async () => {
       const response = await fetch("/api/admin/crm/contacts", { credentials: "include" });
       if (!response.ok) throw new Error("Failed to fetch contacts");
-      return response.json();
+      const data = await response.json();
+      return data.contacts || [];
     },
   });
 
