@@ -1167,18 +1167,14 @@ export default function ImageGenerator() {
                     <Sparkles className="h-12 w-12 text-white animate-spin-slow duration-[3s]" />
                     <p className="text-white/90 font-medium mt-4 text-sm animate-pulse">Generating masterpiece...</p>
                     
-                    {/* Progress Bar & Percentage */}
+                    {/* Animated Loader */}
                     <div className="w-3/4 mt-3 space-y-1.5">
-                      <div className="flex justify-between items-center px-1">
-                        <span className="text-[10px] font-medium text-white/80">{getProgressText()}</span>
-                        <span className="text-[10px] font-bold text-white">{progress}%</span>
-                      </div>
+                      <p className="text-[10px] font-medium text-white/80 text-center">{getProgressText()}</p>
                       <div className="h-1.5 w-full bg-black/20 rounded-full overflow-hidden backdrop-blur-sm">
                         <motion.div 
-                          className="h-full bg-white/90 rounded-full"
-                          initial={{ width: 0 }}
-                          animate={{ width: `${progress}%` }}
-                          transition={{ type: "spring", stiffness: 50, damping: 20 }}
+                          className="h-full bg-white/90 rounded-full w-1/3"
+                          animate={{ x: ["-100%", "300%"] }}
+                          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
                         />
                       </div>
                     </div>
