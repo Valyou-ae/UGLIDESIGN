@@ -137,7 +137,7 @@ export default function Billing() {
 
                 <div className="h-1 w-full bg-[#E5E5E5] dark:bg-[#1A1A1A] rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-[#7C3AED] rounded-full transition-all duration-500 ease-out" 
+                    className="h-full bg-primary rounded-full transition-all duration-500 ease-out" 
                     style={{ width: `${(creditUsage.used / creditUsage.total) * 100}%` }}
                   />
                 </div>
@@ -380,7 +380,7 @@ export default function Billing() {
                         <input 
                           type="text" 
                           placeholder="•••• •••• •••• ••••" 
-                          className="w-full bg-transparent border-b border-[#E5E5E5] dark:border-[#2A2A30] py-3 text-[14px] text-[#18181B] dark:text-[#FAFAFA] focus:outline-none focus:border-[#7C3AED] transition-colors placeholder:text-[#52525B]"
+                          className="w-full bg-transparent border-b border-[#E5E5E5] dark:border-[#2A2A30] py-3 text-[14px] text-[#18181B] dark:text-[#FAFAFA] focus:outline-none focus:border-primary transition-colors placeholder:text-[#52525B]"
                         />
                       </div>
                       
@@ -390,7 +390,7 @@ export default function Billing() {
                           <input 
                             type="text" 
                             placeholder="MM / YY" 
-                            className="w-full bg-transparent border-b border-[#E5E5E5] dark:border-[#2A2A30] py-3 text-[14px] text-[#18181B] dark:text-[#FAFAFA] focus:outline-none focus:border-[#7C3AED] transition-colors placeholder:text-[#52525B]"
+                            className="w-full bg-transparent border-b border-[#E5E5E5] dark:border-[#2A2A30] py-3 text-[14px] text-[#18181B] dark:text-[#FAFAFA] focus:outline-none focus:border-primary transition-colors placeholder:text-[#52525B]"
                           />
                         </div>
                         <div className="flex-1 space-y-1.5">
@@ -398,7 +398,7 @@ export default function Billing() {
                           <input 
                             type="text" 
                             placeholder="123" 
-                            className="w-full bg-transparent border-b border-[#E5E5E5] dark:border-[#2A2A30] py-3 text-[14px] text-[#18181B] dark:text-[#FAFAFA] focus:outline-none focus:border-[#7C3AED] transition-colors placeholder:text-[#52525B]"
+                            className="w-full bg-transparent border-b border-[#E5E5E5] dark:border-[#2A2A30] py-3 text-[14px] text-[#18181B] dark:text-[#FAFAFA] focus:outline-none focus:border-primary transition-colors placeholder:text-[#52525B]"
                           />
                         </div>
                       </div>
@@ -408,7 +408,7 @@ export default function Billing() {
                         <input 
                           type="text" 
                           placeholder="John Doe" 
-                          className="w-full bg-transparent border-b border-[#E5E5E5] dark:border-[#2A2A30] py-3 text-[14px] text-[#18181B] dark:text-[#FAFAFA] focus:outline-none focus:border-[#7C3AED] transition-colors placeholder:text-[#52525B]"
+                          className="w-full bg-transparent border-b border-[#E5E5E5] dark:border-[#2A2A30] py-3 text-[14px] text-[#18181B] dark:text-[#FAFAFA] focus:outline-none focus:border-primary transition-colors placeholder:text-[#52525B]"
                         />
                       </div>
                     </div>

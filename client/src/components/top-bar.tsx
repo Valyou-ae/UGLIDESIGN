@@ -1,4 +1,5 @@
-import { Bell, Search, CheckCircle2, Info, Sparkles } from "lucide-react";
+import { Bell, Search, CheckCircle2, Info, Sparkles, Zap } from "lucide-react";
+import { Link } from "wouter";
 import { Input } from "@/components/ui/input";
 import {
   Popover,
@@ -8,6 +9,11 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const NOTIFICATIONS = [
   {
@@ -17,8 +23,8 @@ const NOTIFICATIONS = [
     time: "2m ago",
     read: false,
     icon: Sparkles,
-    color: "text-purple-500",
-    bg: "bg-purple-500/10",
+    color: "text-primary",
+    bg: "bg-primary/10",
   },
   {
     id: 2,
@@ -107,6 +113,21 @@ export function TopBar() {
             </div>
           </PopoverContent>
         </Popover>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link href="/billing">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors cursor-pointer" data-testid="credit-display">
+                <Zap className="h-4 w-4 text-primary" />
+                <span className="text-sm font-semibold text-primary">1,523</span>
+                <span className="text-xs text-muted-foreground hidden lg:inline">credits</span>
+              </div>
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>1,523 of 2,000 credits remaining</p>
+          </TooltipContent>
+        </Tooltip>
 
         <div className="relative hidden md:block group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />

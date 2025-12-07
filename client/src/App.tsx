@@ -23,11 +23,14 @@ import BatchProcess from "@/pages/batch-process";
 import ImportUrl from "@/pages/import-url";
 import RandomPrompt from "@/pages/random-prompt";
 import AffiliateProgram from "@/pages/affiliate-program";
+import Pricing from "@/pages/pricing";
+import Landing from "@/pages/landing";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/landing" component={Landing} />
       <Route path="/home" component={Home} />
       <Route path="/login" component={Login} />
       <Route path="/forgot-password" component={ForgotPassword} />
@@ -39,6 +42,7 @@ function Router() {
       <Route path="/mockup" component={MockupGenerator} />
       <Route path="/my-creations" component={MyCreations} />
       <Route path="/billing" component={Billing} />
+      <Route path="/pricing" component={Pricing} />
       <Route path="/settings" component={Settings} />
       <Route path="/help" component={HelpSupport} />
       <Route path="/affiliate" component={AffiliateProgram} />

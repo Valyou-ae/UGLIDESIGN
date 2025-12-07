@@ -23,7 +23,13 @@ Preferred communication style: Simple, everyday language.
 - Tailwind CSS v4 with CSS variables for theming
 - Custom design tokens for colors, spacing, and typography
 - Framer Motion for animations and transitions
-- Inter font family as the primary typeface
+- Outfit font family as the primary typeface (UGLI brand)
+
+**UGLI Brand Colors**
+- Primary (Rust): #B94E30 - CTAs, headlines, key UI elements
+- Secondary (Gold): #E3B436 - Accents, success states (sparingly)
+- Text (Brown): #664D3F - Body text, subheadings
+- Neutrals: #333333 (dark gray), #999999 (medium gray), #F5F5F5 (light gray)
 
 **State Management Pattern**
 - Server state managed via TanStack Query with custom hooks
@@ -199,3 +205,29 @@ All products include:
 - Separation of client and server code with shared types
 - Production builds use single CJS bundle for server (reduced cold start)
 - Session store in database (not in-memory) for horizontal scaling
+
+## SaaS Features
+
+**Onboarding**
+- WelcomeModal component: 3-step tour shown only on home/dashboard page
+- localStorage flag `ugli_onboarding_complete` tracks completion
+- Non-blocking: navigating directly to modules skips onboarding
+
+**Pricing & Billing**
+- `/pricing` route: Plan tiers (Free/Pro/Business) with credit packages
+- `/billing` route: Current plan, credit usage, payment method, invoices
+- Credit display in TopBar header with link to billing
+
+**Empty States**
+- Reusable EmptyState component for creations, mockups, backgrounds
+- Brand-styled with appropriate icons and CTAs
+
+**Marketing Landing Page**
+- `/landing` route: Hero, features, pricing preview, testimonials, FAQ
+- Responsive header with mobile menu
+- UGLI brand styling throughout
+
+**Background Remover**
+- Replicate API integration (bria/remove-background)
+- Supports transparent, white, solid color, blur, and custom background options
+- Base64 image processing pipeline

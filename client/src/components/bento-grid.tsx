@@ -152,9 +152,9 @@ function QuickAction({ icon: Icon, label, href }: any) {
 
 function ProjectCard({ image, title, time, type, delay, prompt, journey, restoreImage }: any) {
   const colors = {
-    image: "border-purple-500/50 hover:shadow-purple-500/20",
+    image: "border-[#B94E30]/50 hover:shadow-[#B94E30]/20",
     mockup: "border-blue-500/50 hover:shadow-blue-500/20",
-    bg: "border-pink-500/50 hover:shadow-pink-500/20",
+    bg: "border-[#E3B436]/50 hover:shadow-[#E3B436]/20",
   };
 
   let linkHref = "#";
@@ -213,8 +213,8 @@ export function BentoGrid() {
           title="Image Generator" 
           description="Create stunning visuals with AI"
           icon={Sparkles}
-          gradient="bg-gradient-to-br from-purple-600 to-purple-800"
-          circleColor="#A855F7"
+          gradient="bg-gradient-to-br from-[#B94E30] to-[#8B3A24]"
+          circleColor="#B94E30"
           badgeCount="5 AI Agents"
           delay={0.1}
           href="/image-gen"
@@ -233,8 +233,8 @@ export function BentoGrid() {
           title="Background Remover" 
           description="Remove backgrounds in seconds"
           icon={Scissors}
-          gradient="bg-gradient-to-br from-pink-500 to-pink-700"
-          circleColor="#F472B6"
+          gradient="bg-gradient-to-br from-[#E3B436] to-[#C99C2A]"
+          circleColor="#E3B436"
           badge="Instant"
           delay={0.3}
           href="/bg-remover"
@@ -256,7 +256,7 @@ export function BentoGrid() {
             value="247" 
             label="Images Created" 
             trend="↑ 12%" 
-            colorClass="bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400"
+            colorClass="bg-[#B94E30]/10 text-[#B94E30] dark:bg-[#B94E30]/20 dark:text-[#D4674A]"
             delay={0.4}
           />
           <StatCard 
@@ -272,7 +272,7 @@ export function BentoGrid() {
             value="156" 
             label="BG Removed" 
             trend="↑ 23%" 
-            colorClass="bg-pink-100 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400"
+            colorClass="bg-[#E3B436]/10 text-[#B99A2C] dark:bg-[#E3B436]/20 dark:text-[#E3B436]"
             delay={0.6}
           />
           <StatCard 

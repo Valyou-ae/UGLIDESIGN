@@ -115,7 +115,7 @@ export function Sidebar({ className }: SidebarProps) {
       </Link>
       <Link href="/image-gen">
         <div className="flex flex-col items-center justify-center -mt-6 cursor-pointer">
-           <div className="h-14 w-14 rounded-full bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30 border-4 border-background">
+           <div className="h-14 w-14 rounded-full bg-gradient-to-br from-[#B94E30] to-[#E3B436] flex items-center justify-center shadow-lg shadow-[#B94E30]/30 border-4 border-background">
              <ImageIcon className="h-6 w-6 text-white" />
            </div>
            <span className="text-[10px] mt-1 font-medium text-foreground">Create</span>
@@ -161,7 +161,7 @@ export function Sidebar({ className }: SidebarProps) {
 
       {/* Header / Logo */}
       <div className={cn("flex items-center gap-3 px-4 py-6 h-[88px]", collapsed ? "justify-center px-2" : "")}>
-        <div className="h-10 w-10 min-w-[40px] rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
+        <div className="h-10 w-10 min-w-[40px] rounded-xl bg-gradient-to-br from-[#B94E30] to-[#E3B436] flex items-center justify-center shadow-lg shadow-[#B94E30]/20">
           <div className="h-5 w-5 bg-white/20 rounded-md backdrop-blur-sm" />
         </div>
         {!collapsed && (
@@ -179,7 +179,7 @@ export function Sidebar({ className }: SidebarProps) {
           collapsed ? "justify-center bg-transparent" : "bg-sidebar-accent/50 border border-sidebar-border/50"
         )}>
           <div className="relative flex-shrink-0">
-            <div className="absolute -inset-0.5 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full opacity-70 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute -inset-0.5 bg-gradient-to-br from-[#B94E30] to-[#E3B436] rounded-full opacity-70 group-hover:opacity-100 transition-opacity" />
             <Avatar className="h-9 w-9 border-2 border-sidebar relative">
               <AvatarImage src="https://github.com/shadcn.png" />
               <AvatarFallback>JD</AvatarFallback>
@@ -235,7 +235,7 @@ export function Sidebar({ className }: SidebarProps) {
                               <span className={cn(
                                 "text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap",
                                 isDiscover 
-                                  ? "bg-gradient-to-r from-[#7C3AED] to-[#EC4899] text-white"
+                                  ? "bg-gradient-to-r from-[#B94E30] to-[#E3B436] text-white"
                                   : "bg-primary/10 text-primary"
                               )}>
                                 {item.badge}
