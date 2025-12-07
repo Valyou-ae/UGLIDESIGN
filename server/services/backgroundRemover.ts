@@ -59,7 +59,10 @@ async function convertMagentaToTransparent(imageBase64: string): Promise<string>
   const inputChannels = info.channels;
   const pixels = new Uint8Array(info.width * info.height * 4);
   
-  for (let i = 0; i < info.width * info.height; i++) {
+  let magentaPixelCount = 0;
+  let totalPixels = info.width * info.height;
+  
+  for (let i = 0; i < totalPixels; i++) {
     const srcIdx = i * inputChannels;
     const dstIdx = i * 4;
     
@@ -67,15 +70,27 @@ async function convertMagentaToTransparent(imageBase64: string): Promise<string>
     const g = data[srcIdx + 1];
     const b = data[srcIdx + 2];
     
-    const isPureMagenta = r >= 250 && g <= 10 && b >= 250;
-    const isNearMagenta = r >= 240 && g <= 25 && b >= 240;
+    const isMagentaLike = r >= 180 && g <= 80 && b >= 180 && 
+                          (r - g >= 100) && (b - g >= 100) &&
+                          Math.abs(r - b) <= 60;
+    
+    const isPureMagenta = r >= 230 && g <= 30 && b >= 230;
     
     let alpha: number;
     if (isPureMagenta) {
       alpha = 0;
-    } else if (isNearMagenta) {
-      const greenFactor = g / 25;
-      alpha = Math.round(greenFactor * 255);
+      magentaPixelCount++;
+    } else if (isMagentaLike) {
+      const magentaStrength = Math.min(
+        (r - 180) / 75,
+        (255 - g) / 175,
+        (b - 180) / 75
+      );
+      alpha = Math.round((1 - Math.min(1, magentaStrength)) * 255);
+      if (alpha < 30) {
+        alpha = 0;
+        magentaPixelCount++;
+      }
     } else {
       alpha = 255;
     }
@@ -85,6 +100,8 @@ async function convertMagentaToTransparent(imageBase64: string): Promise<string>
     pixels[dstIdx + 2] = b;
     pixels[dstIdx + 3] = alpha;
   }
+  
+  console.log(`Magenta-to-transparent: ${magentaPixelCount}/${totalPixels} pixels converted (${(magentaPixelCount/totalPixels*100).toFixed(1)}%)`);
   
   const result = await sharp(pixels, { 
     raw: { 
