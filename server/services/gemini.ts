@@ -1,16 +1,13 @@
 import { GoogleGenAI, Modality } from "@google/genai";
 
 const genAI = new GoogleGenAI({ 
-  apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "",
-  httpOptions: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL ? {
-    baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL
-  } : undefined
+  apiKey: process.env.GEMINI_API_KEY || process.env.AI_INTEGRATIONS_GEMINI_API_KEY || ""
 });
 
 export const MODELS = {
   FAST_ANALYSIS: "gemini-2.5-flash",
   DEEP_ANALYSIS: "gemini-2.5-pro",
-  IMAGE_GENERATION: "gemini-2.5-flash-image",
+  IMAGE_GENERATION: "gemini-2.0-flash-exp",
 } as const;
 
 export interface PromptAnalysis {
