@@ -586,3 +586,59 @@ export function getJobStatus(job: BackgroundRemovalJob): {
     error: job.error
   };
 }
+
+export function getDefaultBackgroundRemovalOptions(): BackgroundRemovalOptions {
+  return {
+    outputType: 'transparent',
+    edgeFeathering: 2,
+    quality: 'high'
+  };
+}
+
+export function validateBackgroundRemovalOptions(
+  options: Partial<BackgroundRemovalOptions>
+): BackgroundRemovalOptions {
+  const validOutputTypes: BackgroundOutputType[] = ['transparent', 'white', 'color', 'blur'];
+  const validQualities: BackgroundRemovalQuality[] = ['standard', 'high', 'ultra'];
+
+  return {
+    outputType: validOutputTypes.includes(options.outputType as BackgroundOutputType) 
+      ? options.outputType as BackgroundOutputType 
+      : 'transparent',
+    customColor: options.customColor,
+    edgeFeathering: typeof options.edgeFeathering === 'number' 
+      ? Math.max(0, Math.min(10, options.edgeFeathering)) 
+      : 2,
+    quality: validQualities.includes(options.quality as BackgroundRemovalQuality) 
+      ? options.quality as BackgroundRemovalQuality 
+      : 'high'
+  };
+}
+
+export async function removeBackgroundBatch(
+  images: Array<{ id: string; base64: string }>,
+  options: BackgroundRemovalOptions
+): Promise<Array<{ id: string; result: BackgroundRemovalResult }>> {
+  const results: Array<{ id: string; result: BackgroundRemovalResult }> = [];
+
+  for (const image of images) {
+    try {
+      const result = await removeBackground(image.base64, options);
+      results.push({ id: image.id, result });
+    } catch (error) {
+      results.push({
+        id: image.id,
+        result: {
+          success: false,
+          mimeType: 'image/png',
+          processingTimeMs: 0,
+          outputType: options.outputType,
+          quality: options.quality,
+          error: error instanceof Error ? error.message : String(error)
+        }
+      });
+    }
+  }
+
+  return results;
+}
