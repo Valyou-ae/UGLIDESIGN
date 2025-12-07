@@ -476,7 +476,7 @@ function ProductPreview({ uploadedImage, selectedProduct, selectedColor, isMinim
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
         onClick={onToggle}
-        className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-40 h-14 w-14 rounded-full bg-card border-2 border-border shadow-lg flex items-center justify-center hover:border-[#B94E30] hover:shadow-xl transition-all group"
+        className="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-30 h-14 w-14 rounded-full bg-card border-2 border-border shadow-lg flex items-center justify-center hover:border-[#B94E30] hover:shadow-xl transition-all group"
         data-testid="button-expand-preview"
       >
         <Eye className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -494,7 +494,7 @@ function ProductPreview({ uploadedImage, selectedProduct, selectedColor, isMinim
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 20, scale: 0.95 }}
-      className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-40 w-[200px] md:w-[240px] bg-card border border-border rounded-2xl shadow-2xl overflow-hidden"
+      className="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-30 w-[200px] md:w-[240px] bg-card border border-border rounded-2xl shadow-2xl overflow-hidden"
       data-testid="panel-product-preview"
     >
       <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-muted/30">
@@ -652,7 +652,7 @@ export default function MockupGenerator() {
 
   const [selectedMockupDetails, setSelectedMockupDetails] = useState<MockupDetails | null>(null);
   const [summaryOpen, setSummaryOpen] = useState(true);
-  const [previewMinimized, setPreviewMinimized] = useState(false);
+  const [previewMinimized, setPreviewMinimized] = useState(true);
   
   const [batchJobs, setBatchJobs] = useState<BatchJob[]>([]);
   const [currentlyProcessing, setCurrentlyProcessing] = useState<string | null>(null);
