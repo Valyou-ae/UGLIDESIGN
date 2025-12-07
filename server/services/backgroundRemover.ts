@@ -52,9 +52,12 @@ const CHROMA_KEY_COLOR = {
 };
 
 async function convertMagentaToTransparent(imageBase64: string): Promise<string> {
+  console.log(`convertMagentaToTransparent: Starting, input length=${imageBase64.length}`);
   const buffer = Buffer.from(imageBase64, 'base64');
+  console.log(`convertMagentaToTransparent: Buffer created, size=${buffer.length}`);
   const image = sharp(buffer);
   const { data, info } = await image.raw().toBuffer({ resolveWithObject: true });
+  console.log(`convertMagentaToTransparent: Image decoded, ${info.width}x${info.height}, channels=${info.channels}`);
   
   const inputChannels = info.channels;
   const pixels = new Uint8Array(info.width * info.height * 4);
@@ -367,14 +370,16 @@ export async function removeBackground(
       let finalImageData = resultImageData;
       let finalMimeType = resultMimeType;
 
+      console.log(`Output type requested: ${normalizedOptions.outputType}`);
       if (normalizedOptions.outputType === 'transparent') {
+        console.log('Starting post-processing: Converting magenta background to true transparency...');
         try {
-          console.log('Post-processing: Converting magenta background to true transparency...');
           finalImageData = await convertMagentaToTransparent(resultImageData);
           finalMimeType = 'image/png';
           console.log('Post-processing complete: True alpha transparency applied');
-        } catch (postProcessError) {
-          console.error('Post-processing failed, returning original image:', postProcessError);
+        } catch (postProcessError: any) {
+          console.error('Post-processing failed:', postProcessError?.message || postProcessError);
+          console.error('Stack:', postProcessError?.stack);
         }
       }
 
