@@ -37,7 +37,8 @@ export default function AdminCRM() {
     queryFn: async () => {
       const response = await fetch("/api/admin/crm/contacts", { credentials: "include" });
       if (!response.ok) throw new Error("Failed to fetch contacts");
-      return response.json();
+      const data = await response.json();
+      return data.contacts || [];
     },
   });
 
@@ -46,7 +47,8 @@ export default function AdminCRM() {
     queryFn: async () => {
       const response = await fetch("/api/admin/crm/deals", { credentials: "include" });
       if (!response.ok) throw new Error("Failed to fetch deals");
-      return response.json();
+      const data = await response.json();
+      return data.deals || [];
     },
   });
 
@@ -55,7 +57,8 @@ export default function AdminCRM() {
     queryFn: async () => {
       const response = await fetch("/api/admin/crm/activities", { credentials: "include" });
       if (!response.ok) throw new Error("Failed to fetch activities");
-      return response.json();
+      const data = await response.json();
+      return data.activities || [];
     },
   });
 
