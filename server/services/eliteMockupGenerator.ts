@@ -52,7 +52,7 @@ const genAI = new GoogleGenAI({
 
 const MODELS = {
   FAST_ANALYSIS: "gemini-2.5-flash",
-  IMAGE_GENERATION: "gemini-3-pro-image-preview",
+  IMAGE_GENERATION: "gemini-2.5-flash-image",
 } as const;
 
 const GENERATION_CONFIG = {

@@ -10,7 +10,7 @@ const genAI = new GoogleGenAI({
 export const MODELS = {
   FAST_ANALYSIS: "gemini-2.5-flash",
   DEEP_ANALYSIS: "gemini-2.5-pro",
-  IMAGE_GENERATION: "gemini-3-pro-image-preview",
+  IMAGE_GENERATION: "gemini-2.5-flash-image",
 } as const;
 
 export interface PromptAnalysis {
