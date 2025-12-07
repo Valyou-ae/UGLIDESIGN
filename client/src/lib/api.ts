@@ -514,3 +514,62 @@ export const mockupApi = {
     }
   },
 };
+
+// Background Removal API Types
+export type BackgroundOutputType = 'transparent' | 'white' | 'color' | 'blur';
+export type BackgroundRemovalQuality = 'standard' | 'high' | 'ultra';
+
+export interface BackgroundRemovalOptions {
+  outputType: BackgroundOutputType;
+  customColor?: string;
+  edgeFeathering: number;
+  quality: BackgroundRemovalQuality;
+}
+
+export interface BackgroundRemovalResult {
+  success: boolean;
+  imageData?: string;
+  mimeType: string;
+  processingTimeMs: number;
+  outputType: BackgroundOutputType;
+  quality: BackgroundRemovalQuality;
+  error?: string;
+}
+
+export interface BackgroundRemovalPresets {
+  outputTypes: Array<{
+    id: BackgroundOutputType;
+    name: string;
+    description: string;
+  }>;
+  qualityLevels: Array<{
+    id: BackgroundRemovalQuality;
+    name: string;
+    description: string;
+    credits: number;
+  }>;
+  edgeFeathering: {
+    min: number;
+    max: number;
+    default: number;
+  };
+  defaults: BackgroundRemovalOptions;
+}
+
+// Background Removal API
+export const backgroundRemovalApi = {
+  removeBackground: async (image: string, options: BackgroundRemovalOptions): Promise<{ success: boolean; result: BackgroundRemovalResult; message?: string }> => {
+    const response = await fetch('/api/background-removal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image, options }),
+      credentials: 'include'
+    });
+    return response.json();
+  },
+
+  getPresets: async (): Promise<BackgroundRemovalPresets> => {
+    const response = await fetch('/api/background-removal/presets', { credentials: 'include' });
+    return response.json();
+  }
+};
