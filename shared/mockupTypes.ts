@@ -401,3 +401,40 @@ export interface MockupRefinementRequest {
   originalJob: GenerationJob;
   refinementPrompt: string;
 }
+
+// ============================================================================
+// BATCH GENERATION TRACKING (Frontend)
+// ============================================================================
+
+export type BatchJobStatus = 'pending' | 'processing' | 'completed' | 'failed';
+
+export interface BatchJob {
+  id: string;
+  color: string;
+  angle: string;
+  size?: string;
+  status: BatchJobStatus;
+  imageData?: string;
+  mimeType?: string;
+  error?: string;
+  retryCount: number;
+}
+
+export interface BatchProgress {
+  totalJobs: number;
+  completedJobs: number;
+  failedJobs: number;
+  currentlyProcessing: string | null;
+  jobs: BatchJob[];
+}
+
+export interface GeneratedMockupWithMeta {
+  id: string;
+  src: string;
+  angle: string;
+  color: string;
+  size: string;
+  productName: string;
+  status: BatchJobStatus;
+  error?: string;
+}

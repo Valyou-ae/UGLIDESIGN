@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import JSZip from "jszip";
 import { 
   generateAllPatternVariations, 
   downloadTexture, 
   type PatternVariation 
 } from "@/lib/patternUtils";
+import type { BatchJob, BatchJobStatus } from "@shared/mockupTypes";
 import { 
   Shirt, 
   Grid, 
@@ -70,11 +72,15 @@ import {
   Loader2,
   Info,
   AlertTriangle,
+  AlertCircle,
   Star,
   CheckCircle2,
   Ruler,
   Eye,
-  EyeOff
+  EyeOff,
+  Package,
+  RotateCw,
+  Archive
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -628,6 +634,15 @@ export default function MockupGenerator() {
   const [selectedMockupDetails, setSelectedMockupDetails] = useState<MockupDetails | null>(null);
   const [summaryOpen, setSummaryOpen] = useState(true);
   const [previewMinimized, setPreviewMinimized] = useState(false);
+  
+  const [batchJobs, setBatchJobs] = useState<BatchJob[]>([]);
+  const [currentlyProcessing, setCurrentlyProcessing] = useState<string | null>(null);
+  const [failedJobs, setFailedJobs] = useState<BatchJob[]>([]);
+  const [isDownloadingZip, setIsDownloadingZip] = useState(false);
+
+  const completedJobs = batchJobs.filter(j => j.status === 'completed').length;
+  const failedJobsCount = batchJobs.filter(j => j.status === 'failed').length;
+  const pendingJobs = batchJobs.filter(j => j.status === 'pending').length;
 
   const downloadImage = (url: string, filename: string) => {
     const link = document.createElement('a');
@@ -636,6 +651,97 @@ export default function MockupGenerator() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const downloadAllAsZip = async () => {
+    if (generatedMockups.length === 0) return;
+    
+    setIsDownloadingZip(true);
+    try {
+      const zip = new JSZip();
+      const productName = (selectedProductType || 'product').replace(/\s+/g, '_').toLowerCase();
+      const folderName = `mockups_${productName}_${Date.now()}`;
+      const folder = zip.folder(folderName);
+      
+      if (!folder) throw new Error('Failed to create zip folder');
+
+      const fetchPromises = generatedMockups.map(async (mockup, index) => {
+        try {
+          const colorName = mockup.color.replace(/\s+/g, '-').toLowerCase();
+          const angleName = mockup.angle.replace(/\s+/g, '-').toLowerCase();
+          const sizeName = mockup.size.toLowerCase();
+          const filename = `${productName}_${colorName}_${angleName}_${sizeName}_${index + 1}.png`;
+          
+          if (mockup.src.startsWith('data:')) {
+            const base64Data = mockup.src.split(',')[1];
+            folder.file(filename, base64Data, { base64: true });
+          } else {
+            const response = await fetch(mockup.src);
+            const blob = await response.blob();
+            folder.file(filename, blob);
+          }
+        } catch (err) {
+          console.error(`Failed to add ${mockup.angle} to zip:`, err);
+        }
+      });
+
+      await Promise.all(fetchPromises);
+
+      const zipBlob = await zip.generateAsync({ 
+        type: 'blob',
+        compression: 'DEFLATE',
+        compressionOptions: { level: 6 }
+      });
+
+      const url = URL.createObjectURL(zipBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${folderName}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Download Complete",
+        description: `${generatedMockups.length} mockups saved as ZIP file`,
+      });
+    } catch (error) {
+      console.error('ZIP download failed:', error);
+      toast({
+        title: "Download Failed",
+        description: "Could not create ZIP file. Please try downloading individually.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDownloadingZip(false);
+    }
+  };
+
+  const retryFailedJob = async (jobId: string) => {
+    const job = batchJobs.find(j => j.id === jobId);
+    if (!job) return;
+
+    setBatchJobs(prev => prev.map(j => 
+      j.id === jobId ? { ...j, status: 'pending' as BatchJobStatus, error: undefined, retryCount: j.retryCount + 1 } : j
+    ));
+    
+    toast({
+      title: "Retrying...",
+      description: `Retrying generation for ${job.color} - ${job.angle}`,
+    });
+  };
+
+  const retryAllFailed = () => {
+    const failed = batchJobs.filter(j => j.status === 'failed');
+    setBatchJobs(prev => prev.map(j => 
+      j.status === 'failed' ? { ...j, status: 'pending' as BatchJobStatus, error: undefined, retryCount: j.retryCount + 1 } : j
+    ));
+    
+    toast({
+      title: "Retrying All Failed",
+      description: `Retrying ${failed.length} failed generations`,
+    });
   };
 
   const aopStepsForJourney = isAlreadySeamless 
@@ -831,14 +937,31 @@ export default function MockupGenerator() {
     const isAopJourney = journey === "AOP";
     const colors = isAopJourney ? ["White"] : (selectedColors.length > 0 ? selectedColors : ["White"]);
     const sizes = selectedSizes.length > 0 ? selectedSizes : ["M"];
+    const angles = selectedAngles.length > 0 ? selectedAngles : ["front"];
     const scene = environmentPrompt || "studio";
-    const totalExpected = Math.max(1, selectedAngles.length * colors.length * sizes.length);
+    const totalExpected = Math.max(1, angles.length * colors.length);
 
     setIsGenerating(true);
     setGenerationProgress(0);
     setGenerationStage("Initializing...");
     setGeneratedMockups([]);
     setExpectedMockupsCount(totalExpected);
+
+    const initialBatchJobs: BatchJob[] = [];
+    colors.forEach((color) => {
+      angles.forEach((angle) => {
+        initialBatchJobs.push({
+          id: `${color}-${angle}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          color,
+          angle,
+          size: sizes[0],
+          status: 'pending',
+          retryCount: 0
+        });
+      });
+    });
+    setBatchJobs(initialBatchJobs);
+    setCurrentlyProcessing(null);
 
     if (intervalRef.current) clearInterval(intervalRef.current);
 
@@ -906,15 +1029,23 @@ export default function MockupGenerator() {
                 setGeneratedMockups([...generatedImages]);
                 const progress = 10 + Math.round((generatedImages.length / totalExpected) * 85);
                 setGenerationProgress(Math.min(progress, 95));
+                
+                setBatchJobs(prev => prev.map(job => 
+                  job.color === mockupData.color && job.angle === mockupData.angle
+                    ? { ...job, status: 'completed' as BatchJobStatus, imageData: event.data.imageData, mimeType: event.data.mimeType }
+                    : job
+                ));
+                setCurrentlyProcessing(null);
               }
               break;
             case "image_error":
               console.error(`Failed to generate ${event.data.angle} ${event.data.color || ''} view`);
-              toast({
-                title: "Image Error",
-                description: `Failed to generate ${event.data.angle} view. Continuing with others...`,
-                variant: "destructive",
-              });
+              setBatchJobs(prev => prev.map(job => 
+                job.color === event.data.color && job.angle === event.data.angle
+                  ? { ...job, status: 'failed' as BatchJobStatus, error: event.data.error || 'Generation failed' }
+                  : job
+              ));
+              setCurrentlyProcessing(null);
               break;
             case "complete":
               setGenerationProgress(100);
@@ -2200,44 +2331,100 @@ export default function MockupGenerator() {
                       {currentStep === "generate" && (
                         <div className="h-full flex flex-col">
                           {!generatedMockups.length && !isGenerating ? (
-                            <div className="flex-1 flex flex-col items-center justify-center text-center max-w-[600px] mx-auto">
-                              <h2 className="text-3xl font-bold mb-6">Ready to Generate Photoshoot</h2>
+                            <div className="flex-1 flex flex-col items-center justify-center text-center max-w-[700px] mx-auto">
+                              <h2 className="text-3xl font-bold mb-2">Ready to Generate Photoshoot</h2>
+                              <p className="text-muted-foreground mb-6">Review your batch configuration before generating</p>
                               
-                              <div className="bg-muted/30 rounded-2xl p-6 w-full mb-8 border border-border">
-                                <div className="flex justify-between items-center mb-4 pb-4 border-b border-border">
-                                  <span className="text-sm font-medium text-muted-foreground">Product</span>
-                                  <span className="font-bold">{selectedProductType || "T-Shirt"}</span>
+                              <div className="bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-2xl p-6 w-full mb-6 border border-indigo-200 dark:border-indigo-800" data-testid="batch-summary-card">
+                                <div className="flex items-center justify-center gap-4 mb-4">
+                                  <div className="flex items-center gap-2 bg-card rounded-lg px-4 py-2 border border-border">
+                                    <Palette className="h-4 w-4 text-indigo-600" />
+                                    <span className="text-2xl font-bold text-indigo-600">{journey === "AOP" ? 1 : selectedColors.length}</span>
+                                    <span className="text-sm text-muted-foreground">Colors</span>
+                                  </div>
+                                  <span className="text-2xl font-bold text-muted-foreground">×</span>
+                                  <div className="flex items-center gap-2 bg-card rounded-lg px-4 py-2 border border-border">
+                                    <Camera className="h-4 w-4 text-purple-600" />
+                                    <span className="text-2xl font-bold text-purple-600">{selectedAngles.length || 1}</span>
+                                    <span className="text-sm text-muted-foreground">Angles</span>
+                                  </div>
+                                  <span className="text-2xl font-bold text-muted-foreground">=</span>
+                                  <div className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg px-4 py-2 text-white">
+                                    <Sparkles className="h-4 w-4" />
+                                    <span className="text-2xl font-bold">{Math.max(1, selectedAngles.length * (journey === "AOP" ? 1 : selectedColors.length))}</span>
+                                    <span className="text-sm">Mockups</span>
+                                  </div>
                                 </div>
-                                <div className="flex justify-between items-center mb-4 pb-4 border-b border-border">
-                                  <span className="text-sm font-medium text-muted-foreground">Model</span>
-                                  <span className="font-bold">{useModel ? `${modelDetails.sex === "MALE" ? "Male" : "Female"} - ${modelDetails.ethnicity.charAt(0) + modelDetails.ethnicity.slice(1).toLowerCase().replace("_", " ")}` : "Flat Lay"}</span>
+                              </div>
+                              
+                              <div className="bg-muted/30 rounded-2xl p-6 w-full mb-6 border border-border">
+                                <div className="grid grid-cols-2 gap-4 mb-4">
+                                  <div className="text-left">
+                                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Product</span>
+                                    <p className="font-bold text-foreground">{selectedProductType || "T-Shirt"}</p>
+                                  </div>
+                                  <div className="text-left">
+                                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Model</span>
+                                    <p className="font-bold text-foreground">{useModel ? `${modelDetails.sex === "MALE" ? "Male" : "Female"} - ${modelDetails.ethnicity.charAt(0) + modelDetails.ethnicity.slice(1).toLowerCase().replace("_", " ")}` : "Flat Lay"}</p>
+                                  </div>
+                                  <div className="text-left">
+                                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Style</span>
+                                    <p className="font-bold text-foreground">{BRAND_STYLES.find(s => s.id === selectedStyle)?.name || "Minimal"}</p>
+                                  </div>
+                                  <div className="text-left">
+                                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Scene</span>
+                                    <p className="font-bold text-foreground truncate">{environmentPrompt?.slice(0, 30) || "Studio"}...</p>
+                                  </div>
                                 </div>
-                                <div className="flex justify-between items-center mb-4 pb-4 border-b border-border">
-                                  <span className="text-sm font-medium text-muted-foreground">Style</span>
-                                  <span className="font-bold">{BRAND_STYLES.find(s => s.id === selectedStyle)?.name || "Minimal"}</span>
-                                </div>
-                                <div className="flex justify-between items-center mb-4 pb-4 border-b border-border">
-                                  <span className="text-sm font-medium text-muted-foreground">Colors</span>
-                                  <span className="font-bold">{selectedColors.length > 0 ? selectedColors.slice(0, 3).join(", ") + (selectedColors.length > 3 ? ` +${selectedColors.length - 3}` : "") : "White"}</span>
-                                </div>
-                                <div className="flex justify-between items-center mb-4 pb-4 border-b border-border">
-                                  <span className="text-sm font-medium text-muted-foreground">Angles</span>
-                                  <span className="font-bold">{selectedAngles.length > 0 ? selectedAngles.join(", ") : "front"}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                  <span className="text-sm font-medium text-muted-foreground">Total Output</span>
-                                  <Badge className="bg-indigo-600">{Math.max(1, selectedAngles.length * selectedColors.length)} Mockups</Badge>
+                                
+                                <div className="border-t border-border pt-4">
+                                  <div className="mb-3">
+                                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Colors ({journey === "AOP" ? 1 : selectedColors.length})</span>
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                      {(journey === "AOP" ? ["Pattern"] : selectedColors).map((color) => (
+                                        <Badge key={color} variant="outline" className="gap-1.5">
+                                          <div 
+                                            className="h-3 w-3 rounded-full border border-border/50" 
+                                            style={{ backgroundColor: PRODUCT_COLOR_MAP[color] || "#CCCCCC" }}
+                                          />
+                                          {color}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Angles ({selectedAngles.length})</span>
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                      {selectedAngles.map((angle) => (
+                                        <Badge key={angle} variant="outline" className="capitalize">
+                                          {angle.replace('-', ' ')}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
 
-                              <Button 
-                                size="lg" 
-                                onClick={handleGenerate}
-                                className="h-14 px-10 text-lg rounded-[12px] bg-gradient-to-r from-[#7C3AED] to-[#9333EA] hover:brightness-110 shadow-lg shadow-purple-600/20 transition-all hover:-translate-y-[1px]"
-                              >
-                                <Wand2 className="mr-2 h-5 w-5" />
-                                Generate {Math.max(1, selectedAngles.length * selectedColors.length)} Mockups
-                              </Button>
+                              <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
+                                <Button 
+                                  variant="outline"
+                                  size="lg" 
+                                  onClick={handleBack}
+                                  className="flex-1"
+                                >
+                                  <ChevronLeft className="mr-2 h-4 w-4" />
+                                  Back
+                                </Button>
+                                <Button 
+                                  size="lg" 
+                                  onClick={handleGenerate}
+                                  className="flex-[2] h-14 text-lg rounded-[12px] bg-gradient-to-r from-[#7C3AED] to-[#9333EA] hover:brightness-110 shadow-lg shadow-purple-600/20 transition-all hover:-translate-y-[1px]"
+                                  data-testid="button-generate-all"
+                                >
+                                  <Wand2 className="mr-2 h-5 w-5" />
+                                  Generate All ({Math.max(1, selectedAngles.length * (journey === "AOP" ? 1 : selectedColors.length))} Mockups)
+                                </Button>
+                              </div>
                             </div>
                           ) : isGenerating && generatedMockups.length === 0 ? (
                             <div className="flex-1 flex flex-col items-center justify-center text-center max-w-[400px] mx-auto">
@@ -2309,19 +2496,107 @@ export default function MockupGenerator() {
                                   </Button>
                                   <Button 
                                     className="bg-indigo-600 hover:bg-indigo-700 text-white flex-1 sm:flex-none"
-                                    onClick={() => {
-                                      const timestamp = Date.now();
-                                      generatedMockups.forEach((mockup, i) => 
-                                        downloadImage(mockup.src, `mockup_${mockup.size}_${mockup.color.replace(/\s+/g, '-')}_${mockup.angle}_${timestamp}_${i}.png`)
-                                      );
-                                    }}
-                                    disabled={isGenerating || generatedMockups.length === 0}
+                                    onClick={downloadAllAsZip}
+                                    disabled={isGenerating || generatedMockups.length === 0 || isDownloadingZip}
+                                    data-testid="button-download-zip"
                                   >
-                                    <Download className="mr-2 h-4 w-4" />
-                                    Download All
+                                    {isDownloadingZip ? (
+                                      <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Creating ZIP...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Archive className="mr-2 h-4 w-4" />
+                                        Download All as ZIP
+                                      </>
+                                    )}
                                   </Button>
                                 </div>
                               </div>
+
+                              {/* Batch Progress Tracker */}
+                              {batchJobs.length > 0 && (
+                                <div className="bg-muted/30 border border-border rounded-xl p-4 mb-4 shrink-0" data-testid="batch-progress-tracker">
+                                  <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center gap-2">
+                                      <Package className="h-4 w-4 text-indigo-600" />
+                                      <span className="text-sm font-medium text-foreground">Batch Progress</span>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-xs">
+                                      <span className="flex items-center gap-1.5">
+                                        <div className="h-2 w-2 rounded-full bg-green-500" />
+                                        <span className="text-muted-foreground">{completedJobs} completed</span>
+                                      </span>
+                                      {failedJobsCount > 0 && (
+                                        <span className="flex items-center gap-1.5">
+                                          <div className="h-2 w-2 rounded-full bg-red-500" />
+                                          <span className="text-red-600">{failedJobsCount} failed</span>
+                                        </span>
+                                      )}
+                                      {pendingJobs > 0 && isGenerating && (
+                                        <span className="flex items-center gap-1.5">
+                                          <div className="h-2 w-2 rounded-full bg-yellow-500 animate-pulse" />
+                                          <span className="text-muted-foreground">{pendingJobs} pending</span>
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                                    {batchJobs.map((job) => (
+                                      <div
+                                        key={job.id}
+                                        className={cn(
+                                          "relative rounded-lg border p-2 text-center text-xs transition-all",
+                                          job.status === 'completed' && "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800",
+                                          job.status === 'processing' && "bg-indigo-50 dark:bg-indigo-900/20 border-indigo-300 dark:border-indigo-700 animate-pulse",
+                                          job.status === 'pending' && "bg-muted/50 border-border",
+                                          job.status === 'failed' && "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
+                                        )}
+                                        data-testid={`batch-job-${job.id}`}
+                                      >
+                                        <div className="flex items-center justify-center gap-1.5 mb-1">
+                                          {job.status === 'completed' && <CheckCircle2 className="h-3 w-3 text-green-600" />}
+                                          {job.status === 'processing' && <Loader2 className="h-3 w-3 text-indigo-600 animate-spin" />}
+                                          {job.status === 'pending' && <div className="h-3 w-3 rounded-full border-2 border-muted-foreground/30" />}
+                                          {job.status === 'failed' && <AlertCircle className="h-3 w-3 text-red-600" />}
+                                        </div>
+                                        <p className="font-medium truncate">{job.color}</p>
+                                        <p className="text-muted-foreground text-[10px] truncate capitalize">{job.angle.replace('-', ' ')}</p>
+                                        {job.status === 'failed' && (
+                                          <button
+                                            onClick={() => retryFailedJob(job.id)}
+                                            className="mt-1 text-[10px] text-indigo-600 hover:underline flex items-center justify-center gap-0.5"
+                                            data-testid={`retry-job-${job.id}`}
+                                          >
+                                            <RotateCw className="h-2.5 w-2.5" />
+                                            Retry
+                                          </button>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+
+                                  {failedJobsCount > 0 && !isGenerating && (
+                                    <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
+                                      <p className="text-xs text-red-600">
+                                        {failedJobsCount} generation{failedJobsCount > 1 ? 's' : ''} failed
+                                      </p>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={retryAllFailed}
+                                        className="h-7 text-xs gap-1.5"
+                                        data-testid="button-retry-all-failed"
+                                      >
+                                        <RotateCw className="h-3 w-3" />
+                                        Retry All Failed
+                                      </Button>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
 
                               {/* Collapsible Summary Panel */}
                               <Collapsible
