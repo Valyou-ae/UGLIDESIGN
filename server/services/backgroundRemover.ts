@@ -4,6 +4,7 @@
  */
 
 import { GoogleGenAI, Modality } from "@google/genai";
+import sharp from "sharp";
 import type {
   BackgroundRemovalOptions,
   BackgroundRemovalResult,
@@ -41,6 +42,61 @@ const QUALITY_SETTINGS: Record<BackgroundRemovalQuality, { detail: string; preci
   }
 };
 
+const CHROMA_KEY_COLOR = {
+  r: 255,
+  g: 0,
+  b: 255,
+  hex: "#FF00FF"
+};
+
+async function convertMagentaToTransparent(imageBase64: string): Promise<string> {
+  const buffer = Buffer.from(imageBase64, 'base64');
+  const image = sharp(buffer);
+  const { data, info } = await image.raw().toBuffer({ resolveWithObject: true });
+  
+  const inputChannels = info.channels;
+  const pixels = new Uint8Array(info.width * info.height * 4);
+  
+  for (let i = 0; i < info.width * info.height; i++) {
+    const srcIdx = i * inputChannels;
+    const dstIdx = i * 4;
+    
+    const r = data[srcIdx];
+    const g = data[srcIdx + 1];
+    const b = data[srcIdx + 2];
+    
+    const isPureMagenta = r >= 250 && g <= 10 && b >= 250;
+    const isNearMagenta = r >= 240 && g <= 25 && b >= 240;
+    
+    let alpha: number;
+    if (isPureMagenta) {
+      alpha = 0;
+    } else if (isNearMagenta) {
+      const greenFactor = g / 25;
+      alpha = Math.round(greenFactor * 255);
+    } else {
+      alpha = 255;
+    }
+    
+    pixels[dstIdx] = r;
+    pixels[dstIdx + 1] = g;
+    pixels[dstIdx + 2] = b;
+    pixels[dstIdx + 3] = alpha;
+  }
+  
+  const result = await sharp(pixels, { 
+    raw: { 
+      width: info.width, 
+      height: info.height, 
+      channels: 4 
+    } 
+  })
+    .png()
+    .toBuffer();
+  
+  return result.toString('base64');
+}
+
 function buildBackgroundRemovalPrompt(
   options: BackgroundRemovalOptions
 ): { prompt: string; negativePrompts: string[] } {
@@ -58,21 +114,22 @@ function buildBackgroundRemovalPrompt(
 
   switch (options.outputType) {
     case 'transparent':
-      outputSpecificPrompt = `Remove the background completely and replace with full transparency (alpha channel = 0).
+      outputSpecificPrompt = `Remove the background completely and replace with SOLID BRIGHT MAGENTA color (exact hex #FF00FF, RGB 255,0,255).
       
 OUTPUT REQUIREMENTS:
-- Output format: PNG with alpha transparency channel
-- Background: Completely transparent (invisible/checkered pattern appearance)
+- Output format: High-quality PNG image
+- Background: SOLID BRIGHT MAGENTA (#FF00FF) - this specific color is required for post-processing
 - Subject: Fully preserved with original colors and details
 - Edge handling: ${featheringDesc}
-- Semi-transparent elements: Preserve opacity gradients in hair wisps, fabric edges, glass, smoke, etc.`;
+- The magenta background will be converted to transparency in post-processing`;
       technicalRequirements = `
-TRANSPARENCY TECHNICAL SPECS:
-- Generate true RGBA image with alpha channel
-- Background alpha: 0 (fully transparent)
-- Subject alpha: 255 (fully opaque) except for naturally semi-transparent edges
-- Preserve partial transparency in hair strands, fur, and delicate edges
-- Anti-aliasing: Apply to subject edges for smooth compositing`;
+MAGENTA BACKGROUND TECHNICAL SPECS:
+- Background color: EXACT #FF00FF (RGB 255, 0, 255) - bright magenta with no variation
+- Fill ALL background areas with this exact magenta color
+- Subject edges should have clean anti-aliasing against the magenta
+- NO gradients or color variations in the background - pure solid magenta only
+- Ensure complete coverage - no gaps or missed background areas
+- The magenta color is a chroma key that will be replaced with transparency`;
       break;
 
     case 'white':
@@ -288,10 +345,24 @@ export async function removeBackground(
         throw new Error('No image data in AI response');
       }
 
+      let finalImageData = resultImageData;
+      let finalMimeType = resultMimeType;
+
+      if (normalizedOptions.outputType === 'transparent') {
+        try {
+          console.log('Post-processing: Converting magenta background to true transparency...');
+          finalImageData = await convertMagentaToTransparent(resultImageData);
+          finalMimeType = 'image/png';
+          console.log('Post-processing complete: True alpha transparency applied');
+        } catch (postProcessError) {
+          console.error('Post-processing failed, returning original image:', postProcessError);
+        }
+      }
+
       return {
         success: true,
-        imageData: resultImageData,
-        mimeType: resultMimeType,
+        imageData: finalImageData,
+        mimeType: finalMimeType,
         processingTimeMs: Date.now() - startTime,
         outputType: normalizedOptions.outputType,
         quality: normalizedOptions.quality
