@@ -170,7 +170,7 @@ const ASPECT_RATIOS = [
 
 
 export default function ImageGenerator() {
-  const [prompt, setPrompt] = useState("A futuristic city with neon lights and flying cars in cyberpunk style");
+  const [prompt, setPrompt] = useState("");
   const [status, setStatus] = useState<GenerationStatus>("idle");
   const [generations, setGenerations] = useState<GeneratedImage[]>([]);
   const [filteredGenerations, setFilteredGenerations] = useState<GeneratedImage[]>([]);
@@ -806,11 +806,8 @@ export default function ImageGenerator() {
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="Describe what you want to create..."
-                    className={cn(
-                      "w-full bg-transparent border-0 focus:ring-0 px-0 pt-[3px] text-sm sm:text-base placeholder:text-muted-foreground/50 placeholder:italic resize-none min-h-[24px] max-h-[120px] leading-relaxed outline-none ring-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden",
-                      prompt === "A futuristic city with neon lights and flying cars in cyberpunk style" ? "text-muted-foreground italic" : "text-foreground"
-                    )}
+                    placeholder="A futuristic city with neon lights and flying cars in cyberpunk style..."
+                    className="w-full bg-transparent border-0 focus:ring-0 px-0 pt-[3px] text-sm sm:text-base text-foreground placeholder:text-muted-foreground/50 placeholder:italic resize-none min-h-[24px] max-h-[120px] leading-relaxed outline-none ring-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
                     rows={1}
                   />
                 </div>
