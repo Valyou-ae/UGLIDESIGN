@@ -22,8 +22,9 @@ Preferred communication style: Simple, everyday language.
 -   **Database Layer**: PostgreSQL with Drizzle ORM for type-safe queries and schema-first migrations.
 -   **Session Management**: `express-session` with `connect-pg-simple` for PostgreSQL session store, 7-day expiration, HttpOnly cookies.
 -   **Authentication Strategy**: Replit Auth (OpenID Connect) supporting Google, GitHub, Apple, and email sign-in. Uses passport.js with automatic token refresh. Login redirects to `/api/login`, callback at `/api/callback`, logout at `/api/logout`.
--   **Data Models**: Users, Generated Images, Affiliate Commissions, and Withdrawal Requests.
+-   **Data Models**: Users (with role-based access), Generated Images, Affiliate Commissions, Withdrawal Requests, CRM Contacts, CRM Deals, CRM Activities.
 -   **Storage Pattern**: Repository pattern via `IStorage` interface with `DatabaseStorage` implementation.
+-   **Role-Based Access Control**: Users have roles (user, admin, moderator). Admin middleware (`requireAdmin`) protects admin-only routes.
 
 ## Elite Mockup Generator (Lock-In System)
 
@@ -51,6 +52,15 @@ Preferred communication style: Simple, everyday language.
 -   **Password Reset Flow**: Secure token-based reset - tokens are bcrypt-hashed before storage, verified via bcrypt.compare, reset links include email+token parameters, tokens never returned to frontend.
 -   **Voice Input**: Uses Web Speech API for image generator prompt input with graceful fallback for unsupported browsers.
 -   **Profile Page**: Connected to real user data from auth context and database (username, email, join date, stats, creations).
+
+## Admin Dashboard & CRM
+
+-   **Route Guards**: `AuthGuard` (protects authenticated routes), `AdminGuard` (protects admin routes), `GuestGuard` (redirects authenticated users from login/signup).
+-   **Admin Layout**: Separate `AdminLayout` component with `AdminSidebar` for admin navigation.
+-   **Admin Routes**: `/admin` (dashboard), `/admin/users` (user management), `/admin/crm` (CRM overview), `/admin/crm/contacts`, `/admin/crm/deals`, `/admin/analytics`.
+-   **Admin API Endpoints**: All under `/api/admin/*` with `requireAdmin` middleware - user management, CRM CRUD operations, analytics.
+-   **CRM Features**: Contact management (leads, customers), deal pipeline (stages, values, probability), activity tracking (calls, emails, tasks).
+-   **Analytics Dashboard**: Total users, images generated, commissions overview.
 
 ## Notable Architectural Decisions
 

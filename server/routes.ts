@@ -71,6 +71,7 @@ export async function registerRoutes(
           profileImageUrl: user.profileImageUrl,
           socialLinks: user.socialLinks || [],
           affiliateCode: user.affiliateCode,
+          role: user.role,
           createdAt: user.createdAt
         }
       });
@@ -100,6 +101,7 @@ export async function registerRoutes(
           profileImageUrl: user.profileImageUrl,
           socialLinks: user.socialLinks || [],
           affiliateCode: user.affiliateCode,
+          role: user.role,
           createdAt: user.createdAt
         } 
       });
@@ -133,6 +135,7 @@ export async function registerRoutes(
           profileImageUrl: user.profileImageUrl,
           socialLinks: user.socialLinks || [],
           affiliateCode: user.affiliateCode,
+          role: user.role,
           createdAt: user.createdAt
         } 
       });
