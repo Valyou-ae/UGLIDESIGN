@@ -35,6 +35,7 @@ import {
   Plus,
   Check as CheckIcon,
   ChevronDown,
+  ChevronUp,
   Menu,
   Tag,
   Layers,
@@ -65,12 +66,15 @@ import {
   Combine,
   Search,
   Maximize2,
+  Minimize2,
   Loader2,
   Info,
   AlertTriangle,
   Star,
   CheckCircle2,
-  Ruler
+  Ruler,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -359,6 +363,219 @@ const MOCKUP_ANGLES = [
   { id: 'closeup', name: 'Close-up View', description: 'Detailed shot of the design and fabric.', icon: Search, recommended: true },
 ];
 
+const PRODUCT_SILHOUETTES: Record<string, { svg: string; designArea: { top: string; left: string; width: string; height: string } }> = {
+  "T-shirts": {
+    svg: `<svg viewBox="0 0 100 120" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M20 5 L35 0 L50 5 L65 0 L80 5 L95 25 L75 35 L75 115 L25 115 L25 35 L5 25 Z" stroke="currentColor" stroke-width="1" fill="currentColor"/></svg>`,
+    designArea: { top: "30%", left: "28%", width: "44%", height: "40%" }
+  },
+  "Hoodies": {
+    svg: `<svg viewBox="0 0 100 120" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M15 15 L35 5 L50 15 L65 5 L85 15 L95 40 L80 45 L80 115 L20 115 L20 45 L5 40 Z M35 5 Q50 -5 65 5" stroke="currentColor" stroke-width="1" fill="currentColor"/><path d="M35 115 L35 85 L65 85 L65 115" stroke="currentColor" stroke-width="0.5" fill="none" opacity="0.3"/></svg>`,
+    designArea: { top: "25%", left: "30%", width: "40%", height: "35%" }
+  },
+  "Sweatshirts": {
+    svg: `<svg viewBox="0 0 100 120" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M15 15 L35 5 L50 10 L65 5 L85 15 L95 40 L80 45 L80 115 L20 115 L20 45 L5 40 Z" stroke="currentColor" stroke-width="1" fill="currentColor"/></svg>`,
+    designArea: { top: "25%", left: "28%", width: "44%", height: "38%" }
+  },
+  "Tank tops": {
+    svg: `<svg viewBox="0 0 100 120" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M25 0 L35 0 L35 15 L65 15 L65 0 L75 0 L80 30 L80 115 L20 115 L20 30 Z" stroke="currentColor" stroke-width="1" fill="currentColor"/></svg>`,
+    designArea: { top: "25%", left: "28%", width: "44%", height: "42%" }
+  },
+  "Polo shirts": {
+    svg: `<svg viewBox="0 0 100 120" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M20 5 L35 0 L50 8 L65 0 L80 5 L95 25 L75 35 L75 115 L25 115 L25 35 L5 25 Z" stroke="currentColor" stroke-width="1" fill="currentColor"/><path d="M42 0 L50 15 L58 0" stroke="currentColor" stroke-width="1" fill="none" opacity="0.4"/></svg>`,
+    designArea: { top: "30%", left: "28%", width: "44%", height: "40%" }
+  },
+  "Tote bags": {
+    svg: `<svg viewBox="0 0 100 120" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M15 25 L85 25 L85 115 L15 115 Z" stroke="currentColor" stroke-width="1" fill="currentColor"/><path d="M30 25 Q30 5 50 5 Q70 5 70 25" stroke="currentColor" stroke-width="3" fill="none"/></svg>`,
+    designArea: { top: "30%", left: "20%", width: "60%", height: "55%" }
+  },
+  "Mugs": {
+    svg: `<svg viewBox="0 0 100 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M15 20 L70 20 L70 85 Q70 95 50 95 L35 95 Q15 95 15 85 Z" stroke="currentColor" stroke-width="1" fill="currentColor"/><path d="M70 35 Q90 35 90 55 Q90 75 70 75" stroke="currentColor" stroke-width="3" fill="none"/></svg>`,
+    designArea: { top: "25%", left: "18%", width: "50%", height: "50%" }
+  },
+  "Posters": {
+    svg: `<svg viewBox="0 0 100 130" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="10" width="80" height="110" rx="2" stroke="currentColor" stroke-width="1" fill="currentColor"/></svg>`,
+    designArea: { top: "12%", left: "15%", width: "70%", height: "76%" }
+  },
+  "Phone cases": {
+    svg: `<svg viewBox="0 0 60 120" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="5" width="50" height="110" rx="8" stroke="currentColor" stroke-width="1" fill="currentColor"/><rect x="20" y="10" width="20" height="5" rx="2" fill="currentColor" opacity="0.3"/></svg>`,
+    designArea: { top: "15%", left: "15%", width: "70%", height: "70%" }
+  },
+  "Blankets": {
+    svg: `<svg viewBox="0 0 120 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M10 10 L110 10 L110 90 L10 90 Z" stroke="currentColor" stroke-width="1" fill="currentColor"/><path d="M10 90 Q15 95 20 90 Q25 85 30 90 Q35 95 40 90 Q45 85 50 90 Q55 95 60 90 Q65 85 70 90 Q75 95 80 90 Q85 85 90 90 Q95 95 100 90 Q105 85 110 90" stroke="currentColor" stroke-width="1" fill="none" opacity="0.3"/></svg>`,
+    designArea: { top: "10%", left: "10%", width: "80%", height: "75%" }
+  },
+  "default": {
+    svg: `<svg viewBox="0 0 100 120" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M20 5 L35 0 L50 5 L65 0 L80 5 L95 25 L75 35 L75 115 L25 115 L25 35 L5 25 Z" stroke="currentColor" stroke-width="1" fill="currentColor"/></svg>`,
+    designArea: { top: "30%", left: "28%", width: "44%", height: "40%" }
+  }
+};
+
+const PRODUCT_COLOR_MAP: Record<string, string> = {
+  "White": "#FFFFFF",
+  "Black": "#1a1a1a",
+  "Sport Grey": "#9E9E9E",
+  "Dark Heather": "#545454",
+  "Charcoal": "#424242",
+  "Navy": "#1A237E",
+  "Royal": "#0D47A1",
+  "Light Blue": "#ADD8E6",
+  "Red": "#D32F2F",
+  "Cardinal": "#880E4F",
+  "Maroon": "#4A148C",
+  "Orange": "#F57C00",
+  "Gold": "#FBC02D",
+  "Irish Green": "#388E3C",
+  "Forest": "#1B5E20",
+  "Purple": "#7B1FA2",
+  "Light Pink": "#F8BBD0",
+  "Sand": "#F5F5DC",
+};
+
+interface ProductPreviewProps {
+  uploadedImage: string | null;
+  selectedProduct: string | null;
+  selectedColor: string;
+  isMinimized: boolean;
+  onToggle: () => void;
+  journey: "DTG" | "AOP" | null;
+}
+
+function ProductPreview({ uploadedImage, selectedProduct, selectedColor, isMinimized, onToggle, journey }: ProductPreviewProps) {
+  const productKey = selectedProduct || "T-shirts";
+  const silhouette = PRODUCT_SILHOUETTES[productKey] || PRODUCT_SILHOUETTES["default"];
+  const colorHex = PRODUCT_COLOR_MAP[selectedColor] || "#FFFFFF";
+  const isLightColor = colorHex === "#FFFFFF" || colorHex === "#F5F5DC" || colorHex === "#F8BBD0" || colorHex === "#ADD8E6" || colorHex === "#FBC02D";
+  
+  if (isMinimized) {
+    return (
+      <motion.button
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        onClick={onToggle}
+        className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-40 h-14 w-14 rounded-full bg-card border-2 border-border shadow-lg flex items-center justify-center hover:border-indigo-400 hover:shadow-xl transition-all group"
+        data-testid="button-expand-preview"
+      >
+        <Eye className="h-5 w-5 text-muted-foreground group-hover:text-indigo-600 transition-colors" />
+        {uploadedImage && (
+          <span className="absolute -top-1 -right-1 h-4 w-4 bg-indigo-600 rounded-full flex items-center justify-center">
+            <CheckIcon className="h-2.5 w-2.5 text-white" />
+          </span>
+        )}
+      </motion.button>
+    );
+  }
+  
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 20, scale: 0.95 }}
+      className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-40 w-[200px] md:w-[240px] bg-card border border-border rounded-2xl shadow-2xl overflow-hidden"
+      data-testid="panel-product-preview"
+    >
+      <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-muted/30">
+        <div className="flex items-center gap-2">
+          <Eye className="h-3.5 w-3.5 text-indigo-600" />
+          <span className="text-xs font-semibold text-foreground">Live Preview</span>
+        </div>
+        <button
+          onClick={onToggle}
+          className="h-6 w-6 rounded-md hover:bg-muted flex items-center justify-center transition-colors"
+          data-testid="button-minimize-preview"
+        >
+          <Minimize2 className="h-3.5 w-3.5 text-muted-foreground" />
+        </button>
+      </div>
+      
+      <div className="p-3">
+        <div 
+          className="relative aspect-square rounded-xl overflow-hidden border border-border/50"
+          style={{ backgroundColor: colorHex }}
+        >
+          <div 
+            className="absolute inset-0 flex items-center justify-center"
+            style={{ color: isLightColor ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)" }}
+            dangerouslySetInnerHTML={{ __html: silhouette.svg }}
+          />
+          
+          {uploadedImage && (
+            <div 
+              className="absolute flex items-center justify-center"
+              style={{
+                top: silhouette.designArea.top,
+                left: silhouette.designArea.left,
+                width: silhouette.designArea.width,
+                height: silhouette.designArea.height,
+              }}
+            >
+              <img 
+                src={uploadedImage} 
+                alt="Design preview" 
+                className="max-w-full max-h-full object-contain drop-shadow-md"
+                style={{ 
+                  mixBlendMode: journey === "AOP" ? "normal" : "multiply",
+                  opacity: journey === "AOP" ? 1 : 0.95 
+                }}
+              />
+            </div>
+          )}
+          
+          {!uploadedImage && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
+              <ImageIcon className={cn("h-8 w-8 mb-2", isLightColor ? "text-gray-300" : "text-white/30")} />
+              <span className={cn("text-xs", isLightColor ? "text-gray-400" : "text-white/40")}>Upload a design</span>
+            </div>
+          )}
+        </div>
+        
+        <div className="mt-3 space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Product</span>
+            <span className="text-xs font-medium text-foreground truncate max-w-[120px]">{selectedProduct || "T-shirt"}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Color</span>
+            <div className="flex items-center gap-1.5">
+              <div 
+                className="h-3 w-3 rounded-full border border-border/50" 
+                style={{ backgroundColor: colorHex }}
+              />
+              <span className="text-xs font-medium text-foreground">{selectedColor}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+interface ProductThumbnailProps {
+  productName: string;
+  isSelected: boolean;
+  color?: string;
+}
+
+function ProductThumbnail({ productName, isSelected, color = "#FFFFFF" }: ProductThumbnailProps) {
+  const silhouette = PRODUCT_SILHOUETTES[productName] || PRODUCT_SILHOUETTES["default"];
+  
+  return (
+    <div 
+      className={cn(
+        "h-10 w-10 rounded-full flex items-center justify-center transition-colors overflow-hidden",
+        isSelected ? "bg-indigo-100 dark:bg-indigo-900/40" : "bg-muted"
+      )}
+      style={{ backgroundColor: isSelected ? undefined : color }}
+    >
+      <div 
+        className="h-6 w-6"
+        style={{ color: isSelected ? "rgb(79 70 229)" : "rgba(0,0,0,0.15)" }}
+        dangerouslySetInnerHTML={{ __html: silhouette.svg }}
+      />
+    </div>
+  );
+}
+
 const getGenderFromCategory = (category: string): Sex | null => {
   if (category.toLowerCase().includes("men's") && !category.toLowerCase().includes("women's")) return "MALE";
   if (category.toLowerCase().includes("women's")) return "FEMALE";
@@ -410,6 +627,7 @@ export default function MockupGenerator() {
 
   const [selectedMockupDetails, setSelectedMockupDetails] = useState<MockupDetails | null>(null);
   const [summaryOpen, setSummaryOpen] = useState(true);
+  const [previewMinimized, setPreviewMinimized] = useState(false);
 
   const downloadImage = (url: string, filename: string) => {
     const link = document.createElement('a');
@@ -1065,6 +1283,7 @@ export default function MockupGenerator() {
                                       <div 
                                         key={item.name} 
                                         onClick={() => setSelectedProductType(item.name)}
+                                        data-testid={`card-product-${item.name.replace(/\s+/g, '-').toLowerCase()}`}
                                         className={cn(
                                           "group relative border rounded-xl p-4 cursor-pointer transition-all flex flex-col items-center text-center gap-2",
                                           isSelected 
@@ -1072,12 +1291,11 @@ export default function MockupGenerator() {
                                             : "border-border hover:border-indigo-300 bg-card"
                                         )}
                                       >
-                                        <div className={cn(
-                                          "h-10 w-10 rounded-full flex items-center justify-center",
-                                          isSelected ? "bg-indigo-100 text-indigo-600" : "bg-muted text-muted-foreground group-hover:text-indigo-600"
-                                        )}>
-                                          <item.icon className="h-5 w-5" />
-                                        </div>
+                                        <ProductThumbnail 
+                                          productName={item.name} 
+                                          isSelected={isSelected}
+                                          color={isSelected ? undefined : (PRODUCT_COLOR_MAP[selectedColors[0]] || "#FFFFFF")}
+                                        />
                                         <p className={cn("font-medium text-xs leading-tight", isSelected ? "text-indigo-700" : "text-foreground")}>{item.name}</p>
                                         {isSelected && (
                                           <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-indigo-600 text-white flex items-center justify-center">
@@ -2338,6 +2556,19 @@ export default function MockupGenerator() {
               </div>
             </div>
           </div>
+        )}
+        
+        {journey && currentStep !== "generate" && (
+          <AnimatePresence>
+            <ProductPreview
+              uploadedImage={uploadedImage}
+              selectedProduct={selectedProductType}
+              selectedColor={selectedColors[0] || "White"}
+              isMinimized={previewMinimized}
+              onToggle={() => setPreviewMinimized(!previewMinimized)}
+              journey={journey}
+            />
+          </AnimatePresence>
         )}
       </main>
 
