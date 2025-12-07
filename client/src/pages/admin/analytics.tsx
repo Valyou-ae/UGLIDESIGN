@@ -20,7 +20,8 @@ export default function AdminAnalytics() {
     queryFn: async () => {
       const response = await fetch("/api/admin/analytics", { credentials: "include" });
       if (!response.ok) throw new Error("Failed to fetch analytics");
-      return response.json();
+      const data = await response.json();
+      return data.analytics || {};
     },
   });
 
