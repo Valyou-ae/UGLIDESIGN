@@ -48,8 +48,9 @@ Preferred communication style: Simple, everyday language.
 -   **Empty States**: Reusable `EmptyState` component for various content areas.
 -   **Marketing Landing Page**: Responsive landing page with core features, pricing, and testimonials.
 -   **Background Remover**: Replicate API integration (`bria/remove-background`) supporting various background options.
--   **Password Reset Flow**: Implemented with token-based reset via API endpoints and a dedicated frontend route.
--   **Voice Input**: Uses Web Speech API for image generator prompt input with graceful fallback.
+-   **Password Reset Flow**: Secure token-based reset - tokens are bcrypt-hashed before storage, verified via bcrypt.compare, reset links include email+token parameters, tokens never returned to frontend.
+-   **Voice Input**: Uses Web Speech API for image generator prompt input with graceful fallback for unsupported browsers.
+-   **Profile Page**: Connected to real user data from auth context and database (username, email, join date, stats, creations).
 
 ## Notable Architectural Decisions
 
