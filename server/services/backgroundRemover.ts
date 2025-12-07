@@ -111,35 +111,47 @@ async function applyAlphaMask(
 function buildAlphaMaskPrompt(
   options: BackgroundRemovalOptions
 ): { prompt: string; negativePrompts: string[] } {
-  const masterPrompt = `CRITICAL TASK: Generate a SILHOUETTE MASK image.
+  const qualitySetting = QUALITY_SETTINGS[options.quality];
+  
+  const masterPrompt = `CRITICAL TASK: Generate a SEGMENTATION MASK image for background removal.
 
-DO NOT output the original photo. Output a NEW image that is a SILHOUETTE MASK.
+DO NOT output the original photo. Output a NEW grayscale MASK image.
 
-THE OUTPUT MUST BE:
-- A pure BLACK AND WHITE image (no colors, no grayscale photo)
-- The person/subject/foreground: Fill with SOLID WHITE (#FFFFFF)
-- The background/environment: Fill with SOLID BLACK (#000000)
-- Like a shadow or cutout shape of the subject
+=== MASK COLOR VALUES ===
+- WHITE (#FFFFFF, value 255) = Main subject body (what to KEEP - fully opaque)
+- BLACK (#000000, value 0) = Background areas (what to REMOVE - fully transparent)
+- GRAY VALUES (1-254) = Semi-transparent edges, hair strands, soft transitions
 
-THINK OF IT AS:
-- A stencil or cutout shape
-- The subject is a white shape on black background
-- NO details inside the white area - just solid white fill
-- NO textures - just flat white silhouette on black
+=== STRUCTURE ===
+Think of this as a matte/alpha channel:
+- The subject's CORE/BODY = solid white fill
+- The BACKGROUND = solid black fill
+- The EDGES between subject and background = gray gradients for smooth transitions
 
-EXAMPLE: If the photo shows a person, output:
-- Person shape = completely filled white
-- Everything else = completely black
+=== EDGE HANDLING (CRITICAL) ===
+At the boundary between subject and background, use GRAY VALUES:
+- Hair strands and wisps: Use gray (128-200) for individual strands
+- Fur and fuzzy edges: Use gray gradients for soft transitions
+- Semi-transparent elements: Glass, sheer fabric = appropriate gray levels
+- Anti-aliasing: All edges should have 2-4 pixels of gray transition
 
-OUTPUT: A black and white silhouette mask image only.`;
+=== QUALITY REQUIREMENTS ===
+- ${qualitySetting.detail} detail level with ${qualitySetting.precision}
+- Inner subject area: Pure white, no holes
+- Background area: Pure black, no missed spots
+- Edge transitions: Smooth gray gradients, not hard cutoffs
+
+OUTPUT: A grayscale mask image where white=keep, black=remove, gray=partial transparency.`;
 
   const negativePrompts = [
     "original photo",
-    "colored output",
-    "grayscale photo",
-    "textures",
-    "details",
-    "gradients"
+    "colored output", 
+    "RGB colors",
+    "textures inside mask",
+    "photo details",
+    "holes in subject",
+    "background leakage",
+    "harsh binary edges at hair/fur"
   ];
 
   return { prompt: masterPrompt, negativePrompts };
