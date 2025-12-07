@@ -91,8 +91,8 @@ export default function Profile() {
     ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     : 'Recently';
 
-  const stats = statsData || { imageCount: 0, mockupCount: 0, bgRemovedCount: 0 };
-  const totalProjects = stats.imageCount + stats.mockupCount + stats.bgRemovedCount;
+  const stats = statsData || { images: 0, mockups: 0, bgRemoved: 0, total: 0 };
+  const totalProjects = stats.images + stats.mockups + stats.bgRemoved;
 
   const images = imagesData?.images || [];
   const favoriteCount = images.filter((img: any) => img.isFavorite).length;
@@ -199,9 +199,9 @@ export default function Profile() {
           {/* Stats Row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
             {[
-              { label: "Images", value: stats.imageCount.toString(), icon: ImageIcon },
-              { label: "Mockups", value: stats.mockupCount.toString(), icon: Layers },
-              { label: "Backgrounds", value: stats.bgRemovedCount.toString(), icon: Grid },
+              { label: "Images", value: (stats.images || 0).toString(), icon: ImageIcon },
+              { label: "Mockups", value: (stats.mockups || 0).toString(), icon: Layers },
+              { label: "Backgrounds", value: (stats.bgRemoved || 0).toString(), icon: Grid },
               { label: "Favorites", value: favoriteCount.toString(), icon: Heart },
             ].map((stat, i) => (
               <div 
