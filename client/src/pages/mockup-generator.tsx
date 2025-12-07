@@ -618,7 +618,7 @@ export default function MockupGenerator() {
   const [selectedProductType, setSelectedProductType] = useState<string | null>(null);
   const [environmentPrompt, setEnvironmentPrompt] = useState("");
   const [selectedColors, setSelectedColors] = useState<string[]>(["White"]);
-  const [selectedSizes, setSelectedSizes] = useState<string[]>(["L"]);
+  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedAngles, setSelectedAngles] = useState<string[]>(["front"]);
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [modelDetails, setModelDetails] = useState<ModelDetails>({
