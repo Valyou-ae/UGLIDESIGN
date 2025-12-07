@@ -20,13 +20,19 @@ import {
   Eye,
   EyeOff,
   Blend,
-  Circle,
   Square,
   Loader2,
   ChevronLeft,
   ChevronRight,
   Settings2,
-  Coins
+  Coins,
+  Grid3X3,
+  ImagePlus,
+  Trash2,
+  Package,
+  CheckCircle2,
+  XCircle,
+  Clock
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -56,12 +62,17 @@ import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   backgroundRemovalApi, 
   type BackgroundOutputType, 
   type BackgroundRemovalQuality,
-  type BackgroundRemovalOptions 
+  type BackgroundRemovalOptions,
+  type BatchImageStatus,
+  type BatchEvent
 } from "@/lib/api";
+import JSZip from "jszip";
 
 import samplePortrait from "@assets/generated_images/sample_portrait_photo_for_background_removal.png";
 import sampleProduct from "@assets/generated_images/sample_product_photo_for_background_removal.png";
@@ -71,6 +82,15 @@ import sampleLogo from "@assets/generated_images/sample_logo_for_background_remo
 import sampleFood from "@assets/generated_images/sample_food_photo_for_background_removal.png";
 
 type ProcessingState = "idle" | "configuring" | "processing" | "complete" | "error";
+type ProcessingMode = "single" | "batch";
+
+interface BatchImage {
+  id: string;
+  originalImage: string;
+  status: BatchImageStatus;
+  processedImage?: string;
+  error?: string;
+}
 
 const OUTPUT_TYPES: Array<{
   id: BackgroundOutputType;
@@ -146,7 +166,10 @@ const PRESET_COLORS = [
 
 const CHECKERBOARD_BG = "bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbC1vcGFjaXR5PSIwLjEiPjxyZWN0IHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iIzAwMCIvPjxyZWN0IHg9IjEwIiB5PSIxMCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjMDAwIi8+PC9zdmc+')] bg-repeat";
 
+const MAX_BATCH_IMAGES = 20;
+
 export default function BackgroundRemover() {
+  const [mode, setMode] = useState<ProcessingMode>("single");
   const [state, setState] = useState<ProcessingState>("idle");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [processedImage, setProcessedImage] = useState<string | null>(null);
@@ -163,12 +186,19 @@ export default function BackgroundRemover() {
   const [showOriginal, setShowOriginal] = useState(false);
   const [comparisonPosition, setComparisonPosition] = useState(50);
   const [isDraggingSlider, setIsDraggingSlider] = useState(false);
+
+  const [batchImages, setBatchImages] = useState<BatchImage[]>([]);
+  const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0, percentage: 0 });
+  const [batchResults, setBatchResults] = useState<{ successful: number; failed: number }>({ successful: 0, failed: 0 });
+  const [showBatchOriginal, setShowBatchOriginal] = useState<Record<string, boolean>>({});
   
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const batchFileInputRef = useRef<HTMLInputElement>(null);
   const comparisonRef = useRef<HTMLDivElement>(null);
 
   const currentCredits = QUALITY_LEVELS.find(q => q.id === quality)?.credits || 1;
+  const totalBatchCredits = batchImages.length * currentCredits;
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -186,11 +216,67 @@ export default function BackgroundRemover() {
     }
   };
 
+  const handleBatchFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const files = Array.from(e.target.files);
+      const remainingSlots = MAX_BATCH_IMAGES - batchImages.length;
+      const filesToProcess = files.slice(0, remainingSlots);
+
+      if (files.length > remainingSlots) {
+        toast({
+          title: "Limit reached",
+          description: `Only ${remainingSlots} more image${remainingSlots !== 1 ? 's' : ''} can be added. Maximum is ${MAX_BATCH_IMAGES}.`,
+          variant: "destructive",
+        });
+      }
+
+      filesToProcess.forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          if (event.target?.result) {
+            const newImage: BatchImage = {
+              id: `batch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              originalImage: event.target.result as string,
+              status: 'pending'
+            };
+            setBatchImages(prev => [...prev, newImage]);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+
+      if (filesToProcess.length > 0) {
+        setState("configuring");
+      }
+    }
+    if (e.target) {
+      e.target.value = '';
+    }
+  };
+
   const handleSampleSelect = (img: string) => {
-    setSelectedImage(img);
-    setState("configuring");
-    setProcessedImage(null);
-    setErrorMessage(null);
+    if (mode === "single") {
+      setSelectedImage(img);
+      setState("configuring");
+      setProcessedImage(null);
+      setErrorMessage(null);
+    } else {
+      if (batchImages.length >= MAX_BATCH_IMAGES) {
+        toast({
+          title: "Limit reached",
+          description: `Maximum ${MAX_BATCH_IMAGES} images allowed per batch.`,
+          variant: "destructive",
+        });
+        return;
+      }
+      const newImage: BatchImage = {
+        id: `batch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        originalImage: img,
+        status: 'pending'
+      };
+      setBatchImages(prev => [...prev, newImage]);
+      setState("configuring");
+    }
   };
 
   const handleUrlImport = async () => {
@@ -202,10 +288,28 @@ export default function BackgroundRemover() {
       const reader = new FileReader();
       reader.onload = (event) => {
         if (event.target?.result) {
-          setSelectedImage(event.target.result as string);
-          setState("configuring");
-          setProcessedImage(null);
-          setErrorMessage(null);
+          if (mode === "single") {
+            setSelectedImage(event.target.result as string);
+            setState("configuring");
+            setProcessedImage(null);
+            setErrorMessage(null);
+          } else {
+            if (batchImages.length >= MAX_BATCH_IMAGES) {
+              toast({
+                title: "Limit reached",
+                description: `Maximum ${MAX_BATCH_IMAGES} images allowed per batch.`,
+                variant: "destructive",
+              });
+              return;
+            }
+            const newImage: BatchImage = {
+              id: `batch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              originalImage: event.target.result as string,
+              status: 'pending'
+            };
+            setBatchImages(prev => [...prev, newImage]);
+            setState("configuring");
+          }
         }
       };
       reader.readAsDataURL(blob);
@@ -216,17 +320,20 @@ export default function BackgroundRemover() {
         description: "Image successfully loaded from URL.",
       });
     } catch {
-      setSelectedImage(urlInput);
-      setState("configuring");
-      setProcessedImage(null);
+      if (mode === "single") {
+        setSelectedImage(urlInput);
+        setState("configuring");
+        setProcessedImage(null);
+      }
       setIsUrlDialogOpen(false);
     }
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) {
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    
+    if (mode === "single" && files.length > 0) {
       const reader = new FileReader();
       reader.onload = (event) => {
         if (event.target?.result) {
@@ -236,12 +343,57 @@ export default function BackgroundRemover() {
           setErrorMessage(null);
         }
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(files[0]);
+    } else if (mode === "batch") {
+      const remainingSlots = MAX_BATCH_IMAGES - batchImages.length;
+      const filesToProcess = files.slice(0, remainingSlots);
+
+      if (files.length > remainingSlots) {
+        toast({
+          title: "Limit reached",
+          description: `Only ${remainingSlots} more image${remainingSlots !== 1 ? 's' : ''} can be added.`,
+          variant: "destructive",
+        });
+      }
+
+      filesToProcess.forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          if (event.target?.result) {
+            const newImage: BatchImage = {
+              id: `batch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              originalImage: event.target.result as string,
+              status: 'pending'
+            };
+            setBatchImages(prev => [...prev, newImage]);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+
+      if (filesToProcess.length > 0) {
+        setState("configuring");
+      }
     }
   };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+  };
+
+  const removeFromBatch = (id: string) => {
+    setBatchImages(prev => prev.filter(img => img.id !== id));
+    if (batchImages.length <= 1) {
+      setState("idle");
+    }
+  };
+
+  const clearBatch = () => {
+    setBatchImages([]);
+    setState("idle");
+    setBatchProgress({ current: 0, total: 0, percentage: 0 });
+    setBatchResults({ successful: 0, failed: 0 });
+    setShowBatchOriginal({});
   };
 
   const processImage = async () => {
@@ -290,16 +442,164 @@ export default function BackgroundRemover() {
     }
   };
 
-  const downloadImage = () => {
-    if (!processedImage) return;
+  const processBatch = async () => {
+    if (batchImages.length === 0 || state === "processing") return;
+    
+    setState("processing");
+    setProcessingStage("Preparing batch...");
+    setErrorMessage(null);
+    setBatchProgress({ current: 0, total: batchImages.length, percentage: 0 });
+
+    setBatchImages(prev => prev.map(img => ({ ...img, status: 'pending' as BatchImageStatus, processedImage: undefined, error: undefined })));
+
+    const options: BackgroundRemovalOptions = {
+      outputType,
+      customColor: outputType === 'color' ? customColor : undefined,
+      edgeFeathering,
+      quality
+    };
+
+    const images = batchImages.map(img => img.originalImage);
+
+    try {
+      await backgroundRemovalApi.removeBatchWithProgress(
+        images,
+        options,
+        (event: BatchEvent) => {
+          switch (event.type) {
+            case 'job_start':
+              setProcessingStage(`Processing ${event.data.total} images...`);
+              break;
+            
+            case 'job_progress':
+              setBatchProgress({
+                current: event.data.current || 0,
+                total: event.data.total || batchImages.length,
+                percentage: event.data.percentage || 0
+              });
+              setProcessingStage(`Processing ${event.data.current} of ${event.data.total}...`);
+              
+              if (event.data.index !== undefined) {
+                setBatchImages(prev => prev.map((img, idx) => 
+                  idx === event.data.index 
+                    ? { ...img, status: 'processing' as BatchImageStatus }
+                    : img
+                ));
+              }
+              break;
+            
+            case 'job_complete':
+              if (event.data.index !== undefined) {
+                setBatchImages(prev => prev.map((img, idx) => {
+                  if (idx === event.data.index) {
+                    if (event.data.success && event.data.result?.imageData) {
+                      return {
+                        ...img,
+                        status: 'complete' as BatchImageStatus,
+                        processedImage: `data:${event.data.result.mimeType};base64,${event.data.result.imageData}`
+                      };
+                    } else {
+                      return {
+                        ...img,
+                        status: 'error' as BatchImageStatus,
+                        error: event.data.result?.error || 'Processing failed'
+                      };
+                    }
+                  }
+                  return img;
+                }));
+              }
+              break;
+            
+            case 'batch_complete':
+              setBatchResults({
+                successful: event.data.successful || 0,
+                failed: event.data.failed || 0
+              });
+              setState("complete");
+              toast({
+                title: "Batch complete!",
+                description: `${event.data.successful} of ${event.data.total} images processed successfully.`,
+                className: event.data.failed === 0 
+                  ? "bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-900/50 dark:text-green-400"
+                  : undefined,
+              });
+              break;
+            
+            case 'error':
+              throw new Error(event.data.message || "Batch processing failed");
+          }
+        }
+      );
+    } catch (error) {
+      console.error("Batch processing error:", error);
+      setState("error");
+      const errorMsg = error instanceof Error ? error.message : "Failed to process batch";
+      setErrorMessage(errorMsg);
+      toast({
+        title: "Batch processing failed",
+        description: errorMsg,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const downloadImage = (imageData?: string, fileName?: string) => {
+    const image = imageData || processedImage;
+    if (!image) return;
     
     const link = document.createElement('a');
-    link.href = processedImage;
-    const extension = outputType === 'transparent' ? 'png' : 'png';
-    link.download = `background-removed.${extension}`;
+    link.href = image;
+    link.download = fileName || `background-removed.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const downloadAllAsZip = async () => {
+    const successfulImages = batchImages.filter(img => img.status === 'complete' && img.processedImage);
+    if (successfulImages.length === 0) {
+      toast({
+        title: "No images to download",
+        description: "No successfully processed images available.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const zip = new JSZip();
+      
+      successfulImages.forEach((img, index) => {
+        if (img.processedImage) {
+          const base64Data = img.processedImage.split(',')[1];
+          if (base64Data) {
+            zip.file(`image_${index + 1}.png`, base64Data, { base64: true });
+          }
+        }
+      });
+
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'background_removed_images.zip';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+
+      toast({
+        title: "Download started",
+        description: `${successfulImages.length} images packaged as ZIP.`,
+      });
+    } catch (error) {
+      console.error("ZIP creation error:", error);
+      toast({
+        title: "Download failed",
+        description: "Failed to create ZIP file.",
+        variant: "destructive",
+      });
+    }
   };
 
   const reset = () => {
@@ -310,6 +610,23 @@ export default function BackgroundRemover() {
     setProcessingStage("");
     setShowOriginal(false);
     setComparisonPosition(50);
+    setBatchImages([]);
+    setBatchProgress({ current: 0, total: 0, percentage: 0 });
+    setBatchResults({ successful: 0, failed: 0 });
+    setShowBatchOriginal({});
+  };
+
+  const handleModeChange = (newMode: ProcessingMode) => {
+    if (state === "processing") return;
+    setMode(newMode);
+    reset();
+  };
+
+  const toggleBatchOriginal = (id: string) => {
+    setShowBatchOriginal(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
   };
 
   const handleComparisonMouseDown = () => {
@@ -333,6 +650,417 @@ export default function BackgroundRemover() {
     window.addEventListener('mouseup', handleGlobalMouseUp);
     return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
   }, []);
+
+  const renderStatusIcon = (status: BatchImageStatus) => {
+    switch (status) {
+      case 'pending':
+        return <Clock className="h-4 w-4 text-muted-foreground" />;
+      case 'processing':
+        return <Loader2 className="h-4 w-4 text-pink-500 animate-spin" />;
+      case 'complete':
+        return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+      case 'error':
+        return <XCircle className="h-4 w-4 text-red-500" />;
+    }
+  };
+
+  const renderUploadArea = () => (
+    <div className="flex-1 flex flex-col items-center justify-center animate-fade-in py-2 md:py-10">
+      <div className="w-full max-w-[800px]">
+        
+        <div 
+          className="group relative bg-card border-2 border-dashed border-border rounded-[20px] md:rounded-[24px] p-6 md:p-16 text-center transition-all duration-300 hover:border-pink-500 hover:bg-pink-50/50 dark:hover:bg-pink-900/10 hover:scale-[1.01] cursor-pointer"
+          onClick={() => mode === "single" ? fileInputRef.current?.click() : batchFileInputRef.current?.click()}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          data-testid="upload-zone"
+        >
+          <input 
+            type="file" 
+            ref={fileInputRef}
+            className="hidden" 
+            accept="image/png, image/jpeg, image/webp, image/gif"
+            onChange={handleFileSelect}
+            data-testid="file-input"
+          />
+          <input 
+            type="file" 
+            ref={batchFileInputRef}
+            className="hidden" 
+            accept="image/png, image/jpeg, image/webp, image/gif"
+            multiple
+            onChange={handleBatchFileSelect}
+            data-testid="batch-file-input"
+          />
+          
+          <div className="mb-4 md:mb-6 relative inline-block">
+            <div className="absolute inset-0 bg-pink-500/20 blur-2xl rounded-full group-hover:bg-pink-500/30 transition-colors" />
+            <div className="relative">
+              {mode === "single" ? (
+                <Upload className="h-12 w-12 md:h-20 md:w-20 text-pink-500 relative z-10 transition-transform duration-500 group-hover:-translate-y-2" />
+              ) : (
+                <ImagePlus className="h-12 w-12 md:h-20 md:w-20 text-pink-500 relative z-10 transition-transform duration-500 group-hover:-translate-y-2" />
+              )}
+              <div className="absolute -right-2 -bottom-1 md:-right-4 md:-bottom-2 bg-white dark:bg-black rounded-full p-1 md:p-1.5 shadow-lg border border-border">
+                {mode === "single" ? (
+                  <Layers className="h-4 w-4 md:h-6 md:w-6 text-blue-500" />
+                ) : (
+                  <Grid3X3 className="h-4 w-4 md:h-6 md:w-6 text-blue-500" />
+                )}
+              </div>
+            </div>
+          </div>
+          
+          <h2 className="text-lg md:text-2xl font-bold text-foreground mb-2">
+            {mode === "single" ? "Drag & drop your image" : "Drag & drop multiple images"}
+          </h2>
+          <p className="text-sm md:text-lg text-muted-foreground mb-4">or click to browse</p>
+          {mode === "batch" && (
+            <p className="text-sm text-pink-600 dark:text-pink-400 font-medium mb-2">
+              Upload up to {MAX_BATCH_IMAGES} images at once
+            </p>
+          )}
+          <p className="text-[10px] md:text-sm text-muted-foreground/60 uppercase tracking-wider font-medium">
+            PNG, JPG, JPEG, WEBP, GIF
+          </p>
+        </div>
+
+        <div className="mt-4 md:mt-8 grid grid-cols-2 gap-3 md:gap-4">
+          <Dialog open={isUrlDialogOpen} onOpenChange={setIsUrlDialogOpen}>
+            <DialogTrigger asChild>
+              <button 
+                className="flex flex-col items-start p-3 md:p-5 rounded-xl md:rounded-2xl bg-muted/30 border border-transparent hover:border-pink-500/30 hover:bg-card transition-all hover:-translate-y-0.5 w-full"
+                data-testid="import-url-button"
+              >
+                <div className="p-1.5 md:p-2 rounded-lg bg-purple-100 dark:bg-purple-900/20 text-purple-600 mb-2 md:mb-3">
+                  <LinkIcon className="h-4 w-4 md:h-6 md:w-6" />
+                </div>
+                <span className="text-xs md:text-sm font-semibold mb-0.5 md:mb-1 text-left">Import URL</span>
+                <span className="text-[10px] md:text-xs text-muted-foreground text-left">Paste image link</span>
+              </button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Import Image from URL</DialogTitle>
+              </DialogHeader>
+              <div className="flex flex-col gap-4 py-4">
+                <Input 
+                  placeholder="https://example.com/image.jpg" 
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
+                  data-testid="url-input"
+                />
+                <Button onClick={handleUrlImport} disabled={!urlInput.trim()} data-testid="import-button">
+                  Import Image
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <button 
+            className="flex flex-col items-start p-3 md:p-5 rounded-xl md:rounded-2xl bg-muted/30 border border-transparent hover:border-pink-500/30 hover:bg-card transition-all hover:-translate-y-0.5 w-full"
+            onClick={() => mode === "single" ? fileInputRef.current?.click() : batchFileInputRef.current?.click()}
+            data-testid="browse-files-button"
+          >
+             <div className="p-1.5 md:p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20 text-blue-600 mb-2 md:mb-3">
+              <ImageIcon className="h-4 w-4 md:h-6 md:w-6" />
+            </div>
+            <span className="text-xs md:text-sm font-semibold mb-0.5 md:mb-1 text-left">Browse Files</span>
+            <span className="text-[10px] md:text-xs text-muted-foreground text-left">
+              {mode === "single" ? "Select from device" : "Select multiple files"}
+            </span>
+          </button>
+        </div>
+
+        <div className="mt-6 md:mt-10">
+          <p className="text-[13px] text-muted-foreground font-medium mb-3 md:mb-4 text-center">Try with a sample</p>
+          <div className="flex flex-wrap justify-center gap-2 md:gap-3 px-2">
+            {[samplePortrait, sampleProduct, sampleAnimal, sampleCar, sampleLogo, sampleFood].map((img, i) => (
+              <button 
+                key={i}
+                onClick={() => handleSampleSelect(img)}
+                className="h-10 w-10 md:h-14 md:w-14 rounded-full border-2 border-transparent hover:border-pink-500 hover:scale-110 transition-all overflow-hidden shadow-sm"
+                data-testid={`sample-image-${i}`}
+              >
+                <img src={img} alt="Sample" className="h-full w-full object-cover" />
+              </button>
+            ))}
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+
+  const renderBatchGrid = () => (
+    <div className="bg-card border border-border rounded-[20px] overflow-hidden">
+      <div className="p-4 border-b border-border flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <h3 className="text-sm font-semibold flex items-center gap-2">
+            <Grid3X3 className="h-4 w-4 text-muted-foreground" />
+            Batch Images
+          </h3>
+          <Badge variant="secondary" className="text-xs">
+            {batchImages.length} of {MAX_BATCH_IMAGES}
+          </Badge>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => batchFileInputRef.current?.click()}
+            disabled={batchImages.length >= MAX_BATCH_IMAGES || state === "processing"}
+          >
+            <ImagePlus className="h-4 w-4 mr-1" />
+            Add More
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={clearBatch}
+            disabled={state === "processing"}
+            className="text-muted-foreground hover:text-destructive"
+          >
+            <Trash2 className="h-4 w-4 mr-1" />
+            Clear All
+          </Button>
+        </div>
+      </div>
+      <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-h-[400px] overflow-y-auto">
+        {batchImages.map((img, index) => (
+          <div 
+            key={img.id}
+            className="relative group aspect-square rounded-xl overflow-hidden border border-border bg-muted/30"
+            data-testid={`batch-image-${index}`}
+          >
+            <img 
+              src={showBatchOriginal[img.id] && img.processedImage ? img.originalImage : (img.processedImage || img.originalImage)} 
+              alt={`Batch image ${index + 1}`}
+              className="w-full h-full object-cover"
+            />
+            
+            <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-sm rounded-full px-2 py-0.5 text-white text-xs font-medium flex items-center gap-1">
+              {renderStatusIcon(img.status)}
+              <span>{index + 1}</span>
+            </div>
+            
+            {state !== "processing" && img.status === 'pending' && (
+              <button
+                onClick={() => removeFromBatch(img.id)}
+                className="absolute top-2 right-2 p-1 bg-black/60 backdrop-blur-sm rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                data-testid={`remove-batch-image-${index}`}
+              >
+                <X className="h-3 w-3" />
+              </button>
+            )}
+
+            {img.status === 'complete' && img.processedImage && (
+              <div className="absolute bottom-2 left-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="flex-1 h-7 text-xs bg-black/60 backdrop-blur-sm hover:bg-black/80"
+                  onClick={() => toggleBatchOriginal(img.id)}
+                >
+                  {showBatchOriginal[img.id] ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="flex-1 h-7 text-xs bg-black/60 backdrop-blur-sm hover:bg-black/80"
+                  onClick={() => downloadImage(img.processedImage, `image_${index + 1}.png`)}
+                >
+                  <Download className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
+
+            {img.status === 'error' && (
+              <div className="absolute inset-0 bg-red-500/20 flex items-center justify-center">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <AlertCircle className="h-6 w-6 text-red-500" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{img.error || 'Processing failed'}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            )}
+
+            {img.status === 'complete' && (
+              <div className="absolute top-2 right-2 p-1 bg-green-500 rounded-full">
+                <Check className="h-3 w-3 text-white" />
+              </div>
+            )}
+          </div>
+        ))}
+
+        {batchImages.length < MAX_BATCH_IMAGES && state !== "processing" && (
+          <button
+            onClick={() => batchFileInputRef.current?.click()}
+            className="aspect-square rounded-xl border-2 border-dashed border-border hover:border-pink-500 hover:bg-pink-50/50 dark:hover:bg-pink-900/10 transition-all flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-pink-500"
+            data-testid="add-more-batch"
+          >
+            <ImagePlus className="h-6 w-6" />
+            <span className="text-xs font-medium">Add Image</span>
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderOutputOptions = () => (
+    <div className="bg-card border border-border rounded-[20px] overflow-hidden flex flex-col">
+      <div className="p-4 border-b border-border flex items-center justify-between">
+        <h3 className="text-sm font-semibold flex items-center gap-2">
+          <Settings2 className="h-4 w-4 text-muted-foreground" />
+          Output Options
+        </h3>
+        <div className="flex items-center gap-2 text-sm">
+          <Coins className="h-4 w-4 text-amber-500" />
+          <span className="font-medium">
+            {mode === "single" ? currentCredits : totalBatchCredits} credit{(mode === "single" ? currentCredits : totalBatchCredits) > 1 ? 's' : ''}
+          </span>
+        </div>
+      </div>
+      <div className="flex-1 p-4 space-y-6 overflow-y-auto">
+        
+        <div>
+          <Label className="text-sm font-medium mb-3 block">Background Type</Label>
+          <div className="grid grid-cols-2 gap-3">
+            {OUTPUT_TYPES.map((type) => {
+              const Icon = type.icon;
+              return (
+                <button
+                  key={type.id}
+                  onClick={() => setOutputType(type.id)}
+                  className={cn(
+                    "relative p-4 rounded-xl border-2 transition-all text-left",
+                    outputType === type.id
+                      ? "border-pink-500 bg-pink-50/50 dark:bg-pink-900/20"
+                      : "border-border hover:border-pink-300 bg-background"
+                  )}
+                  data-testid={`output-type-${type.id}`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", type.preview)}>
+                      <Icon className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm">{type.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{type.description}</p>
+                    </div>
+                  </div>
+                  {outputType === type.id && (
+                    <div className="absolute top-2 right-2">
+                      <Check className="h-4 w-4 text-pink-500" />
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {outputType === 'color' && (
+          <div>
+            <Label className="text-sm font-medium mb-3 block">Custom Color</Label>
+            <div className="flex items-center gap-3">
+              <div className="flex flex-wrap gap-2">
+                {PRESET_COLORS.map((color) => (
+                  <button
+                    key={color}
+                    onClick={() => setCustomColor(color)}
+                    className={cn(
+                      "w-8 h-8 rounded-full border-2 transition-all",
+                      customColor === color ? "border-pink-500 scale-110" : "border-border"
+                    )}
+                    style={{ backgroundColor: color }}
+                    data-testid={`color-${color}`}
+                  />
+                ))}
+              </div>
+              <input
+                type="color"
+                value={customColor}
+                onChange={(e) => setCustomColor(e.target.value)}
+                className="w-8 h-8 rounded-lg cursor-pointer border-0"
+                data-testid="color-picker"
+              />
+            </div>
+          </div>
+        )}
+
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <Label className="text-sm font-medium">Edge Feathering</Label>
+            <span className="text-sm text-muted-foreground">{edgeFeathering}px</span>
+          </div>
+          <Slider
+            value={[edgeFeathering]}
+            onValueChange={(value) => setEdgeFeathering(value[0])}
+            min={0}
+            max={10}
+            step={1}
+            className="w-full"
+            data-testid="edge-feathering-slider"
+          />
+          <div className="flex justify-between text-xs text-muted-foreground mt-1">
+            <span>Sharp</span>
+            <span>Soft</span>
+          </div>
+        </div>
+
+        <div>
+          <Label className="text-sm font-medium mb-3 block">Quality Level</Label>
+          <div className="space-y-2">
+            {QUALITY_LEVELS.map((level) => (
+              <button
+                key={level.id}
+                onClick={() => setQuality(level.id)}
+                className={cn(
+                  "w-full p-3 rounded-xl border-2 transition-all text-left flex items-center justify-between",
+                  quality === level.id
+                    ? "border-pink-500 bg-pink-50/50 dark:bg-pink-900/20"
+                    : "border-border hover:border-pink-300 bg-background"
+                )}
+                data-testid={`quality-${level.id}`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    "w-4 h-4 rounded-full border-2 flex items-center justify-center",
+                    quality === level.id ? "border-pink-500" : "border-muted-foreground/30"
+                  )}>
+                    {quality === level.id && (
+                      <div className="w-2 h-2 rounded-full bg-pink-500" />
+                    )}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-sm">{level.name}</span>
+                      {level.badge && (
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                          {level.badge}
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">{level.description}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 text-sm font-medium">
+                  <Coins className="h-3.5 w-3.5 text-amber-500" />
+                  {level.credits}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-background flex font-sans text-foreground overflow-hidden">
@@ -378,113 +1106,28 @@ export default function BackgroundRemover() {
             <p className="text-sm md:text-[15px] text-muted-foreground mt-2">
               Remove backgrounds instantly with AI precision • Powered by Gemini
             </p>
+
+            <div className="mt-4">
+              <Tabs value={mode} onValueChange={(v) => handleModeChange(v as ProcessingMode)} className="w-fit">
+                <TabsList className="grid w-full grid-cols-2 h-10">
+                  <TabsTrigger value="single" className="px-6" disabled={state === "processing"} data-testid="mode-single">
+                    <ImageIcon className="h-4 w-4 mr-2" />
+                    Single
+                  </TabsTrigger>
+                  <TabsTrigger value="batch" className="px-6" disabled={state === "processing"} data-testid="mode-batch">
+                    <Grid3X3 className="h-4 w-4 mr-2" />
+                    Batch
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
           </div>
 
           <div className="flex-1 flex flex-col">
             
-            {state === "idle" && (
-              <div className="flex-1 flex flex-col items-center justify-center animate-fade-in py-2 md:py-10">
-                <div className="w-full max-w-[800px]">
-                  
-                  <div 
-                    className="group relative bg-card border-2 border-dashed border-border rounded-[20px] md:rounded-[24px] p-6 md:p-16 text-center transition-all duration-300 hover:border-pink-500 hover:bg-pink-50/50 dark:hover:bg-pink-900/10 hover:scale-[1.01] cursor-pointer"
-                    onClick={() => fileInputRef.current?.click()}
-                    onDrop={handleDrop}
-                    onDragOver={handleDragOver}
-                    data-testid="upload-zone"
-                  >
-                    <input 
-                      type="file" 
-                      ref={fileInputRef}
-                      className="hidden" 
-                      accept="image/png, image/jpeg, image/webp, image/gif"
-                      onChange={handleFileSelect}
-                      data-testid="file-input"
-                    />
-                    
-                    <div className="mb-4 md:mb-6 relative inline-block">
-                      <div className="absolute inset-0 bg-pink-500/20 blur-2xl rounded-full group-hover:bg-pink-500/30 transition-colors" />
-                      <div className="relative">
-                        <Upload className="h-12 w-12 md:h-20 md:w-20 text-pink-500 relative z-10 transition-transform duration-500 group-hover:-translate-y-2" />
-                        <div className="absolute -right-2 -bottom-1 md:-right-4 md:-bottom-2 bg-white dark:bg-black rounded-full p-1 md:p-1.5 shadow-lg border border-border">
-                           <Layers className="h-4 w-4 md:h-6 md:w-6 text-blue-500" />
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <h2 className="text-lg md:text-2xl font-bold text-foreground mb-2">Drag & drop your image</h2>
-                    <p className="text-sm md:text-lg text-muted-foreground mb-4">or click to browse</p>
-                    <p className="text-[10px] md:text-sm text-muted-foreground/60 uppercase tracking-wider font-medium">
-                      PNG, JPG, JPEG, WEBP, GIF
-                    </p>
-                  </div>
+            {state === "idle" && renderUploadArea()}
 
-                  <div className="mt-4 md:mt-8 grid grid-cols-2 gap-3 md:gap-4">
-                    <Dialog open={isUrlDialogOpen} onOpenChange={setIsUrlDialogOpen}>
-                      <DialogTrigger asChild>
-                        <button 
-                          className="flex flex-col items-start p-3 md:p-5 rounded-xl md:rounded-2xl bg-muted/30 border border-transparent hover:border-pink-500/30 hover:bg-card transition-all hover:-translate-y-0.5 w-full"
-                          data-testid="import-url-button"
-                        >
-                          <div className="p-1.5 md:p-2 rounded-lg bg-purple-100 dark:bg-purple-900/20 text-purple-600 mb-2 md:mb-3">
-                            <LinkIcon className="h-4 w-4 md:h-6 md:w-6" />
-                          </div>
-                          <span className="text-xs md:text-sm font-semibold mb-0.5 md:mb-1 text-left">Import URL</span>
-                          <span className="text-[10px] md:text-xs text-muted-foreground text-left">Paste image link</span>
-                        </button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Import Image from URL</DialogTitle>
-                        </DialogHeader>
-                        <div className="flex flex-col gap-4 py-4">
-                          <Input 
-                            placeholder="https://example.com/image.jpg" 
-                            value={urlInput}
-                            onChange={(e) => setUrlInput(e.target.value)}
-                            data-testid="url-input"
-                          />
-                          <Button onClick={handleUrlImport} disabled={!urlInput.trim()} data-testid="import-button">
-                            Import Image
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-
-                    <button 
-                      className="flex flex-col items-start p-3 md:p-5 rounded-xl md:rounded-2xl bg-muted/30 border border-transparent hover:border-pink-500/30 hover:bg-card transition-all hover:-translate-y-0.5 w-full"
-                      onClick={() => fileInputRef.current?.click()}
-                      data-testid="browse-files-button"
-                    >
-                       <div className="p-1.5 md:p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20 text-blue-600 mb-2 md:mb-3">
-                        <ImageIcon className="h-4 w-4 md:h-6 md:w-6" />
-                      </div>
-                      <span className="text-xs md:text-sm font-semibold mb-0.5 md:mb-1 text-left">Browse Files</span>
-                      <span className="text-[10px] md:text-xs text-muted-foreground text-left">Select from device</span>
-                    </button>
-                  </div>
-
-                  <div className="mt-6 md:mt-10">
-                    <p className="text-[13px] text-muted-foreground font-medium mb-3 md:mb-4 text-center">Try with a sample</p>
-                    <div className="flex flex-wrap justify-center gap-2 md:gap-3 px-2">
-                      {[samplePortrait, sampleProduct, sampleAnimal, sampleCar, sampleLogo, sampleFood].map((img, i) => (
-                        <button 
-                          key={i}
-                          onClick={() => handleSampleSelect(img)}
-                          className="h-10 w-10 md:h-14 md:w-14 rounded-full border-2 border-transparent hover:border-pink-500 hover:scale-110 transition-all overflow-hidden shadow-sm"
-                          data-testid={`sample-image-${i}`}
-                        >
-                          <img src={img} alt="Sample" className="h-full w-full object-cover" />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-            )}
-
-            {(state === "configuring" || state === "processing" || state === "error") && selectedImage && (
+            {mode === "single" && (state === "configuring" || state === "processing" || state === "error") && selectedImage && (
               <div className="flex-1 flex flex-col animate-fade-in gap-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   
@@ -509,151 +1152,7 @@ export default function BackgroundRemover() {
                     </div>
                   </div>
 
-                  <div className="bg-card border border-border rounded-[20px] overflow-hidden flex flex-col">
-                    <div className="p-4 border-b border-border flex items-center justify-between">
-                      <h3 className="text-sm font-semibold flex items-center gap-2">
-                        <Settings2 className="h-4 w-4 text-muted-foreground" />
-                        Output Options
-                      </h3>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Coins className="h-4 w-4 text-amber-500" />
-                        <span className="font-medium">{currentCredits} credit{currentCredits > 1 ? 's' : ''}</span>
-                      </div>
-                    </div>
-                    <div className="flex-1 p-4 space-y-6 overflow-y-auto">
-                      
-                      <div>
-                        <Label className="text-sm font-medium mb-3 block">Background Type</Label>
-                        <div className="grid grid-cols-2 gap-3">
-                          {OUTPUT_TYPES.map((type) => {
-                            const Icon = type.icon;
-                            return (
-                              <button
-                                key={type.id}
-                                onClick={() => setOutputType(type.id)}
-                                className={cn(
-                                  "relative p-4 rounded-xl border-2 transition-all text-left",
-                                  outputType === type.id
-                                    ? "border-pink-500 bg-pink-50/50 dark:bg-pink-900/20"
-                                    : "border-border hover:border-pink-300 bg-background"
-                                )}
-                                data-testid={`output-type-${type.id}`}
-                              >
-                                <div className="flex items-start gap-3">
-                                  <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", type.preview)}>
-                                    <Icon className="h-4 w-4 text-muted-foreground" />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="font-medium text-sm">{type.name}</p>
-                                    <p className="text-xs text-muted-foreground truncate">{type.description}</p>
-                                  </div>
-                                </div>
-                                {outputType === type.id && (
-                                  <div className="absolute top-2 right-2">
-                                    <Check className="h-4 w-4 text-pink-500" />
-                                  </div>
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {outputType === 'color' && (
-                        <div>
-                          <Label className="text-sm font-medium mb-3 block">Custom Color</Label>
-                          <div className="flex items-center gap-3">
-                            <div className="flex flex-wrap gap-2">
-                              {PRESET_COLORS.map((color) => (
-                                <button
-                                  key={color}
-                                  onClick={() => setCustomColor(color)}
-                                  className={cn(
-                                    "w-8 h-8 rounded-full border-2 transition-all",
-                                    customColor === color ? "border-pink-500 scale-110" : "border-border"
-                                  )}
-                                  style={{ backgroundColor: color }}
-                                  data-testid={`color-${color}`}
-                                />
-                              ))}
-                            </div>
-                            <input
-                              type="color"
-                              value={customColor}
-                              onChange={(e) => setCustomColor(e.target.value)}
-                              className="w-8 h-8 rounded-lg cursor-pointer border-0"
-                              data-testid="color-picker"
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      <div>
-                        <div className="flex items-center justify-between mb-3">
-                          <Label className="text-sm font-medium">Edge Feathering</Label>
-                          <span className="text-sm text-muted-foreground">{edgeFeathering}px</span>
-                        </div>
-                        <Slider
-                          value={[edgeFeathering]}
-                          onValueChange={(value) => setEdgeFeathering(value[0])}
-                          min={0}
-                          max={10}
-                          step={1}
-                          className="w-full"
-                          data-testid="edge-feathering-slider"
-                        />
-                        <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                          <span>Sharp</span>
-                          <span>Soft</span>
-                        </div>
-                      </div>
-
-                      <div>
-                        <Label className="text-sm font-medium mb-3 block">Quality Level</Label>
-                        <div className="space-y-2">
-                          {QUALITY_LEVELS.map((level) => (
-                            <button
-                              key={level.id}
-                              onClick={() => setQuality(level.id)}
-                              className={cn(
-                                "w-full p-3 rounded-xl border-2 transition-all text-left flex items-center justify-between",
-                                quality === level.id
-                                  ? "border-pink-500 bg-pink-50/50 dark:bg-pink-900/20"
-                                  : "border-border hover:border-pink-300 bg-background"
-                              )}
-                              data-testid={`quality-${level.id}`}
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className={cn(
-                                  "w-4 h-4 rounded-full border-2 flex items-center justify-center",
-                                  quality === level.id ? "border-pink-500" : "border-muted-foreground/30"
-                                )}>
-                                  {quality === level.id && (
-                                    <div className="w-2 h-2 rounded-full bg-pink-500" />
-                                  )}
-                                </div>
-                                <div>
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-medium text-sm">{level.name}</span>
-                                    {level.badge && (
-                                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                                        {level.badge}
-                                      </Badge>
-                                    )}
-                                  </div>
-                                  <p className="text-xs text-muted-foreground">{level.description}</p>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-1 text-sm font-medium">
-                                <Coins className="h-3.5 w-3.5 text-amber-500" />
-                                {level.credits}
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  {renderOutputOptions()}
                 </div>
 
                 {state === "error" && errorMessage && (
@@ -702,7 +1201,75 @@ export default function BackgroundRemover() {
               </div>
             )}
 
-            {state === "complete" && selectedImage && processedImage && (
+            {mode === "batch" && (state === "configuring" || state === "processing" || state === "error") && batchImages.length > 0 && (
+              <div className="flex-1 flex flex-col animate-fade-in gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {renderBatchGrid()}
+                  {renderOutputOptions()}
+                </div>
+
+                {state === "processing" && (
+                  <div className="bg-card border border-border rounded-xl p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <Loader2 className="h-5 w-5 text-pink-500 animate-spin" />
+                        <span className="font-medium">{processingStage}</span>
+                      </div>
+                      <span className="text-sm text-muted-foreground">
+                        {batchProgress.percentage}%
+                      </span>
+                    </div>
+                    <Progress value={batchProgress.percentage} className="h-2" />
+                  </div>
+                )}
+
+                {state === "error" && errorMessage && (
+                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-red-800 dark:text-red-200">Batch processing failed</p>
+                      <p className="text-sm text-red-600 dark:text-red-300">{errorMessage}</p>
+                    </div>
+                    <Button variant="ghost" size="sm" className="ml-auto" onClick={() => setState("configuring")}>
+                      Try again
+                    </Button>
+                  </div>
+                )}
+
+                <div className="bg-card border border-border rounded-[16px] p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <Button variant="ghost" onClick={reset} className="text-muted-foreground hover:text-foreground" disabled={state === "processing"}>
+                      <RotateCcw className="h-4 w-4 mr-2" />
+                      Start Over
+                    </Button>
+                  </div>
+
+                  <Button 
+                    onClick={processBatch}
+                    disabled={state === "processing" || batchImages.length === 0}
+                    className="h-12 px-8 rounded-[12px] bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-bold transition-all hover:-translate-y-[1px] hover:shadow-lg hover:shadow-pink-500/25"
+                    data-testid="process-batch-button"
+                  >
+                    {state === "processing" ? (
+                      <>
+                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                        {processingStage}
+                      </>
+                    ) : (
+                      <>
+                        <Wand2 className="h-5 w-5 mr-2" />
+                        Process {batchImages.length} Image{batchImages.length !== 1 ? 's' : ''}
+                        <Badge variant="secondary" className="ml-2 bg-white/20 text-white border-0">
+                          {totalBatchCredits} credit{totalBatchCredits > 1 ? 's' : ''}
+                        </Badge>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {mode === "single" && state === "complete" && selectedImage && processedImage && (
               <div className="flex-1 flex flex-col animate-fade-in gap-6">
                 
                 <div 
@@ -832,7 +1399,7 @@ export default function BackgroundRemover() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
-                      <DropdownMenuItem onClick={downloadImage} data-testid="download-png-option">
+                      <DropdownMenuItem onClick={() => downloadImage()} data-testid="download-png-option">
                         <div className="flex flex-col gap-0.5">
                           <span className="font-medium">PNG (Transparent)</span>
                           <span className="text-xs text-muted-foreground">Best for web & design</span>
@@ -845,12 +1412,76 @@ export default function BackgroundRemover() {
               </div>
             )}
 
+            {mode === "batch" && state === "complete" && batchImages.length > 0 && (
+              <div className="flex-1 flex flex-col animate-fade-in gap-6">
+                
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 flex items-center gap-4">
+                  <div className="p-2 bg-green-500 rounded-full">
+                    <Check className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-green-800 dark:text-green-200">Batch processing complete!</p>
+                    <p className="text-sm text-green-600 dark:text-green-300">
+                      {batchResults.successful} successful, {batchResults.failed} failed out of {batchImages.length} images
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300">
+                      <CheckCircle2 className="h-3 w-3 mr-1" />
+                      {batchResults.successful}
+                    </Badge>
+                    {batchResults.failed > 0 && (
+                      <Badge variant="secondary" className="bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300">
+                        <XCircle className="h-3 w-3 mr-1" />
+                        {batchResults.failed}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+
+                {renderBatchGrid()}
+
+                <div className="bg-card border border-border rounded-[16px] p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <Button variant="ghost" onClick={reset} className="text-muted-foreground hover:text-foreground">
+                      <RotateCcw className="h-4 w-4 mr-2" />
+                      Start Over
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => {
+                        setBatchImages(prev => prev.map(img => ({ ...img, status: 'pending' as BatchImageStatus, processedImage: undefined, error: undefined })));
+                        setState("configuring");
+                      }} 
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Re-process All
+                    </Button>
+                  </div>
+
+                  <Button 
+                    onClick={downloadAllAsZip}
+                    disabled={batchResults.successful === 0}
+                    className="h-12 px-6 rounded-[12px] bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-bold"
+                    data-testid="download-all-zip"
+                  >
+                    <Package className="h-5 w-5 mr-2" />
+                    Download All as ZIP
+                    <Badge variant="secondary" className="ml-2 bg-white/20 text-white border-0">
+                      {batchResults.successful} files
+                    </Badge>
+                  </Button>
+                </div>
+              </div>
+            )}
+
           </div>
         </div>
       </main>
       
       <AnimatePresence>
-        {state === "processing" && (
+        {mode === "single" && state === "processing" && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

@@ -556,6 +556,112 @@ export interface BackgroundRemovalPresets {
   defaults: BackgroundRemovalOptions;
 }
 
+// Background Removal API Types for Batch Processing
+export type BatchImageStatus = 'pending' | 'processing' | 'complete' | 'error';
+
+export interface BatchImageItem {
+  id: string;
+  originalImage: string;
+  status: BatchImageStatus;
+  processedImage?: string;
+  error?: string;
+}
+
+export interface BatchEventData {
+  total?: number;
+  options?: BackgroundRemovalOptions;
+  timestamp?: number;
+  current?: number;
+  percentage?: number;
+  id?: string;
+  index?: number;
+  success?: boolean;
+  result?: BackgroundRemovalResult;
+  message?: string;
+  successful?: number;
+  failed?: number;
+  results?: Array<{ id: string; index: number; success: boolean }>;
+}
+
+export type BatchEventType = 
+  | 'job_start'
+  | 'job_progress'
+  | 'job_complete'
+  | 'batch_complete'
+  | 'error';
+
+export interface BatchEvent {
+  type: BatchEventType;
+  data: BatchEventData;
+}
+
+export type BatchEventCallback = (event: BatchEvent) => void;
+
+function parseBackgroundRemovalSSEStream(
+  response: Response,
+  onEvent: BatchEventCallback
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder();
+
+    if (!reader) {
+      reject(new Error("No response body"));
+      return;
+    }
+
+    let buffer = "";
+    let currentEventType: BatchEventType = "job_start";
+
+    const processBuffer = () => {
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        
+        if (line === "") {
+          continue;
+        }
+
+        if (line.startsWith("event: ")) {
+          currentEventType = line.slice(7).trim() as BatchEventType;
+        } else if (line.startsWith("data: ")) {
+          try {
+            const jsonStr = line.slice(6);
+            const data = JSON.parse(jsonStr);
+            onEvent({ type: currentEventType, data });
+          } catch (e) {
+            console.error("Failed to parse batch SSE data:", line, e);
+          }
+        }
+      }
+    };
+
+    const read = async () => {
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            if (buffer.trim()) {
+              processBuffer();
+            }
+            break;
+          }
+
+          buffer += decoder.decode(value, { stream: true });
+          processBuffer();
+        }
+        resolve();
+      } catch (error) {
+        reject(error);
+      }
+    };
+
+    read();
+  });
+}
+
 // Background Removal API
 export const backgroundRemovalApi = {
   removeBackground: async (image: string, options: BackgroundRemovalOptions): Promise<{ success: boolean; result: BackgroundRemovalResult; message?: string }> => {
@@ -566,6 +672,31 @@ export const backgroundRemovalApi = {
       credentials: 'include'
     });
     return response.json();
+  },
+
+  removeBatchWithProgress: async (
+    images: string[],
+    options: BackgroundRemovalOptions,
+    onEvent: BatchEventCallback
+  ): Promise<void> => {
+    try {
+      const response = await fetch('/api/background-removal/batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ images, options }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Batch processing failed");
+      }
+
+      await parseBackgroundRemovalSSEStream(response, onEvent);
+    } catch (error) {
+      console.error("Batch background removal error:", error);
+      throw error;
+    }
   },
 
   getPresets: async (): Promise<BackgroundRemovalPresets> => {
