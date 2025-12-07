@@ -14,7 +14,12 @@ import type {
   BackgroundRemovalJobStatus
 } from "@shared/mockupTypes";
 
-const genAI = new GoogleGenAI({ apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "" });
+const genAI = new GoogleGenAI({ 
+  apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "",
+  httpOptions: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL ? {
+    baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL
+  } : undefined
+});
 
 const MODELS = {
   IMAGE_GENERATION: "gemini-3-pro-image-preview",
