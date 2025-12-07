@@ -500,3 +500,46 @@ export interface GeneratedMockupWithMeta {
   status: BatchJobStatus;
   error?: string;
 }
+
+// ============================================================================
+// BACKGROUND REMOVAL
+// ============================================================================
+
+export type BackgroundOutputType = 'transparent' | 'white' | 'color' | 'blur';
+
+export type BackgroundRemovalQuality = 'standard' | 'high' | 'ultra';
+
+export interface BackgroundRemovalOptions {
+  outputType: BackgroundOutputType;
+  customColor?: string;
+  edgeFeathering: number;
+  quality: BackgroundRemovalQuality;
+}
+
+export interface BackgroundRemovalResult {
+  success: boolean;
+  imageData?: string;
+  mimeType: string;
+  originalSize?: { width: number; height: number };
+  processedSize?: { width: number; height: number };
+  processingTimeMs: number;
+  outputType: BackgroundOutputType;
+  quality: BackgroundRemovalQuality;
+  error?: string;
+}
+
+export type BackgroundRemovalJobStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'retrying';
+
+export interface BackgroundRemovalJob {
+  id: string;
+  inputImage: string;
+  options: BackgroundRemovalOptions;
+  status: BackgroundRemovalJobStatus;
+  retryCount: number;
+  maxRetries: number;
+  result?: BackgroundRemovalResult;
+  error?: string;
+  createdAt: number;
+  startedAt?: number;
+  completedAt?: number;
+}
