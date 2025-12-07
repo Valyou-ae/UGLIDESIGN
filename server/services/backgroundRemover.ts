@@ -111,65 +111,35 @@ async function applyAlphaMask(
 function buildAlphaMaskPrompt(
   options: BackgroundRemovalOptions
 ): { prompt: string; negativePrompts: string[] } {
-  const qualitySetting = QUALITY_SETTINGS[options.quality];
-  const featheringDesc = options.edgeFeathering === 0 
-    ? "sharp, crisp edges with no feathering"
-    : options.edgeFeathering <= 3
-    ? `subtle ${options.edgeFeathering}px edge feathering for natural transitions`
-    : options.edgeFeathering <= 6
-    ? `moderate ${options.edgeFeathering}px edge feathering for smooth, professional blending`
-    : `pronounced ${options.edgeFeathering}px edge feathering for soft, dreamy transitions`;
+  const masterPrompt = `CRITICAL TASK: Generate a SILHOUETTE MASK image.
 
-  const masterPrompt = `You are a professional image segmentation AI. Generate a precise ALPHA MASK for this image.
+DO NOT output the original photo. Output a NEW image that is a SILHOUETTE MASK.
 
-===== TASK: GENERATE ALPHA MASK =====
+THE OUTPUT MUST BE:
+- A pure BLACK AND WHITE image (no colors, no grayscale photo)
+- The person/subject/foreground: Fill with SOLID WHITE (#FFFFFF)
+- The background/environment: Fill with SOLID BLACK (#000000)
+- Like a shadow or cutout shape of the subject
 
-Create a BLACK AND WHITE alpha mask image where:
-- WHITE (RGB 255,255,255) = The main subject/foreground (what to KEEP)
-- BLACK (RGB 0,0,0) = The background (what to REMOVE)
-- GRAY values = Semi-transparent areas (for soft edges, hair, fur, glass)
+THINK OF IT AS:
+- A stencil or cutout shape
+- The subject is a white shape on black background
+- NO details inside the white area - just solid white fill
+- NO textures - just flat white silhouette on black
 
-OUTPUT REQUIREMENTS:
-- Output format: Grayscale PNG image
-- Same dimensions as the input image
-- Pure white for definite foreground areas
-- Pure black for definite background areas
-- Smooth gray gradients at edges for natural transitions
-- Quality level: ${qualitySetting.detail} detail with ${qualitySetting.precision}
+EXAMPLE: If the photo shows a person, output:
+- Person shape = completely filled white
+- Everything else = completely black
 
-===== EDGE DETECTION & PRECISION =====
-
-CRITICAL - Handle these with pixel-perfect accuracy:
-1. HAIR & FUR: Use gray values for individual strands and wisps
-2. SEMI-TRANSPARENT: Glass, smoke, sheer fabric should use appropriate gray levels
-3. COMPLEX BOUNDARIES: Fingers, leaves, intricate patterns need precise masks
-4. MICRO-DETAILS: Eyelashes, whiskers need proper gray anti-aliasing
-
-EDGE QUALITY:
-- ${featheringDesc}
-- Smooth anti-aliased edges using gray gradients
-- No harsh binary cutoffs at complex edges
-- Natural transitions from white to black
-
-===== MASK QUALITY CHECKLIST =====
-
-✓ Main subject is completely white
-✓ Background is completely black
-✓ Edges have appropriate gray anti-aliasing
-✓ Fine details (hair, fur) show gray gradations
-✓ No holes or gaps in the subject mask
-✓ No missed background areas (all black)
-✓ Professional-grade segmentation quality`;
+OUTPUT: A black and white silhouette mask image only.`;
 
   const negativePrompts = [
+    "original photo",
     "colored output",
-    "RGB colors in mask",
-    "incomplete mask",
-    "holes in subject",
-    "background leakage",
-    "harsh binary edges",
-    "missing fine details",
-    "inverted mask"
+    "grayscale photo",
+    "textures",
+    "details",
+    "gradients"
   ];
 
   return { prompt: masterPrompt, negativePrompts };
