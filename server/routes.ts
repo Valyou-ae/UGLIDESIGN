@@ -146,6 +146,95 @@ export async function registerRoutes(
     });
   });
 
+  app.post("/api/auth/forgot-password", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email || typeof email !== 'string') {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      const user = await storage.getUserByEmail(email);
+      
+      if (!user) {
+        return res.json({ 
+          message: "If an account with that email exists, we've sent a password reset link.",
+          success: true
+        });
+      }
+
+      const crypto = await import('crypto');
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const tokenHash = await bcrypt.hash(resetToken, 10);
+      const resetExpires = new Date(Date.now() + 60 * 60 * 1000);
+
+      await storage.setPasswordResetToken(email, tokenHash, resetExpires);
+
+      const baseUrl = process.env.REPLIT_DOMAINS 
+        ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}`
+        : 'http://localhost:5000';
+      
+      const encodedEmail = encodeURIComponent(email);
+      const resetLink = `${baseUrl}/reset-password?token=${resetToken}&email=${encodedEmail}`;
+      
+      console.log(`[Password Reset] Reset link for ${email}: ${resetLink}`);
+
+      res.json({ 
+        message: "If an account with that email exists, we've sent a password reset link.",
+        success: true
+      });
+    } catch (error) {
+      console.error("Password reset error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.post("/api/auth/reset-password", async (req, res) => {
+    try {
+      const { token, email, password } = req.body;
+      
+      if (!token || typeof token !== 'string') {
+        return res.status(400).json({ message: "Reset token is required" });
+      }
+      
+      if (!email || typeof email !== 'string') {
+        return res.status(400).json({ message: "Email is required" });
+      }
+      
+      if (!password || typeof password !== 'string' || password.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters" });
+      }
+
+      const user = await storage.getUserWithResetToken(email);
+      
+      if (!user || !user.passwordResetToken) {
+        return res.status(400).json({ message: "Invalid or expired reset token" });
+      }
+
+      if (user.passwordResetExpires && new Date(user.passwordResetExpires) < new Date()) {
+        await storage.clearPasswordResetToken(user.id);
+        return res.status(400).json({ message: "Reset token has expired. Please request a new one." });
+      }
+
+      const validToken = await bcrypt.compare(token, user.passwordResetToken);
+      if (!validToken) {
+        return res.status(400).json({ message: "Invalid or expired reset token" });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+      await storage.updatePassword(user.id, hashedPassword);
+      await storage.clearPasswordResetToken(user.id);
+
+      res.json({ 
+        message: "Password has been reset successfully. You can now log in with your new password.",
+        success: true
+      });
+    } catch (error) {
+      console.error("Password reset error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   app.get("/api/auth/me", requireAuth, async (req, res) => {
     try {
       const user = await storage.getUser(req.session.userId!);
@@ -163,7 +252,8 @@ export async function registerRoutes(
           lastName: user.lastName,
           bio: user.bio,
           socialLinks: user.socialLinks || [],
-          affiliateCode: user.affiliateCode
+          affiliateCode: user.affiliateCode,
+          createdAt: user.createdAt
         } 
       });
     } catch (error) {
@@ -193,7 +283,8 @@ export async function registerRoutes(
           lastName: user.lastName,
           bio: user.bio,
           socialLinks: user.socialLinks || [],
-          affiliateCode: user.affiliateCode
+          affiliateCode: user.affiliateCode,
+          createdAt: user.createdAt
         } 
       });
     } catch (error) {
@@ -370,8 +461,8 @@ export async function registerRoutes(
         subscription: {
           id: subscription.id,
           status: subscription.status,
-          current_period_end: subscription.current_period_end,
-          current_period_start: subscription.current_period_start,
+          current_period_end: (subscription as any).current_period_end,
+          current_period_start: (subscription as any).current_period_start,
           cancel_at_period_end: subscription.cancel_at_period_end,
         },
         plan

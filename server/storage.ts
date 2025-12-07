@@ -30,6 +30,12 @@ export interface IStorage {
   // Stripe operations
   updateStripeCustomerId(userId: string, stripeCustomerId: string): Promise<User | undefined>;
   updateStripeSubscriptionId(userId: string, stripeSubscriptionId: string | null): Promise<User | undefined>;
+  
+  // Password reset operations
+  setPasswordResetToken(email: string, tokenHash: string, expires: Date): Promise<User | undefined>;
+  getUserWithResetToken(email: string): Promise<User | undefined>;
+  updatePassword(userId: string, hashedPassword: string): Promise<User | undefined>;
+  clearPasswordResetToken(userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -186,6 +192,40 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId))
       .returning();
     return user || undefined;
+  }
+
+  // Password reset operations
+  async setPasswordResetToken(email: string, tokenHash: string, expires: Date): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({ passwordResetToken: tokenHash, passwordResetExpires: expires })
+      .where(eq(users.email, email))
+      .returning();
+    return user || undefined;
+  }
+
+  async getUserWithResetToken(email: string): Promise<User | undefined> {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email));
+    return user || undefined;
+  }
+
+  async updatePassword(userId: string, hashedPassword: string): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({ password: hashedPassword })
+      .where(eq(users.id, userId))
+      .returning();
+    return user || undefined;
+  }
+
+  async clearPasswordResetToken(userId: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ passwordResetToken: null, passwordResetExpires: null })
+      .where(eq(users.id, userId));
   }
 }
 

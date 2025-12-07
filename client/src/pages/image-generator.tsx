@@ -411,6 +411,22 @@ export default function ImageGenerator() {
       return;
     }
 
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    
+    if (!SpeechRecognition) {
+      toast({
+        variant: "destructive",
+        title: "Voice input not supported",
+        description: "Your browser doesn't support speech recognition. Try Chrome or Edge.",
+      });
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+
     setIsListening(true);
     toast({
       title: "Listening...",
@@ -418,30 +434,57 @@ export default function ImageGenerator() {
       className: "bg-[#B94E30]/10 border-[#B94E30]/30 text-[#B94E30]"
     });
 
-    // Simulate voice recognition for consistent mockup experience
-    setTimeout(() => {
-      const simulatedPhrases = [
-        "with cinematic lighting and dramatic shadows",
-        "in high resolution 8k detail",
-        "trending on artstation",
-        "with a golden hour sunset background",
-        "photorealistic style",
-        "vibrant neon colors",
-        "minimalist composition"
-      ];
-      const randomPhrase = simulatedPhrases[Math.floor(Math.random() * simulatedPhrases.length)];
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
       
       setPrompt(prev => {
-        const newPrompt = prev.trim() ? `${prev.trim()} ${randomPhrase}` : randomPhrase;
+        const newPrompt = prev.trim() ? `${prev.trim()} ${transcript}` : transcript;
         return newPrompt;
       });
       
       setIsListening(false);
       toast({
         title: "Voice Recognized",
-        description: `Added: "${randomPhrase}"`,
+        description: `Added: "${transcript}"`,
       });
-    }, 2000);
+    };
+
+    recognition.onerror = (event: any) => {
+      setIsListening(false);
+      if (event.error === 'no-speech') {
+        toast({
+          title: "No speech detected",
+          description: "Please try again and speak clearly.",
+        });
+      } else if (event.error === 'not-allowed') {
+        toast({
+          variant: "destructive",
+          title: "Microphone access denied",
+          description: "Please enable microphone access in your browser settings.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Voice input error",
+          description: `Error: ${event.error}`,
+        });
+      }
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    try {
+      recognition.start();
+    } catch (error) {
+      setIsListening(false);
+      toast({
+        variant: "destructive",
+        title: "Failed to start voice input",
+        description: "Please try again.",
+      });
+    }
   };
 
   // Initialize prompt from URL if available

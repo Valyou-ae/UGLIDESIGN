@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { Link } from "wouter";
-import { Mail, ArrowRight, ArrowLeft, CheckCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Link, useLocation, useSearch } from "wouter";
+import { Lock, ArrowRight, ArrowLeft, CheckCircle, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,21 +8,54 @@ import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import logo from "@assets/minimal-modern-wordmark-logo-text-ugli-i_7VuJ3CXPRueyRNWmv9BnCw_YaTvFRB9TpS_XzP-6PzYkA-removebg-preview_1764450493822.png";
 
-export default function ForgotPassword() {
+export default function ResetPassword() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [, setLocation] = useLocation();
+  const searchString = useSearch();
+  
+  const params = new URLSearchParams(searchString);
+  const token = params.get('token');
+  const email = params.get('email');
+
+  useEffect(() => {
+    if (!token || !email) {
+      setError("Invalid reset link. Please request a new password reset.");
+    }
+  }, [token, email]);
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (password !== confirmPassword) {
+      toast({
+        variant: "destructive",
+        title: "Passwords don't match",
+        description: "Please make sure both passwords are the same.",
+      });
+      return;
+    }
+
+    if (password.length < 6) {
+      toast({
+        variant: "destructive",
+        title: "Password too short",
+        description: "Password must be at least 6 characters.",
+      });
+      return;
+    }
+
     setIsLoading(true);
     
     try {
-      const res = await fetch("/api/auth/forgot-password", {
+      const res = await fetch("/api/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ token, email, password }),
         credentials: "include"
       });
 
@@ -31,14 +64,15 @@ export default function ForgotPassword() {
       if (res.ok && data.success) {
         setIsSuccess(true);
         toast({
-          title: "Reset link sent",
+          title: "Password reset successful",
           description: data.message,
         });
       } else {
+        setError(data.message || "Failed to reset password");
         toast({
           variant: "destructive",
           title: "Error",
-          description: data.message || "Failed to send reset link",
+          description: data.message || "Failed to reset password",
         });
       }
     } catch (error) {
@@ -56,13 +90,11 @@ export default function ForgotPassword() {
     <div className="min-h-screen w-full flex bg-background text-foreground overflow-hidden">
       {/* Left Side - Visual */}
       <div className="hidden lg:flex w-1/2 relative bg-black items-center justify-center overflow-hidden">
-        {/* Background Gradients */}
         <div className="absolute top-0 left-0 w-full h-full bg-[#0A0A0B]">
           <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-[#B94E30]/20 rounded-full blur-[120px]" />
           <div className="absolute bottom-[-20%] right-[-10%] w-[70%] h-[70%] bg-[#E3B436]/20 rounded-full blur-[120px]" />
         </div>
         
-        {/* Content */}
         <div className="relative z-10 max-w-[500px] p-12 flex flex-col gap-8">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -72,19 +104,18 @@ export default function ForgotPassword() {
             <img src={logo} alt="Logo" className="h-24 mb-8 object-contain drop-shadow-2xl" />
             
             <h1 className="text-5xl font-bold text-white mb-6 leading-tight">
-              Recovery made <br />
+              Create a new <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#B94E30] to-[#E3B436]">
-                simple & secure
+                secure password
               </span>
             </h1>
             
             <p className="text-lg text-zinc-400 leading-relaxed">
-              Don't worry, it happens to the best of us. We'll help you get back to creating in no time.
+              Choose a strong password to keep your account safe and secure.
             </p>
           </motion.div>
         </div>
 
-        {/* Abstract floating elements */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-1/4 right-1/4 w-24 h-24 bg-gradient-to-br from-[#E3B436] to-[#C99C2A] rounded-2xl opacity-20 blur-2xl animate-float" />
           <div className="absolute bottom-1/3 left-1/4 w-32 h-32 bg-gradient-to-br from-[#B94E30] to-[#8B3A24] rounded-full opacity-20 blur-3xl animate-float-delayed" />
@@ -103,15 +134,35 @@ export default function ForgotPassword() {
                 Back to Login
               </Button>
             </Link>
-            <h2 className="text-3xl font-bold tracking-tight">Reset Password</h2>
+            <h2 className="text-3xl font-bold tracking-tight">Set New Password</h2>
             <p className="text-muted-foreground mt-2">
               {isSuccess 
-                ? "Check your email for a link to reset your password" 
-                : "Enter your email address and we'll send you a link to reset your password"}
+                ? "Your password has been updated" 
+                : "Enter your new password below"}
             </p>
           </div>
 
-          {isSuccess ? (
+          {error && !isSuccess ? (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-6"
+            >
+              <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center">
+                <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
+                <h3 className="font-semibold text-red-800 dark:text-red-200 mb-2">Reset Failed</h3>
+                <p className="text-sm text-red-700 dark:text-red-300">
+                  {error}
+                </p>
+              </div>
+
+              <Link href="/forgot-password">
+                <Button className="w-full" data-testid="button-request-new-link">
+                  Request New Reset Link
+                </Button>
+              </Link>
+            </motion.div>
+          ) : isSuccess ? (
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -119,71 +170,78 @@ export default function ForgotPassword() {
             >
               <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-xl p-6 text-center">
                 <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
-                <h3 className="font-semibold text-green-800 dark:text-green-200 mb-2">Check your inbox</h3>
+                <h3 className="font-semibold text-green-800 dark:text-green-200 mb-2">Password Updated!</h3>
                 <p className="text-sm text-green-700 dark:text-green-300">
-                  We've sent a password reset link to <strong>{email}</strong>
+                  Your password has been successfully reset. You can now log in with your new password.
                 </p>
               </div>
 
-              <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
-                <p className="text-xs text-amber-700 dark:text-amber-300 font-medium">
-                  Development Note: Check the server console for the reset link (email delivery not configured)
-                </p>
-              </div>
-
-              <div className="text-center space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Didn't receive the email?{" "}
-                  <button 
-                    onClick={() => setIsSuccess(false)} 
-                    className="text-primary hover:underline font-medium"
-                    data-testid="button-try-again"
-                  >
-                    Try again
-                  </button>
-                </p>
-                <Link href="/login">
-                  <Button variant="outline" className="w-full" data-testid="button-return-to-login">
-                    Return to Login
-                  </Button>
-                </Link>
-              </div>
+              <Button 
+                className="w-full h-11 rounded-xl bg-gradient-to-r from-[#B94E30] to-[#8B3A24] hover:brightness-110 text-white font-bold"
+                onClick={() => setLocation("/login")}
+                data-testid="button-go-to-login"
+              >
+                Go to Login
+              </Button>
             </motion.div>
           ) : (
             <div className="grid gap-6">
               <form onSubmit={handleReset} className="grid gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="password">New Password</Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
-                      id="email"
-                      placeholder="name@example.com"
-                      type="email"
-                      autoCapitalize="none"
-                      autoComplete="email"
-                      autoCorrect="off"
+                      id="password"
+                      placeholder="Enter new password"
+                      type="password"
+                      autoComplete="new-password"
                       disabled={isLoading}
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       className="pl-10 h-11 rounded-xl"
                       required
-                      data-testid="input-email"
+                      minLength={6}
+                      data-testid="input-password"
                     />
                   </div>
                 </div>
 
+                <div className="grid gap-2">
+                  <Label htmlFor="confirm-password">Confirm Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="confirm-password"
+                      placeholder="Confirm new password"
+                      type="password"
+                      autoComplete="new-password"
+                      disabled={isLoading}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="pl-10 h-11 rounded-xl"
+                      required
+                      minLength={6}
+                      data-testid="input-confirm-password"
+                    />
+                  </div>
+                </div>
+
+                <div className="text-xs text-muted-foreground">
+                  Password must be at least 6 characters long
+                </div>
+
                 <Button 
                   type="submit" 
-                  disabled={isLoading} 
+                  disabled={isLoading || !token || !email} 
                   className="h-11 rounded-xl bg-gradient-to-r from-[#B94E30] to-[#8B3A24] hover:brightness-110 text-white font-bold shadow-lg shadow-[#B94E30]/20 transition-all hover:-translate-y-[1px]"
-                  data-testid="button-send-reset-link"
+                  data-testid="button-reset-password"
                 >
                   {isLoading ? (
                     <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
                     <>
-                      Send Reset Link <ArrowRight className="ml-2 h-4 w-4" />
+                      Reset Password <ArrowRight className="ml-2 h-4 w-4" />
                     </>
                   )}
                 </Button>
