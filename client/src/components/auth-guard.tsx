@@ -20,7 +20,7 @@ export function AuthGuard({ children }: GuardProps) {
   }
 
   if (!isAuthenticated) {
-    return <Redirect to="/landing" />;
+    return <Redirect to="/login" />;
   }
 
   return <>{children}</>;
@@ -50,7 +50,7 @@ export function AdminGuard({ children }: GuardProps) {
   }
 
   if (!isAuthenticated) {
-    return <Redirect to="/landing" />;
+    return <Redirect to="/login" />;
   }
 
   if (user?.role !== "admin") {
