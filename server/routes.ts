@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertImageSchema, insertWithdrawalSchema, updateProfileSchema, insertContactSchema, insertDealSchema, insertActivitySchema } from "@shared/schema";
+import { insertImageSchema, insertWithdrawalSchema, updateProfileSchema, insertContactSchema, insertDealSchema, insertActivitySchema, insertPromptFavoriteSchema } from "@shared/schema";
 import { ZodError } from "zod";
 
 export async function registerRoutes(
@@ -516,6 +516,43 @@ export async function registerRoutes(
       }
       res.json({ message: "Image deleted" });
     } catch (error) {
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.get("/api/images/calendar", requireAuth, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const year = parseInt(req.query.year as string) || new Date().getFullYear();
+      const month = parseInt(req.query.month as string) || new Date().getMonth() + 1;
+      
+      const counts = await storage.getImageCountsByMonth(userId, year, month);
+      res.json({ counts });
+    } catch (error) {
+      console.error("Calendar data error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.get("/api/images/by-date", requireAuth, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const dateStr = req.query.date as string;
+      
+      if (!dateStr) {
+        return res.status(400).json({ message: "Date is required" });
+      }
+      
+      const startDate = new Date(dateStr);
+      startDate.setHours(0, 0, 0, 0);
+      
+      const endDate = new Date(dateStr);
+      endDate.setHours(23, 59, 59, 999);
+      
+      const images = await storage.getImagesByDateRange(userId, startDate, endDate);
+      res.json({ images });
+    } catch (error) {
+      console.error("Images by date error:", error);
       res.status(500).json({ message: "Server error" });
     }
   });

@@ -28,7 +28,8 @@ import {
   Maximize2, 
   RefreshCw,
   Calendar,
-  Clock
+  Clock,
+  ClipboardCopy
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -56,6 +57,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { useImages } from "@/hooks/use-images";
+import { CalendarHistoryModal } from "@/components/calendar-history-modal";
 
 
 type ItemType = {
@@ -85,6 +87,7 @@ export default function MyCreations() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<ItemType | null>(null);
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const { toast } = useToast();
   
   // Fetch images from backend API
@@ -170,6 +173,55 @@ export default function MyCreations() {
     }
   };
 
+  const copyImageToClipboard = async (imageUrl: string): Promise<void> => {
+    try {
+      if (!navigator.clipboard || !window.ClipboardItem) {
+        toast({
+          variant: "destructive",
+          title: "Not Supported",
+          description: "Clipboard API is not supported in your browser. Try using Chrome or Edge.",
+        });
+        return;
+      }
+
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      
+      const pngBlob = blob.type === 'image/png' ? blob : await new Promise<Blob>((resolve) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0);
+          canvas.toBlob((b) => resolve(b || blob), 'image/png');
+        };
+        img.onerror = () => resolve(blob);
+        img.src = imageUrl;
+      });
+      
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          [pngBlob.type]: pngBlob
+        })
+      ]);
+      
+      toast({
+        title: "Image copied to clipboard!",
+        description: "You can now paste it anywhere.",
+      });
+    } catch (error) {
+      console.error("Copy to clipboard failed:", error);
+      toast({
+        variant: "destructive",
+        title: "Copy Failed",
+        description: "Could not copy image to clipboard. Try downloading instead.",
+      });
+    }
+  };
+
   const handleAction = (action: string, item: ItemType) => {
     if (action === "Open") {
       setSelectedItem(item);
@@ -197,6 +249,11 @@ export default function MyCreations() {
 
     if (action === "Duplicate") {
       toast({ title: "Item Duplicated", description: `${item.name} has been duplicated.` });
+      return;
+    }
+
+    if (action === "Copy") {
+      copyImageToClipboard(item.src);
       return;
     }
 
@@ -359,6 +416,17 @@ export default function MyCreations() {
                   </button>
                 ))}
               </div>
+
+              {/* Calendar Button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setCalendarOpen(true)}
+                className="h-10 w-10 bg-white dark:bg-[#1F1F25] border border-[#E4E4E7] dark:border-[#2A2A30] rounded-lg hover:bg-[#F4F4F5] dark:hover:bg-[#2A2A30] text-[#71717A] hover:text-[#B94E30]"
+                data-testid="button-calendar-history"
+              >
+                <Calendar className="h-4 w-4" />
+              </Button>
             </div>
 
             {/* Filter Row */}
@@ -562,6 +630,7 @@ export default function MyCreations() {
                           <DropdownMenuItem onClick={() => handleAction("Open", item)} className="hover:bg-[#2A2A30] cursor-pointer"><ArrowUpRight className="h-4 w-4 mr-2" /> Open</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleAction("Edit", item)} className="hover:bg-[#2A2A30] cursor-pointer"><Pencil className="h-4 w-4 mr-2" /> Edit</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleAction("Download", item)} className="hover:bg-[#2A2A30] cursor-pointer"><Download className="h-4 w-4 mr-2" /> Download</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleAction("Copy", item)} className="hover:bg-[#2A2A30] cursor-pointer"><ClipboardCopy className="h-4 w-4 mr-2" /> Copy to Clipboard</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleAction("Duplicate", item)} className="hover:bg-[#2A2A30] cursor-pointer"><Copy className="h-4 w-4 mr-2" /> Duplicate</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleAction("Unfavorite", item)} className="text-[#F59E0B] hover:bg-[#2A2A30] cursor-pointer"><StarOff className="h-4 w-4 mr-2" /> Unfavorite</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleAction("Delete", item)} className="text-[#DC2626] hover:bg-[#2A2A30] cursor-pointer"><Trash2 className="h-4 w-4 mr-2" /> Delete</DropdownMenuItem>
@@ -643,6 +712,17 @@ export default function MyCreations() {
                               <Download className="h-3.5 w-3.5 mr-1.5" />
                               Download
                             </Button>
+                            <Button 
+                              size="icon" 
+                              className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAction("Copy", item);
+                              }}
+                              data-testid={`button-copy-${item.id}`}
+                            >
+                              <ClipboardCopy className="h-3.5 w-3.5" />
+                            </Button>
                             <div className="flex items-center gap-1 ml-auto">
                               <Button 
                                 size="icon" 
@@ -664,6 +744,7 @@ export default function MyCreations() {
                                 <DropdownMenuContent align="end" className="bg-[#1F1F25] border-[#2A2A30] text-[#E4E4E7]">
                                   <DropdownMenuItem onClick={() => handleAction("Open", item)} className="hover:bg-[#2A2A30] cursor-pointer"><ArrowUpRight className="h-4 w-4 mr-2" /> Open</DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => handleAction("Edit", item)} className="hover:bg-[#2A2A30] cursor-pointer"><Pencil className="h-4 w-4 mr-2" /> Edit</DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleAction("Copy", item)} className="hover:bg-[#2A2A30] cursor-pointer"><ClipboardCopy className="h-4 w-4 mr-2" /> Copy to Clipboard</DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => handleAction("Duplicate", item)} className="hover:bg-[#2A2A30] cursor-pointer"><Copy className="h-4 w-4 mr-2" /> Duplicate</DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => handleAction("Move", item)} className="hover:bg-[#2A2A30] cursor-pointer"><FolderInput className="h-4 w-4 mr-2" /> Move to Folder</DropdownMenuItem>
                                 </DropdownMenuContent>
@@ -732,7 +813,7 @@ export default function MyCreations() {
 
                 <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 md:space-y-8">
                   {/* Actions */}
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-5 gap-2">
                     <Button 
                       variant="ghost" 
                       className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
@@ -740,6 +821,16 @@ export default function MyCreations() {
                     >
                       <Download className="h-5 w-5" />
                       <span className="text-[10px]">Save</span>
+                    </Button>
+                    
+                    <Button 
+                      variant="ghost" 
+                      className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
+                      onClick={() => handleAction("Copy", selectedItem)}
+                      data-testid="button-copy-detail"
+                    >
+                      <ClipboardCopy className="h-5 w-5" />
+                      <span className="text-[10px]">Copy</span>
                     </Button>
                     
                     <Button 
@@ -846,6 +937,8 @@ export default function MyCreations() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <CalendarHistoryModal open={calendarOpen} onOpenChange={setCalendarOpen} />
     </div>
   );
 }
