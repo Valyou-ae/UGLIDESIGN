@@ -257,7 +257,7 @@ function JustifiedGallery({ items }: { items: InspirationItem[] }) {
     <div ref={containerRef} className="w-full h-full">
       <div 
         ref={scrollRef}
-        className="w-full h-[calc(100vh-180px)] overflow-hidden"
+        className="w-full h-screen overflow-hidden px-1"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
@@ -602,11 +602,8 @@ export default function PublicHome() {
       <GoogleAutoSignIn />
       <PublicSidebar className="hidden md:flex border-r border-border/50" />
       
-      <main className="flex-1 flex flex-col relative h-full overflow-hidden bg-[#F8F8F8] dark:bg-[#0A0A0B] text-[#18181B] dark:text-[#FAFAFA]">
-        
-        <div className="px-2 md:px-4 lg:px-6 py-4 flex-1 overflow-hidden">
-          <JustifiedGallery items={galleryImages} />
-        </div>
+      <main className="flex-1 relative h-full overflow-hidden bg-[#0A0A0B]">
+        <JustifiedGallery items={galleryImages} />
       </main>
 
       <FloatingPromptBar />
