@@ -55,6 +55,10 @@ externalPort = 4200
 localPort = 41675
 externalPort = 6800
 
+[[ports]]
+localPort = 42045
+externalPort = 8008
+
 [env]
 PORT = "5000"
 
@@ -87,3 +91,6 @@ integrations = ["javascript_database:1.0.0", "stripe:2.0.0"]
 
 [userenv.development]
 TEST_MODE = "true"
+
+[userenv.shared]
+GOOGLE_CLIENT_ID = "219712504704-2mv22scc589s3da7fufolugsnqumc545.apps.googleusercontent.com"
