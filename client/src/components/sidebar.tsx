@@ -109,9 +109,16 @@ export function Sidebar({ className }: SidebarProps) {
     { name: "Help & Support", shortName: "Help", icon: HelpCircle, href: "/help" },
   ];
 
-  const handleLogout = () => {
-    // Mock logout
-    window.location.href = "/login";
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { 
+        method: "POST",
+        credentials: "include" 
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+    window.location.href = "/";
   };
 
   // Mobile Bottom Navigation

@@ -30,9 +30,17 @@ export function useAuth() {
     window.location.href = "/api/login";
   };
 
-  const logout = () => {
+  const logout = async () => {
     queryClient.clear();
-    window.location.href = "/api/logout";
+    try {
+      await fetch("/api/auth/logout", { 
+        method: "POST",
+        credentials: "include" 
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+    window.location.href = "/";
   };
 
   return {

@@ -223,6 +223,20 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/auth/logout", (req: any, res) => {
+    if (req.session) {
+      req.session.destroy((err: any) => {
+        if (err) {
+          console.error("Session destroy error:", err);
+        }
+        res.clearCookie("connect.sid");
+        res.json({ success: true });
+      });
+    } else {
+      res.json({ success: true });
+    }
+  });
+
   // ============== USER/PROFILE ROUTES ==============
 
   app.patch("/api/user/profile", requireAuth, async (req: any, res) => {
