@@ -6,7 +6,8 @@ import {
   RectangleHorizontal, 
   RectangleVertical,
   Zap,
-  ChevronDown
+  ChevronDown,
+  Settings2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "wouter";
@@ -91,7 +92,7 @@ export function FloatingPromptBar() {
   return (
     <div 
       ref={containerRef}
-      className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-4xl px-4"
+      className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-3xl px-4"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onBlur={handleBlur}
@@ -108,159 +109,6 @@ export function FloatingPromptBar() {
         }}
         transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
       >
-        <AnimatePresence mode="sync">
-          {isExpanded && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-              className="overflow-hidden"
-            >
-              <div className="px-4 py-3 border-b border-white/10">
-                <div className="flex items-center gap-6 overflow-x-auto no-scrollbar">
-                  <div className="flex flex-col gap-1.5 min-w-fit">
-                    <span className="text-[10px] font-semibold text-white/50 uppercase tracking-wider">Quality</span>
-                    <div className="flex gap-1">
-                      {qualityOptions.map((option) => (
-                        <button
-                          key={option.id}
-                          onClick={() => setSelectedQuality(option.id)}
-                          className={cn(
-                            "flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all",
-                            selectedQuality === option.id
-                              ? "bg-[#B94E30] text-white"
-                              : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white border border-white/10"
-                          )}
-                          data-testid={`quality-${option.id}`}
-                        >
-                          <Sparkles className="h-3 w-3" />
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="w-px h-8 bg-white/10" />
-
-                  <div className="flex flex-col gap-1.5 min-w-fit">
-                    <span className="text-[10px] font-semibold text-white/50 uppercase tracking-wider">Speed</span>
-                    <div className="flex gap-1">
-                      {speedOptions.map((option) => (
-                        <button
-                          key={option.id}
-                          onClick={() => setSelectedSpeed(option.id)}
-                          className={cn(
-                            "flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all",
-                            selectedSpeed === option.id
-                              ? "bg-[#B94E30] text-white"
-                              : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white border border-white/10"
-                          )}
-                          data-testid={`speed-${option.id}`}
-                        >
-                          <Zap className="h-3 w-3" />
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="w-px h-8 bg-white/10" />
-
-                  <div className="flex flex-col gap-1.5 min-w-fit">
-                    <span className="text-[10px] font-semibold text-white/50 uppercase tracking-wider">Ratio</span>
-                    <div className="flex gap-1">
-                      {ratioOptions.map((option) => {
-                        const Icon = option.icon;
-                        return (
-                          <button
-                            key={option.id}
-                            onClick={() => setSelectedRatio(option.id)}
-                            className={cn(
-                              "flex items-center justify-center w-7 h-7 rounded-md transition-all",
-                              selectedRatio === option.id
-                                ? "bg-[#B94E30] text-white"
-                                : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white border border-white/10"
-                            )}
-                            data-testid={`ratio-${option.id}`}
-                          >
-                            <Icon className="h-3.5 w-3.5" />
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div className="w-px h-8 bg-white/10" />
-
-                  <div className="flex flex-col gap-1.5 min-w-fit">
-                    <span className="text-[10px] font-semibold text-white/50 uppercase tracking-wider">Details</span>
-                    <div className="flex gap-1">
-                      {detailOptions.map((option) => (
-                        <button
-                          key={option.id}
-                          onClick={() => setSelectedDetail(option.id)}
-                          className={cn(
-                            "px-2.5 py-1 rounded-md text-[11px] font-medium transition-all",
-                            selectedDetail === option.id
-                              ? "bg-white/15 text-white ring-1 ring-[#B94E30]"
-                              : "bg-transparent text-white/60 hover:text-white"
-                          )}
-                          data-testid={`detail-${option.id}`}
-                        >
-                          {option.id === "low" && "— "}
-                          {option.id === "medium" && "○ "}
-                          {option.id === "high" && "+ "}
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="w-px h-8 bg-white/10" />
-
-                  <div className="flex flex-col gap-1.5 min-w-fit">
-                    <span className="text-[10px] font-semibold text-white/50 uppercase tracking-wider">Style</span>
-                    <div className="flex gap-1 items-center">
-                      <button
-                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-white/5 text-white/80 hover:bg-white/10 border border-white/10"
-                        data-testid="style-dropdown"
-                      >
-                        <Sparkles className="h-3 w-3 text-[#B94E30]" />
-                        {styleOptions.find(s => s.id === selectedStyle)?.label}
-                        <ChevronDown className="h-3 w-3 text-white/40" />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="w-px h-8 bg-white/10" />
-
-                  <div className="flex flex-col gap-1.5 min-w-fit">
-                    <span className="text-[10px] font-semibold text-white/50 uppercase tracking-wider">Count</span>
-                    <div className="flex gap-1">
-                      {countOptions.map((option) => (
-                        <button
-                          key={option.id}
-                          onClick={() => setSelectedCount(option.id)}
-                          className={cn(
-                            "w-7 h-7 flex items-center justify-center rounded-md text-[11px] font-medium transition-all",
-                            selectedCount === option.id
-                              ? "bg-[#B94E30] text-white"
-                              : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white border border-white/10"
-                          )}
-                          data-testid={`count-${option.id}`}
-                        >
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         <div className="p-3 flex items-center gap-3">
           <div className="flex-1 relative">
             <input
@@ -293,6 +141,141 @@ export function FloatingPromptBar() {
             </Link>
           </div>
         </div>
+
+        <AnimatePresence mode="sync">
+          {isExpanded && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+              className="overflow-hidden"
+            >
+              <div className="px-4 py-3 border-t border-white/10">
+                <div className="flex items-center gap-4 overflow-x-auto no-scrollbar">
+                  <div className="flex items-center gap-1.5 min-w-fit">
+                    <Settings2 className="h-3.5 w-3.5 text-white/40" />
+                    <span className="text-[10px] font-medium text-white/40 uppercase">Options</span>
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    {qualityOptions.map((option) => (
+                      <button
+                        key={option.id}
+                        onClick={() => setSelectedQuality(option.id)}
+                        className={cn(
+                          "flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium transition-all",
+                          selectedQuality === option.id
+                            ? "bg-[#B94E30] text-white"
+                            : "text-white/50 hover:text-white hover:bg-white/5"
+                        )}
+                        data-testid={`quality-${option.id}`}
+                      >
+                        <Sparkles className="h-2.5 w-2.5" />
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="w-px h-4 bg-white/10" />
+
+                  <div className="flex items-center gap-1">
+                    {speedOptions.map((option) => (
+                      <button
+                        key={option.id}
+                        onClick={() => setSelectedSpeed(option.id)}
+                        className={cn(
+                          "flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium transition-all",
+                          selectedSpeed === option.id
+                            ? "bg-[#B94E30] text-white"
+                            : "text-white/50 hover:text-white hover:bg-white/5"
+                        )}
+                        data-testid={`speed-${option.id}`}
+                      >
+                        <Zap className="h-2.5 w-2.5" />
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="w-px h-4 bg-white/10" />
+
+                  <div className="flex items-center gap-0.5">
+                    {ratioOptions.map((option) => {
+                      const Icon = option.icon;
+                      return (
+                        <button
+                          key={option.id}
+                          onClick={() => setSelectedRatio(option.id)}
+                          className={cn(
+                            "flex items-center justify-center w-6 h-6 rounded transition-all",
+                            selectedRatio === option.id
+                              ? "bg-[#B94E30] text-white"
+                              : "text-white/50 hover:text-white hover:bg-white/5"
+                          )}
+                          data-testid={`ratio-${option.id}`}
+                        >
+                          <Icon className="h-3 w-3" />
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="w-px h-4 bg-white/10" />
+
+                  <div className="flex items-center gap-1">
+                    {detailOptions.map((option) => (
+                      <button
+                        key={option.id}
+                        onClick={() => setSelectedDetail(option.id)}
+                        className={cn(
+                          "px-2 py-1 rounded text-[10px] font-medium transition-all",
+                          selectedDetail === option.id
+                            ? "text-white bg-white/10"
+                            : "text-white/50 hover:text-white"
+                        )}
+                        data-testid={`detail-${option.id}`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="w-px h-4 bg-white/10" />
+
+                  <button
+                    className="flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium text-white/60 hover:text-white hover:bg-white/5"
+                    data-testid="style-dropdown"
+                  >
+                    <Sparkles className="h-2.5 w-2.5 text-[#B94E30]" />
+                    {styleOptions.find(s => s.id === selectedStyle)?.label}
+                    <ChevronDown className="h-2.5 w-2.5" />
+                  </button>
+
+                  <div className="w-px h-4 bg-white/10" />
+
+                  <div className="flex items-center gap-0.5">
+                    {countOptions.map((option) => (
+                      <button
+                        key={option.id}
+                        onClick={() => setSelectedCount(option.id)}
+                        className={cn(
+                          "w-6 h-6 flex items-center justify-center rounded text-[10px] font-medium transition-all",
+                          selectedCount === option.id
+                            ? "bg-[#B94E30] text-white"
+                            : "text-white/50 hover:text-white hover:bg-white/5"
+                        )}
+                        data-testid={`count-${option.id}`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </div>
   );
