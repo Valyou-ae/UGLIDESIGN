@@ -1,16 +1,14 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { 
   Eye, 
   Heart, 
-  Wand2,
-  Loader2
+  Wand2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { PublicSidebar } from "@/components/public-sidebar";
 import { FloatingPromptBar } from "@/components/floating-prompt-bar";
 import { GoogleAutoSignIn } from "@/components/google-auto-signin";
-import { Link } from "wouter";
 
 interface InspirationItem {
   id: number;
@@ -179,8 +177,12 @@ function JustifiedGalleryCard({ item, rowHeight, index }: { item: InspirationIte
 
 function JustifiedGallery({ items }: { items: InspirationItem[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(1200);
   const [rows, setRows] = useState<JustifiedRow[]>([]);
+  const isPausedRef = useRef(false);
+  const animationRef = useRef<number | null>(null);
+  const initializedRef = useRef(false);
 
   useEffect(() => {
     const updateWidth = () => {
@@ -200,25 +202,80 @@ function JustifiedGallery({ items }: { items: InspirationItem[] }) {
     setRows(calculatedRows);
   }, [items, containerWidth]);
 
+  useEffect(() => {
+    if (!scrollRef.current || rows.length === 0) return;
+    
+    const scrollContainer = scrollRef.current;
+    const scrollSpeed = 0.3;
+
+    const initAndAnimate = () => {
+      if (!initializedRef.current && scrollContainer.scrollHeight > scrollContainer.clientHeight) {
+        scrollContainer.scrollTop = scrollContainer.scrollHeight - scrollContainer.clientHeight;
+        initializedRef.current = true;
+      }
+    };
+
+    const animate = () => {
+      if (!isPausedRef.current && scrollRef.current) {
+        const currentScroll = scrollRef.current.scrollTop;
+        const newScroll = currentScroll - scrollSpeed;
+        
+        if (newScroll <= 0) {
+          scrollRef.current.scrollTop = scrollRef.current.scrollHeight - scrollRef.current.clientHeight;
+        } else {
+          scrollRef.current.scrollTop = newScroll;
+        }
+      }
+      animationRef.current = requestAnimationFrame(animate);
+    };
+
+    const timeoutId = setTimeout(() => {
+      initAndAnimate();
+      animationRef.current = requestAnimationFrame(animate);
+    }, 500);
+
+    return () => {
+      clearTimeout(timeoutId);
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [rows]);
+
+  const handleMouseEnter = () => {
+    isPausedRef.current = true;
+  };
+
+  const handleMouseLeave = () => {
+    isPausedRef.current = false;
+  };
+
   let itemIndex = 0;
 
   return (
-    <div ref={containerRef} className="w-full">
-      {rows.map((row, rowIndex) => (
-        <div key={rowIndex} className="flex gap-1 mb-1">
-          {row.items.map((item) => {
-            const currentIndex = itemIndex++;
-            return (
-              <JustifiedGalleryCard
-                key={item.id}
-                item={item}
-                rowHeight={row.height}
-                index={currentIndex}
-              />
-            );
-          })}
-        </div>
-      ))}
+    <div ref={containerRef} className="w-full h-full">
+      <div 
+        ref={scrollRef}
+        className="w-full h-[calc(100vh-180px)] overflow-hidden"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        {rows.map((row, rowIndex) => (
+          <div key={rowIndex} className="flex gap-1 mb-1">
+            {row.items.map((item) => {
+              const currentIndex = itemIndex++;
+              return (
+                <JustifiedGalleryCard
+                  key={item.id}
+                  item={item}
+                  rowHeight={row.height}
+                  index={currentIndex}
+                />
+              );
+            })}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -539,98 +596,16 @@ const galleryImages: InspirationItem[] = [
 ];
 
 export default function PublicHome() {
-  const [displayedItems, setDisplayedItems] = useState<InspirationItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const loadMoreRef = useRef<HTMLDivElement>(null);
-  const pageRef = useRef(0);
-  const isLoadingRef = useRef(false);
-  const ITEMS_PER_LOAD = 12;
-
-  useEffect(() => {
-    setDisplayedItems(galleryImages.slice(0, ITEMS_PER_LOAD));
-    pageRef.current = 1;
-  }, []);
-
-  const loadMore = useCallback(() => {
-    if (isLoadingRef.current) return;
-    
-    const currentPage = pageRef.current;
-    const startIndex = currentPage * ITEMS_PER_LOAD;
-    const endIndex = startIndex + ITEMS_PER_LOAD;
-    
-    if (startIndex >= galleryImages.length) {
-      return;
-    }
-    
-    isLoadingRef.current = true;
-    setIsLoading(true);
-    
-    setTimeout(() => {
-      const nextItems = galleryImages.slice(startIndex, endIndex);
-      setDisplayedItems(prev => [...prev, ...nextItems]);
-      pageRef.current = currentPage + 1;
-      isLoadingRef.current = false;
-      setIsLoading(false);
-    }, 300);
-  }, []);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && displayedItems.length < galleryImages.length) {
-          loadMore();
-        }
-      },
-      { threshold: 0.1, rootMargin: "200px" }
-    );
-
-    if (loadMoreRef.current) {
-      observer.observe(loadMoreRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, [loadMore, displayedItems.length]);
-
   return (
     <div className="h-screen bg-background flex font-sans text-foreground overflow-hidden">
       <GoogleAutoSignIn />
       <PublicSidebar className="hidden md:flex border-r border-border/50" />
       
-      <main className="flex-1 flex flex-col relative h-full overflow-y-auto bg-[#F8F8F8] dark:bg-[#0A0A0B] text-[#18181B] dark:text-[#FAFAFA] pb-32 md:pb-28">
+      <main className="flex-1 flex flex-col relative h-full overflow-hidden bg-[#F8F8F8] dark:bg-[#0A0A0B] text-[#18181B] dark:text-[#FAFAFA]">
         
-        <div className="px-2 md:px-4 lg:px-6 py-4 max-w-[1800px] mx-auto w-full">
-          <JustifiedGallery items={displayedItems} />
-
-          <div ref={loadMoreRef} className="flex justify-center py-8">
-            {isLoading && (
-              <div className="flex items-center gap-3 text-[#71717A]">
-                <Loader2 className="h-5 w-5 animate-spin" />
-                <span className="text-sm">Loading more...</span>
-              </div>
-            )}
-          </div>
+        <div className="px-2 md:px-4 lg:px-6 py-4 flex-1 overflow-hidden">
+          <JustifiedGallery items={galleryImages} />
         </div>
-
-        {/* Footer */}
-        <footer className="mt-auto py-6 px-4 md:px-8 border-t border-border/30 bg-background/50">
-          <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-muted-foreground">
-              © {new Date().getFullYear()} VALYOU DIGITAL MARKETING LLC. All rights reserved.
-            </p>
-            <div className="flex items-center gap-6">
-              <Link href="/privacy">
-                <span className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
-                  Privacy Policy
-                </span>
-              </Link>
-              <Link href="/terms">
-                <span className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
-                  Terms of Service
-                </span>
-              </Link>
-            </div>
-          </div>
-        </footer>
       </main>
 
       <FloatingPromptBar />
