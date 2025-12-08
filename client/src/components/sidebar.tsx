@@ -28,13 +28,16 @@ import {
 } from "@/components/ui/tooltip";
 
 function ThemeToggle({ collapsed }: { collapsed: boolean }) {
-  // Mock theme toggle for now, usually this would be from next-themes or similar
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
 
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
-    document.documentElement.classList.toggle("dark");
+    if (newTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
   };
 
   if (collapsed) {
@@ -78,19 +81,19 @@ export function Sidebar({ className }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(true);
 
   const navigation = [
-    { name: "Home", icon: Home, href: "/", count: null },
-    { name: "Discover", icon: Compass, href: "/discover", badge: "New" },
-    { name: "Image Generator", icon: ImageIcon, href: "/image-gen", badge: "5 agents" },
-    { name: "Mockup Generator", icon: Shirt, href: "/mockup", badge: "New" },
-    { name: "Background Remover", icon: Scissors, href: "/bg-remover", count: null },
-    { name: "My Creations", icon: Folder, href: "/my-creations", count: "8" },
+    { name: "Home", shortName: "Home", icon: Home, href: "/", count: null },
+    { name: "Discover", shortName: "Discover", icon: Compass, href: "/discover", badge: "New" },
+    { name: "Image Generator", shortName: "Image", icon: ImageIcon, href: "/image-gen", badge: "5 agents" },
+    { name: "Mockup Generator", shortName: "Mockup", icon: Shirt, href: "/mockup", badge: "New" },
+    { name: "Background Remover", shortName: "BG", icon: Scissors, href: "/bg-remover", count: null },
+    { name: "My Creations", shortName: "Creations", icon: Folder, href: "/my-creations", count: "8" },
   ];
 
   const account = [
-    { name: "Settings", icon: Settings, href: "/settings" },
-    { name: "Billing", icon: CreditCard, href: "/billing" },
-    { name: "Affiliate Program", icon: Star, href: "/affiliate" },
-    { name: "Help & Support", icon: HelpCircle, href: "/help" },
+    { name: "Settings", shortName: "Settings", icon: Settings, href: "/settings" },
+    { name: "Billing", shortName: "Billing", icon: CreditCard, href: "/billing" },
+    { name: "Affiliate Program", shortName: "Affiliate", icon: Star, href: "/affiliate" },
+    { name: "Help & Support", shortName: "Help", icon: HelpCircle, href: "/help" },
   ];
 
   const handleLogout = () => {
@@ -203,55 +206,73 @@ export function Sidebar({ className }: SidebarProps) {
             const isActive = location === item.href;
             const isDiscover = item.name === "Discover";
             
-            return (
+            return collapsed ? (
+              <Link key={item.name} href={item.href}>
+                <div
+                  className={cn(
+                    "flex flex-col items-center justify-center gap-1 py-2.5 px-1 rounded-xl font-medium transition-all cursor-pointer group relative select-none mx-1",
+                    isActive 
+                      ? "text-primary bg-primary/10" 
+                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                  )}
+                >
+                  <item.icon 
+                    className={cn(
+                      "h-6 w-6 flex-shrink-0 transition-transform duration-200 group-hover:scale-125", 
+                      isActive ? "text-primary" : "text-sidebar-foreground/60 group-hover:text-sidebar-foreground"
+                    )} 
+                  />
+                  <span className={cn(
+                    "text-[9px] font-medium truncate max-w-full",
+                    isActive ? "text-primary" : "text-sidebar-foreground/50 group-hover:text-sidebar-foreground"
+                  )}>
+                    {item.shortName}
+                  </span>
+                </div>
+              </Link>
+            ) : (
               <TooltipProvider key={item.name} delayDuration={0}>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Link href={item.href}>
                       <div
                         className={cn(
-                          "flex items-center gap-3 rounded-lg font-medium transition-all cursor-pointer group relative select-none",
-                          collapsed ? "justify-center w-10 h-10 mx-auto p-0" : "px-3.5 py-3 text-sm",
+                          "flex items-center gap-3 rounded-lg font-medium transition-all cursor-pointer group relative select-none px-3.5 py-3 text-sm",
                           isActive 
                             ? "text-primary bg-primary/5" 
                             : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
                         )}
                       >
-                        {isActive && !collapsed && (
+                        {isActive && (
                           <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 bg-primary rounded-r-full" />
                         )}
                         
                         <item.icon 
                           className={cn(
-                            "h-5 w-5 flex-shrink-0", 
+                            "h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110", 
                             isActive ? "text-primary" : "text-sidebar-foreground/50 group-hover:text-sidebar-foreground"
                           )} 
                         />
                         
-                        {!collapsed && (
-                          <>
-                            <span className="flex-1 truncate">{item.name}</span>
-                            {item.badge && (
-                              <span className={cn(
-                                "text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap",
-                                isDiscover 
-                                  ? "bg-gradient-to-r from-[#B94E30] to-[#E3B436] text-white"
-                                  : "bg-primary/10 text-primary"
-                              )}>
-                                {item.badge}
-                              </span>
-                            )}
-                            {item.count && (
-                              <span className="text-xs text-muted-foreground group-hover:text-sidebar-foreground">
-                                {item.count}
-                              </span>
-                            )}
-                          </>
+                        <span className="flex-1 truncate">{item.name}</span>
+                        {item.badge && (
+                          <span className={cn(
+                            "text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap",
+                            isDiscover 
+                              ? "bg-gradient-to-r from-[#B94E30] to-[#E3B436] text-white"
+                              : "bg-primary/10 text-primary"
+                          )}>
+                            {item.badge}
+                          </span>
+                        )}
+                        {item.count && (
+                          <span className="text-xs text-muted-foreground group-hover:text-sidebar-foreground">
+                            {item.count}
+                          </span>
                         )}
                       </div>
                     </Link>
                   </TooltipTrigger>
-                  {collapsed && <TooltipContent side="right"><p>{item.name}</p></TooltipContent>}
                 </Tooltip>
               </TooltipProvider>
             );
@@ -263,56 +284,72 @@ export function Sidebar({ className }: SidebarProps) {
         {!collapsed && <div className="mb-2 px-3 text-[11px] font-bold text-muted-foreground tracking-widest animate-fade-in">ACCOUNT</div>}
         <nav className="space-y-1">
           {account.map((item) => (
-            <TooltipProvider key={item.name} delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Link href={item.href}>
-                    <div className={cn(
-                      "flex items-center gap-3 rounded-lg font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors cursor-pointer select-none",
-                      collapsed ? "justify-center w-10 h-10 mx-auto p-0" : "px-3.5 py-3 text-sm"
-                    )}>
-                      <item.icon className="h-5 w-5 text-sidebar-foreground/50 flex-shrink-0" />
-                      {!collapsed && <span>{item.name}</span>}
-                    </div>
-                  </Link>
-                </TooltipTrigger>
-                {collapsed && <TooltipContent side="right"><p>{item.name}</p></TooltipContent>}
-              </Tooltip>
-            </TooltipProvider>
+            collapsed ? (
+              <Link key={item.name} href={item.href}>
+                <div className="flex flex-col items-center justify-center gap-1 py-2.5 px-1 rounded-xl font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-all cursor-pointer group select-none mx-1">
+                  <item.icon className="h-6 w-6 text-sidebar-foreground/60 flex-shrink-0 transition-transform duration-200 group-hover:scale-125 group-hover:text-sidebar-foreground" />
+                  <span className="text-[9px] font-medium text-sidebar-foreground/50 group-hover:text-sidebar-foreground">
+                    {item.shortName}
+                  </span>
+                </div>
+              </Link>
+            ) : (
+              <Link key={item.name} href={item.href}>
+                <div className="flex items-center gap-3 rounded-lg font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors cursor-pointer group select-none px-3.5 py-3 text-sm">
+                  <item.icon className="h-5 w-5 text-sidebar-foreground/50 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
+                  <span>{item.name}</span>
+                </div>
+              </Link>
+            )
           ))}
 
-          <TooltipProvider delayDuration={0}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div 
-                  onClick={handleLogout}
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg font-medium text-red-500/70 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/10 transition-colors cursor-pointer select-none",
-                    collapsed ? "justify-center w-10 h-10 mx-auto p-0" : "px-3.5 py-3 text-sm"
-                  )}
-                >
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="24" 
-                    height="24" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    className="h-5 w-5 flex-shrink-0"
-                  >
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                    <polyline points="16 17 21 12 16 7" />
-                    <line x1="21" x2="9" y1="12" y2="12" />
-                  </svg>
-                  {!collapsed && <span>Logout</span>}
-                </div>
-              </TooltipTrigger>
-              {collapsed && <TooltipContent side="right"><p>Logout</p></TooltipContent>}
-            </Tooltip>
-          </TooltipProvider>
+          {collapsed ? (
+            <div 
+              onClick={handleLogout}
+              className="flex flex-col items-center justify-center gap-1 py-2.5 px-1 rounded-xl font-medium text-red-500/70 hover:bg-red-900/10 hover:text-red-500 transition-all cursor-pointer group select-none mx-1"
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="24" 
+                height="24" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className="h-6 w-6 flex-shrink-0 transition-transform duration-200 group-hover:scale-125"
+              >
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" x2="9" y1="12" y2="12" />
+              </svg>
+              <span className="text-[9px] font-medium">Logout</span>
+            </div>
+          ) : (
+            <div 
+              onClick={handleLogout}
+              className="flex items-center gap-3 rounded-lg font-medium text-red-500/70 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/10 transition-colors cursor-pointer group select-none px-3.5 py-3 text-sm"
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="24" 
+                height="24" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className="h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110"
+              >
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" x2="9" y1="12" y2="12" />
+              </svg>
+              <span>Logout</span>
+            </div>
+          )}
         </nav>
       </div>
 
