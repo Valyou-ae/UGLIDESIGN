@@ -8,11 +8,18 @@ import {
   Zap,
   ChevronDown,
   Settings2,
-  Loader2
+  Loader2,
+  Palette,
+  Check
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 const qualityOptions = [
   { id: "draft", label: "Draft" },
@@ -389,14 +396,39 @@ export function FloatingPromptBar() {
 
                   <div className="w-px h-4 bg-white/10" />
 
-                  <button
-                    className="flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium text-white/60 hover:text-white hover:bg-white/5"
-                    data-testid="style-dropdown"
-                  >
-                    <Sparkles className="h-2.5 w-2.5 text-[#B94E30]" />
-                    {styleOptions.find(s => s.id === selectedStyle)?.label}
-                    <ChevronDown className="h-2.5 w-2.5" />
-                  </button>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button
+                        className="flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-medium bg-white/5 text-white/80 hover:text-white hover:bg-white/10 transition-all"
+                        data-testid="style-dropdown"
+                      >
+                        <Palette className="h-2.5 w-2.5 text-[#B94E30]" />
+                        {styleOptions.find(s => s.id === selectedStyle)?.label}
+                        <ChevronDown className="h-2.5 w-2.5" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent 
+                      className="w-36 p-1 bg-black/95 border-white/10 backdrop-blur-xl"
+                      align="center"
+                      sideOffset={8}
+                    >
+                      {styleOptions.map((option) => (
+                        <button
+                          key={option.id}
+                          onClick={() => setSelectedStyle(option.id)}
+                          className={cn(
+                            "w-full flex items-center justify-between px-3 py-2 rounded text-xs font-medium transition-all",
+                            selectedStyle === option.id
+                              ? "bg-[#B94E30] text-white"
+                              : "text-white/70 hover:text-white hover:bg-white/10"
+                          )}
+                        >
+                          {option.label}
+                          {selectedStyle === option.id && <Check className="h-3 w-3" />}
+                        </button>
+                      ))}
+                    </PopoverContent>
+                  </Popover>
 
                   <div className="w-px h-4 bg-white/10" />
 

@@ -15,7 +15,8 @@ import {
   Sun,
   Moon,
   Compass,
-  Coins
+  Coins,
+  Layers
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -101,7 +102,8 @@ export function Sidebar({ className }: SidebarProps) {
     { name: "Image Generator", shortName: "Image", icon: ImageIcon, href: "/image-gen", badge: "5 agents" },
     { name: "Mockup Generator", shortName: "Mockup", icon: Shirt, href: "/mockup", badge: "New" },
     { name: "Background Remover", shortName: "BG", icon: Scissors, href: "/bg-remover", count: null },
-    { name: "My Creations", shortName: "Creations", icon: Folder, href: "/my-creations", count: totalCreations > 0 ? totalCreations.toString() : null },
+    { name: "Mood Boards", shortName: "Boards", icon: Layers, href: "/mood-boards", count: null },
+    { name: "My Creations", shortName: "Creations", icon: Folder, href: "/my-creations", count: totalCreations > 0 ? totalCreations.toString() : null, dataTutorial: "my-creations-link" },
   ];
 
   const account = [
@@ -184,6 +186,7 @@ export function Sidebar({ className }: SidebarProps) {
             return collapsed ? (
               <Link key={item.name} href={item.href}>
                 <div
+                  data-tutorial={(item as any).dataTutorial}
                   className={cn(
                     "flex flex-col items-center justify-center gap-1 py-2.5 px-1 rounded-xl font-medium transition-all cursor-pointer group relative select-none mx-1",
                     isActive 
@@ -211,6 +214,7 @@ export function Sidebar({ className }: SidebarProps) {
                   <TooltipTrigger asChild>
                     <Link href={item.href}>
                       <div
+                        data-tutorial={(item as any).dataTutorial}
                         className={cn(
                           "flex items-center gap-3 rounded-lg font-medium transition-all cursor-pointer group relative select-none px-3.5 py-3 text-sm",
                           isActive 

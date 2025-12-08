@@ -667,6 +667,41 @@ function parseBackgroundRemovalSSEStream(
   });
 }
 
+// Prompt Favorites API
+export interface PromptFavorite {
+  id: string;
+  userId: string;
+  name: string;
+  prompt: string;
+  style: string;
+  aspectRatio: string;
+  quality: string | null;
+  detail: string | null;
+  speed: string | null;
+  createdAt: string;
+}
+
+export const promptFavoritesApi = {
+  create: (data: {
+    name: string;
+    prompt: string;
+    style: string;
+    aspectRatio: string;
+    quality?: string;
+    detail?: string;
+    speed?: string;
+  }) =>
+    fetchApi<{ favorite: PromptFavorite }>("/prompts/favorites", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  getAll: () => fetchApi<{ favorites: PromptFavorite[] }>("/prompts/favorites"),
+
+  delete: (id: string) =>
+    fetchApi<{ message: string }>(`/prompts/favorites/${id}`, { method: "DELETE" }),
+};
+
 // Background Removal API
 export const backgroundRemovalApi = {
   removeBackground: async (image: string, options: BackgroundRemovalOptions): Promise<{ success: boolean; result: BackgroundRemovalResult; message?: string }> => {
