@@ -229,10 +229,21 @@ export async function registerRoutes(
         if (err) {
           console.error("Session destroy error:", err);
         }
-        res.clearCookie("connect.sid");
+        res.clearCookie("connect.sid", {
+          path: "/",
+          httpOnly: true,
+          secure: true,
+          sameSite: "lax"
+        });
         res.json({ success: true });
       });
     } else {
+      res.clearCookie("connect.sid", {
+        path: "/",
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax"
+      });
       res.json({ success: true });
     }
   });
