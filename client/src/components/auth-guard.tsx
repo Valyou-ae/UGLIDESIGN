@@ -13,8 +13,8 @@ export function AuthGuard({ children }: GuardProps) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen" data-testid="auth-loading">
-        <Spinner className="size-8" />
+      <div className="flex items-center justify-center min-h-screen bg-background" data-testid="auth-loading">
+        <Spinner className="size-8 text-primary" />
       </div>
     );
   }
@@ -43,8 +43,8 @@ export function AdminGuard({ children }: GuardProps) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen" data-testid="admin-loading">
-        <Spinner className="size-8" />
+      <div className="flex items-center justify-center min-h-screen bg-background" data-testid="admin-loading">
+        <Spinner className="size-8 text-primary" />
       </div>
     );
   }
@@ -65,8 +65,8 @@ export function GuestGuard({ children }: GuardProps) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen" data-testid="guest-loading">
-        <Spinner className="size-8" />
+      <div className="flex items-center justify-center min-h-screen bg-background" data-testid="guest-loading">
+        <Spinner className="size-8 text-primary" />
       </div>
     );
   }
