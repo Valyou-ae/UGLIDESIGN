@@ -131,7 +131,7 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
       <MobileNav />
       <aside 
         className={cn(
-          "relative h-screen border-r bg-sidebar transition-all duration-300 ease-in-out flex-col z-40 hidden md:flex",
+          "relative h-screen border-r border-white/10 bg-black/60 backdrop-blur-xl transition-all duration-300 ease-in-out flex-col z-40 hidden md:flex",
           collapsed ? "w-[80px]" : "w-[280px]",
           className
         )}
