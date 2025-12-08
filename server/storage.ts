@@ -6,6 +6,7 @@ import {
   crmContacts, 
   crmDeals, 
   crmActivities,
+  promptFavorites,
   type User, 
   type InsertUser, 
   type UpdateProfile, 
@@ -20,10 +21,12 @@ import {
   type CrmDeal,
   type InsertDeal,
   type CrmActivity,
-  type InsertActivity
+  type InsertActivity,
+  type PromptFavorite,
+  type InsertPromptFavorite
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, count } from "drizzle-orm";
+import { eq, and, desc, count, gte, lte, sql } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -82,6 +85,13 @@ export interface IStorage {
   getUserCredits(userId: string): Promise<number>;
   addCredits(userId: string, amount: number): Promise<User | undefined>;
   deductCredits(userId: string, amount: number): Promise<User | undefined>;
+  
+  getImagesByDateRange(userId: string, startDate: Date, endDate: Date): Promise<GeneratedImage[]>;
+  getImageCountsByMonth(userId: string, year: number, month: number): Promise<{ date: string; count: number; type: string }[]>;
+
+  createPromptFavorite(favorite: InsertPromptFavorite): Promise<PromptFavorite>;
+  getPromptFavorites(userId: string): Promise<PromptFavorite[]>;
+  deletePromptFavorite(id: string, userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -484,6 +494,81 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId))
       .returning();
     return updated || undefined;
+  }
+
+  async getImagesByDateRange(userId: string, startDate: Date, endDate: Date): Promise<GeneratedImage[]> {
+    return db
+      .select()
+      .from(generatedImages)
+      .where(
+        and(
+          eq(generatedImages.userId, userId),
+          gte(generatedImages.createdAt, startDate),
+          lte(generatedImages.createdAt, endDate)
+        )
+      )
+      .orderBy(desc(generatedImages.createdAt));
+  }
+
+  async getImageCountsByMonth(userId: string, year: number, month: number): Promise<{ date: string; count: number; type: string }[]> {
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+    
+    const images = await db
+      .select()
+      .from(generatedImages)
+      .where(
+        and(
+          eq(generatedImages.userId, userId),
+          gte(generatedImages.createdAt, startDate),
+          lte(generatedImages.createdAt, endDate)
+        )
+      );
+    
+    const countsByDateAndType: Record<string, Record<string, number>> = {};
+    
+    for (const image of images) {
+      const dateKey = image.createdAt.toISOString().split('T')[0];
+      const type = image.generationType || 'image';
+      
+      if (!countsByDateAndType[dateKey]) {
+        countsByDateAndType[dateKey] = {};
+      }
+      
+      countsByDateAndType[dateKey][type] = (countsByDateAndType[dateKey][type] || 0) + 1;
+    }
+    
+    const result: { date: string; count: number; type: string }[] = [];
+    
+    for (const [date, types] of Object.entries(countsByDateAndType)) {
+      for (const [type, count] of Object.entries(types)) {
+        result.push({ date, count, type });
+      }
+    }
+    
+    return result.sort((a, b) => a.date.localeCompare(b.date));
+  }
+
+  async createPromptFavorite(favorite: InsertPromptFavorite): Promise<PromptFavorite> {
+    const [created] = await db
+      .insert(promptFavorites)
+      .values(favorite)
+      .returning();
+    return created;
+  }
+
+  async getPromptFavorites(userId: string): Promise<PromptFavorite[]> {
+    return db
+      .select()
+      .from(promptFavorites)
+      .where(eq(promptFavorites.userId, userId))
+      .orderBy(desc(promptFavorites.createdAt));
+  }
+
+  async deletePromptFavorite(id: string, userId: string): Promise<void> {
+    await db
+      .delete(promptFavorites)
+      .where(and(eq(promptFavorites.id, id), eq(promptFavorites.userId, userId)));
   }
 }
 

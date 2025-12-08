@@ -56,7 +56,8 @@ import {
   Mic,
   MicOff,
   Minus,
-  Plus
+  Plus,
+  ClipboardCopy
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -210,6 +211,55 @@ export default function ImageGenerator() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const copyImageToClipboard = async (imageUrl: string): Promise<void> => {
+    try {
+      if (!navigator.clipboard || !window.ClipboardItem) {
+        toast({
+          variant: "destructive",
+          title: "Not Supported",
+          description: "Clipboard API is not supported in your browser. Try using Chrome or Edge.",
+        });
+        return;
+      }
+
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      
+      const pngBlob = blob.type === 'image/png' ? blob : await new Promise<Blob>((resolve) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0);
+          canvas.toBlob((b) => resolve(b || blob), 'image/png');
+        };
+        img.onerror = () => resolve(blob);
+        img.src = imageUrl;
+      });
+      
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          [pngBlob.type]: pngBlob
+        })
+      ]);
+      
+      toast({
+        title: "Image copied to clipboard!",
+        description: "You can now paste it anywhere.",
+      });
+    } catch (error) {
+      console.error("Copy to clipboard failed:", error);
+      toast({
+        variant: "destructive",
+        title: "Copy Failed",
+        description: "Could not copy image to clipboard. Try downloading instead.",
+      });
+    }
   };
 
   const isUnsavedImage = (id: string): boolean => {
@@ -1358,6 +1408,17 @@ export default function ImageGenerator() {
                         <Download className="h-3.5 w-3.5 mr-1.5" />
                         Download
                       </Button>
+                      <Button 
+                        size="icon" 
+                        className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          copyImageToClipboard(gen.src);
+                        }}
+                        data-testid={`button-copy-${gen.id}`}
+                      >
+                        <ClipboardCopy className="h-3.5 w-3.5" />
+                      </Button>
                       <div className="flex items-center gap-1 ml-auto">
                         <Button 
                           size="icon" 
@@ -1430,7 +1491,7 @@ export default function ImageGenerator() {
 
                   <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 md:space-y-8">
                     {/* Actions */}
-                    <div className="grid grid-cols-4 gap-2">
+                    <div className="grid grid-cols-5 gap-2">
                       <Button 
                         variant="ghost" 
                         className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
@@ -1440,6 +1501,16 @@ export default function ImageGenerator() {
                       >
                         <Download className={cn("h-5 w-5", isSaving && "animate-pulse")} />
                         <span className="text-[10px]">{isSaving ? "Saving..." : "Save"}</span>
+                      </Button>
+                      
+                      <Button 
+                        variant="ghost" 
+                        className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
+                        onClick={() => copyImageToClipboard(selectedImage.src)}
+                        data-testid="button-copy-detail"
+                      >
+                        <ClipboardCopy className="h-5 w-5" />
+                        <span className="text-[10px]">Copy</span>
                       </Button>
                       
                       <Button 

@@ -109,6 +109,18 @@ export const crmActivities = pgTable("crm_activities", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const promptFavorites = pgTable("prompt_favorites", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  name: text("name").notNull(),
+  prompt: text("prompt").notNull(),
+  style: text("style").notNull(),
+  aspectRatio: text("aspect_ratio").notNull(),
+  detail: text("detail"),
+  speed: text("speed"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   email: true,
@@ -152,6 +164,11 @@ export const insertActivitySchema = createInsertSchema(crmActivities).omit({
   createdAt: true,
 });
 
+export const insertPromptFavoriteSchema = createInsertSchema(promptFavorites).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpdateProfile = z.infer<typeof updateProfileSchema>;
 export type User = typeof users.$inferSelect;
@@ -167,3 +184,5 @@ export type CrmDeal = typeof crmDeals.$inferSelect;
 export type InsertDeal = z.infer<typeof insertDealSchema>;
 export type CrmActivity = typeof crmActivities.$inferSelect;
 export type InsertActivity = z.infer<typeof insertActivitySchema>;
+export type PromptFavorite = typeof promptFavorites.$inferSelect;
+export type InsertPromptFavorite = z.infer<typeof insertPromptFavoriteSchema>;
