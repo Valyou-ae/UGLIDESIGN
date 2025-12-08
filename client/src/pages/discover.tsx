@@ -92,10 +92,7 @@ function LazyMasonryCard({ item, index }: { item: InspirationItem; index: number
           
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-90 transition-opacity" />
           
-          <div className="absolute top-3 left-3 bg-gradient-to-br from-[#B94E30] to-[#8B3A24] px-2.5 py-1.5 rounded-lg text-[11px] font-semibold text-white shadow-lg">
-            {item.category}
-          </div>
-
+          
           
           <div className="absolute bottom-0 left-0 right-0 p-4">
             <h3 className="text-base font-semibold text-white truncate drop-shadow-lg">{item.title}</h3>
@@ -142,14 +139,7 @@ function LazyMasonryCard({ item, index }: { item: InspirationItem; index: number
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-1.5 mt-3">
-            {item.tags.slice(0, 3).map((tag, i) => (
-              <span key={i} className="px-2 py-1 bg-[#F4F4F5] dark:bg-[#1F1F25] rounded-md text-[10px] text-[#71717A]">
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
+                  </div>
       </div>
     </motion.div>
   );
