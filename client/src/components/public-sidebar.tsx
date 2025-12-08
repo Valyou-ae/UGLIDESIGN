@@ -41,9 +41,9 @@ function ThemeToggle({ collapsed }: { collapsed: boolean }) {
     return (
       <div 
         onClick={toggleTheme}
-        className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-200 dark:bg-zinc-800 cursor-pointer mx-auto hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors"
+        className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-200 dark:bg-zinc-800 cursor-pointer mx-auto hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors"
       >
-        {theme === "light" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        {theme === "light" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
       </div>
     );
   }
@@ -427,9 +427,6 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
                 </Link>
               );
             })}
-      </nav>
-
-      <div className={cn("pt-4 mt-auto px-3 pb-6", collapsed ? "space-y-1" : "space-y-3")}>
         {isAuthenticated && (
           collapsed ? (
             <button
@@ -451,7 +448,10 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
             </button>
           )
         )}
-        
+      </nav>
+
+      {/* Theme Toggle at bottom */}
+      <div className={cn("mt-auto px-3 pb-6", collapsed ? "pt-2 flex flex-col items-center" : "pt-4")}>
         {collapsed ? (
           <div className="flex flex-col items-center justify-center py-2 px-2 mx-auto w-[52px]">
             <ThemeToggle collapsed={collapsed} />
