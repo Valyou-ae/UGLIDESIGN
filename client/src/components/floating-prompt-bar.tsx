@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Sparkles, 
@@ -7,10 +7,12 @@ import {
   RectangleVertical,
   Zap,
   ChevronDown,
-  Settings2
+  Settings2,
+  Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Link } from "wouter";
+import { useLocation } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
 
 const qualityOptions = [
   { id: "draft", label: "Draft" },
@@ -58,8 +60,145 @@ export function FloatingPromptBar() {
   const [selectedDetail, setSelectedDetail] = useState("medium");
   const [selectedStyle, setSelectedStyle] = useState("auto");
   const [selectedCount, setSelectedCount] = useState("1");
+  const [isGenerating, setIsGenerating] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [, setLocation] = useLocation();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const googleInitializedRef = useRef(false);
+  const pendingGenerationRef = useRef(false);
+
+  useEffect(() => {
+    const pendingPrompt = localStorage.getItem("pending_prompt");
+    if (pendingPrompt && isAuthenticated && !authLoading) {
+      localStorage.removeItem("pending_prompt");
+      setPrompt(pendingPrompt);
+      handleGenerate(pendingPrompt);
+    }
+  }, [isAuthenticated, authLoading]);
+
+  const initGoogleSignIn = async (): Promise<boolean> => {
+    try {
+      const configResponse = await fetch("/api/auth/google-client-id");
+      if (!configResponse.ok) return false;
+      
+      const { clientId } = await configResponse.json();
+      if (!clientId) return false;
+
+      if (!window.google?.accounts?.id) {
+        await new Promise<void>((resolve) => {
+          const checkInterval = setInterval(() => {
+            if (window.google?.accounts?.id) {
+              clearInterval(checkInterval);
+              resolve();
+            }
+          }, 50);
+          setTimeout(() => {
+            clearInterval(checkInterval);
+            resolve();
+          }, 3000);
+        });
+      }
+
+      if (!window.google?.accounts?.id) return false;
+
+      if (!googleInitializedRef.current) {
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: async (response: { credential: string }) => {
+            try {
+              const authResponse = await fetch("/api/auth/google", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({ credential: response.credential }),
+              });
+
+              if (authResponse.ok) {
+                window.location.reload();
+              }
+            } catch (error) {
+              console.error("Google auth error:", error);
+            }
+          },
+          auto_select: false,
+          cancel_on_tap_outside: true,
+          context: "signin",
+        });
+        googleInitializedRef.current = true;
+      }
+
+      window.google.accounts.id.prompt();
+      return true;
+    } catch (error) {
+      console.error("Failed to initialize Google Sign-In:", error);
+      return false;
+    }
+  };
+
+  const handleGenerate = async (promptText?: string) => {
+    const textToUse = promptText || prompt;
+    if (!textToUse.trim()) return;
+
+    if (!isAuthenticated) {
+      localStorage.setItem("pending_prompt", textToUse);
+      pendingGenerationRef.current = true;
+      const success = await initGoogleSignIn();
+      if (!success) {
+        localStorage.removeItem("pending_prompt");
+        pendingGenerationRef.current = false;
+      }
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const generateResponse = await fetch("/api/generate/single", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          prompt: textToUse,
+          stylePreset: selectedStyle,
+        }),
+      });
+
+      if (!generateResponse.ok) {
+        const error = await generateResponse.json();
+        console.error("Generation failed:", error);
+        alert("Image generation failed. Please try again.");
+        return;
+      }
+
+      const { image } = await generateResponse.json();
+
+      const saveResponse = await fetch("/api/images", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          prompt: textToUse,
+          imageUrl: `data:${image.mimeType};base64,${image.data}`,
+          style: selectedStyle,
+          aspectRatio: selectedRatio,
+          generationType: "image",
+        }),
+      });
+
+      if (saveResponse.ok) {
+        setPrompt("");
+        setLocation("/my-creations");
+      } else {
+        alert("Failed to save image. Please try again.");
+      }
+    } catch (error) {
+      console.error("Generation error:", error);
+      alert("An error occurred. Please try again.");
+    } finally {
+      setIsGenerating(false);
+      pendingGenerationRef.current = false;
+    }
+  };
 
   const handleMouseEnter = () => {
     if (timeoutRef.current) {
@@ -128,17 +267,24 @@ export function FloatingPromptBar() {
               <span className="text-xs font-medium text-white/70">10</span>
             </div>
 
-            <Link href="/login">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#B94E30] to-[#E3B436] text-white rounded-full font-semibold text-sm hover:shadow-lg hover:shadow-[#B94E30]/30 transition-shadow"
-                data-testid="button-generate"
-              >
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => handleGenerate()}
+              disabled={isGenerating || !prompt.trim()}
+              className={cn(
+                "flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#B94E30] to-[#E3B436] text-white rounded-full font-semibold text-sm hover:shadow-lg hover:shadow-[#B94E30]/30 transition-shadow",
+                (isGenerating || !prompt.trim()) && "opacity-60 cursor-not-allowed"
+              )}
+              data-testid="button-generate"
+            >
+              {isGenerating ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
                 <Sparkles className="h-4 w-4" />
-                <span>Generate</span>
-              </motion.button>
-            </Link>
+              )}
+              <span>{isGenerating ? "Creating..." : "Generate"}</span>
+            </motion.button>
           </div>
         </div>
 

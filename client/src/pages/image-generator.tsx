@@ -97,6 +97,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useToast } from "@/hooks/use-toast";
 import { generateApi, imagesApi, GenerationEvent } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
+import { useLocation } from "wouter";
 
 // Import generated images for the gallery
 import cyberpunkCity from "@assets/generated_images/futuristic_cyberpunk_city_street_at_night_with_neon_lights_and_rain.png";
@@ -197,6 +198,7 @@ export default function ImageGenerator() {
   
   const { toast } = useToast();
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isVarying, setIsVarying] = useState(false);
@@ -642,18 +644,67 @@ export default function ImageGenerator() {
         setProgress(100);
         setAgents(prev => prev.map(a => ({ ...a, status: "complete" })));
         setStatus("complete");
-        
-        toast({
-          title: "Image Generated!",
-          description: `Created ${imageCount} image${imageCount > 1 ? "s" : ""}.`,
-          className: "bg-[#B94E30]/10 border-[#B94E30]/30 text-[#B94E30] dark:bg-[#B94E30]/20 dark:border-[#B94E30]/50 dark:text-[#E3B436]",
-        });
 
-        setTimeout(() => {
-          setStatus("idle");
-          setAgents(AGENTS.map(a => ({ ...a, status: "idle" })));
-          setProgress(0);
-        }, 3000);
+        const saveAndRedirect = async () => {
+          if (generatedImages.length > 0 && user) {
+            toast({
+              title: "Image Generated!",
+              description: `Created ${imageCount} image${imageCount > 1 ? "s" : ""}. Saving to your creations...`,
+              className: "bg-[#B94E30]/10 border-[#B94E30]/30 text-[#B94E30] dark:bg-[#B94E30]/20 dark:border-[#B94E30]/50 dark:text-[#E3B436]",
+            });
+            
+            let savedCount = 0;
+            const savePromises = generatedImages.map(async (img) => {
+              try {
+                await imagesApi.create({
+                  imageUrl: img.src,
+                  prompt: img.prompt,
+                  style: img.style || "auto",
+                  aspectRatio: img.aspectRatio || "1:1",
+                });
+                savedCount++;
+              } catch (error) {
+                console.error("Failed to save image:", error);
+              }
+            });
+            
+            await Promise.all(savePromises);
+            
+            if (savedCount > 0) {
+              toast({
+                title: "Saved!",
+                description: `${savedCount} image${savedCount > 1 ? "s" : ""} saved to your creations.`,
+                className: "bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-900/50 dark:text-green-400",
+              });
+              setTimeout(() => {
+                setLocation("/my-creations");
+              }, 1000);
+            } else {
+              toast({
+                title: "Save Failed",
+                description: "Could not save images. They are still visible below.",
+                variant: "destructive",
+              });
+              setTimeout(() => {
+                setStatus("idle");
+                setAgents(AGENTS.map(a => ({ ...a, status: "idle" })));
+                setProgress(0);
+              }, 3000);
+            }
+          } else {
+            toast({
+              title: "Image Generated!",
+              description: `Created ${imageCount} image${imageCount > 1 ? "s" : ""}. Sign in to save to your library.`,
+              className: "bg-[#B94E30]/10 border-[#B94E30]/30 text-[#B94E30] dark:bg-[#B94E30]/20 dark:border-[#B94E30]/50 dark:text-[#E3B436]",
+            });
+            setTimeout(() => {
+              setStatus("idle");
+              setAgents(AGENTS.map(a => ({ ...a, status: "idle" })));
+              setProgress(0);
+            }, 3000);
+          }
+        };
+        saveAndRedirect();
       }
 
       if (type === "error") {
