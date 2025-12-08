@@ -76,7 +76,7 @@ interface PublicSidebarProps {
 export function PublicSidebar({ className }: PublicSidebarProps) {
   const [location] = useLocation();
   const [collapsed, setCollapsed] = useState(true);
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
   const { openLoginPopup } = useLoginPopup();
 
   const navigation: Array<{ name: string; shortName: string; icon: typeof Home; href: string; count?: string | null; badge?: string }> = [
@@ -135,7 +135,7 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
         </div>
       </Link>
       <button
-        onClick={openLoginPopup}
+        onClick={() => openLoginPopup()}
         className="flex flex-col items-center justify-center p-2 cursor-pointer text-primary"
         data-testid="button-mobile-login"
       >
@@ -157,8 +157,23 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
           className
         )}
       >
-      {isAuthenticated && user && (
-        <div className="px-3 pt-4 pb-2" data-testid="section-user-profile">
+      <div className="px-3 pt-4 pb-2" data-testid="section-user-profile">
+        {isLoading ? (
+          collapsed ? (
+            <div className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 mx-auto w-[64px]">
+              <div className="h-7 w-7 rounded-full bg-zinc-700/50 animate-pulse" />
+              <div className="h-2 w-10 bg-zinc-700/50 rounded animate-pulse" />
+            </div>
+          ) : (
+            <div className="flex items-center gap-3 p-2">
+              <div className="h-9 w-9 rounded-full bg-zinc-700/50 animate-pulse" />
+              <div className="flex-1 space-y-2">
+                <div className="h-3 w-24 bg-zinc-700/50 rounded animate-pulse" />
+                <div className="h-2 w-32 bg-zinc-700/50 rounded animate-pulse" />
+              </div>
+            </div>
+          )
+        ) : isAuthenticated && user ? (
           <Link href="/profile" data-testid="link-user-profile">
             {collapsed ? (
               <div className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-white transition-all cursor-pointer group relative select-none mx-auto w-[64px]">
@@ -207,10 +222,35 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
               </div>
             )}
           </Link>
-        </div>
-      )}
-
-      {!isAuthenticated && <div className="h-6" />}
+        ) : (
+          collapsed ? (
+            <div className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 mx-auto w-[64px]">
+              <button
+                onClick={() => openLoginPopup()}
+                className="h-7 w-7 rounded-full bg-gradient-to-br from-[#B94E30] to-[#E3B436] flex items-center justify-center hover:scale-110 transition-transform cursor-pointer"
+                data-testid="button-login-collapsed"
+              >
+                <User className="h-4 w-4 text-white" />
+              </button>
+              <span className="text-[10px] font-medium text-sidebar-foreground/50">Login</span>
+            </div>
+          ) : (
+            <button
+              onClick={() => openLoginPopup()}
+              className="flex items-center gap-3 p-2 rounded-xl hover:bg-sidebar-accent transition-colors cursor-pointer w-full"
+              data-testid="button-login-expanded"
+            >
+              <div className="h-9 w-9 rounded-full bg-gradient-to-br from-[#B94E30] to-[#E3B436] flex items-center justify-center">
+                <User className="h-5 w-5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0 text-left">
+                <p className="text-sm font-semibold text-white">Sign In</p>
+                <p className="text-[11px] text-white/50">Get started</p>
+              </div>
+            </button>
+          )
+        )}
+      </div>
 
       <div className="flex-1 overflow-y-auto no-scrollbar px-3 pt-4">
         {!collapsed && <div className="mb-2 px-3 text-[11px] font-bold text-muted-foreground tracking-widest animate-fade-in">EXPLORE</div>}

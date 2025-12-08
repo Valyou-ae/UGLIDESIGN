@@ -14,7 +14,8 @@ import {
   Moon,
   Compass,
   Coins,
-  Layers
+  Layers,
+  User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -81,7 +82,16 @@ interface SidebarProps {
 export function Sidebar({ className }: SidebarProps) {
   const [location] = useLocation();
   const [collapsed, setCollapsed] = useState(true);
-  const { logout } = useAuth();
+  const { user, isLoading, logout } = useAuth();
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
   const { data: stats } = useQuery({
     queryKey: ["user", "stats"],
@@ -248,6 +258,77 @@ export function Sidebar({ className }: SidebarProps) {
 
         {!collapsed && <div className="mb-2 px-3 text-[11px] font-bold text-muted-foreground tracking-widest animate-fade-in">ACCOUNT</div>}
         <nav className="space-y-1">
+          {isLoading ? (
+            collapsed ? (
+              <div className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 mx-auto w-[64px]">
+                <div className="h-7 w-7 rounded-full bg-zinc-700/50 animate-pulse" />
+                <div className="h-2 w-10 bg-zinc-700/50 rounded animate-pulse" />
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 px-3.5 py-3">
+                <div className="h-7 w-7 rounded-full bg-zinc-700/50 animate-pulse" />
+                <div className="h-3 w-16 bg-zinc-700/50 rounded animate-pulse" />
+              </div>
+            )
+          ) : user ? (
+            <Link href="/profile">
+              {collapsed ? (
+                <div className={cn(
+                  "flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium transition-all cursor-pointer group select-none mx-auto w-[64px]",
+                  location === "/profile" 
+                    ? "text-white bg-white/15" 
+                    : "text-white/50 hover:bg-white/10 hover:text-white"
+                )}>
+                  {user.profileImageUrl ? (
+                    <img 
+                      src={user.profileImageUrl} 
+                      alt={user.displayName || "User"} 
+                      className="h-7 w-7 rounded-full object-cover border-2 border-white/30 group-hover:border-white/60 transition-all"
+                      data-testid="img-user-avatar-sidebar"
+                    />
+                  ) : (
+                    <div className="h-7 w-7 rounded-full bg-zinc-700 flex items-center justify-center border-2 border-white/30 group-hover:border-white/60 transition-all">
+                      <span className="text-[10px] font-semibold text-white/80">
+                        {getInitials(user.displayName || user.email || "U")}
+                      </span>
+                    </div>
+                  )}
+                  <span className={cn(
+                    "text-[10px] font-medium",
+                    location === "/profile" ? "text-white" : "text-white/50 group-hover:text-white"
+                  )}>
+                    Profile
+                  </span>
+                </div>
+              ) : (
+                <div className={cn(
+                  "flex items-center gap-3 rounded-lg font-medium transition-all cursor-pointer group select-none px-3.5 py-3 text-sm relative",
+                  location === "/profile" 
+                    ? "text-white" 
+                    : "text-white/50 hover:bg-white/10 hover:text-white"
+                )}>
+                  {location === "/profile" && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 bg-white rounded-r-full" />
+                  )}
+                  {user.profileImageUrl ? (
+                    <img 
+                      src={user.profileImageUrl} 
+                      alt={user.displayName || "User"} 
+                      className="h-5 w-5 rounded-full object-cover border border-white/30 group-hover:border-white/60 transition-all"
+                      data-testid="img-user-avatar-sidebar"
+                    />
+                  ) : (
+                    <div className="h-5 w-5 rounded-full bg-zinc-700 flex items-center justify-center border border-white/30 group-hover:border-white/60 transition-all">
+                      <span className="text-[8px] font-semibold text-white/80">
+                        {getInitials(user.displayName || user.email || "U")}
+                      </span>
+                    </div>
+                  )}
+                  <span>Profile</span>
+                </div>
+              )}
+            </Link>
+          ) : null}
           {account.map((item) => {
             const isActive = location === item.href;
             return collapsed ? (
