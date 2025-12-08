@@ -225,19 +225,19 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
                   className={cn(
                     "flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium transition-all cursor-pointer group relative select-none mx-auto w-[64px]",
                     isActive 
-                      ? "text-sidebar-foreground bg-sidebar-accent/50" 
-                      : "text-sidebar-foreground/40 hover:bg-sidebar-accent/30 hover:text-sidebar-foreground/70"
+                      ? "text-white bg-white/15" 
+                      : "text-white/50 hover:bg-white/10 hover:text-white"
                   )}
                 >
                   <item.icon 
                     className={cn(
                       "h-7 w-7 flex-shrink-0 transition-all duration-200 group-hover:scale-110", 
-                      isActive ? "text-sidebar-foreground" : "text-sidebar-foreground/40 group-hover:text-sidebar-foreground/70"
+                      isActive ? "text-white" : "text-white/50 group-hover:text-white"
                     )} 
                   />
                   <span className={cn(
                     "text-[10px] font-medium truncate max-w-full",
-                    isActive ? "text-sidebar-foreground" : "text-sidebar-foreground/40 group-hover:text-sidebar-foreground/70"
+                    isActive ? "text-white" : "text-white/50 group-hover:text-white"
                   )}>
                     {item.shortName}
                   </span>
@@ -252,18 +252,18 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
                         className={cn(
                           "flex items-center gap-3 rounded-lg font-medium transition-all cursor-pointer group relative select-none px-3.5 py-3 text-sm",
                           isActive 
-                            ? "text-sidebar-foreground" 
-                            : "text-sidebar-foreground/40 hover:bg-sidebar-accent/30 hover:text-sidebar-foreground/70"
+                            ? "text-white" 
+                            : "text-white/50 hover:bg-white/10 hover:text-white"
                         )}
                       >
                         {isActive && (
-                          <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 bg-sidebar-foreground rounded-r-full" />
+                          <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 bg-white rounded-r-full" />
                         )}
                         
                         <item.icon 
                           className={cn(
                             "h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110", 
-                            isActive ? "text-sidebar-foreground" : "text-sidebar-foreground/40 group-hover:text-sidebar-foreground/70"
+                            isActive ? "text-white" : "text-white/50 group-hover:text-white"
                           )} 
                         />
                         
@@ -302,16 +302,16 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
                 <div className={cn(
                   "flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium transition-all cursor-pointer group select-none mx-auto w-[64px]",
                   isActive 
-                    ? "text-sidebar-foreground bg-sidebar-accent/50" 
-                    : "text-sidebar-foreground/40 hover:bg-sidebar-accent/30 hover:text-sidebar-foreground/70"
+                    ? "text-white bg-white/15" 
+                    : "text-white/50 hover:bg-white/10 hover:text-white"
                 )}>
                   <item.icon className={cn(
                     "h-7 w-7 flex-shrink-0 transition-all duration-200 group-hover:scale-110",
-                    isActive ? "text-sidebar-foreground" : "text-sidebar-foreground/40 group-hover:text-sidebar-foreground/70"
+                    isActive ? "text-white" : "text-white/50 group-hover:text-white"
                   )} />
                   <span className={cn(
                     "text-[10px] font-medium",
-                    isActive ? "text-sidebar-foreground" : "text-sidebar-foreground/40 group-hover:text-sidebar-foreground/70"
+                    isActive ? "text-white" : "text-white/50 group-hover:text-white"
                   )}>
                     {item.shortName}
                   </span>
@@ -322,15 +322,15 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
                 <div className={cn(
                   "flex items-center gap-3 rounded-lg font-medium transition-colors cursor-pointer group select-none px-3.5 py-3 text-sm relative",
                   isActive 
-                    ? "text-sidebar-foreground" 
-                    : "text-sidebar-foreground/40 hover:bg-sidebar-accent/30 hover:text-sidebar-foreground/70"
+                    ? "text-white" 
+                    : "text-white/50 hover:bg-white/10 hover:text-white"
                 )}>
                   {isActive && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 bg-sidebar-foreground rounded-r-full" />
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 bg-white rounded-r-full" />
                   )}
                   <item.icon className={cn(
                     "h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110",
-                    isActive ? "text-sidebar-foreground" : "text-sidebar-foreground/40 group-hover:text-sidebar-foreground/70"
+                    isActive ? "text-white" : "text-white/50 group-hover:text-white"
                   )} />
                   <span>{item.name}</span>
                 </div>
@@ -353,16 +353,16 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
                   <div className={cn(
                     "flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium transition-all cursor-pointer group relative select-none mx-auto w-[64px]",
                     isActive 
-                      ? "text-sidebar-foreground bg-sidebar-accent/50" 
-                      : "text-sidebar-foreground/40 hover:bg-sidebar-accent/30 hover:text-sidebar-foreground/70"
+                      ? "text-white bg-white/15" 
+                      : "text-white/50 hover:bg-white/10 hover:text-white"
                   )}>
                     <item.icon className={cn(
                       "h-7 w-7 flex-shrink-0 transition-all duration-200 group-hover:scale-110", 
-                      isActive ? "text-sidebar-foreground" : "text-sidebar-foreground/40 group-hover:text-sidebar-foreground/70"
+                      isActive ? "text-white" : "text-white/50 group-hover:text-white"
                     )} />
                     <span className={cn(
                       "text-[10px] font-medium truncate max-w-full",
-                      isActive ? "text-sidebar-foreground" : "text-sidebar-foreground/40 group-hover:text-sidebar-foreground/70"
+                      isActive ? "text-white" : "text-white/50 group-hover:text-white"
                     )}>
                       {item.shortName}
                     </span>
@@ -373,15 +373,15 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
                   <div className={cn(
                     "flex items-center gap-3 rounded-lg font-medium transition-all cursor-pointer group select-none px-3.5 py-3 text-sm relative",
                     isActive 
-                      ? "text-sidebar-foreground" 
-                      : "text-sidebar-foreground/40 hover:bg-sidebar-accent/30 hover:text-sidebar-foreground/70"
+                      ? "text-white" 
+                      : "text-white/50 hover:bg-white/10 hover:text-white"
                   )}>
                     {isActive && (
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 bg-sidebar-foreground rounded-r-full" />
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 bg-white rounded-r-full" />
                     )}
                     <item.icon className={cn(
                       "h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110", 
-                      isActive ? "text-sidebar-foreground" : "text-sidebar-foreground/40 group-hover:text-sidebar-foreground/70"
+                      isActive ? "text-white" : "text-white/50 group-hover:text-white"
                     )} />
                     <span className="flex-1 truncate">{item.name}</span>
                   </div>
