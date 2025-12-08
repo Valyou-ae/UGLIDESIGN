@@ -210,7 +210,7 @@ function JustifiedGallery({ items }: { items: InspirationItem[] }) {
 
     const initAndAnimate = () => {
       if (!initializedRef.current && scrollContainer.scrollHeight > scrollContainer.clientHeight) {
-        scrollContainer.scrollTop = scrollContainer.scrollHeight - scrollContainer.clientHeight;
+        scrollContainer.scrollTop = 0;
         initializedRef.current = true;
       }
     };
@@ -218,10 +218,11 @@ function JustifiedGallery({ items }: { items: InspirationItem[] }) {
     const animate = () => {
       if (!isPausedRef.current && scrollRef.current) {
         const currentScroll = scrollRef.current.scrollTop;
-        const newScroll = currentScroll - scrollSpeed;
+        const maxScroll = scrollRef.current.scrollHeight - scrollRef.current.clientHeight;
+        const newScroll = currentScroll + scrollSpeed;
         
-        if (newScroll <= 0) {
-          scrollRef.current.scrollTop = scrollRef.current.scrollHeight - scrollRef.current.clientHeight;
+        if (newScroll >= maxScroll) {
+          scrollRef.current.scrollTop = 0;
         } else {
           scrollRef.current.scrollTop = newScroll;
         }
