@@ -47,9 +47,9 @@ function ThemeToggle({ collapsed }: { collapsed: boolean }) {
     return (
       <div 
         onClick={toggleTheme}
-        className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-200 dark:bg-zinc-800 cursor-pointer mx-auto hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors"
+        className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-200 dark:bg-zinc-800 cursor-pointer mx-auto hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors"
       >
-        {theme === "light" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        {theme === "light" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
       </div>
     );
   }
@@ -422,10 +422,17 @@ export function Sidebar({ className }: SidebarProps) {
             </div>
           )}
         </nav>
+
+        {/* Theme Toggle - part of account section for consistent spacing */}
+        {collapsed && (
+          <div className="flex flex-col items-center justify-center py-2 px-2 mx-auto w-[52px]">
+            <ThemeToggle collapsed={collapsed} />
+          </div>
+        )}
       </div>
 
-      {/* Footer */}
-      <div className={cn("pt-4 mt-auto pb-6", collapsed ? "px-3 flex flex-col items-center" : "px-3")}>
+      {/* Footer - Credits */}
+      <div className={cn("mt-auto pb-6", collapsed ? "px-3 flex flex-col items-center pt-2" : "px-3 pt-4")}>
         {!collapsed ? (
           <div className="flex items-center gap-4 mb-4 px-2 animate-fade-in">
             <div className="relative h-12 w-12 flex items-center justify-center">
@@ -494,7 +501,7 @@ export function Sidebar({ className }: SidebarProps) {
           </TooltipProvider>
         )}
         
-        <ThemeToggle collapsed={collapsed} />
+        {!collapsed && <ThemeToggle collapsed={collapsed} />}
       </div>
     </aside>
     </>
