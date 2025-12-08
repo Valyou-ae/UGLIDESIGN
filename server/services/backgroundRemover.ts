@@ -25,7 +25,7 @@ const replicate = new Replicate({
 });
 
 const MODELS = {
-  IMAGE_GENERATION: "gemini-2.0-flash-exp",
+  IMAGE_GENERATION: "gemini-3-pro-image-preview",
   BACKGROUND_REMOVAL: "bria/remove-background",
 } as const;
 
