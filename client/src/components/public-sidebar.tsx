@@ -9,9 +9,7 @@ import {
   Moon,
   Compass,
   User,
-  Settings,
-  CreditCard,
-  LogOut
+  Settings
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -75,7 +73,7 @@ interface PublicSidebarProps {
 export function PublicSidebar({ className }: PublicSidebarProps) {
   const [location] = useLocation();
   const [collapsed, setCollapsed] = useState(true);
-  const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const { openLoginPopup } = useLoginPopup();
 
   const navigation: Array<{ name: string; shortName: string; icon: typeof Home; href: string; count?: string | null; badge?: string }> = [
@@ -88,7 +86,6 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
 
   const accountNav = [
     { name: "Settings", shortName: "Settings", icon: Settings, href: "/settings" },
-    { name: "Billing", shortName: "Billing", icon: CreditCard, href: "/billing" },
   ];
 
   const getInitials = (name: string) => {
@@ -375,27 +372,6 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
                 </Link>
               );
             })}
-        {isAuthenticated && (
-          collapsed ? (
-            <button
-              onClick={logout}
-              className="flex flex-col items-center justify-center gap-1 py-2 px-2 rounded-lg font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all cursor-pointer group select-none mx-auto w-[52px]"
-              data-testid="button-logout"
-            >
-              <LogOut className="h-5 w-5 flex-shrink-0 transition-all duration-200 group-hover:scale-110" />
-              <span className="text-[9px] font-medium">Logout</span>
-            </button>
-          ) : (
-            <button
-              onClick={logout}
-              className="flex items-center gap-3 rounded-lg font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all cursor-pointer group select-none w-full px-3.5 py-2.5 text-sm"
-              data-testid="button-logout"
-            >
-              <LogOut className="h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
-              <span>Logout</span>
-            </button>
-          )
-        )}
       </nav>
 
       {/* Theme Toggle at bottom */}
