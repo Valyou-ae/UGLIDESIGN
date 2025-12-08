@@ -57,7 +57,10 @@ import {
   MicOff,
   Minus,
   Plus,
-  ClipboardCopy
+  ClipboardCopy,
+  Bookmark,
+  BookmarkCheck,
+  Heart
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -96,9 +99,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { generateApi, imagesApi, GenerationEvent } from "@/lib/api";
+import { generateApi, imagesApi, GenerationEvent, promptFavoritesApi, PromptFavorite } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
+import { Label } from "@/components/ui/label";
 import { useLocation } from "wouter";
+import { TutorialOverlay, useTutorial } from "@/components/tutorial-overlay";
 
 // Import generated images for the gallery
 import cyberpunkCity from "@assets/generated_images/futuristic_cyberpunk_city_street_at_night_with_neon_lights_and_rain.png";
@@ -203,6 +208,132 @@ export default function ImageGenerator() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isVarying, setIsVarying] = useState(false);
+  
+  const [savedPrompts, setSavedPrompts] = useState<PromptFavorite[]>([]);
+  const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [favoriteName, setFavoriteName] = useState("");
+  const [isSavingFavorite, setIsSavingFavorite] = useState(false);
+  
+  const { 
+    isOpen: isTutorialOpen, 
+    hasCompleted: tutorialCompleted,
+    startTutorial, 
+    closeTutorial, 
+    completeTutorial, 
+    checkFirstVisit 
+  } = useTutorial();
+
+  useEffect(() => {
+    if (tutorialCompleted) return;
+    
+    const timer = setTimeout(() => {
+      if (checkFirstVisit()) {
+        setShowSettings(true);
+        startTutorial();
+      }
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [checkFirstVisit, startTutorial, tutorialCompleted]);
+
+  const handleTutorialComplete = () => {
+    completeTutorial();
+    toast({ 
+      title: "Tutorial Complete!", 
+      description: "You're ready to create amazing AI-generated images.",
+      className: "bg-gradient-to-r from-[#B94E30]/10 to-[#E3B436]/10 border-[#B94E30]/30 text-foreground"
+    });
+  };
+
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      if (!user) {
+        setSavedPrompts([]);
+        return;
+      }
+      setIsLoadingFavorites(true);
+      try {
+        const response = await promptFavoritesApi.getAll();
+        setSavedPrompts(response.favorites || []);
+      } catch (error) {
+        console.error("Failed to fetch favorites:", error);
+      } finally {
+        setIsLoadingFavorites(false);
+      }
+    };
+    fetchFavorites();
+  }, [user]);
+
+  const handleSavePromptFavorite = async () => {
+    if (!user) {
+      toast({ title: "Please log in", description: "You need to be logged in to save prompts.", variant: "destructive" });
+      return;
+    }
+    if (!prompt.trim()) {
+      toast({ title: "Empty prompt", description: "Please enter a prompt before saving.", variant: "destructive" });
+      return;
+    }
+    if (!favoriteName.trim()) {
+      toast({ title: "Name required", description: "Please enter a name for your saved prompt.", variant: "destructive" });
+      return;
+    }
+    
+    setIsSavingFavorite(true);
+    try {
+      const response = await promptFavoritesApi.create({
+        name: favoriteName.trim(),
+        prompt: prompt.trim(),
+        style: settings.style,
+        aspectRatio: settings.aspectRatio,
+        quality: settings.quality,
+        detail: settings.detail,
+        speed: settings.speed
+      });
+      setSavedPrompts(prev => [response.favorite, ...prev]);
+      setShowSaveModal(false);
+      setFavoriteName("");
+      toast({ 
+        title: "Prompt Saved!", 
+        description: `"${favoriteName}" has been saved to your favorites.`,
+        className: "bg-[#B94E30]/10 border-[#B94E30]/30 text-[#B94E30] dark:bg-[#B94E30]/20 dark:border-[#B94E30]/50 dark:text-[#E3B436]"
+      });
+    } catch (error) {
+      toast({ title: "Save Failed", description: error instanceof Error ? error.message : "Could not save prompt.", variant: "destructive" });
+    } finally {
+      setIsSavingFavorite(false);
+    }
+  };
+
+  const loadPromptFavorite = (favorite: PromptFavorite) => {
+    setPrompt(favorite.prompt);
+    setSettings(prev => ({
+      ...prev,
+      style: favorite.style || prev.style,
+      aspectRatio: favorite.aspectRatio || prev.aspectRatio,
+      quality: favorite.quality || prev.quality,
+      detail: favorite.detail || prev.detail,
+      speed: (favorite.speed as "fast" | "quality") || prev.speed
+    }));
+    toast({ 
+      title: "Prompt Loaded", 
+      description: `Loaded "${favorite.name}" with all settings.`,
+      className: "bg-[#B94E30]/10 border-[#B94E30]/30 text-[#B94E30] dark:bg-[#B94E30]/20 dark:border-[#B94E30]/50 dark:text-[#E3B436]"
+    });
+  };
+
+  const deletePromptFavorite = async (id: string) => {
+    try {
+      await promptFavoritesApi.delete(id);
+      setSavedPrompts(prev => prev.filter(p => p.id !== id));
+      toast({ 
+        title: "Prompt Deleted", 
+        description: "Saved prompt has been removed.",
+        className: "bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-900/50 dark:text-green-400"
+      });
+    } catch (error) {
+      toast({ title: "Delete Failed", description: error instanceof Error ? error.message : "Could not delete prompt.", variant: "destructive" });
+    }
+  };
 
   const downloadImage = (url: string, filename: string) => {
     const link = document.createElement('a');
@@ -927,6 +1058,12 @@ export default function ImageGenerator() {
     <div className="h-screen bg-background flex font-sans text-foreground overflow-hidden">
       <Sidebar className="hidden md:flex border-r border-border/50" />
       
+      <TutorialOverlay 
+        isOpen={isTutorialOpen}
+        onClose={closeTutorial}
+        onComplete={handleTutorialComplete}
+      />
+      
       <main className="flex-1 flex flex-col relative h-full overflow-hidden bg-background text-foreground">
         
         {/* TOP SECTION: PROMPT BAR (Minimalistic) */}
@@ -937,7 +1074,9 @@ export default function ImageGenerator() {
             <div className="flex items-end gap-3">
               
               {/* Main Input Wrapper */}
-              <div className={cn(
+              <div 
+                data-tutorial="prompt-input"
+                className={cn(
                 "flex-1 bg-muted/40 border border-border rounded-xl transition-all duration-200 flex items-end p-2 gap-2 group focus-within:bg-background shadow-sm min-h-[56px]",
                 prompt.trim().length > 0 && "bg-background border-muted-foreground/40"
               )}>
@@ -1017,11 +1156,13 @@ export default function ImageGenerator() {
                         animate={{ opacity: 1, scale: 1, width: "auto" }}
                         exit={{ opacity: 0, scale: 0.8, width: 0 }}
                         className="overflow-hidden mr-1"
+                        data-tutorial="generate-button"
                       >
                         <Button 
                           onClick={handleGenerate}
                           disabled={status === "generating"}
                           size="icon"
+                          data-testid="button-generate"
                           className="h-9 w-9 rounded-lg bg-gradient-to-r from-[#B94E30] to-[#8B3A24] hover:brightness-110 text-white shadow-sm transition-all"
                         >
                           {status === "generating" ? (
@@ -1049,6 +1190,82 @@ export default function ImageGenerator() {
                       <TooltipContent><p>Settings</p></TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
+
+                  {/* Save Prompt Button */}
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => setShowSaveModal(true)}
+                          disabled={!prompt.trim()}
+                          data-testid="button-save-prompt"
+                          className={cn(
+                            "h-9 w-9 rounded-lg transition-all",
+                            !prompt.trim() && "opacity-50 cursor-not-allowed"
+                          )}
+                        >
+                          <Bookmark className="h-5 w-5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent><p>Save Prompt</p></TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  {/* Saved Prompts Dropdown */}
+                  {user && savedPrompts.length > 0 && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          data-testid="button-load-prompts"
+                          className="h-9 w-9 rounded-lg transition-all"
+                        >
+                          <BookmarkCheck className="h-5 w-5 text-[#B94E30]" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-[280px] max-h-[320px] overflow-y-auto">
+                        <DropdownMenuLabel className="flex items-center gap-2 text-xs">
+                          <BookmarkCheck className="h-3.5 w-3.5 text-[#B94E30]" />
+                          Saved Prompts ({savedPrompts.length})
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {savedPrompts.map((fav) => (
+                          <DropdownMenuItem 
+                            key={fav.id}
+                            className="flex items-start justify-between gap-2 py-2 cursor-pointer group"
+                            data-testid={`saved-prompt-${fav.id}`}
+                          >
+                            <div 
+                              className="flex-1 min-w-0"
+                              onClick={() => loadPromptFavorite(fav)}
+                            >
+                              <div className="font-medium text-sm truncate">{fav.name}</div>
+                              <div className="text-xs text-muted-foreground truncate max-w-[180px]">{fav.prompt}</div>
+                              <div className="flex items-center gap-1 mt-1">
+                                <Badge variant="outline" className="text-[9px] px-1 py-0">{fav.style}</Badge>
+                                <Badge variant="outline" className="text-[9px] px-1 py-0">{fav.aspectRatio}</Badge>
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deletePromptFavorite(fav.id);
+                              }}
+                              data-testid={`delete-prompt-${fav.id}`}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </div>
               </div>
 
@@ -1144,7 +1361,7 @@ export default function ImageGenerator() {
                     </div>
 
                     {/* Aspect Ratio */}
-                    <div className="space-y-1.5">
+                    <div className="space-y-1.5" data-tutorial="ratio-selector">
                       <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block px-0.5">Ratio</label>
                       <div className="grid grid-cols-5 gap-1">
                         {ASPECT_RATIOS.map(r => (
@@ -1199,7 +1416,7 @@ export default function ImageGenerator() {
                     </div>
 
                     {/* Style */}
-                    <div className="space-y-1.5">
+                    <div className="space-y-1.5" data-tutorial="style-selector">
                       <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block px-0.5">Style</label>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -1621,6 +1838,94 @@ export default function ImageGenerator() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Save Prompt Modal */}
+      <Dialog open={showSaveModal} onOpenChange={setShowSaveModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Bookmark className="h-5 w-5 text-[#B94E30]" />
+              Save Prompt
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="favorite-name">Preset Name</Label>
+              <Input
+                id="favorite-name"
+                placeholder="e.g., Cyberpunk City Style"
+                value={favoriteName}
+                onChange={(e) => setFavoriteName(e.target.value)}
+                data-testid="input-favorite-name"
+                className="focus-visible:ring-[#B94E30]"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Prompt Preview</Label>
+              <div className="p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground max-h-[100px] overflow-y-auto">
+                {prompt || "No prompt entered"}
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Settings to be saved</Label>
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="outline" className="text-xs">
+                  <Palette className="h-3 w-3 mr-1" />
+                  {STYLE_PRESETS.find(s => s.id === settings.style)?.name || settings.style}
+                </Badge>
+                <Badge variant="outline" className="text-xs">
+                  <Square className="h-3 w-3 mr-1" />
+                  {settings.aspectRatio}
+                </Badge>
+                <Badge variant="outline" className="text-xs">
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  {settings.quality}
+                </Badge>
+                <Badge variant="outline" className="text-xs">
+                  <Zap className="h-3 w-3 mr-1" />
+                  {settings.speed}
+                </Badge>
+                <Badge variant="outline" className="text-xs">
+                  <Layers className="h-3 w-3 mr-1" />
+                  {settings.detail}
+                </Badge>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex justify-end gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowSaveModal(false);
+                setFavoriteName("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSavePromptFavorite}
+              disabled={isSavingFavorite || !favoriteName.trim()}
+              data-testid="button-confirm-save-prompt"
+              className="bg-[#B94E30] hover:bg-[#8B3A24] text-white"
+            >
+              {isSavingFavorite ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <BookmarkCheck className="h-4 w-4 mr-2" />
+                  Save Prompt
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

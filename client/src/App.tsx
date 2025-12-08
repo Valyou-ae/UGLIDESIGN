@@ -27,6 +27,7 @@ import RandomPrompt from "@/pages/random-prompt";
 import AffiliateProgram from "@/pages/affiliate-program";
 import Pricing from "@/pages/pricing";
 import Landing from "@/pages/landing";
+import MoodBoard from "@/pages/mood-board";
 import AdminDashboard from "@/pages/admin/index";
 import AdminUsers from "@/pages/admin/users";
 import AdminCRM from "@/pages/admin/crm";
@@ -128,6 +129,11 @@ function Router() {
       <Route path="/random-prompt">
         <AuthGuard>
           <RandomPrompt />
+        </AuthGuard>
+      </Route>
+      <Route path="/mood-boards">
+        <AuthGuard>
+          <MoodBoard />
         </AuthGuard>
       </Route>
 

@@ -7,6 +7,8 @@ import {
   crmDeals, 
   crmActivities,
   promptFavorites,
+  moodBoards,
+  moodBoardItems,
   type User, 
   type InsertUser, 
   type UpdateProfile, 
@@ -23,7 +25,11 @@ import {
   type CrmActivity,
   type InsertActivity,
   type PromptFavorite,
-  type InsertPromptFavorite
+  type InsertPromptFavorite,
+  type MoodBoard,
+  type InsertMoodBoard,
+  type MoodBoardItem,
+  type InsertMoodBoardItem
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, gte, lte, sql } from "drizzle-orm";
@@ -92,6 +98,15 @@ export interface IStorage {
   createPromptFavorite(favorite: InsertPromptFavorite): Promise<PromptFavorite>;
   getPromptFavorites(userId: string): Promise<PromptFavorite[]>;
   deletePromptFavorite(id: string, userId: string): Promise<void>;
+
+  createMoodBoard(userId: string, name: string, description?: string): Promise<MoodBoard>;
+  getMoodBoards(userId: string): Promise<MoodBoard[]>;
+  getMoodBoard(userId: string, boardId: string): Promise<{ board: MoodBoard; items: (MoodBoardItem & { image: GeneratedImage })[] } | undefined>;
+  updateMoodBoard(userId: string, boardId: string, data: { name?: string; description?: string }): Promise<MoodBoard | undefined>;
+  deleteMoodBoard(userId: string, boardId: string): Promise<void>;
+  addItemToBoard(boardId: string, imageId: string, position: { positionX: number; positionY: number; width?: number; height?: number; zIndex?: number }): Promise<MoodBoardItem>;
+  updateBoardItem(itemId: string, position: { positionX?: number; positionY?: number; width?: number; height?: number; zIndex?: number }): Promise<MoodBoardItem | undefined>;
+  removeItemFromBoard(itemId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -569,6 +584,101 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(promptFavorites)
       .where(and(eq(promptFavorites.id, id), eq(promptFavorites.userId, userId)));
+  }
+
+  async createMoodBoard(userId: string, name: string, description?: string): Promise<MoodBoard> {
+    const [board] = await db
+      .insert(moodBoards)
+      .values({ userId, name, description })
+      .returning();
+    return board;
+  }
+
+  async getMoodBoards(userId: string): Promise<MoodBoard[]> {
+    return db
+      .select()
+      .from(moodBoards)
+      .where(eq(moodBoards.userId, userId))
+      .orderBy(desc(moodBoards.createdAt));
+  }
+
+  async getMoodBoard(userId: string, boardId: string): Promise<{ board: MoodBoard; items: (MoodBoardItem & { image: GeneratedImage })[] } | undefined> {
+    const [board] = await db
+      .select()
+      .from(moodBoards)
+      .where(and(eq(moodBoards.id, boardId), eq(moodBoards.userId, userId)));
+    
+    if (!board) return undefined;
+
+    const items = await db
+      .select({
+        id: moodBoardItems.id,
+        boardId: moodBoardItems.boardId,
+        imageId: moodBoardItems.imageId,
+        positionX: moodBoardItems.positionX,
+        positionY: moodBoardItems.positionY,
+        width: moodBoardItems.width,
+        height: moodBoardItems.height,
+        zIndex: moodBoardItems.zIndex,
+        createdAt: moodBoardItems.createdAt,
+        image: generatedImages,
+      })
+      .from(moodBoardItems)
+      .innerJoin(generatedImages, eq(moodBoardItems.imageId, generatedImages.id))
+      .where(eq(moodBoardItems.boardId, boardId))
+      .orderBy(moodBoardItems.zIndex);
+
+    return { board, items };
+  }
+
+  async updateMoodBoard(userId: string, boardId: string, data: { name?: string; description?: string }): Promise<MoodBoard | undefined> {
+    const [board] = await db
+      .update(moodBoards)
+      .set({ ...data, updatedAt: new Date() })
+      .where(and(eq(moodBoards.id, boardId), eq(moodBoards.userId, userId)))
+      .returning();
+    return board || undefined;
+  }
+
+  async deleteMoodBoard(userId: string, boardId: string): Promise<void> {
+    await db.delete(moodBoardItems).where(eq(moodBoardItems.boardId, boardId));
+    await db.delete(moodBoards).where(and(eq(moodBoards.id, boardId), eq(moodBoards.userId, userId)));
+  }
+
+  async addItemToBoard(boardId: string, imageId: string, position: { positionX: number; positionY: number; width?: number; height?: number; zIndex?: number }): Promise<MoodBoardItem> {
+    const [item] = await db
+      .insert(moodBoardItems)
+      .values({
+        boardId,
+        imageId,
+        positionX: position.positionX,
+        positionY: position.positionY,
+        width: position.width ?? 200,
+        height: position.height ?? 200,
+        zIndex: position.zIndex ?? 0,
+      })
+      .returning();
+    return item;
+  }
+
+  async updateBoardItem(itemId: string, position: { positionX?: number; positionY?: number; width?: number; height?: number; zIndex?: number }): Promise<MoodBoardItem | undefined> {
+    const updateData: Record<string, any> = {};
+    if (position.positionX !== undefined) updateData.positionX = position.positionX;
+    if (position.positionY !== undefined) updateData.positionY = position.positionY;
+    if (position.width !== undefined) updateData.width = position.width;
+    if (position.height !== undefined) updateData.height = position.height;
+    if (position.zIndex !== undefined) updateData.zIndex = position.zIndex;
+
+    const [item] = await db
+      .update(moodBoardItems)
+      .set(updateData)
+      .where(eq(moodBoardItems.id, itemId))
+      .returning();
+    return item || undefined;
+  }
+
+  async removeItemFromBoard(itemId: string): Promise<void> {
+    await db.delete(moodBoardItems).where(eq(moodBoardItems.id, itemId));
   }
 }
 

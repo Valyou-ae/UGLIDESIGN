@@ -116,8 +116,30 @@ export const promptFavorites = pgTable("prompt_favorites", {
   prompt: text("prompt").notNull(),
   style: text("style").notNull(),
   aspectRatio: text("aspect_ratio").notNull(),
+  quality: text("quality"),
   detail: text("detail"),
   speed: text("speed"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const moodBoards = pgTable("mood_boards", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const moodBoardItems = pgTable("mood_board_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  boardId: varchar("board_id").references(() => moodBoards.id).notNull(),
+  imageId: varchar("image_id").references(() => generatedImages.id).notNull(),
+  positionX: integer("position_x").default(0).notNull(),
+  positionY: integer("position_y").default(0).notNull(),
+  width: integer("width").default(200).notNull(),
+  height: integer("height").default(200).notNull(),
+  zIndex: integer("z_index").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -169,6 +191,17 @@ export const insertPromptFavoriteSchema = createInsertSchema(promptFavorites).om
   createdAt: true,
 });
 
+export const insertMoodBoardSchema = createInsertSchema(moodBoards).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertMoodBoardItemSchema = createInsertSchema(moodBoardItems).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpdateProfile = z.infer<typeof updateProfileSchema>;
 export type User = typeof users.$inferSelect;
@@ -186,3 +219,7 @@ export type CrmActivity = typeof crmActivities.$inferSelect;
 export type InsertActivity = z.infer<typeof insertActivitySchema>;
 export type PromptFavorite = typeof promptFavorites.$inferSelect;
 export type InsertPromptFavorite = z.infer<typeof insertPromptFavoriteSchema>;
+export type MoodBoard = typeof moodBoards.$inferSelect;
+export type InsertMoodBoard = z.infer<typeof insertMoodBoardSchema>;
+export type MoodBoardItem = typeof moodBoardItems.$inferSelect;
+export type InsertMoodBoardItem = z.infer<typeof insertMoodBoardItemSchema>;
