@@ -94,13 +94,6 @@ function LazyMasonryCard({ item, index }: { item: InspirationItem; index: number
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-90 transition-opacity" />
 
           <div className="absolute bottom-0 left-0 right-0 p-4">
-            <h3 className="text-base font-semibold text-white truncate drop-shadow-lg">{item.title}</h3>
-            <div className="flex items-center gap-2 mt-1.5">
-              <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-[#B94E30] to-[#E3B436]" />
-              <span className="text-xs text-white/80">@{item.creator}</span>
-              {item.verified && <BadgeCheck className="h-3 w-3 text-[#E3B436]" />}
-            </div>
-            
             <AnimatePresence>
               {isHovered && (
                 <motion.div
