@@ -42,7 +42,8 @@ import {
   ExternalLink,
   ChevronLeft,
   Star,
-  Loader2
+  Loader2,
+  HelpCircle
 } from "lucide-react";
 import { useSettings } from "@/hooks/use-settings";
 import { useAuth } from "@/hooks/use-auth";
@@ -122,6 +123,12 @@ export default function Settings() {
         { name: "Storage", icon: HardDrive },
         { name: "Export Data", icon: Download },
         { name: "Delete Account", icon: Trash2, danger: true },
+      ] as { name: string; icon: any; href?: string; danger?: boolean }[]
+    },
+    {
+      label: "SUPPORT",
+      items: [
+        { name: "Help & Support", icon: HelpCircle, href: "/help" },
       ] as { name: string; icon: any; href?: string; danger?: boolean }[]
     }
   ];

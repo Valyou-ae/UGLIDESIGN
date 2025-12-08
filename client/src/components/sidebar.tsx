@@ -9,7 +9,6 @@ import {
   Folder, 
   Star, 
   Settings, 
-  HelpCircle,
   ChevronRight,
   Sun,
   Moon,
@@ -109,7 +108,6 @@ export function Sidebar({ className }: SidebarProps) {
 
   const account = [
     { name: "Settings", shortName: "Settings", icon: Settings, href: "/settings" },
-    { name: "Help & Support", shortName: "Help", icon: HelpCircle, href: "/help" },
   ];
 
   // Mobile Bottom Navigation
