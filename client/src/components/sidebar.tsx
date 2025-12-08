@@ -371,56 +371,6 @@ export function Sidebar({ className }: SidebarProps) {
               </Link>
             );
           })}
-
-          {collapsed ? (
-            <div 
-              onClick={logout}
-              className="flex flex-col items-center justify-center gap-1 py-2 px-2 rounded-lg font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all cursor-pointer group select-none mx-auto w-[52px]"
-              data-testid="button-logout"
-            >
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="24" 
-                height="24" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                className="h-5 w-5 flex-shrink-0 transition-all duration-200 group-hover:scale-110"
-              >
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" x2="9" y1="12" y2="12" />
-              </svg>
-              <span className="text-[9px] font-medium">Logout</span>
-            </div>
-          ) : (
-            <div 
-              onClick={logout}
-              className="flex items-center gap-3 rounded-lg font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all cursor-pointer group select-none px-3.5 py-3 text-sm"
-              data-testid="button-logout"
-            >
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="24" 
-                height="24" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                className="h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110"
-              >
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" x2="9" y1="12" y2="12" />
-              </svg>
-              <span>Logout</span>
-            </div>
-          )}
         </nav>
 
         {/* Theme Toggle - part of account section for consistent spacing */}
