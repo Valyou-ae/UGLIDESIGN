@@ -29,6 +29,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { userApi } from "@/lib/api";
+import { useAuth } from "@/hooks/use-auth";
 
 function ThemeToggle({ collapsed }: { collapsed: boolean }) {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
@@ -82,6 +83,7 @@ interface SidebarProps {
 export function Sidebar({ className }: SidebarProps) {
   const [location] = useLocation();
   const [collapsed, setCollapsed] = useState(true);
+  const { logout } = useAuth();
 
   const { data: stats } = useQuery({
     queryKey: ["user", "stats"],
@@ -111,18 +113,6 @@ export function Sidebar({ className }: SidebarProps) {
     { name: "Billing", shortName: "Billing", icon: CreditCard, href: "/billing" },
     { name: "Help & Support", shortName: "Help", icon: HelpCircle, href: "/help" },
   ];
-
-  const handleLogout = async () => {
-    try {
-      await fetch("/api/auth/logout", { 
-        method: "POST",
-        credentials: "include" 
-      });
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-    window.location.href = "/";
-  };
 
   // Mobile Bottom Navigation
   const MobileNav = () => (
@@ -307,7 +297,7 @@ export function Sidebar({ className }: SidebarProps) {
 
           {collapsed ? (
             <div 
-              onClick={handleLogout}
+              onClick={logout}
               className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all cursor-pointer group select-none mx-auto w-[64px]"
               data-testid="button-logout"
             >
@@ -331,7 +321,7 @@ export function Sidebar({ className }: SidebarProps) {
             </div>
           ) : (
             <div 
-              onClick={handleLogout}
+              onClick={logout}
               className="flex items-center gap-3 rounded-lg font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all cursor-pointer group select-none px-3.5 py-3 text-sm"
               data-testid="button-logout"
             >
