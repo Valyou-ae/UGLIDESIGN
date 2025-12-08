@@ -25,6 +25,7 @@ export const users = pgTable("users", {
   profileImageUrl: varchar("profile_image_url"),
   socialLinks: jsonb("social_links").$type<{ label: string; url: string }[]>().default([]),
   role: text("role").default("user").notNull(),
+  credits: integer("credits").default(20).notNull(),
   affiliateCode: text("affiliate_code").unique(),
   referredBy: varchar("referred_by"),
   stripeCustomerId: text("stripe_customer_id"),

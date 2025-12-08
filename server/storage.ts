@@ -78,6 +78,10 @@ export interface IStorage {
   getAllUsers(): Promise<User[]>;
   updateUserRole(userId: string, role: string): Promise<User | undefined>;
   getAnalytics(): Promise<{ totalUsers: number; totalImages: number; totalCommissions: number }>;
+  
+  getUserCredits(userId: string): Promise<number>;
+  addCredits(userId: string, amount: number): Promise<User | undefined>;
+  deductCredits(userId: string, amount: number): Promise<User | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -440,6 +444,46 @@ export class DatabaseStorage implements IStorage {
       totalImages: imagesCount?.count || 0,
       totalCommissions: commissionsCount?.count || 0,
     };
+  }
+
+  async getUserCredits(userId: string): Promise<number> {
+    const user = await this.getUser(userId);
+    return user?.credits ?? 0;
+  }
+
+  async addCredits(userId: string, amount: number): Promise<User | undefined> {
+    const user = await this.getUser(userId);
+    if (!user) return undefined;
+    
+    const [updated] = await db
+      .update(users)
+      .set({ 
+        credits: (user.credits || 0) + amount,
+        updatedAt: new Date() 
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deductCredits(userId: string, amount: number): Promise<User | undefined> {
+    const user = await this.getUser(userId);
+    if (!user) return undefined;
+    
+    const currentCredits = user.credits || 0;
+    if (currentCredits < amount) {
+      throw new Error('Insufficient credits');
+    }
+    
+    const [updated] = await db
+      .update(users)
+      .set({ 
+        credits: currentCredits - amount,
+        updatedAt: new Date() 
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return updated || undefined;
   }
 }
 
