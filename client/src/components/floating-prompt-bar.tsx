@@ -289,25 +289,6 @@ export function FloatingPromptBar() {
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-0.5 p-1 bg-white/5 rounded-lg">
-              {countOptions.map((option) => (
-                <button
-                  key={option.id}
-                  onClick={() => setSelectedCount(option.id)}
-                  className={cn(
-                    "w-7 h-7 flex items-center justify-center rounded text-xs font-semibold transition-all",
-                    selectedCount === option.id
-                      ? "bg-[#B94E30] text-white"
-                      : "text-white/50 hover:text-white hover:bg-white/10"
-                  )}
-                  data-testid={`main-count-${option.id}`}
-                  title={`Generate ${option.label} image${option.id !== "1" ? "s" : ""}`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-full">
               <Zap className="h-3.5 w-3.5 text-[#E3B436]" />
               <span className="text-xs font-medium text-white/70">10</span>
@@ -533,40 +514,24 @@ export function FloatingPromptBar() {
                     </PopoverContent>
                   </Popover>
 
-                  <Popover open={openDropdown === "countExpanded"} onOpenChange={(open) => handleDropdownChange("countExpanded", open)}>
-                    <PopoverTrigger asChild>
+                  <div className="flex items-center gap-0.5 p-1 bg-white/5 rounded-lg">
+                    {countOptions.map((option) => (
                       <button
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-white/5 text-white/80 hover:text-white hover:bg-white/10 transition-all"
-                        data-testid="count-dropdown"
+                        key={option.id}
+                        onClick={() => setSelectedCount(option.id)}
+                        className={cn(
+                          "w-7 h-7 flex items-center justify-center rounded text-xs font-semibold transition-all",
+                          selectedCount === option.id
+                            ? "bg-[#B94E30] text-white"
+                            : "text-white/50 hover:text-white hover:bg-white/10"
+                        )}
+                        data-testid={`count-${option.id}`}
+                        title={`Generate ${option.label} image${option.id !== "1" ? "s" : ""}`}
                       >
-                        <span className="text-[#E3B436] font-bold">#</span>
-                        {selectedCount} {parseInt(selectedCount) > 1 ? "Images" : "Image"}
-                        <ChevronDown className={cn("h-3 w-3 text-white/50 transition-transform", openDropdown === "countExpanded" && "rotate-180")} />
+                        {option.label}
                       </button>
-                    </PopoverTrigger>
-                    <PopoverContent 
-                      className="w-32 p-1 bg-black/95 border-white/10 backdrop-blur-xl animate-in fade-in-0 zoom-in-95 duration-150"
-                      align="center"
-                      sideOffset={8}
-                    >
-                      {countOptions.map((option) => (
-                        <button
-                          key={option.id}
-                          onClick={() => { setSelectedCount(option.id); setOpenDropdown(null); }}
-                          className={cn(
-                            "w-full flex items-center justify-between px-3 py-2 rounded text-xs font-medium transition-all",
-                            selectedCount === option.id
-                              ? "bg-[#B94E30] text-white"
-                              : "text-white/70 hover:text-white hover:bg-white/10"
-                          )}
-                          data-testid={`count-${option.id}`}
-                        >
-                          {option.label} {parseInt(option.id) > 1 ? "Images" : "Image"}
-                          {selectedCount === option.id && <Check className="h-3 w-3" />}
-                        </button>
-                      ))}
-                    </PopoverContent>
-                  </Popover>
+                    ))}
+                  </div>
                 </div>
               </div>
             </motion.div>
