@@ -65,11 +65,11 @@ function LazyMasonryCard({ item, index }: { item: InspirationItem; index: number
       initial={{ opacity: 0, y: 60 }}
       animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 60 }}
       transition={{ duration: 0.5, delay: (index % 8) * 0.05, ease: "easeOut" }}
-      className="break-inside-avoid mb-2"
+      className="break-inside-avoid mb-1"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="group bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-[20px] overflow-hidden cursor-pointer hover:border-[#B94E30]/50 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(185,78,48,0.15)] transition-all duration-300">
+      <div className="group bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-[16px] overflow-hidden cursor-pointer hover:border-[#B94E30]/50 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(185,78,48,0.15)] transition-all duration-300">
         <div className={cn("relative overflow-hidden", aspectClasses[item.aspectRatio])}>
           {isVisible ? (
             <>
@@ -511,8 +511,8 @@ export default function PublicHome() {
       
       <main className="flex-1 flex flex-col relative h-full overflow-y-auto bg-[#F8F8F8] dark:bg-[#0A0A0B] text-[#18181B] dark:text-[#FAFAFA] pb-32 md:pb-28">
         
-        <div className="px-4 md:px-8 lg:px-12 py-6 max-w-[1600px] mx-auto w-full">
-          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-2">
+        <div className="px-3 md:px-6 lg:px-8 py-4 max-w-[1600px] mx-auto w-full">
+          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-1">
             {displayedItems.map((item, index) => (
               <LazyMasonryCard key={item.id} item={item} index={index} />
             ))}
@@ -527,6 +527,27 @@ export default function PublicHome() {
             )}
           </div>
         </div>
+
+        {/* Footer */}
+        <footer className="mt-auto py-6 px-4 md:px-8 border-t border-border/30 bg-background/50">
+          <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-xs text-muted-foreground">
+              © {new Date().getFullYear()} VALYOU DIGITAL MARKETING LLC. All rights reserved.
+            </p>
+            <div className="flex items-center gap-6">
+              <Link href="/privacy">
+                <span className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+                  Privacy Policy
+                </span>
+              </Link>
+              <Link href="/terms">
+                <span className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+                  Terms of Service
+                </span>
+              </Link>
+            </div>
+          </div>
+        </footer>
       </main>
 
       <FloatingPromptBar />
