@@ -9,7 +9,6 @@ import {
   Folder, 
   Star, 
   Settings, 
-  CreditCard, 
   HelpCircle,
   ChevronRight,
   Sun,
@@ -110,7 +109,6 @@ export function Sidebar({ className }: SidebarProps) {
 
   const account = [
     { name: "Settings", shortName: "Settings", icon: Settings, href: "/settings" },
-    { name: "Billing", shortName: "Billing", icon: CreditCard, href: "/billing" },
     { name: "Help & Support", shortName: "Help", icon: HelpCircle, href: "/help" },
   ];
 
