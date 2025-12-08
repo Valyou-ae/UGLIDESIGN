@@ -171,21 +171,21 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
               <Link key={item.name} href={item.href}>
                 <div
                   className={cn(
-                    "flex flex-col items-center justify-center gap-1 py-2.5 px-1 rounded-xl font-medium transition-all cursor-pointer group relative select-none mx-1",
+                    "flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium transition-all cursor-pointer group relative select-none mx-auto w-[64px]",
                     isActive 
-                      ? "text-primary bg-primary/10" 
-                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                      ? "text-primary bg-primary/15" 
+                      : "text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-white"
                   )}
                 >
                   <item.icon 
                     className={cn(
-                      "h-6 w-6 flex-shrink-0 transition-transform duration-200 group-hover:scale-125", 
-                      isActive ? "text-primary" : "text-sidebar-foreground/60 group-hover:text-sidebar-foreground"
+                      "h-7 w-7 flex-shrink-0 transition-all duration-200 group-hover:scale-110", 
+                      isActive ? "text-primary" : "text-sidebar-foreground/50 group-hover:text-white group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]"
                     )} 
                   />
                   <span className={cn(
-                    "text-[9px] font-medium truncate max-w-full",
-                    isActive ? "text-primary" : "text-sidebar-foreground/50 group-hover:text-sidebar-foreground"
+                    "text-[10px] font-medium truncate max-w-full",
+                    isActive ? "text-primary" : "text-sidebar-foreground/50 group-hover:text-white"
                   )}>
                     {item.shortName}
                   </span>
@@ -246,9 +246,9 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
           {extras.map((item) => (
             collapsed ? (
               <Link key={item.name} href={item.href}>
-                <div className="flex flex-col items-center justify-center gap-1 py-2.5 px-1 rounded-xl font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-all cursor-pointer group select-none mx-1">
-                  <item.icon className="h-6 w-6 text-sidebar-foreground/60 flex-shrink-0 transition-transform duration-200 group-hover:scale-125 group-hover:text-sidebar-foreground" />
-                  <span className="text-[9px] font-medium text-sidebar-foreground/50 group-hover:text-sidebar-foreground">
+                <div className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-white transition-all cursor-pointer group select-none mx-auto w-[64px]">
+                  <item.icon className="h-7 w-7 text-sidebar-foreground/50 flex-shrink-0 transition-all duration-200 group-hover:scale-110 group-hover:text-white group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
+                  <span className="text-[10px] font-medium text-sidebar-foreground/50 group-hover:text-white">
                     {item.shortName}
                   </span>
                 </div>
