@@ -20,10 +20,6 @@ localPort = 5001
 externalPort = 3000
 
 [[ports]]
-localPort = 33239
-externalPort = 8080
-
-[[ports]]
 localPort = 33303
 externalPort = 3001
 
@@ -50,6 +46,10 @@ externalPort = 3003
 [[ports]]
 localPort = 36251
 externalPort = 5000
+
+[[ports]]
+localPort = 39849
+externalPort = 8080
 
 [[ports]]
 localPort = 41153
@@ -94,7 +94,6 @@ integrations = ["javascript_database:1.0.0", "stripe:2.0.0"]
 [userenv]
 
 [userenv.development]
-TEST_MODE = "true"
 
 [userenv.shared]
 GOOGLE_CLIENT_ID = "219712504704-2mv22scc589s3da7fufolugsnqumc545.apps.googleusercontent.com"
