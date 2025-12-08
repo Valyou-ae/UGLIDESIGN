@@ -168,12 +168,12 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
                 <img 
                   src={user.profileImageUrl} 
                   alt={user.displayName || "User"} 
-                  className="h-10 w-10 rounded-full object-cover ring-2 ring-[#B94E30]/50 group-hover:ring-[#B94E30] transition-all"
+                  className="h-9 w-9 rounded-full object-cover border-2 border-white/30 group-hover:border-white/60 transition-all"
                   data-testid="img-user-avatar"
                 />
               ) : (
-                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#B94E30] to-[#E3B436] flex items-center justify-center ring-2 ring-[#B94E30]/50 group-hover:ring-[#B94E30] transition-all" data-testid="icon-user-avatar">
-                  <span className="text-sm font-bold text-white">
+                <div className="h-9 w-9 rounded-full bg-zinc-700 flex items-center justify-center border-2 border-white/30 group-hover:border-white/60 transition-all" data-testid="icon-user-avatar">
+                  <span className="text-xs font-semibold text-white/80">
                     {getInitials(user.displayName || user.email || "U")}
                   </span>
                 </div>
