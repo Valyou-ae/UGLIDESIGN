@@ -232,6 +232,48 @@ export function BentoGrid() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-10">
       
+      {/* Welcome Hero */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="lg:col-span-3 relative overflow-hidden rounded-[24px] bg-gradient-to-br from-[#B94E30] via-[#8B3A24] to-[#664D3F] p-8 md:p-10"
+      >
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48ZyBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTAgMzhoNDB2MmgtNDB6Ii8+PHBhdGggZD0iTTAgMGg0MHYyaC00MHoiLz48cGF0aCBkPSJNMCAwdjQwaDJWMHoiLz48cGF0aCBkPSJNMzggMHY0MGgyVjB6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
+        <div className="absolute -top-40 -right-40 w-[400px] h-[400px] rounded-full bg-[#E3B436]/20 blur-3xl" />
+        <div className="absolute -bottom-20 -left-20 w-[300px] h-[300px] rounded-full bg-[#B94E30]/30 blur-3xl" />
+        
+        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="max-w-xl">
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles className="h-5 w-5 text-white/80" />
+              <span className="text-sm font-medium text-white/80">AI-Powered Creative Studio</span>
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-3 tracking-tight">
+              Start Creating
+            </h1>
+            <p className="text-white/70 text-base md:text-lg leading-relaxed">
+              Generate stunning images, professional mockups, and remove backgrounds in seconds with our AI tools.
+            </p>
+          </div>
+          
+          <div className="flex flex-wrap gap-3">
+            <Link href="/image-gen">
+              <Button data-testid="button-generate-image" className="h-12 px-6 bg-white text-[#B94E30] hover:bg-white/90 rounded-xl font-semibold shadow-lg shadow-black/20">
+                <Sparkles className="h-4 w-4 mr-2" />
+                Generate Image
+              </Button>
+            </Link>
+            <Link href="/mockup">
+              <Button data-testid="button-create-mockup" variant="outline" className="h-12 px-6 bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-xl font-semibold backdrop-blur-sm">
+                <Shirt className="h-4 w-4 mr-2" />
+                Create Mockup
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </motion.div>
+
       {/* ROW 1: Modules */}
       <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
         <ModuleCard 

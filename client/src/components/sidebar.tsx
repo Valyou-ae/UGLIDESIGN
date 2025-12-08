@@ -75,7 +75,7 @@ interface SidebarProps {
 
 export function Sidebar({ className }: SidebarProps) {
   const [location] = useLocation();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   const navigation = [
     { name: "Home", icon: Home, href: "/", count: null },
