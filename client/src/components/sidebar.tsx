@@ -165,18 +165,8 @@ export function Sidebar({ className }: SidebarProps) {
           className
         )}
       >
-      {/* Header / Logo */}
-      <div className={cn("flex items-center gap-3 px-4 py-6 h-[88px]", collapsed ? "justify-center px-2" : "")}>
-        <div className="h-10 w-10 min-w-[40px] rounded-xl bg-gradient-to-br from-[#B94E30] to-[#E3B436] flex items-center justify-center shadow-lg shadow-[#B94E30]/20">
-          <div className="h-5 w-5 bg-white/20 rounded-md backdrop-blur-sm" />
-        </div>
-        {!collapsed && (
-          <div className="flex flex-col overflow-hidden animate-fade-in whitespace-nowrap">
-            <span className="font-bold text-sidebar-foreground text-lg">AI Studio</span>
-            <span className="text-[11px] text-muted-foreground font-medium">Pro Plan</span>
-          </div>
-        )}
-      </div>
+      {/* Header spacing */}
+      <div className={cn("h-4", collapsed ? "" : "")} />
 
       {/* User Profile */}
       <Link href="/profile">
@@ -184,13 +174,10 @@ export function Sidebar({ className }: SidebarProps) {
           "mx-3 mb-6 p-2 rounded-xl flex items-center gap-3 cursor-pointer hover:bg-sidebar-accent transition-colors group overflow-hidden",
           collapsed ? "justify-center bg-transparent" : "bg-sidebar-accent/50 border border-sidebar-border/50"
         )}>
-          <div className="relative flex-shrink-0">
-            <div className="absolute -inset-0.5 bg-gradient-to-br from-[#B94E30] to-[#E3B436] rounded-full opacity-70 group-hover:opacity-100 transition-opacity" />
-            <Avatar className="h-9 w-9 border-2 border-sidebar relative">
-              <AvatarImage src="https://github.com/shadcn.png" />
-              <AvatarFallback>JD</AvatarFallback>
-            </Avatar>
-          </div>
+          <Avatar className="h-9 w-9 border-2 border-white/30 group-hover:border-white/60 transition-all flex-shrink-0">
+            <AvatarImage src="https://github.com/shadcn.png" />
+            <AvatarFallback className="bg-zinc-700 text-white/80 text-xs">JD</AvatarFallback>
+          </Avatar>
           {!collapsed && (
             <div className="flex-1 overflow-hidden animate-fade-in">
               <p className="text-sm font-semibold truncate text-sidebar-foreground">John Doe</p>
