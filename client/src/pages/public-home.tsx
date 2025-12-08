@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { 
-  BadgeCheck, 
   Eye, 
   Heart, 
   Wand2,
@@ -27,7 +26,55 @@ interface InspirationItem {
   prompt: string;
 }
 
-function LazyMasonryCard({ item, index }: { item: InspirationItem; index: number }) {
+const aspectRatioToNumber = (ratio: string): number => {
+  const ratios: Record<string, number> = {
+    "1:1": 1,
+    "9:16": 9/16,
+    "16:9": 16/9,
+    "4:5": 4/5,
+    "3:4": 3/4
+  };
+  return ratios[ratio] || 1;
+};
+
+interface JustifiedRow {
+  items: InspirationItem[];
+  height: number;
+}
+
+function calculateJustifiedRows(items: InspirationItem[], containerWidth: number, targetHeight: number = 280, gap: number = 4): JustifiedRow[] {
+  const rows: JustifiedRow[] = [];
+  let currentRow: InspirationItem[] = [];
+  let currentRowWidth = 0;
+
+  items.forEach((item) => {
+    const aspectRatio = aspectRatioToNumber(item.aspectRatio);
+    const itemWidth = targetHeight * aspectRatio;
+    
+    if (currentRowWidth + itemWidth + (currentRow.length * gap) > containerWidth && currentRow.length > 0) {
+      const totalAspectRatio = currentRow.reduce((sum, i) => sum + aspectRatioToNumber(i.aspectRatio), 0);
+      const availableWidth = containerWidth - (currentRow.length - 1) * gap;
+      const rowHeight = availableWidth / totalAspectRatio;
+      rows.push({ items: [...currentRow], height: rowHeight });
+      currentRow = [item];
+      currentRowWidth = itemWidth;
+    } else {
+      currentRow.push(item);
+      currentRowWidth += itemWidth;
+    }
+  });
+
+  if (currentRow.length > 0) {
+    const totalAspectRatio = currentRow.reduce((sum, i) => sum + aspectRatioToNumber(i.aspectRatio), 0);
+    const availableWidth = containerWidth - (currentRow.length - 1) * gap;
+    const rowHeight = availableWidth / totalAspectRatio;
+    rows.push({ items: currentRow, height: rowHeight });
+  }
+
+  return rows;
+}
+
+function JustifiedGalleryCard({ item, rowHeight, index }: { item: InspirationItem; rowHeight: number; index: number }) {
   const [isVisible, setIsVisible] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -51,26 +98,22 @@ function LazyMasonryCard({ item, index }: { item: InspirationItem; index: number
     return () => observer.disconnect();
   }, []);
 
-  const aspectClasses: Record<string, string> = {
-    "1:1": "aspect-square",
-    "9:16": "aspect-[9/16]",
-    "16:9": "aspect-[16/9]",
-    "4:5": "aspect-[4/5]",
-    "3:4": "aspect-[3/4]"
-  };
+  const aspectRatio = aspectRatioToNumber(item.aspectRatio);
+  const cardWidth = rowHeight * aspectRatio;
 
   return (
     <motion.div
       ref={cardRef}
-      initial={{ opacity: 0, y: 60 }}
-      animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 60 }}
-      transition={{ duration: 0.5, delay: (index % 8) * 0.05, ease: "easeOut" }}
-      className="break-inside-avoid mb-1"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={isVisible ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.4, delay: (index % 6) * 0.05, ease: "easeOut" }}
+      style={{ width: cardWidth, height: rowHeight, flexShrink: 0 }}
+      className="relative"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="group bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-[16px] overflow-hidden cursor-pointer hover:border-[#B94E30]/50 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(185,78,48,0.15)] transition-all duration-300">
-        <div className={cn("relative overflow-hidden", aspectClasses[item.aspectRatio])}>
+      <div className="group w-full h-full bg-white dark:bg-[#111113] rounded-lg overflow-hidden cursor-pointer hover:shadow-[0_10px_40px_rgba(185,78,48,0.2)] transition-all duration-300">
+        <div className="relative w-full h-full overflow-hidden">
           {isVisible ? (
             <>
               <img 
@@ -79,8 +122,8 @@ function LazyMasonryCard({ item, index }: { item: InspirationItem; index: number
                 loading="lazy"
                 onLoad={() => setImageLoaded(true)}
                 className={cn(
-                  "w-full h-full object-cover transition-all duration-700 group-hover:scale-110",
-                  imageLoaded ? "opacity-100 blur-0" : "opacity-0 blur-sm"
+                  "w-full h-full object-cover transition-all duration-500 group-hover:scale-105",
+                  imageLoaded ? "opacity-100" : "opacity-0"
                 )}
               />
               {!imageLoaded && (
@@ -91,9 +134,24 @@ function LazyMasonryCard({ item, index }: { item: InspirationItem; index: number
             <div className="absolute inset-0 bg-gradient-to-br from-zinc-200 to-zinc-300 dark:from-zinc-800 dark:to-zinc-900 animate-pulse" />
           )}
           
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-90 transition-opacity" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-90 transition-opacity duration-300" />
 
-          <div className="absolute bottom-0 left-0 right-0 p-4">
+          <div className="absolute bottom-0 left-0 right-0 p-3">
+            <div className="flex items-center gap-3 text-white/80">
+              <div className="flex items-center gap-1 text-xs">
+                <Eye className="h-3 w-3" />
+                <span>{item.views}</span>
+              </div>
+              <div className="flex items-center gap-1 text-xs">
+                <Heart className="h-3 w-3" />
+                <span>{item.likes}</span>
+              </div>
+              <div className="flex items-center gap-1 text-xs">
+                <Wand2 className="h-3 w-3" />
+                <span>{item.uses}</span>
+              </div>
+            </div>
+            
             <AnimatePresence>
               {isHovered && (
                 <motion.div
@@ -101,10 +159,10 @@ function LazyMasonryCard({ item, index }: { item: InspirationItem; index: number
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="mt-3 overflow-hidden"
+                  className="mt-2 overflow-hidden"
                 >
-                  <div className="bg-black/40 backdrop-blur-md rounded-lg p-3">
-                    <p className="text-[11px] text-white/90 leading-relaxed line-clamp-3">
+                  <div className="bg-black/40 backdrop-blur-md rounded-lg p-2">
+                    <p className="text-[10px] text-white/90 leading-relaxed line-clamp-2">
                       <span className="text-[#E3B436] font-medium">Prompt: </span>
                       {item.prompt}
                     </p>
@@ -114,25 +172,54 @@ function LazyMasonryCard({ item, index }: { item: InspirationItem; index: number
             </AnimatePresence>
           </div>
         </div>
-
-        <div className="p-4">
-          <div className="flex gap-4">
-            <div className="flex items-center gap-1 text-xs text-[#71717A] dark:text-[#52525B]">
-              <Eye className="h-3.5 w-3.5" />
-              <span>{item.views}</span>
-            </div>
-            <div className="flex items-center gap-1 text-xs text-[#71717A] dark:text-[#52525B]">
-              <Heart className="h-3.5 w-3.5" />
-              <span>{item.likes}</span>
-            </div>
-            <div className="flex items-center gap-1 text-xs text-[#71717A] dark:text-[#52525B]">
-              <Wand2 className="h-3.5 w-3.5" />
-              <span>{item.uses}</span>
-            </div>
-          </div>
-        </div>
       </div>
     </motion.div>
+  );
+}
+
+function JustifiedGallery({ items }: { items: InspirationItem[] }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(1200);
+  const [rows, setRows] = useState<JustifiedRow[]>([]);
+
+  useEffect(() => {
+    const updateWidth = () => {
+      if (containerRef.current) {
+        setContainerWidth(containerRef.current.offsetWidth);
+      }
+    };
+
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
+
+  useEffect(() => {
+    const targetHeight = containerWidth < 640 ? 180 : containerWidth < 1024 ? 220 : 280;
+    const calculatedRows = calculateJustifiedRows(items, containerWidth, targetHeight, 4);
+    setRows(calculatedRows);
+  }, [items, containerWidth]);
+
+  let itemIndex = 0;
+
+  return (
+    <div ref={containerRef} className="w-full">
+      {rows.map((row, rowIndex) => (
+        <div key={rowIndex} className="flex gap-1 mb-1">
+          {row.items.map((item) => {
+            const currentIndex = itemIndex++;
+            return (
+              <JustifiedGalleryCard
+                key={item.id}
+                item={item}
+                rowHeight={row.height}
+                index={currentIndex}
+              />
+            );
+          })}
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -511,12 +598,8 @@ export default function PublicHome() {
       
       <main className="flex-1 flex flex-col relative h-full overflow-y-auto bg-[#F8F8F8] dark:bg-[#0A0A0B] text-[#18181B] dark:text-[#FAFAFA] pb-32 md:pb-28">
         
-        <div className="px-3 md:px-6 lg:px-8 py-4 max-w-[1600px] mx-auto w-full">
-          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-1">
-            {displayedItems.map((item, index) => (
-              <LazyMasonryCard key={item.id} item={item} index={index} />
-            ))}
-          </div>
+        <div className="px-2 md:px-4 lg:px-6 py-4 max-w-[1800px] mx-auto w-full">
+          <JustifiedGallery items={displayedItems} />
 
           <div ref={loadMoreRef} className="flex justify-center py-8">
             {isLoading && (
