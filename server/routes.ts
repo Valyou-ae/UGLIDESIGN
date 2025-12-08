@@ -266,7 +266,18 @@ export async function registerRoutes(
     try {
       const userId = getUserId(req);
       const stats = await storage.getUserStats(userId);
-      res.json(stats);
+      const credits = await storage.getUserCredits(userId);
+      res.json({ ...stats, credits });
+    } catch (error) {
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.get("/api/user/credits", requireAuth, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const credits = await storage.getUserCredits(userId);
+      res.json({ credits });
     } catch (error) {
       res.status(500).json({ message: "Server error" });
     }
