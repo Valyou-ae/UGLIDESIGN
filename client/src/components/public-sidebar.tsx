@@ -158,31 +158,44 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
         )}
       >
       {isAuthenticated && user && (
-        <div className={cn("px-3 py-4 border-b border-white/10", collapsed ? "flex flex-col items-center" : "")} data-testid="section-user-profile">
+        <div className="px-3 pt-4 pb-2" data-testid="section-user-profile">
           <Link href="/profile" data-testid="link-user-profile">
-            <div className={cn(
-              "flex items-center gap-3 cursor-pointer group",
-              collapsed ? "flex-col text-center" : ""
-            )}>
-              {user.profileImageUrl ? (
-                <img 
-                  src={user.profileImageUrl} 
-                  alt={user.displayName || "User"} 
-                  className="h-9 w-9 rounded-full object-cover border-2 border-white/30 group-hover:border-white/60 transition-all"
-                  data-testid="img-user-avatar"
-                />
-              ) : (
-                <div className="h-9 w-9 rounded-full bg-zinc-700 flex items-center justify-center border-2 border-white/30 group-hover:border-white/60 transition-all" data-testid="icon-user-avatar">
-                  <span className="text-xs font-semibold text-white/80">
-                    {getInitials(user.displayName || user.email || "U")}
-                  </span>
-                </div>
-              )}
-              {collapsed ? (
-                <p className="text-[10px] font-medium text-white/70 truncate max-w-[60px]" data-testid="text-user-name-collapsed">
-                  {(user.displayName || user.email || "User").split(' ')[0]}
-                </p>
-              ) : (
+            {collapsed ? (
+              <div className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-white transition-all cursor-pointer group relative select-none mx-auto w-[64px]">
+                {user.profileImageUrl ? (
+                  <img 
+                    src={user.profileImageUrl} 
+                    alt={user.displayName || "User"} 
+                    className="h-7 w-7 rounded-full object-cover border-2 border-white/30 group-hover:border-white/60 transition-all"
+                    data-testid="img-user-avatar"
+                  />
+                ) : (
+                  <div className="h-7 w-7 rounded-full bg-zinc-700 flex items-center justify-center border-2 border-white/30 group-hover:border-white/60 transition-all" data-testid="icon-user-avatar">
+                    <span className="text-[10px] font-semibold text-white/80">
+                      {getInitials(user.displayName || user.email || "U")}
+                    </span>
+                  </div>
+                )}
+                <span className="text-[10px] font-medium text-sidebar-foreground/50 group-hover:text-white" data-testid="text-user-name-collapsed">
+                  Profile
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 cursor-pointer group p-2 rounded-xl hover:bg-sidebar-accent transition-colors">
+                {user.profileImageUrl ? (
+                  <img 
+                    src={user.profileImageUrl} 
+                    alt={user.displayName || "User"} 
+                    className="h-9 w-9 rounded-full object-cover border-2 border-white/30 group-hover:border-white/60 transition-all"
+                    data-testid="img-user-avatar"
+                  />
+                ) : (
+                  <div className="h-9 w-9 rounded-full bg-zinc-700 flex items-center justify-center border-2 border-white/30 group-hover:border-white/60 transition-all" data-testid="icon-user-avatar">
+                    <span className="text-xs font-semibold text-white/80">
+                      {getInitials(user.displayName || user.email || "U")}
+                    </span>
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-white truncate" data-testid="text-user-name">
                     {user.displayName || "User"}
@@ -191,8 +204,8 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
                     {user.email}
                   </p>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </Link>
         </div>
       )}
@@ -353,24 +366,35 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
         </>
       )}
 
-      <div className={cn("pt-4 mt-auto px-3 pb-6", collapsed ? "flex flex-col items-center gap-3" : "space-y-3")}>
-        <ThemeToggle collapsed={collapsed} />
-        
+      <div className={cn("pt-4 mt-auto px-3 pb-6", collapsed ? "space-y-1" : "space-y-3")}>
         {isAuthenticated && (
-          <button
-            onClick={logout}
-            className={cn(
-              "flex items-center gap-3 rounded-lg font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all cursor-pointer group select-none w-full",
-              collapsed ? "justify-center p-2" : "px-3.5 py-2.5 text-sm"
-            )}
-            data-testid="button-logout"
-          >
-            <LogOut className={cn(
-              "flex-shrink-0 transition-transform duration-200 group-hover:scale-110",
-              collapsed ? "h-6 w-6" : "h-5 w-5"
-            )} />
-            {!collapsed && <span>Logout</span>}
-          </button>
+          collapsed ? (
+            <button
+              onClick={logout}
+              className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all cursor-pointer group select-none mx-auto w-[64px]"
+              data-testid="button-logout"
+            >
+              <LogOut className="h-7 w-7 flex-shrink-0 transition-all duration-200 group-hover:scale-110" />
+              <span className="text-[10px] font-medium">Logout</span>
+            </button>
+          ) : (
+            <button
+              onClick={logout}
+              className="flex items-center gap-3 rounded-lg font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all cursor-pointer group select-none w-full px-3.5 py-2.5 text-sm"
+              data-testid="button-logout"
+            >
+              <LogOut className="h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
+              <span>Logout</span>
+            </button>
+          )
+        )}
+        
+        {collapsed ? (
+          <div className="flex flex-col items-center justify-center py-3 px-2 mx-auto w-[64px]">
+            <ThemeToggle collapsed={collapsed} />
+          </div>
+        ) : (
+          <ThemeToggle collapsed={collapsed} />
         )}
       </div>
     </aside>
