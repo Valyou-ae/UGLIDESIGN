@@ -118,9 +118,12 @@ export function GoogleAutoSignIn({ onSuccess, onError }: GoogleAutoSignInProps) 
 
               if (authResponse.ok) {
                 console.log("Google sign-in successful");
-                await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+                await queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
+                console.log("Auth state refreshed, redirecting to discover");
                 onSuccess?.();
-                setLocation("/discover");
+                setTimeout(() => {
+                  setLocation("/discover");
+                }, 100);
               } else {
                 const error = await authResponse.json();
                 console.error("Google auth failed:", error);

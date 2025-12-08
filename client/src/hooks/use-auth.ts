@@ -19,11 +19,13 @@ async function fetchUser() {
 export function useAuth() {
   const queryClient = useQueryClient();
 
-  const { data: user, isLoading, error } = useQuery({
+  const { data: user, isLoading, error, refetch } = useQuery({
     queryKey: ["/api/auth/user"],
     queryFn: fetchUser,
     retry: false,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
   });
 
   const login = () => {
@@ -43,6 +45,11 @@ export function useAuth() {
     window.location.href = "/";
   };
 
+  const refreshAuth = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+    return refetch();
+  };
+
   return {
     user,
     isLoading,
@@ -51,5 +58,6 @@ export function useAuth() {
     error,
     login,
     logout,
+    refreshAuth,
   };
 }
