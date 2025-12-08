@@ -37,9 +37,9 @@ import AdminAnalytics from "@/pages/admin/analytics";
 function Router() {
   return (
     <Switch>
-      {/* Root redirects to home/dashboard */}
+      {/* Root redirects to discover page */}
       <Route path="/">
-        <Redirect to="/home" />
+        <Redirect to="/discover" />
       </Route>
 
       {/* Public routes */}
