@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { 
   Home, 
   Image as ImageIcon, 
@@ -14,7 +15,8 @@ import {
   ChevronLeft,
   Sun,
   Moon,
-  Compass
+  Compass,
+  Coins
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -26,6 +28,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { userApi } from "@/lib/api";
 
 function ThemeToggle({ collapsed }: { collapsed: boolean }) {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
@@ -79,6 +82,17 @@ interface SidebarProps {
 export function Sidebar({ className }: SidebarProps) {
   const [location] = useLocation();
   const [collapsed, setCollapsed] = useState(true);
+
+  const { data: stats } = useQuery({
+    queryKey: ["user", "stats"],
+    queryFn: userApi.getStats,
+    staleTime: 1000 * 60 * 5,
+    retry: false,
+  });
+
+  const credits = stats?.credits ?? 0;
+  const maxCredits = 100;
+  const creditsPercentage = Math.min(Math.round((credits / maxCredits) * 100), 100);
 
   const navigation = [
     { name: "Home", shortName: "Home", icon: Home, href: "/", count: null },
@@ -368,7 +382,7 @@ export function Sidebar({ className }: SidebarProps) {
                 />
                 <path
                   className="text-primary drop-shadow-md"
-                  strokeDasharray="76, 100"
+                  strokeDasharray={`${creditsPercentage}, 100`}
                   d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                   fill="none"
                   stroke="currentColor"
@@ -376,45 +390,49 @@ export function Sidebar({ className }: SidebarProps) {
                   strokeLinecap="round"
                 />
               </svg>
-              <span className="absolute text-[10px] font-bold text-sidebar-foreground">76%</span>
+              <Coins className="absolute h-4 w-4 text-primary" />
             </div>
             <div className="flex-1 overflow-hidden">
               <div className="flex items-baseline gap-1">
-                <span className="text-lg font-bold text-sidebar-foreground">1.5k</span>
-                <span className="text-[10px] text-muted-foreground">/ 2k</span>
+                <span className="text-lg font-bold text-sidebar-foreground">{credits}</span>
+                <span className="text-[10px] text-muted-foreground">credits</span>
               </div>
-              <Button size="sm" className="h-7 text-[10px] rounded-full w-full mt-1 bg-primary hover:bg-primary/90 text-white border-0">
-                Upgrade
-              </Button>
+              <Link href="/billing">
+                <Button size="sm" className="h-7 text-[10px] rounded-full w-full mt-1 bg-primary hover:bg-primary/90 text-white border-0">
+                  Get More
+                </Button>
+              </Link>
             </div>
           </div>
         ) : (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="relative h-10 w-10 mb-4 flex items-center justify-center cursor-pointer">
-                  <svg className="h-full w-full -rotate-90" viewBox="0 0 36 36">
-                    <path
-                      className="text-sidebar-accent"
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                    />
-                    <path
-                      className="text-primary"
-                      strokeDasharray="76, 100"
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <span className="absolute text-[9px] font-bold text-sidebar-foreground">76%</span>
-                </div>
+                <Link href="/billing">
+                  <div className="relative h-10 w-10 mb-4 flex items-center justify-center cursor-pointer">
+                    <svg className="h-full w-full -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        className="text-sidebar-accent"
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                      />
+                      <path
+                        className="text-primary"
+                        strokeDasharray={`${creditsPercentage}, 100`}
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <Coins className="absolute h-3.5 w-3.5 text-primary" />
+                  </div>
+                </Link>
               </TooltipTrigger>
-              <TooltipContent side="right"><p>1,523 / 2,000 credits</p></TooltipContent>
+              <TooltipContent side="right"><p>{credits} credits available</p></TooltipContent>
             </Tooltip>
           </TooltipProvider>
         )}

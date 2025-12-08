@@ -62,7 +62,7 @@ export const userApi = {
     }),
 
   getStats: () =>
-    fetchApi<{ images: number; mockups: number; bgRemoved: number; total: number }>("/user/stats"),
+    fetchApi<{ images: number; mockups: number; bgRemoved: number; total: number; credits: number }>("/user/stats"),
 };
 
 // Images API
