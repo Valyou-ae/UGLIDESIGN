@@ -13,7 +13,6 @@ import {
   Compass
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
@@ -137,17 +136,7 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
           className
         )}
       >
-      <div className={cn("flex items-center gap-3 px-4 py-6 h-[88px]", collapsed ? "justify-center px-2" : "")}>
-        <div className="h-10 w-10 min-w-[40px] rounded-xl bg-gradient-to-br from-[#B94E30] to-[#E3B436] flex items-center justify-center shadow-lg shadow-[#B94E30]/20">
-          <div className="h-5 w-5 bg-white/20 rounded-md backdrop-blur-sm" />
-        </div>
-        {!collapsed && (
-          <div className="flex flex-col overflow-hidden animate-fade-in whitespace-nowrap">
-            <span className="font-bold text-sidebar-foreground text-lg">AI Studio</span>
-            <span className="text-[11px] text-muted-foreground font-medium">Create with AI</span>
-          </div>
-        )}
-      </div>
+      <div className="h-6" />
 
       <div className="flex-1 overflow-y-auto no-scrollbar px-3">
         {!collapsed && <div className="mb-2 px-3 text-[11px] font-bold text-muted-foreground tracking-widest animate-fade-in">EXPLORE</div>}
@@ -255,20 +244,6 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
       </div>
 
       <div className={cn("pt-4 mt-auto px-3 pb-6", collapsed ? "flex flex-col items-center gap-3" : "")}>
-        {!collapsed && (
-          <Link href="/login">
-            <Button className="w-full mb-4 bg-gradient-to-r from-[#B94E30] to-[#E3B436] hover:from-[#A34329] hover:to-[#D4A52F] text-white font-semibold">
-              Get Started
-            </Button>
-          </Link>
-        )}
-        {collapsed && (
-          <Link href="/login">
-            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#B94E30] to-[#E3B436] flex items-center justify-center cursor-pointer hover:scale-110 transition-transform shadow-lg">
-              <span className="text-sm font-bold text-white">Go</span>
-            </div>
-          </Link>
-        )}
         <ThemeToggle collapsed={collapsed} />
       </div>
     </aside>
