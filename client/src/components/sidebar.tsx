@@ -167,7 +167,7 @@ export function Sidebar({ className }: SidebarProps) {
       <MobileNav />
       <aside 
         className={cn(
-          "relative h-screen border-r bg-sidebar transition-all duration-300 ease-in-out flex-col z-40 hidden md:flex",
+          "relative h-screen border-r border-white/10 bg-black/60 backdrop-blur-xl transition-all duration-300 ease-in-out flex-col z-40 hidden md:flex",
           collapsed ? "w-[80px]" : "w-[280px]",
           className
         )}
@@ -188,21 +188,21 @@ export function Sidebar({ className }: SidebarProps) {
                 <div
                   data-tutorial={(item as any).dataTutorial}
                   className={cn(
-                    "flex flex-col items-center justify-center gap-1 py-2.5 px-1 rounded-xl font-medium transition-all cursor-pointer group relative select-none mx-1",
+                    "flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium transition-all cursor-pointer group relative select-none mx-auto w-[64px]",
                     isActive 
-                      ? "text-sidebar-foreground bg-sidebar-accent/50" 
-                      : "text-sidebar-foreground/40 hover:bg-sidebar-accent/30 hover:text-sidebar-foreground/70"
+                      ? "text-white bg-white/15" 
+                      : "text-white/50 hover:bg-white/10 hover:text-white"
                   )}
                 >
                   <item.icon 
                     className={cn(
-                      "h-6 w-6 flex-shrink-0 transition-transform duration-200 group-hover:scale-125", 
-                      isActive ? "text-sidebar-foreground" : "text-sidebar-foreground/40 group-hover:text-sidebar-foreground/70"
+                      "h-7 w-7 flex-shrink-0 transition-all duration-200 group-hover:scale-110", 
+                      isActive ? "text-white" : "text-white/50 group-hover:text-white"
                     )} 
                   />
                   <span className={cn(
-                    "text-[9px] font-medium truncate max-w-full",
-                    isActive ? "text-sidebar-foreground" : "text-sidebar-foreground/40 group-hover:text-sidebar-foreground/70"
+                    "text-[10px] font-medium truncate max-w-full",
+                    isActive ? "text-white" : "text-white/50 group-hover:text-white"
                   )}>
                     {item.shortName}
                   </span>
@@ -218,18 +218,18 @@ export function Sidebar({ className }: SidebarProps) {
                         className={cn(
                           "flex items-center gap-3 rounded-lg font-medium transition-all cursor-pointer group relative select-none px-3.5 py-3 text-sm",
                           isActive 
-                            ? "text-sidebar-foreground" 
-                            : "text-sidebar-foreground/40 hover:bg-sidebar-accent/30 hover:text-sidebar-foreground/70"
+                            ? "text-white" 
+                            : "text-white/50 hover:bg-white/10 hover:text-white"
                         )}
                       >
                         {isActive && (
-                          <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 bg-sidebar-foreground rounded-r-full" />
+                          <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 bg-white rounded-r-full" />
                         )}
                         
                         <item.icon 
                           className={cn(
                             "h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110", 
-                            isActive ? "text-sidebar-foreground" : "text-sidebar-foreground/40 group-hover:text-sidebar-foreground/70"
+                            isActive ? "text-white" : "text-white/50 group-hover:text-white"
                           )} 
                         />
                         
@@ -267,18 +267,18 @@ export function Sidebar({ className }: SidebarProps) {
             return collapsed ? (
               <Link key={item.name} href={item.href}>
                 <div className={cn(
-                  "flex flex-col items-center justify-center gap-1 py-2.5 px-1 rounded-xl font-medium transition-all cursor-pointer group select-none mx-1",
+                  "flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium transition-all cursor-pointer group select-none mx-auto w-[64px]",
                   isActive 
-                    ? "text-sidebar-foreground bg-sidebar-accent/50" 
-                    : "text-sidebar-foreground/40 hover:bg-sidebar-accent/30 hover:text-sidebar-foreground/70"
+                    ? "text-white bg-white/15" 
+                    : "text-white/50 hover:bg-white/10 hover:text-white"
                 )}>
                   <item.icon className={cn(
-                    "h-6 w-6 flex-shrink-0 transition-transform duration-200 group-hover:scale-125",
-                    isActive ? "text-sidebar-foreground" : "text-sidebar-foreground/40 group-hover:text-sidebar-foreground/70"
+                    "h-7 w-7 flex-shrink-0 transition-all duration-200 group-hover:scale-110",
+                    isActive ? "text-white" : "text-white/50 group-hover:text-white"
                   )} />
                   <span className={cn(
-                    "text-[9px] font-medium",
-                    isActive ? "text-sidebar-foreground" : "text-sidebar-foreground/40 group-hover:text-sidebar-foreground/70"
+                    "text-[10px] font-medium",
+                    isActive ? "text-white" : "text-white/50 group-hover:text-white"
                   )}>
                     {item.shortName}
                   </span>
@@ -287,17 +287,17 @@ export function Sidebar({ className }: SidebarProps) {
             ) : (
               <Link key={item.name} href={item.href}>
                 <div className={cn(
-                  "flex items-center gap-3 rounded-lg font-medium transition-colors cursor-pointer group select-none px-3.5 py-3 text-sm relative",
+                  "flex items-center gap-3 rounded-lg font-medium transition-all cursor-pointer group select-none px-3.5 py-3 text-sm relative",
                   isActive 
-                    ? "text-sidebar-foreground" 
-                    : "text-sidebar-foreground/40 hover:bg-sidebar-accent/30 hover:text-sidebar-foreground/70"
+                    ? "text-white" 
+                    : "text-white/50 hover:bg-white/10 hover:text-white"
                 )}>
                   {isActive && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 bg-sidebar-foreground rounded-r-full" />
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 bg-white rounded-r-full" />
                   )}
                   <item.icon className={cn(
                     "h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110",
-                    isActive ? "text-sidebar-foreground" : "text-sidebar-foreground/40 group-hover:text-sidebar-foreground/70"
+                    isActive ? "text-white" : "text-white/50 group-hover:text-white"
                   )} />
                   <span>{item.name}</span>
                 </div>
@@ -308,7 +308,8 @@ export function Sidebar({ className }: SidebarProps) {
           {collapsed ? (
             <div 
               onClick={handleLogout}
-              className="flex flex-col items-center justify-center gap-1 py-2.5 px-1 rounded-xl font-medium text-red-500/70 hover:bg-red-900/10 hover:text-red-500 transition-all cursor-pointer group select-none mx-1"
+              className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all cursor-pointer group select-none mx-auto w-[64px]"
+              data-testid="button-logout"
             >
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
@@ -320,18 +321,19 @@ export function Sidebar({ className }: SidebarProps) {
                 strokeWidth="2" 
                 strokeLinecap="round" 
                 strokeLinejoin="round" 
-                className="h-6 w-6 flex-shrink-0 transition-transform duration-200 group-hover:scale-125"
+                className="h-7 w-7 flex-shrink-0 transition-all duration-200 group-hover:scale-110"
               >
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
                 <polyline points="16 17 21 12 16 7" />
                 <line x1="21" x2="9" y1="12" y2="12" />
               </svg>
-              <span className="text-[9px] font-medium">Logout</span>
+              <span className="text-[10px] font-medium">Logout</span>
             </div>
           ) : (
             <div 
               onClick={handleLogout}
-              className="flex items-center gap-3 rounded-lg font-medium text-red-500/70 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/10 transition-colors cursor-pointer group select-none px-3.5 py-3 text-sm"
+              className="flex items-center gap-3 rounded-lg font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all cursor-pointer group select-none px-3.5 py-3 text-sm"
+              data-testid="button-logout"
             >
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
