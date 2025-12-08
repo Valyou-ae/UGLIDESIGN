@@ -58,8 +58,11 @@ const countOptions = [
   { id: "4", label: "4" },
 ];
 
+type DropdownType = "style" | "count" | "quality" | "speed" | "ratio" | "detail" | "styleExpanded" | "countExpanded" | null;
+
 export function FloatingPromptBar() {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<DropdownType>(null);
   const [prompt, setPrompt] = useState("");
   const [selectedQuality, setSelectedQuality] = useState("draft");
   const [selectedSpeed, setSelectedSpeed] = useState("fast");
@@ -215,8 +218,11 @@ export function FloatingPromptBar() {
   };
 
   const handleMouseLeave = () => {
+    if (openDropdown) return;
     timeoutRef.current = setTimeout(() => {
-      setIsExpanded(false);
+      if (!openDropdown) {
+        setIsExpanded(false);
+      }
     }, 400);
   };
 
@@ -228,10 +234,24 @@ export function FloatingPromptBar() {
   };
 
   const handleBlur = (e: React.FocusEvent) => {
+    if (openDropdown) return;
     if (containerRef.current && !containerRef.current.contains(e.relatedTarget as Node)) {
       timeoutRef.current = setTimeout(() => {
-        setIsExpanded(false);
+        if (!openDropdown) {
+          setIsExpanded(false);
+        }
       }, 400);
+    }
+  };
+
+  const handleDropdownChange = (dropdown: DropdownType, isOpen: boolean) => {
+    if (isOpen) {
+      setOpenDropdown(dropdown);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    } else {
+      setOpenDropdown(null);
     }
   };
 
@@ -256,7 +276,7 @@ export function FloatingPromptBar() {
         transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
       >
         <div className="p-3 flex items-center gap-3">
-          <Popover>
+          <Popover open={openDropdown === "style"} onOpenChange={(open) => handleDropdownChange("style", open)}>
             <PopoverTrigger asChild>
               <button
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-all text-white/80 hover:text-white"
@@ -264,18 +284,18 @@ export function FloatingPromptBar() {
               >
                 <Palette className="h-4 w-4 text-[#B94E30]" />
                 <span className="text-xs font-medium">{styleOptions.find(s => s.id === selectedStyle)?.label}</span>
-                <ChevronDown className="h-3 w-3 text-white/50" />
+                <ChevronDown className={cn("h-3 w-3 text-white/50 transition-transform", openDropdown === "style" && "rotate-180")} />
               </button>
             </PopoverTrigger>
             <PopoverContent 
-              className="w-36 p-1 bg-black/95 border-white/10 backdrop-blur-xl"
+              className="w-36 p-1 bg-black/95 border-white/10 backdrop-blur-xl animate-in fade-in-0 zoom-in-95 duration-150"
               align="start"
               sideOffset={8}
             >
               {styleOptions.map((option) => (
                 <button
                   key={option.id}
-                  onClick={() => setSelectedStyle(option.id)}
+                  onClick={() => { setSelectedStyle(option.id); setOpenDropdown(null); }}
                   className={cn(
                     "w-full flex items-center justify-between px-3 py-2 rounded text-xs font-medium transition-all",
                     selectedStyle === option.id
@@ -364,7 +384,7 @@ export function FloatingPromptBar() {
                     <span className="text-[10px] font-medium text-white/40 uppercase">Options</span>
                   </div>
 
-                  <Popover>
+                  <Popover open={openDropdown === "quality"} onOpenChange={(open) => handleDropdownChange("quality", open)}>
                     <PopoverTrigger asChild>
                       <button
                         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-white/5 text-white/80 hover:text-white hover:bg-white/10 transition-all"
@@ -372,18 +392,18 @@ export function FloatingPromptBar() {
                       >
                         <Sparkles className="h-3 w-3 text-[#E3B436]" />
                         {qualityOptions.find(q => q.id === selectedQuality)?.label}
-                        <ChevronDown className="h-3 w-3 text-white/50" />
+                        <ChevronDown className={cn("h-3 w-3 text-white/50 transition-transform", openDropdown === "quality" && "rotate-180")} />
                       </button>
                     </PopoverTrigger>
                     <PopoverContent 
-                      className="w-32 p-1 bg-black/95 border-white/10 backdrop-blur-xl"
+                      className="w-32 p-1 bg-black/95 border-white/10 backdrop-blur-xl animate-in fade-in-0 zoom-in-95 duration-150"
                       align="center"
                       sideOffset={8}
                     >
                       {qualityOptions.map((option) => (
                         <button
                           key={option.id}
-                          onClick={() => setSelectedQuality(option.id)}
+                          onClick={() => { setSelectedQuality(option.id); setOpenDropdown(null); }}
                           className={cn(
                             "w-full flex items-center justify-between px-3 py-2 rounded text-xs font-medium transition-all",
                             selectedQuality === option.id
@@ -399,7 +419,7 @@ export function FloatingPromptBar() {
                     </PopoverContent>
                   </Popover>
 
-                  <Popover>
+                  <Popover open={openDropdown === "speed"} onOpenChange={(open) => handleDropdownChange("speed", open)}>
                     <PopoverTrigger asChild>
                       <button
                         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-white/5 text-white/80 hover:text-white hover:bg-white/10 transition-all"
@@ -407,18 +427,18 @@ export function FloatingPromptBar() {
                       >
                         <Zap className="h-3 w-3 text-[#E3B436]" />
                         {speedOptions.find(s => s.id === selectedSpeed)?.label}
-                        <ChevronDown className="h-3 w-3 text-white/50" />
+                        <ChevronDown className={cn("h-3 w-3 text-white/50 transition-transform", openDropdown === "speed" && "rotate-180")} />
                       </button>
                     </PopoverTrigger>
                     <PopoverContent 
-                      className="w-32 p-1 bg-black/95 border-white/10 backdrop-blur-xl"
+                      className="w-32 p-1 bg-black/95 border-white/10 backdrop-blur-xl animate-in fade-in-0 zoom-in-95 duration-150"
                       align="center"
                       sideOffset={8}
                     >
                       {speedOptions.map((option) => (
                         <button
                           key={option.id}
-                          onClick={() => setSelectedSpeed(option.id)}
+                          onClick={() => { setSelectedSpeed(option.id); setOpenDropdown(null); }}
                           className={cn(
                             "w-full flex items-center justify-between px-3 py-2 rounded text-xs font-medium transition-all",
                             selectedSpeed === option.id
@@ -434,7 +454,7 @@ export function FloatingPromptBar() {
                     </PopoverContent>
                   </Popover>
 
-                  <Popover>
+                  <Popover open={openDropdown === "ratio"} onOpenChange={(open) => handleDropdownChange("ratio", open)}>
                     <PopoverTrigger asChild>
                       <button
                         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-white/5 text-white/80 hover:text-white hover:bg-white/10 transition-all"
@@ -445,11 +465,11 @@ export function FloatingPromptBar() {
                           return <RatioIcon className="h-3 w-3 text-[#B94E30]" />;
                         })()}
                         {selectedRatio}
-                        <ChevronDown className="h-3 w-3 text-white/50" />
+                        <ChevronDown className={cn("h-3 w-3 text-white/50 transition-transform", openDropdown === "ratio" && "rotate-180")} />
                       </button>
                     </PopoverTrigger>
                     <PopoverContent 
-                      className="w-32 p-1 bg-black/95 border-white/10 backdrop-blur-xl"
+                      className="w-32 p-1 bg-black/95 border-white/10 backdrop-blur-xl animate-in fade-in-0 zoom-in-95 duration-150"
                       align="center"
                       sideOffset={8}
                     >
@@ -458,7 +478,7 @@ export function FloatingPromptBar() {
                         return (
                           <button
                             key={option.id}
-                            onClick={() => setSelectedRatio(option.id)}
+                            onClick={() => { setSelectedRatio(option.id); setOpenDropdown(null); }}
                             className={cn(
                               "w-full flex items-center justify-between px-3 py-2 rounded text-xs font-medium transition-all",
                               selectedRatio === option.id
@@ -478,7 +498,7 @@ export function FloatingPromptBar() {
                     </PopoverContent>
                   </Popover>
 
-                  <Popover>
+                  <Popover open={openDropdown === "detail"} onOpenChange={(open) => handleDropdownChange("detail", open)}>
                     <PopoverTrigger asChild>
                       <button
                         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-white/5 text-white/80 hover:text-white hover:bg-white/10 transition-all"
@@ -486,18 +506,18 @@ export function FloatingPromptBar() {
                       >
                         <span className="text-[#B94E30]">◉</span>
                         {detailOptions.find(d => d.id === selectedDetail)?.label}
-                        <ChevronDown className="h-3 w-3 text-white/50" />
+                        <ChevronDown className={cn("h-3 w-3 text-white/50 transition-transform", openDropdown === "detail" && "rotate-180")} />
                       </button>
                     </PopoverTrigger>
                     <PopoverContent 
-                      className="w-32 p-1 bg-black/95 border-white/10 backdrop-blur-xl"
+                      className="w-32 p-1 bg-black/95 border-white/10 backdrop-blur-xl animate-in fade-in-0 zoom-in-95 duration-150"
                       align="center"
                       sideOffset={8}
                     >
                       {detailOptions.map((option) => (
                         <button
                           key={option.id}
-                          onClick={() => setSelectedDetail(option.id)}
+                          onClick={() => { setSelectedDetail(option.id); setOpenDropdown(null); }}
                           className={cn(
                             "w-full flex items-center justify-between px-3 py-2 rounded text-xs font-medium transition-all",
                             selectedDetail === option.id
@@ -513,7 +533,7 @@ export function FloatingPromptBar() {
                     </PopoverContent>
                   </Popover>
 
-                  <Popover>
+                  <Popover open={openDropdown === "styleExpanded"} onOpenChange={(open) => handleDropdownChange("styleExpanded", open)}>
                     <PopoverTrigger asChild>
                       <button
                         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-white/5 text-white/80 hover:text-white hover:bg-white/10 transition-all"
@@ -521,18 +541,18 @@ export function FloatingPromptBar() {
                       >
                         <Palette className="h-3 w-3 text-[#B94E30]" />
                         {styleOptions.find(s => s.id === selectedStyle)?.label}
-                        <ChevronDown className="h-3 w-3 text-white/50" />
+                        <ChevronDown className={cn("h-3 w-3 text-white/50 transition-transform", openDropdown === "styleExpanded" && "rotate-180")} />
                       </button>
                     </PopoverTrigger>
                     <PopoverContent 
-                      className="w-32 p-1 bg-black/95 border-white/10 backdrop-blur-xl"
+                      className="w-32 p-1 bg-black/95 border-white/10 backdrop-blur-xl animate-in fade-in-0 zoom-in-95 duration-150"
                       align="center"
                       sideOffset={8}
                     >
                       {styleOptions.map((option) => (
                         <button
                           key={option.id}
-                          onClick={() => setSelectedStyle(option.id)}
+                          onClick={() => { setSelectedStyle(option.id); setOpenDropdown(null); }}
                           className={cn(
                             "w-full flex items-center justify-between px-3 py-2 rounded text-xs font-medium transition-all",
                             selectedStyle === option.id
@@ -547,7 +567,7 @@ export function FloatingPromptBar() {
                     </PopoverContent>
                   </Popover>
 
-                  <Popover>
+                  <Popover open={openDropdown === "countExpanded"} onOpenChange={(open) => handleDropdownChange("countExpanded", open)}>
                     <PopoverTrigger asChild>
                       <button
                         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-white/5 text-white/80 hover:text-white hover:bg-white/10 transition-all"
@@ -555,18 +575,18 @@ export function FloatingPromptBar() {
                       >
                         <span className="text-[#E3B436] font-bold">#</span>
                         {selectedCount} {parseInt(selectedCount) > 1 ? "Images" : "Image"}
-                        <ChevronDown className="h-3 w-3 text-white/50" />
+                        <ChevronDown className={cn("h-3 w-3 text-white/50 transition-transform", openDropdown === "countExpanded" && "rotate-180")} />
                       </button>
                     </PopoverTrigger>
                     <PopoverContent 
-                      className="w-32 p-1 bg-black/95 border-white/10 backdrop-blur-xl"
+                      className="w-32 p-1 bg-black/95 border-white/10 backdrop-blur-xl animate-in fade-in-0 zoom-in-95 duration-150"
                       align="center"
                       sideOffset={8}
                     >
                       {countOptions.map((option) => (
                         <button
                           key={option.id}
-                          onClick={() => setSelectedCount(option.id)}
+                          onClick={() => { setSelectedCount(option.id); setOpenDropdown(null); }}
                           className={cn(
                             "w-full flex items-center justify-between px-3 py-2 rounded text-xs font-medium transition-all",
                             selectedCount === option.id
