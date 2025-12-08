@@ -178,33 +178,26 @@ export async function registerRoutes(
         });
       }
 
-      // Set up session
-      if (req.session) {
-        req.session.userId = user.id;
-        req.session.user = {
-          claims: {
-            sub: user.id,
-            email: user.email,
-            name: user.displayName,
-          }
-        };
-        
-        await new Promise<void>((resolve, reject) => {
-          req.session.save((err: any) => {
-            if (err) reject(err);
-            else resolve();
-          });
-        });
-      }
-
-      // Also set req.user for compatibility with requireAuth
-      req.user = {
+      // Set up passport session using req.login()
+      const userSession = {
         claims: {
           sub: user.id,
           email: user.email,
           name: user.displayName,
-        }
+        },
+        expires_at: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60), // 1 week
       };
+
+      await new Promise<void>((resolve, reject) => {
+        req.login(userSession, (err: any) => {
+          if (err) {
+            console.error("Login error:", err);
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      });
 
       res.json({
         success: true,
