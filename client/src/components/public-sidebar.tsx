@@ -6,7 +6,6 @@ import {
   Shirt, 
   Scissors, 
   Folder, 
-  Star, 
   HelpCircle,
   Sun,
   Moon,
@@ -95,7 +94,6 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
   ];
 
   const extras = [
-    { name: "Affiliate Program", shortName: "Affiliate", icon: Star, href: "/affiliate" },
     { name: "Help & Support", shortName: "Help", icon: HelpCircle, href: "/help" },
   ];
 
