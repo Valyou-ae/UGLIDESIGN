@@ -188,7 +188,8 @@ export default function ImageGenerator() {
     aspectRatio: "1:1",
     variations: "1",
     aiCuration: true,
-    autoOptimize: true
+    autoOptimize: true,
+    speed: "quality" as "fast" | "quality"
   });
   const [qualityAutoUpgraded, setQualityAutoUpgraded] = useState(false);
   
@@ -646,7 +647,8 @@ export default function ImageGenerator() {
           { 
             stylePreset: settings.style, 
             aspectRatio: settings.aspectRatio,
-            detail: settings.detail
+            detail: settings.detail,
+            speed: settings.speed
           },
           handleEvent
         );
@@ -658,7 +660,8 @@ export default function ImageGenerator() {
             qualityLevel: effectiveQuality,
             aspectRatio: settings.aspectRatio,
             enableCuration: settings.aiCuration,
-            detail: settings.detail
+            detail: settings.detail,
+            speed: settings.speed
           },
           handleEvent
         );
@@ -931,7 +934,7 @@ export default function ImageGenerator() {
                   exit={{ height: 0, opacity: 0, y: -10 }}
                   className="overflow-hidden"
                 >
-                  <div className="bg-muted/30 border border-border rounded-xl p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 shadow-inner mb-4">
+                  <div className="bg-muted/30 border border-border rounded-xl p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 shadow-inner mb-4">
                     
                     {/* Quality */}
                     <div className="space-y-1.5">
@@ -961,6 +964,53 @@ export default function ImageGenerator() {
                             </Tooltip>
                           </TooltipProvider>
                         ))}
+                      </div>
+                    </div>
+
+                    {/* Speed */}
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block px-0.5">Speed</label>
+                      <div className="grid grid-cols-2 gap-1">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                data-testid="button-speed-fast"
+                                onClick={() => setSettings({...settings, speed: "fast"})}
+                                className={cn(
+                                  "h-9 rounded-lg flex items-center justify-center gap-1.5 transition-all border",
+                                  settings.speed === "fast" 
+                                    ? "bg-background border-primary/50 text-primary shadow-sm" 
+                                    : "bg-background/50 border-transparent text-muted-foreground hover:bg-background hover:text-foreground"
+                                )}
+                              >
+                                <Zap className={cn("h-3.5 w-3.5 shrink-0", settings.speed === "fast" ? "text-primary" : "opacity-70")} />
+                                <span className="text-[10px] font-medium">Fast</span>
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom"><p>Fast (~5s) - Gemini Flash</p></TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                data-testid="button-speed-quality"
+                                onClick={() => setSettings({...settings, speed: "quality"})}
+                                className={cn(
+                                  "h-9 rounded-lg flex items-center justify-center gap-1.5 transition-all border",
+                                  settings.speed === "quality" 
+                                    ? "bg-background border-primary/50 text-primary shadow-sm" 
+                                    : "bg-background/50 border-transparent text-muted-foreground hover:bg-background hover:text-foreground"
+                                )}
+                              >
+                                <Sparkles className={cn("h-3.5 w-3.5 shrink-0", settings.speed === "quality" ? "text-primary" : "opacity-70")} />
+                                <span className="text-[10px] font-medium">Quality</span>
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom"><p>Quality (~15s) - Gemini Pro</p></TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                     </div>
 

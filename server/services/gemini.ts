@@ -8,6 +8,7 @@ export const MODELS = {
   FAST_ANALYSIS: "gemini-2.5-flash",
   DEEP_ANALYSIS: "gemini-2.5-pro",
   IMAGE_GENERATION: "gemini-3-pro-image-preview",
+  IMAGE_GENERATION_FAST: "gemini-2.5-flash-preview-05-20",
 } as const;
 
 export interface PromptAnalysis {
@@ -203,15 +204,18 @@ Respond with JSON:
 
 export async function generateImage(
   prompt: string,
-  negativePrompts: string[]
+  negativePrompts: string[],
+  speed: "fast" | "quality" = "quality"
 ): Promise<GeneratedImageResult | null> {
   try {
     const fullPrompt = negativePrompts.length > 0
       ? `${prompt}\n\nAvoid: ${negativePrompts.join(", ")}`
       : prompt;
 
+    const model = speed === "fast" ? MODELS.IMAGE_GENERATION_FAST : MODELS.IMAGE_GENERATION;
+
     const response = await genAI.models.generateContent({
-      model: MODELS.IMAGE_GENERATION,
+      model,
       contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
       config: {
         responseModalities: [Modality.TEXT, Modality.IMAGE],

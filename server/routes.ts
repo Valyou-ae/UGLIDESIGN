@@ -466,7 +466,7 @@ export async function registerRoutes(
 
   app.post("/api/generate/draft", requireAuth, async (req, res) => {
     try {
-      const { prompt, stylePreset = "auto", aspectRatio = "1:1", detail = "medium" } = req.body;
+      const { prompt, stylePreset = "auto", aspectRatio = "1:1", detail = "medium", speed = "quality" } = req.body;
       if (!prompt || typeof prompt !== "string") {
         return res.status(400).json({ message: "Prompt is required" });
       }
@@ -501,7 +501,7 @@ export async function registerRoutes(
 
       sendEvent("status", { agent: "Visual Synthesizer", status: "working", message: "Generating image..." });
 
-      const result = await generateGeminiImage(enhancedPrompt, negativePrompts);
+      const result = await generateGeminiImage(enhancedPrompt, negativePrompts, speed);
 
       if (result) {
         sendEvent("image", {
@@ -533,6 +533,7 @@ export async function registerRoutes(
         qualityLevel = "premium",
         aspectRatio = "1:1",
         detail = "medium",
+        speed = "quality",
       } = req.body;
 
       if (!prompt || typeof prompt !== "string") {
@@ -569,7 +570,7 @@ export async function registerRoutes(
 
       sendEvent("status", { agent: "Visual Synthesizer", status: "working", message: "Generating image..." });
 
-      const result = await generateGeminiImage(enhancedPrompt, negativePrompts);
+      const result = await generateGeminiImage(enhancedPrompt, negativePrompts, speed);
 
       if (result) {
         sendEvent("final_image", {

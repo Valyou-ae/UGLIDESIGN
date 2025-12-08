@@ -243,7 +243,7 @@ export const generateApi = {
 
   draft: async (
     prompt: string,
-    options: { stylePreset?: string; aspectRatio?: string; detail?: string } = {},
+    options: { stylePreset?: string; aspectRatio?: string; detail?: string; speed?: "fast" | "quality" } = {},
     onEvent: GenerationEventCallback
   ): Promise<void> => {
     try {
@@ -274,6 +274,7 @@ export const generateApi = {
       aspectRatio?: string;
       enableCuration?: boolean;
       detail?: string;
+      speed?: "fast" | "quality";
     } = {},
     onEvent: GenerationEventCallback
   ): Promise<void> => {
