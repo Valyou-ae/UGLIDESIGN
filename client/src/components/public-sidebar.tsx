@@ -10,7 +10,11 @@ import {
   HelpCircle,
   Sun,
   Moon,
-  Compass
+  Compass,
+  User,
+  Settings,
+  CreditCard,
+  LogOut
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -19,6 +23,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useAuth } from "@/hooks/use-auth";
 
 function ThemeToggle({ collapsed }: { collapsed: boolean }) {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
@@ -72,6 +77,7 @@ interface PublicSidebarProps {
 export function PublicSidebar({ className }: PublicSidebarProps) {
   const [location] = useLocation();
   const [collapsed, setCollapsed] = useState(true);
+  const { user, isAuthenticated, logout } = useAuth();
 
   const navigation: Array<{ name: string; shortName: string; icon: typeof Home; href: string; count?: string | null; badge?: string }> = [
     { name: "Home", shortName: "Home", icon: Home, href: "/" },
@@ -82,10 +88,25 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
     { name: "My Creations", shortName: "Creations", icon: Folder, href: "/my-creations" },
   ];
 
+  const accountNav = [
+    { name: "Profile", shortName: "Profile", icon: User, href: "/profile" },
+    { name: "Settings", shortName: "Settings", icon: Settings, href: "/settings" },
+    { name: "Billing", shortName: "Billing", icon: CreditCard, href: "/billing" },
+  ];
+
   const extras = [
     { name: "Affiliate Program", shortName: "Affiliate", icon: Star, href: "/affiliate" },
     { name: "Help & Support", shortName: "Help", icon: HelpCircle, href: "/help" },
   ];
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
   const MobileNav = () => (
     <div className="md:hidden fixed bottom-0 left-0 right-0 h-[60px] bg-background border-t border-border z-50 flex items-center justify-around px-2 pb-safe">
@@ -136,9 +157,49 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
           className
         )}
       >
-      <div className="h-6" />
+      {isAuthenticated && user && (
+        <div className={cn("px-3 py-4 border-b border-white/10", collapsed ? "flex flex-col items-center" : "")} data-testid="section-user-profile">
+          <Link href="/profile" data-testid="link-user-profile">
+            <div className={cn(
+              "flex items-center gap-3 cursor-pointer group",
+              collapsed ? "flex-col text-center" : ""
+            )}>
+              {user.profileImageUrl ? (
+                <img 
+                  src={user.profileImageUrl} 
+                  alt={user.displayName || "User"} 
+                  className="h-10 w-10 rounded-full object-cover ring-2 ring-[#B94E30]/50 group-hover:ring-[#B94E30] transition-all"
+                  data-testid="img-user-avatar"
+                />
+              ) : (
+                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#B94E30] to-[#E3B436] flex items-center justify-center ring-2 ring-[#B94E30]/50 group-hover:ring-[#B94E30] transition-all" data-testid="icon-user-avatar">
+                  <span className="text-sm font-bold text-white">
+                    {getInitials(user.displayName || user.email || "U")}
+                  </span>
+                </div>
+              )}
+              {collapsed ? (
+                <p className="text-[10px] font-medium text-white/70 truncate max-w-[60px]" data-testid="text-user-name-collapsed">
+                  {(user.displayName || user.email || "User").split(' ')[0]}
+                </p>
+              ) : (
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-white truncate" data-testid="text-user-name">
+                    {user.displayName || "User"}
+                  </p>
+                  <p className="text-[11px] text-white/50 truncate" data-testid="text-user-email">
+                    {user.email}
+                  </p>
+                </div>
+              )}
+            </div>
+          </Link>
+        </div>
+      )}
 
-      <div className="flex-1 overflow-y-auto no-scrollbar px-3">
+      {!isAuthenticated && <div className="h-6" />}
+
+      <div className="flex-1 overflow-y-auto no-scrollbar px-3 pt-4">
         {!collapsed && <div className="mb-2 px-3 text-[11px] font-bold text-muted-foreground tracking-widest animate-fade-in">EXPLORE</div>}
         <nav className="space-y-1">
           {navigation.map((item) => {
@@ -243,8 +304,74 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
         </nav>
       </div>
 
-      <div className={cn("pt-4 mt-auto px-3 pb-6", collapsed ? "flex flex-col items-center gap-3" : "")}>
+      {isAuthenticated && (
+        <>
+          <div className="my-4 mx-2 h-px bg-sidebar-border/60" />
+          
+          {!collapsed && <div className="mb-2 px-6 text-[11px] font-bold text-muted-foreground tracking-widest">ACCOUNT</div>}
+          <nav className="space-y-1 px-3" data-testid="nav-account">
+            {accountNav.map((item) => {
+              const isActive = location === item.href;
+              return collapsed ? (
+                <Link key={item.name} href={item.href} data-testid={`link-${item.shortName.toLowerCase()}`}>
+                  <div className={cn(
+                    "flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium transition-all cursor-pointer group relative select-none mx-auto w-[64px]",
+                    isActive 
+                      ? "text-primary bg-primary/15" 
+                      : "text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-white"
+                  )}>
+                    <item.icon className={cn(
+                      "h-7 w-7 flex-shrink-0 transition-all duration-200 group-hover:scale-110", 
+                      isActive ? "text-primary" : "text-sidebar-foreground/50 group-hover:text-white group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]"
+                    )} />
+                    <span className={cn(
+                      "text-[10px] font-medium truncate max-w-full",
+                      isActive ? "text-primary" : "text-sidebar-foreground/50 group-hover:text-white"
+                    )}>
+                      {item.shortName}
+                    </span>
+                  </div>
+                </Link>
+              ) : (
+                <Link key={item.name} href={item.href} data-testid={`link-${item.shortName.toLowerCase()}`}>
+                  <div className={cn(
+                    "flex items-center gap-3 rounded-lg font-medium transition-all cursor-pointer group select-none px-3.5 py-3 text-sm",
+                    isActive 
+                      ? "text-primary bg-primary/5" 
+                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                  )}>
+                    <item.icon className={cn(
+                      "h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110", 
+                      isActive ? "text-primary" : "text-sidebar-foreground/50 group-hover:text-sidebar-foreground"
+                    )} />
+                    <span className="flex-1 truncate">{item.name}</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </nav>
+        </>
+      )}
+
+      <div className={cn("pt-4 mt-auto px-3 pb-6", collapsed ? "flex flex-col items-center gap-3" : "space-y-3")}>
         <ThemeToggle collapsed={collapsed} />
+        
+        {isAuthenticated && (
+          <button
+            onClick={logout}
+            className={cn(
+              "flex items-center gap-3 rounded-lg font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all cursor-pointer group select-none w-full",
+              collapsed ? "justify-center p-2" : "px-3.5 py-2.5 text-sm"
+            )}
+            data-testid="button-logout"
+          >
+            <LogOut className={cn(
+              "flex-shrink-0 transition-transform duration-200 group-hover:scale-110",
+              collapsed ? "h-6 w-6" : "h-5 w-5"
+            )} />
+            {!collapsed && <span>Logout</span>}
+          </button>
+        )}
       </div>
     </aside>
     </>
