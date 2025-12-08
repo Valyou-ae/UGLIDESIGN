@@ -5,7 +5,6 @@ import {
   Image as ImageIcon, 
   Shirt, 
   Scissors, 
-  HelpCircle,
   Sun,
   Moon,
   Compass,
@@ -92,10 +91,6 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
     { name: "Billing", shortName: "Billing", icon: CreditCard, href: "/billing" },
   ];
 
-  const extras = [
-    { name: "Help & Support", shortName: "Help", icon: HelpCircle, href: "/help" },
-  ];
-
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -127,10 +122,10 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
            <span className="text-[10px] mt-1 font-medium text-foreground">Create</span>
         </div>
       </Link>
-      <Link href="/help">
-        <div className={cn("flex flex-col items-center justify-center p-2 cursor-pointer", location === "/help" ? "text-primary" : "text-muted-foreground")}>
-          <HelpCircle className="h-6 w-6" />
-          <span className="text-[10px] mt-1">Help</span>
+      <Link href="/settings">
+        <div className={cn("flex flex-col items-center justify-center p-2 cursor-pointer", location === "/settings" ? "text-primary" : "text-muted-foreground")}>
+          <Settings className="h-6 w-6" />
+          <span className="text-[10px] mt-1">Settings</span>
         </div>
       </Link>
       <button
@@ -234,53 +229,6 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
                   </TooltipTrigger>
                 </Tooltip>
               </TooltipProvider>
-            );
-          })}
-        </nav>
-
-        <div className="my-6 mx-2 h-px bg-sidebar-border/60" />
-
-        <nav className="space-y-1">
-          {extras.map((item) => {
-            const isActive = location === item.href;
-            return collapsed ? (
-              <Link key={item.name} href={item.href}>
-                <div className={cn(
-                  "flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium transition-all cursor-pointer group select-none mx-auto w-[64px]",
-                  isActive 
-                    ? "text-white bg-white/15" 
-                    : "text-white/50 hover:bg-white/10 hover:text-white"
-                )}>
-                  <item.icon className={cn(
-                    "h-7 w-7 flex-shrink-0 transition-all duration-200 group-hover:scale-110",
-                    isActive ? "text-white" : "text-white/50 group-hover:text-white"
-                  )} />
-                  <span className={cn(
-                    "text-[10px] font-medium",
-                    isActive ? "text-white" : "text-white/50 group-hover:text-white"
-                  )}>
-                    {item.shortName}
-                  </span>
-                </div>
-              </Link>
-            ) : (
-              <Link key={item.name} href={item.href}>
-                <div className={cn(
-                  "flex items-center gap-3 rounded-lg font-medium transition-colors cursor-pointer group select-none px-3.5 py-3 text-sm relative",
-                  isActive 
-                    ? "text-white" 
-                    : "text-white/50 hover:bg-white/10 hover:text-white"
-                )}>
-                  {isActive && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 bg-white rounded-r-full" />
-                  )}
-                  <item.icon className={cn(
-                    "h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110",
-                    isActive ? "text-white" : "text-white/50 group-hover:text-white"
-                  )} />
-                  <span>{item.name}</span>
-                </div>
-              </Link>
             );
           })}
         </nav>
