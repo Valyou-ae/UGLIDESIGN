@@ -110,6 +110,119 @@ export async function registerRoutes(
     }
   });
 
+  // ============== GOOGLE AUTH ROUTES ==============
+
+  app.get("/api/auth/google-client-id", async (_req, res) => {
+    try {
+      const clientId = process.env.GOOGLE_CLIENT_ID;
+      if (!clientId) {
+        return res.status(404).json({ message: "Google Sign-In not configured" });
+      }
+      res.json({ clientId });
+    } catch (error) {
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.post("/api/auth/google", async (req: any, res) => {
+    try {
+      const { credential } = req.body;
+      
+      if (!credential) {
+        return res.status(400).json({ message: "Missing credential" });
+      }
+
+      const clientId = process.env.GOOGLE_CLIENT_ID;
+      if (!clientId) {
+        return res.status(500).json({ message: "Google Sign-In not configured" });
+      }
+
+      // Decode and verify the JWT token
+      const parts = credential.split('.');
+      if (parts.length !== 3) {
+        return res.status(400).json({ message: "Invalid token format" });
+      }
+
+      const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf-8'));
+      
+      // Verify the token is for our client
+      if (payload.aud !== clientId) {
+        return res.status(401).json({ message: "Invalid token audience" });
+      }
+
+      // Check token expiration
+      const now = Math.floor(Date.now() / 1000);
+      if (payload.exp && payload.exp < now) {
+        return res.status(401).json({ message: "Token expired" });
+      }
+
+      const { email, name, picture, sub: googleId } = payload;
+
+      if (!email) {
+        return res.status(400).json({ message: "Email not provided by Google" });
+      }
+
+      // Check if user exists by email
+      let user = await storage.getUserByEmail(email);
+
+      if (!user) {
+        // Create new user using upsertUser for full field support
+        const username = email.split('@')[0] + '_' + Math.random().toString(36).substring(2, 6);
+        user = await storage.upsertUser({
+          id: googleId,
+          email,
+          username,
+          displayName: name || username,
+          profileImageUrl: picture || null,
+          role: 'user',
+        });
+      }
+
+      // Set up session
+      if (req.session) {
+        req.session.userId = user.id;
+        req.session.user = {
+          claims: {
+            sub: user.id,
+            email: user.email,
+            name: user.displayName,
+          }
+        };
+        
+        await new Promise<void>((resolve, reject) => {
+          req.session.save((err: any) => {
+            if (err) reject(err);
+            else resolve();
+          });
+        });
+      }
+
+      // Also set req.user for compatibility with requireAuth
+      req.user = {
+        claims: {
+          sub: user.id,
+          email: user.email,
+          name: user.displayName,
+        }
+      };
+
+      res.json({
+        success: true,
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          displayName: user.displayName,
+          profileImageUrl: user.profileImageUrl,
+          role: user.role,
+        }
+      });
+    } catch (error) {
+      console.error("Google auth error:", error);
+      res.status(500).json({ message: "Authentication failed" });
+    }
+  });
+
   // ============== USER/PROFILE ROUTES ==============
 
   app.patch("/api/user/profile", requireAuth, async (req: any, res) => {
