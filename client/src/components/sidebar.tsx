@@ -260,9 +260,9 @@ export function Sidebar({ className }: SidebarProps) {
         <nav className="space-y-1">
           {isLoading ? (
             collapsed ? (
-              <div className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 mx-auto w-[64px]">
-                <div className="h-7 w-7 rounded-full bg-zinc-700/50 animate-pulse" />
-                <div className="h-2 w-10 bg-zinc-700/50 rounded animate-pulse" />
+              <div className="flex flex-col items-center justify-center gap-1 py-2 px-2 mx-auto w-[52px]">
+                <div className="h-5 w-5 rounded-full bg-zinc-700/50 animate-pulse" />
+                <div className="h-2 w-8 bg-zinc-700/50 rounded animate-pulse" />
               </div>
             ) : (
               <div className="flex items-center gap-3 px-3.5 py-3">
@@ -274,7 +274,7 @@ export function Sidebar({ className }: SidebarProps) {
             <Link href="/profile">
               {collapsed ? (
                 <div className={cn(
-                  "flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium transition-all cursor-pointer group select-none mx-auto w-[64px]",
+                  "flex flex-col items-center justify-center gap-1 py-2 px-2 rounded-lg font-medium transition-all cursor-pointer group select-none mx-auto w-[52px]",
                   location === "/profile" 
                     ? "text-white bg-white/15" 
                     : "text-white/50 hover:bg-white/10 hover:text-white"
@@ -283,18 +283,18 @@ export function Sidebar({ className }: SidebarProps) {
                     <img 
                       src={user.profileImageUrl} 
                       alt={user.displayName || "User"} 
-                      className="h-7 w-7 rounded-full object-cover border-2 border-white/30 group-hover:border-white/60 transition-all"
+                      className="h-5 w-5 rounded-full object-cover border border-white/30 group-hover:border-white/60 transition-all"
                       data-testid="img-user-avatar-sidebar"
                     />
                   ) : (
-                    <div className="h-7 w-7 rounded-full bg-zinc-700 flex items-center justify-center border-2 border-white/30 group-hover:border-white/60 transition-all">
-                      <span className="text-[10px] font-semibold text-white/80">
+                    <div className="h-5 w-5 rounded-full bg-zinc-700 flex items-center justify-center border border-white/30 group-hover:border-white/60 transition-all">
+                      <span className="text-[8px] font-semibold text-white/80">
                         {getInitials(user.displayName || user.email || "U")}
                       </span>
                     </div>
                   )}
                   <span className={cn(
-                    "text-[10px] font-medium",
+                    "text-[9px] font-medium",
                     location === "/profile" ? "text-white" : "text-white/50 group-hover:text-white"
                   )}>
                     Profile
@@ -334,17 +334,17 @@ export function Sidebar({ className }: SidebarProps) {
             return collapsed ? (
               <Link key={item.name} href={item.href}>
                 <div className={cn(
-                  "flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium transition-all cursor-pointer group select-none mx-auto w-[64px]",
+                  "flex flex-col items-center justify-center gap-1 py-2 px-2 rounded-lg font-medium transition-all cursor-pointer group select-none mx-auto w-[52px]",
                   isActive 
                     ? "text-white bg-white/15" 
                     : "text-white/50 hover:bg-white/10 hover:text-white"
                 )}>
                   <item.icon className={cn(
-                    "h-7 w-7 flex-shrink-0 transition-all duration-200 group-hover:scale-110",
+                    "h-5 w-5 flex-shrink-0 transition-all duration-200 group-hover:scale-110",
                     isActive ? "text-white" : "text-white/50 group-hover:text-white"
                   )} />
                   <span className={cn(
-                    "text-[10px] font-medium",
+                    "text-[9px] font-medium",
                     isActive ? "text-white" : "text-white/50 group-hover:text-white"
                   )}>
                     {item.shortName}
@@ -375,7 +375,7 @@ export function Sidebar({ className }: SidebarProps) {
           {collapsed ? (
             <div 
               onClick={logout}
-              className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all cursor-pointer group select-none mx-auto w-[64px]"
+              className="flex flex-col items-center justify-center gap-1 py-2 px-2 rounded-lg font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all cursor-pointer group select-none mx-auto w-[52px]"
               data-testid="button-logout"
             >
               <svg 
@@ -388,13 +388,13 @@ export function Sidebar({ className }: SidebarProps) {
                 strokeWidth="2" 
                 strokeLinecap="round" 
                 strokeLinejoin="round" 
-                className="h-7 w-7 flex-shrink-0 transition-all duration-200 group-hover:scale-110"
+                className="h-5 w-5 flex-shrink-0 transition-all duration-200 group-hover:scale-110"
               >
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
                 <polyline points="16 17 21 12 16 7" />
                 <line x1="21" x2="9" y1="12" y2="12" />
               </svg>
-              <span className="text-[10px] font-medium">Logout</span>
+              <span className="text-[9px] font-medium">Logout</span>
             </div>
           ) : (
             <div 

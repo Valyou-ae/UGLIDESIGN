@@ -292,9 +292,9 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
       <nav className="space-y-1 px-3" data-testid="nav-account">
         {isLoading ? (
           collapsed ? (
-            <div className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 mx-auto w-[64px]">
-              <div className="h-7 w-7 rounded-full bg-zinc-700/50 animate-pulse" />
-              <div className="h-2 w-10 bg-zinc-700/50 rounded animate-pulse" />
+            <div className="flex flex-col items-center justify-center gap-1 py-2 px-2 mx-auto w-[52px]">
+              <div className="h-5 w-5 rounded-full bg-zinc-700/50 animate-pulse" />
+              <div className="h-2 w-8 bg-zinc-700/50 rounded animate-pulse" />
             </div>
           ) : (
             <div className="flex items-center gap-3 px-3.5 py-3">
@@ -306,7 +306,7 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
           <Link href="/profile" data-testid="link-user-profile">
             {collapsed ? (
               <div className={cn(
-                "flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium transition-all cursor-pointer group select-none mx-auto w-[64px]",
+                "flex flex-col items-center justify-center gap-1 py-2 px-2 rounded-lg font-medium transition-all cursor-pointer group select-none mx-auto w-[52px]",
                 location === "/profile" 
                   ? "text-white bg-white/15" 
                   : "text-white/50 hover:bg-white/10 hover:text-white"
@@ -315,18 +315,18 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
                   <img 
                     src={user.profileImageUrl} 
                     alt={user.displayName || "User"} 
-                    className="h-7 w-7 rounded-full object-cover border-2 border-white/30 group-hover:border-white/60 transition-all"
+                    className="h-5 w-5 rounded-full object-cover border border-white/30 group-hover:border-white/60 transition-all"
                     data-testid="img-user-avatar-sidebar"
                   />
                 ) : (
-                  <div className="h-7 w-7 rounded-full bg-zinc-700 flex items-center justify-center border-2 border-white/30 group-hover:border-white/60 transition-all">
-                    <span className="text-[10px] font-semibold text-white/80">
+                  <div className="h-5 w-5 rounded-full bg-zinc-700 flex items-center justify-center border border-white/30 group-hover:border-white/60 transition-all">
+                    <span className="text-[8px] font-semibold text-white/80">
                       {getInitials(user.displayName || user.email || "U")}
                     </span>
                   </div>
                 )}
                 <span className={cn(
-                  "text-[10px] font-medium",
+                  "text-[9px] font-medium",
                   location === "/profile" ? "text-white" : "text-white/50 group-hover:text-white"
                 )}>
                   Profile
@@ -364,13 +364,13 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
           collapsed ? (
             <button
               onClick={() => openLoginPopup()}
-              className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium text-white/50 hover:bg-white/10 hover:text-white transition-all cursor-pointer group select-none mx-auto w-[64px]"
+              className="flex flex-col items-center justify-center gap-1 py-2 px-2 rounded-lg font-medium text-white/50 hover:bg-white/10 hover:text-white transition-all cursor-pointer group select-none mx-auto w-[52px]"
               data-testid="button-login-sidebar"
             >
-              <div className="h-7 w-7 rounded-full bg-gradient-to-br from-[#B94E30] to-[#E3B436] flex items-center justify-center group-hover:scale-110 transition-transform">
-                <User className="h-4 w-4 text-white" />
+              <div className="h-5 w-5 rounded-full bg-gradient-to-br from-[#B94E30] to-[#E3B436] flex items-center justify-center group-hover:scale-110 transition-transform">
+                <User className="h-3 w-3 text-white" />
               </div>
-              <span className="text-[10px] font-medium">Login</span>
+              <span className="text-[9px] font-medium">Login</span>
             </button>
           ) : (
             <button
@@ -390,17 +390,17 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
               return collapsed ? (
                 <Link key={item.name} href={item.href} data-testid={`link-${item.shortName.toLowerCase()}`}>
                   <div className={cn(
-                    "flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium transition-all cursor-pointer group relative select-none mx-auto w-[64px]",
+                    "flex flex-col items-center justify-center gap-1 py-2 px-2 rounded-lg font-medium transition-all cursor-pointer group relative select-none mx-auto w-[52px]",
                     isActive 
                       ? "text-white bg-white/15" 
                       : "text-white/50 hover:bg-white/10 hover:text-white"
                   )}>
                     <item.icon className={cn(
-                      "h-7 w-7 flex-shrink-0 transition-all duration-200 group-hover:scale-110", 
+                      "h-5 w-5 flex-shrink-0 transition-all duration-200 group-hover:scale-110", 
                       isActive ? "text-white" : "text-white/50 group-hover:text-white"
                     )} />
                     <span className={cn(
-                      "text-[10px] font-medium truncate max-w-full",
+                      "text-[9px] font-medium truncate max-w-full",
                       isActive ? "text-white" : "text-white/50 group-hover:text-white"
                     )}>
                       {item.shortName}
@@ -434,11 +434,11 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
           collapsed ? (
             <button
               onClick={logout}
-              className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all cursor-pointer group select-none mx-auto w-[64px]"
+              className="flex flex-col items-center justify-center gap-1 py-2 px-2 rounded-lg font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all cursor-pointer group select-none mx-auto w-[52px]"
               data-testid="button-logout"
             >
-              <LogOut className="h-7 w-7 flex-shrink-0 transition-all duration-200 group-hover:scale-110" />
-              <span className="text-[10px] font-medium">Logout</span>
+              <LogOut className="h-5 w-5 flex-shrink-0 transition-all duration-200 group-hover:scale-110" />
+              <span className="text-[9px] font-medium">Logout</span>
             </button>
           ) : (
             <button
@@ -453,7 +453,7 @@ export function PublicSidebar({ className }: PublicSidebarProps) {
         )}
         
         {collapsed ? (
-          <div className="flex flex-col items-center justify-center py-3 px-2 mx-auto w-[64px]">
+          <div className="flex flex-col items-center justify-center py-2 px-2 mx-auto w-[52px]">
             <ThemeToggle collapsed={collapsed} />
           </div>
         ) : (
