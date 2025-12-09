@@ -287,53 +287,6 @@ function JustifiedGallery({ items, generatedImage, onLike }: JustifiedGalleryPro
     }
   }, [rows]);
 
-  useEffect(() => {
-    if (rows.length === 0) return;
-    
-    const scrollSpeed = 0.3;
-
-    const animate = () => {
-      if (!isHoverPausedRef.current && scrollRef.current) {
-        const currentScroll = scrollRef.current.scrollTop;
-        const scrollHeight = scrollRef.current.scrollHeight;
-        const clientHeight = scrollRef.current.clientHeight;
-        
-        if (originalContentHeightRef.current === 0 && scrollHeight > clientHeight) {
-          originalContentHeightRef.current = scrollHeight / 2;
-        }
-        
-        const halfHeight = originalContentHeightRef.current;
-        
-        if (halfHeight > 0 && scrollHeight > clientHeight) {
-          const newScroll = currentScroll + scrollSpeed;
-          
-          if (newScroll >= halfHeight) {
-            scrollRef.current.scrollTop = newScroll - halfHeight;
-          } else {
-            scrollRef.current.scrollTop = newScroll;
-          }
-        }
-      }
-      animationRef.current = requestAnimationFrame(animate);
-    };
-
-    const timeoutId = setTimeout(() => {
-      if (!animationStartedRef.current) {
-        animationStartedRef.current = true;
-        animationRef.current = requestAnimationFrame(animate);
-      }
-    }, 1000);
-
-    return () => {
-      clearTimeout(timeoutId);
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-        animationRef.current = null;
-      }
-      animationStartedRef.current = false;
-    };
-  }, [rows]);
-
   const handleMouseEnter = () => {
     isHoverPausedRef.current = true;
   };
@@ -362,12 +315,42 @@ function JustifiedGallery({ items, generatedImage, onLike }: JustifiedGalleryPro
     ));
   };
 
+  const [scrollY, setScrollY] = useState(0);
+  
+  useEffect(() => {
+    if (rows.length === 0) return;
+    
+    let animationId: number;
+    let position = 0;
+    const speed = 0.4;
+    
+    const animate = () => {
+      if (!isHoverPausedRef.current) {
+        position += speed;
+        if (originalContentHeightRef.current > 0 && position >= originalContentHeightRef.current) {
+          position = position - originalContentHeightRef.current;
+        }
+        setScrollY(position);
+      }
+      animationId = requestAnimationFrame(animate);
+    };
+    
+    const timeout = setTimeout(() => {
+      animationId = requestAnimationFrame(animate);
+    }, 1000);
+    
+    return () => {
+      clearTimeout(timeout);
+      cancelAnimationFrame(animationId);
+    };
+  }, [rows]);
+
   return (
-    <div ref={containerRef} className="w-full h-full">
+    <div ref={containerRef} className="w-full h-full overflow-hidden">
       <div 
         ref={scrollRef}
-        className="w-full h-screen overflow-y-scroll px-1 no-scrollbar"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        className="w-full px-1"
+        style={{ transform: `translateY(-${scrollY}px)` }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
