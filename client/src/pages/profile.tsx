@@ -114,7 +114,7 @@ export default function Profile() {
       
       <main className="flex-1 flex flex-col relative h-full overflow-y-auto bg-[#FAFAFA] dark:bg-[#09090B]">
         {/* Cover Image */}
-        <div className="h-48 md:h-64 w-full relative overflow-hidden flex-shrink-0">
+        <div className="h-32 md:h-40 w-full relative overflow-hidden flex-shrink-0">
           <div className="absolute inset-0 bg-gradient-to-r from-[#B94E30] via-[#E3B436] to-[#664D3F] opacity-90" />
           <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
           <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
@@ -131,7 +131,7 @@ export default function Profile() {
           </Button>
         </div>
 
-        <div className="max-w-6xl mx-auto w-full px-4 md:px-6 pb-12 -mt-16 md:-mt-20 relative z-10">
+        <div className="max-w-6xl mx-auto w-full px-4 md:px-6 pb-12 -mt-12 md:-mt-16 relative z-10">
           {/* Profile Header */}
           <div className="flex flex-col md:flex-row items-start md:items-end gap-4 md:gap-6 mb-8">
             <div className="relative">
