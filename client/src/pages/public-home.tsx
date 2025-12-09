@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { PublicSidebar } from "@/components/public-sidebar";
+import { Sidebar } from "@/components/sidebar";
 import { FloatingPromptBar } from "@/components/floating-prompt-bar";
 import { GoogleAutoSignIn } from "@/components/google-auto-signin";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -491,7 +491,7 @@ export default function PublicHome() {
   return (
     <div className="h-screen bg-background flex font-sans text-foreground overflow-hidden">
       <GoogleAutoSignIn />
-      <PublicSidebar className="hidden md:flex border-r border-border/50" />
+      <Sidebar className="hidden md:flex border-r border-border/50" />
       
       <main className="flex-1 relative h-full overflow-hidden bg-[#0A0A0B]">
         <JustifiedGallery items={galleryImages} generatedImage={generatedImage} onLike={handleLike} />
