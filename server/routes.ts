@@ -579,6 +579,43 @@ export async function registerRoutes(
     }
   });
 
+  // ============== GALLERY ROUTES ==============
+
+  app.get("/api/gallery", async (req: any, res) => {
+    try {
+      const images = await storage.getGalleryImages();
+      const userId = req.user?.id;
+      
+      let likedImageIds: string[] = [];
+      if (userId) {
+        likedImageIds = await storage.getUserLikedImages(userId);
+      }
+      
+      const imagesWithLikeStatus = images.map(img => ({
+        ...img,
+        isLiked: likedImageIds.includes(img.id)
+      }));
+      
+      res.json({ images: imagesWithLikeStatus });
+    } catch (error) {
+      console.error("Gallery error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.post("/api/gallery/:imageId/like", requireAuth, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const { imageId } = req.params;
+      
+      const result = await storage.likeGalleryImage(imageId, userId);
+      res.json(result);
+    } catch (error) {
+      console.error("Like error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   // ============== AFFILIATE ROUTES ==============
 
   app.get("/api/affiliate/stats", requireAuth, async (req: any, res) => {
