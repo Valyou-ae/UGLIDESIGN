@@ -277,19 +277,30 @@ function JustifiedGallery({ items, generatedImage, onLike }: JustifiedGalleryPro
 
   useEffect(() => {
     if (scrollRef.current && rows.length > 0) {
-      const totalHeight = scrollRef.current.scrollHeight;
-      originalContentHeightRef.current = totalHeight / 2;
+      // Use setTimeout to ensure DOM has rendered
+      setTimeout(() => {
+        if (scrollRef.current) {
+          const totalHeight = scrollRef.current.scrollHeight;
+          originalContentHeightRef.current = totalHeight / 2;
+        }
+      }, 100);
     }
   }, [rows]);
 
   useEffect(() => {
-    if (animationStartedRef.current) return;
+    if (rows.length === 0) return;
     
     const scrollSpeed = 0.3;
 
     const animate = () => {
       if (!isHoverPausedRef.current && scrollRef.current) {
         const currentScroll = scrollRef.current.scrollTop;
+        
+        // Recalculate height on each frame if not set
+        if (originalContentHeightRef.current === 0 && scrollRef.current.scrollHeight > 0) {
+          originalContentHeightRef.current = scrollRef.current.scrollHeight / 2;
+        }
+        
         const halfHeight = originalContentHeightRef.current;
         
         if (halfHeight > 0) {
@@ -305,18 +316,23 @@ function JustifiedGallery({ items, generatedImage, onLike }: JustifiedGalleryPro
       animationRef.current = requestAnimationFrame(animate);
     };
 
+    // Start animation after a short delay to allow images to load
     const timeoutId = setTimeout(() => {
-      animationStartedRef.current = true;
-      animationRef.current = requestAnimationFrame(animate);
-    }, 500);
+      if (!animationStartedRef.current) {
+        animationStartedRef.current = true;
+        animationRef.current = requestAnimationFrame(animate);
+      }
+    }, 800);
 
     return () => {
       clearTimeout(timeoutId);
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
       }
+      animationStartedRef.current = false;
     };
-  }, []);
+  }, [rows]);
 
   const handleMouseEnter = () => {
     isHoverPausedRef.current = true;
