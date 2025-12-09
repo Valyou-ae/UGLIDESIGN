@@ -482,7 +482,7 @@ export default function PublicHome() {
   const handleLike = useCallback((imageId: string) => {
     if (!user) return;
     likeMutation.mutate(imageId);
-  }, [user, likeMutation]);
+  }, [user]);
 
   const handleImageGenerated = useCallback((imageData: { imageData: string; mimeType: string; aspectRatio: string }) => {
     setGeneratedImage(imageData);
