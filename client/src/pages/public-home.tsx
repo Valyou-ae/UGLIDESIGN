@@ -340,13 +340,13 @@ function JustifiedGallery({ items, generatedImage }: JustifiedGalleryProps) {
     <div ref={containerRef} className="w-full h-full">
       <div 
         ref={scrollRef}
-        className="w-full h-screen overflow-y-scroll no-scrollbar"
+        className="w-full h-screen overflow-y-scroll px-1 no-scrollbar"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
         {rows.map((row, rowIndex) => (
-          <div key={rowIndex} className="flex">
+          <div key={rowIndex} className="flex gap-1 mb-1">
             {row.items.map((item) => {
               const currentIndex = itemIndex++;
               return (
