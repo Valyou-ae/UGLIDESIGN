@@ -330,7 +330,8 @@ function JustifiedGallery({ items, generatedImage }: JustifiedGalleryProps) {
     <div ref={containerRef} className="w-full h-full">
       <div 
         ref={scrollRef}
-        className="w-full h-screen overflow-hidden px-1"
+        className="w-full h-screen overflow-y-scroll px-1 no-scrollbar"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
