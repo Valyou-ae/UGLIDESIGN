@@ -202,6 +202,7 @@ function JustifiedGallery({ items, generatedImage }: JustifiedGalleryProps) {
   const animationStartedRef = useRef(false);
   const [persistedGeneratedImages, setPersistedGeneratedImages] = useState<InspirationItem[]>([]);
   const lastGeneratedImageRef = useRef<string | null>(null);
+  const originalContentHeightRef = useRef<number>(0);
 
   // When a new generated image comes in, add it to the persisted array
   useEffect(() => {
@@ -251,6 +252,15 @@ function JustifiedGallery({ items, generatedImage }: JustifiedGalleryProps) {
     setRows(calculatedRows);
   }, [displayItems, containerWidth]);
 
+  // Track original content height when rows update
+  useEffect(() => {
+    if (scrollRef.current && rows.length > 0) {
+      // Calculate height of one set of rows (half of total since we render duplicates)
+      const totalHeight = scrollRef.current.scrollHeight;
+      originalContentHeightRef.current = totalHeight / 2;
+    }
+  }, [rows]);
+
   // Start animation only once on mount - never restart when rows change
   useEffect(() => {
     if (animationStartedRef.current) return;
@@ -260,14 +270,14 @@ function JustifiedGallery({ items, generatedImage }: JustifiedGalleryProps) {
     const animate = () => {
       if (!isHoverPausedRef.current && scrollRef.current) {
         const currentScroll = scrollRef.current.scrollTop;
-        const maxScroll = scrollRef.current.scrollHeight - scrollRef.current.clientHeight;
+        const halfHeight = originalContentHeightRef.current;
         
-        if (maxScroll > 0) {
+        if (halfHeight > 0) {
           const newScroll = currentScroll + scrollSpeed;
           
-          if (newScroll >= maxScroll) {
-            // Smoothly wrap to beginning
-            scrollRef.current.scrollTop = newScroll - maxScroll;
+          // When we've scrolled past the first set, jump back seamlessly
+          if (newScroll >= halfHeight) {
+            scrollRef.current.scrollTop = newScroll - halfHeight;
           } else {
             scrollRef.current.scrollTop = newScroll;
           }
@@ -297,7 +307,25 @@ function JustifiedGallery({ items, generatedImage }: JustifiedGalleryProps) {
     isHoverPausedRef.current = false;
   };
 
-  let itemIndex = 0;
+  // Render rows twice for seamless infinite scroll
+  const renderRows = (keyPrefix: string) => {
+    let itemIndex = 0;
+    return rows.map((row, rowIndex) => (
+      <div key={`${keyPrefix}-${rowIndex}`} className="flex gap-1 mb-1">
+        {row.items.map((item) => {
+          const currentIndex = itemIndex++;
+          return (
+            <JustifiedGalleryCard
+              key={`${keyPrefix}-${item.id}`}
+              item={item}
+              rowHeight={row.height}
+              index={currentIndex}
+            />
+          );
+        })}
+      </div>
+    ));
+  };
 
   return (
     <div ref={containerRef} className="w-full h-full">
@@ -308,21 +336,10 @@ function JustifiedGallery({ items, generatedImage }: JustifiedGalleryProps) {
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        {rows.map((row, rowIndex) => (
-          <div key={rowIndex} className="flex gap-1 mb-1">
-            {row.items.map((item) => {
-              const currentIndex = itemIndex++;
-              return (
-                <JustifiedGalleryCard
-                  key={item.id}
-                  item={item}
-                  rowHeight={row.height}
-                  index={currentIndex}
-                />
-              );
-            })}
-          </div>
-        ))}
+        {/* First set of rows */}
+        {renderRows('first')}
+        {/* Duplicate set for seamless infinite scroll */}
+        {renderRows('second')}
       </div>
     </div>
   );
