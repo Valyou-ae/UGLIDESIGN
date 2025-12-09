@@ -163,11 +163,11 @@ function JustifiedGalleryCard({ item, rowHeight, index, onLike }: { item: Inspir
             </div>
           )}
           
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-90 transition-opacity duration-300 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-90 transition-opacity duration-300" />
 
-          <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
+          <div className="absolute bottom-0 left-0 right-0 p-3">
             <div className="flex items-center gap-3 text-white/80">
-              <div className="flex items-center gap-1 text-xs pointer-events-none">
+              <div className="flex items-center gap-1 text-xs">
                 <Eye className="h-3 w-3" />
                 <span>{item.views}</span>
               </div>
@@ -175,14 +175,14 @@ function JustifiedGalleryCard({ item, rowHeight, index, onLike }: { item: Inspir
                 onClick={handleLikeClick}
                 data-testid={`button-like-${item.id}`}
                 className={cn(
-                  "flex items-center gap-1.5 text-xs transition-all duration-200 hover:scale-110 p-2 rounded-md cursor-pointer pointer-events-auto",
+                  "flex items-center gap-1.5 text-xs transition-all duration-200 hover:scale-110 p-1.5 -m-1.5 rounded-md z-20 relative",
                   item.isLiked ? "text-[#B94E30]" : "text-white/80 hover:text-[#B94E30] hover:bg-white/10"
                 )}
               >
                 <Heart className={cn("h-4 w-4", item.isLiked && "fill-current")} />
                 <span>{formatLikeCount(item.likes)}</span>
               </button>
-              <div className="flex items-center gap-1 text-xs pointer-events-none">
+              <div className="flex items-center gap-1 text-xs">
                 <Wand2 className="h-3 w-3" />
                 <span>{item.uses}</span>
               </div>
