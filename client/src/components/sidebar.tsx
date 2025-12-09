@@ -15,7 +15,8 @@ import {
   Compass,
   Coins,
   Layers,
-  User
+  User,
+  LogIn
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -29,6 +30,7 @@ import {
 } from "@/components/ui/tooltip";
 import { userApi } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
+import { useLoginPopup } from "@/components/login-popup";
 
 function ThemeToggle({ collapsed }: { collapsed: boolean }) {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
@@ -83,6 +85,7 @@ export function Sidebar({ className }: SidebarProps) {
   const [location] = useLocation();
   const [collapsed, setCollapsed] = useState(true);
   const { user, isLoading, logout } = useAuth();
+  const { openLoginPopup } = useLoginPopup();
 
   const getInitials = (name: string) => {
     return name
@@ -182,12 +185,14 @@ export function Sidebar({ className }: SidebarProps) {
               <span className="text-[10px] mt-1">Mockup</span>
             </div>
           </Link>
-          <Link href="/bg-remover">
-            <div className={cn("flex flex-col items-center justify-center p-2 cursor-pointer", location === "/bg-remover" ? "text-primary" : "text-muted-foreground")}>
-              <Scissors className="h-6 w-6" />
-              <span className="text-[10px] mt-1">BG Remove</span>
-            </div>
-          </Link>
+          <div 
+            onClick={() => openLoginPopup()}
+            className="flex flex-col items-center justify-center p-2 cursor-pointer text-muted-foreground hover:text-primary"
+            data-testid="button-login-mobile"
+          >
+            <LogIn className="h-6 w-6" />
+            <span className="text-[10px] mt-1">Login</span>
+          </div>
         </>
       )}
     </div>
@@ -478,7 +483,37 @@ export function Sidebar({ className }: SidebarProps) {
           </>
         )}
 
-        {/* Theme Toggle - part of account section for consistent spacing */}
+        {/* Login section for non-logged-in users - same position as Settings */}
+        {!user && !isLoading && (
+          <>
+            <Separator className="my-6 bg-sidebar-border/60" />
+            <nav className="space-y-1">
+              {collapsed ? (
+                <div
+                  onClick={() => openLoginPopup()}
+                  className="flex flex-col items-center justify-center gap-1 py-2 px-2 rounded-lg font-medium transition-all cursor-pointer group select-none mx-auto w-[52px] text-white/50 hover:bg-white/10 hover:text-white"
+                  data-testid="button-login-sidebar"
+                >
+                  <LogIn className="h-5 w-5 flex-shrink-0 transition-all duration-200 group-hover:scale-110 text-white/50 group-hover:text-white" />
+                  <span className="text-[9px] font-medium text-white/50 group-hover:text-white">
+                    Login
+                  </span>
+                </div>
+              ) : (
+                <div
+                  onClick={() => openLoginPopup()}
+                  className="flex items-center gap-3 rounded-lg font-medium transition-all cursor-pointer group select-none px-3.5 py-3 text-sm text-white/50 hover:bg-white/10 hover:text-white"
+                  data-testid="button-login-sidebar"
+                >
+                  <LogIn className="h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110 text-white/50 group-hover:text-white" />
+                  <span>Login</span>
+                </div>
+              )}
+            </nav>
+          </>
+        )}
+
+        {/* Theme Toggle - always visible for all users */}
         {collapsed && (
           <div className="flex flex-col items-center justify-center py-2 px-2 mx-auto w-[52px]">
             <ThemeToggle collapsed={collapsed} />
