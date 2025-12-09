@@ -202,28 +202,38 @@ function JustifiedGallery({ items, generatedImage }: JustifiedGalleryProps) {
   const animationRef = useRef<number | null>(null);
   const initializedRef = useRef(false);
   const pauseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [persistedGeneratedImages, setPersistedGeneratedImages] = useState<InspirationItem[]>([]);
+  const lastGeneratedImageRef = useRef<string | null>(null);
+
+  // When a new generated image comes in, add it to the persisted array
+  useEffect(() => {
+    if (generatedImage) {
+      const imageKey = `${generatedImage.imageData.slice(0, 50)}`;
+      if (lastGeneratedImageRef.current !== imageKey) {
+        lastGeneratedImageRef.current = imageKey;
+        const newGeneratedItem: InspirationItem = {
+          id: -(Date.now()),
+          title: "Your AI Creation ✨",
+          image: `data:${generatedImage.mimeType};base64,${generatedImage.imageData}`,
+          creator: "you",
+          verified: false,
+          views: "NEW",
+          likes: "0",
+          uses: "0",
+          category: "Generated",
+          aspectRatio: generatedImage.aspectRatio as "1:1" | "9:16" | "16:9" | "4:5" | "3:4",
+          prompt: "Your generated image",
+          isGenerated: true
+        };
+        setPersistedGeneratedImages(prev => [...prev, newGeneratedItem]);
+      }
+    }
+  }, [generatedImage]);
 
   const displayItems = useMemo(() => {
-    if (!generatedImage) return items;
-    
-    const generatedItem: InspirationItem = {
-      id: -1,
-      title: "Your AI Creation ✨",
-      image: `data:${generatedImage.mimeType};base64,${generatedImage.imageData}`,
-      creator: "you",
-      verified: false,
-      views: "NEW",
-      likes: "0",
-      uses: "0",
-      category: "Generated",
-      aspectRatio: generatedImage.aspectRatio as "1:1" | "9:16" | "16:9" | "4:5" | "3:4",
-      prompt: "Your generated image",
-      isGenerated: true
-    };
-    
-    // Append generated image at the end so it appears from bottom
-    return [...items, generatedItem];
-  }, [items, generatedImage]);
+    // Combine original items with all persisted generated images
+    return [...items, ...persistedGeneratedImages];
+  }, [items, persistedGeneratedImages]);
 
   // When a new generated image is added, scroll to bottom and pause
   useEffect(() => {
