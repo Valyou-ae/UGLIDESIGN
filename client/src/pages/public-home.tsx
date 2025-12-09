@@ -2,13 +2,146 @@ import { useState, useEffect, useRef } from "react";
 import { 
   Eye, 
   Heart, 
-  Wand2
+  Wand2,
+  Sparkles
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useAnimationControls } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { PublicSidebar } from "@/components/public-sidebar";
 import { FloatingPromptBar } from "@/components/floating-prompt-bar";
 import { GoogleAutoSignIn } from "@/components/google-auto-signin";
+
+type AspectRatio = "1:1" | "16:9" | "9:16" | "4:3" | "3:4";
+
+interface ShowcaseImage {
+  id: string;
+  aspectRatio: AspectRatio;
+  image: string;
+  prompt: string;
+  isGenerated?: boolean;
+}
+
+const SAMPLE_IMAGES: ShowcaseImage[] = [
+  { id: "1", aspectRatio: "1:1", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600", prompt: "Luxury watch" },
+  { id: "2", aspectRatio: "16:9", image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=800", prompt: "Mountain landscape" },
+  { id: "3", aspectRatio: "9:16", image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=600", prompt: "Fashion portrait" },
+  { id: "4", aspectRatio: "4:3", image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=600", prompt: "Food photography" },
+  { id: "5", aspectRatio: "3:4", image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=600", prompt: "Portrait" },
+];
+
+const getAspectRatioClass = (ratio: AspectRatio): string => {
+  switch (ratio) {
+    case "1:1": return "aspect-square";
+    case "16:9": return "aspect-video";
+    case "9:16": return "aspect-[9/16]";
+    case "4:3": return "aspect-[4/3]";
+    case "3:4": return "aspect-[3/4]";
+    default: return "aspect-square";
+  }
+};
+
+interface ImageShowcaseStripProps {
+  generatedImage?: { imageData: string; mimeType: string; aspectRatio: string } | null;
+}
+
+function ImageShowcaseStrip({ generatedImage }: ImageShowcaseStripProps) {
+  const [displayImages, setDisplayImages] = useState<ShowcaseImage[]>(SAMPLE_IMAGES);
+  const [isPaused, setIsPaused] = useState(false);
+  const controls = useAnimationControls();
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (generatedImage) {
+      setDisplayImages(prev => {
+        const newImages = [...prev];
+        const idx = newImages.findIndex(img => img.aspectRatio === generatedImage.aspectRatio);
+        if (idx !== -1) {
+          newImages[idx] = {
+            ...newImages[idx],
+            id: "generated",
+            image: `data:${generatedImage.mimeType};base64,${generatedImage.imageData}`,
+            prompt: "Your AI Creation ✨",
+            isGenerated: true
+          };
+        }
+        return newImages;
+      });
+    }
+  }, [generatedImage]);
+
+  useEffect(() => {
+    const animate = async () => {
+      if (!isPaused) {
+        await controls.start({
+          x: [0, -1200],
+          transition: {
+            x: {
+              repeat: Infinity,
+              repeatType: "loop",
+              duration: 30,
+              ease: "linear",
+            },
+          },
+        });
+      } else {
+        controls.stop();
+      }
+    };
+    animate();
+  }, [controls, isPaused]);
+
+  const duplicatedImages = [...displayImages, ...displayImages, ...displayImages];
+
+  return (
+    <div 
+      ref={containerRef}
+      className="absolute bottom-32 left-0 right-0 overflow-hidden py-4"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      <motion.div 
+        className="flex gap-4 px-4"
+        animate={controls}
+      >
+        {duplicatedImages.map((img, index) => (
+          <motion.div
+            key={`${img.id}-${index}`}
+            className={cn(
+              "flex-shrink-0 relative rounded-xl overflow-hidden",
+              getAspectRatioClass(img.aspectRatio),
+              img.aspectRatio === "1:1" && "w-40",
+              img.aspectRatio === "16:9" && "w-56",
+              img.aspectRatio === "9:16" && "w-28",
+              img.aspectRatio === "4:3" && "w-48",
+              img.aspectRatio === "3:4" && "w-36",
+              img.isGenerated && "ring-2 ring-[#E3B436] ring-offset-2 ring-offset-[#0A0A0B]"
+            )}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: index * 0.05 }}
+          >
+            <img
+              src={img.image}
+              alt={img.prompt}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300">
+              <div className="absolute bottom-2 left-2 right-2">
+                <p className="text-xs text-white/90 line-clamp-2">{img.prompt}</p>
+              </div>
+            </div>
+            {img.isGenerated && (
+              <div className="absolute top-2 right-2 bg-gradient-to-r from-[#B94E30] to-[#E3B436] px-2 py-1 rounded-full flex items-center gap-1">
+                <Sparkles className="h-3 w-3 text-white" />
+                <span className="text-[10px] font-medium text-white">NEW</span>
+              </div>
+            )}
+          </motion.div>
+        ))}
+      </motion.div>
+    </div>
+  );
+}
 
 interface InspirationItem {
   id: number;
@@ -597,6 +730,12 @@ const galleryImages: InspirationItem[] = [
 ];
 
 export default function PublicHome() {
+  const [generatedImage, setGeneratedImage] = useState<{ imageData: string; mimeType: string; aspectRatio: string } | null>(null);
+
+  const handleImageGenerated = (imageData: { imageData: string; mimeType: string; aspectRatio: string }) => {
+    setGeneratedImage(imageData);
+  };
+
   return (
     <div className="h-screen bg-background flex font-sans text-foreground overflow-hidden">
       <GoogleAutoSignIn />
@@ -604,9 +743,10 @@ export default function PublicHome() {
       
       <main className="flex-1 relative h-full overflow-hidden bg-[#0A0A0B]">
         <JustifiedGallery items={galleryImages} />
+        <ImageShowcaseStrip generatedImage={generatedImage} />
       </main>
 
-      <FloatingPromptBar />
+      <FloatingPromptBar onImageGenerated={handleImageGenerated} />
     </div>
   );
 }
