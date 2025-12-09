@@ -241,11 +241,11 @@ function JustifiedGallery({ items, generatedImage }: JustifiedGalleryProps) {
         }
       }, 100);
       
-      // Pause auto-scroll for 8 seconds so user can see their creation
+      // Pause auto-scroll for 5 seconds so user can see their creation
       isPausedRef.current = true;
       pauseTimeoutRef.current = setTimeout(() => {
         isPausedRef.current = false;
-      }, 8000);
+      }, 5000);
     }
     
     return () => {
