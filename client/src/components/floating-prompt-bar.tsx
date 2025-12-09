@@ -83,7 +83,11 @@ const countOptions = [
 
 type DropdownType = "style" | "count" | "quality" | "speed" | "ratio" | "detail" | "styleExpanded" | "countExpanded" | null;
 
-export function FloatingPromptBar() {
+interface FloatingPromptBarProps {
+  onImageGenerated?: (imageData: { imageData: string; mimeType: string; aspectRatio: string }) => void;
+}
+
+export function FloatingPromptBar({ onImageGenerated }: FloatingPromptBarProps = {}) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<DropdownType>(null);
   const [prompt, setPrompt] = useState("");
@@ -220,7 +224,15 @@ export function FloatingPromptBar() {
 
       if (saveResponse.ok) {
         setPrompt("");
-        setLocation("/my-creations");
+        if (onImageGenerated) {
+          onImageGenerated({ 
+            imageData: image.data, 
+            mimeType: image.mimeType,
+            aspectRatio: selectedRatio 
+          });
+        } else {
+          setLocation("/my-creations");
+        }
       } else {
         alert("Failed to save image. Please try again.");
       }
