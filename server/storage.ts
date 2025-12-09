@@ -9,6 +9,8 @@ import {
   promptFavorites,
   moodBoards,
   moodBoardItems,
+  galleryImages,
+  imageLikes,
   type User, 
   type InsertUser, 
   type UpdateProfile, 
@@ -29,7 +31,9 @@ import {
   type MoodBoard,
   type InsertMoodBoard,
   type MoodBoardItem,
-  type InsertMoodBoardItem
+  type InsertMoodBoardItem,
+  type GalleryImage,
+  type ImageLike
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, gte, lte, sql } from "drizzle-orm";
@@ -107,6 +111,11 @@ export interface IStorage {
   addItemToBoard(boardId: string, imageId: string, position: { positionX: number; positionY: number; width?: number; height?: number; zIndex?: number }): Promise<MoodBoardItem>;
   updateBoardItem(itemId: string, position: { positionX?: number; positionY?: number; width?: number; height?: number; zIndex?: number }): Promise<MoodBoardItem | undefined>;
   removeItemFromBoard(itemId: string): Promise<void>;
+
+  getGalleryImages(): Promise<GalleryImage[]>;
+  likeGalleryImage(imageId: string, userId: string): Promise<{ liked: boolean; likeCount: number }>;
+  hasUserLikedImage(imageId: string, userId: string): Promise<boolean>;
+  getUserLikedImages(userId: string): Promise<string[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -679,6 +688,57 @@ export class DatabaseStorage implements IStorage {
 
   async removeItemFromBoard(itemId: string): Promise<void> {
     await db.delete(moodBoardItems).where(eq(moodBoardItems.id, itemId));
+  }
+
+  async getGalleryImages(): Promise<GalleryImage[]> {
+    return db.select().from(galleryImages).orderBy(desc(galleryImages.likeCount));
+  }
+
+  async likeGalleryImage(imageId: string, userId: string): Promise<{ liked: boolean; likeCount: number }> {
+    const [existingLike] = await db
+      .select()
+      .from(imageLikes)
+      .where(and(eq(imageLikes.imageId, imageId), eq(imageLikes.userId, userId)));
+
+    if (existingLike) {
+      await db
+        .delete(imageLikes)
+        .where(and(eq(imageLikes.imageId, imageId), eq(imageLikes.userId, userId)));
+      
+      await db
+        .update(galleryImages)
+        .set({ likeCount: sql`${galleryImages.likeCount} - 1` })
+        .where(eq(galleryImages.id, imageId));
+
+      const [image] = await db.select().from(galleryImages).where(eq(galleryImages.id, imageId));
+      return { liked: false, likeCount: image?.likeCount ?? 0 };
+    } else {
+      await db.insert(imageLikes).values({ imageId, userId });
+      
+      await db
+        .update(galleryImages)
+        .set({ likeCount: sql`${galleryImages.likeCount} + 1` })
+        .where(eq(galleryImages.id, imageId));
+
+      const [image] = await db.select().from(galleryImages).where(eq(galleryImages.id, imageId));
+      return { liked: true, likeCount: image?.likeCount ?? 0 };
+    }
+  }
+
+  async hasUserLikedImage(imageId: string, userId: string): Promise<boolean> {
+    const [like] = await db
+      .select()
+      .from(imageLikes)
+      .where(and(eq(imageLikes.imageId, imageId), eq(imageLikes.userId, userId)));
+    return !!like;
+  }
+
+  async getUserLikedImages(userId: string): Promise<string[]> {
+    const likes = await db
+      .select({ imageId: imageLikes.imageId })
+      .from(imageLikes)
+      .where(eq(imageLikes.userId, userId));
+    return likes.map(l => l.imageId);
   }
 }
 
