@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { 
   Eye, 
   Heart, 
@@ -10,20 +10,24 @@ import { cn } from "@/lib/utils";
 import { PublicSidebar } from "@/components/public-sidebar";
 import { FloatingPromptBar } from "@/components/floating-prompt-bar";
 import { GoogleAutoSignIn } from "@/components/google-auto-signin";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/use-auth";
+import { apiRequest } from "@/lib/queryClient";
 
 interface InspirationItem {
-  id: number;
+  id: string;
   title: string;
   image: string;
   creator: string;
   verified: boolean;
   views: string;
-  likes: string;
+  likes: number;
   uses: string;
   category: string;
   aspectRatio: "1:1" | "9:16" | "16:9" | "4:5" | "3:4";
   prompt: string;
   isGenerated?: boolean;
+  isLiked?: boolean;
 }
 
 const aspectRatioToNumber = (ratio: string): number => {
@@ -74,7 +78,7 @@ function calculateJustifiedRows(items: InspirationItem[], containerWidth: number
   return rows;
 }
 
-function JustifiedGalleryCard({ item, rowHeight, index }: { item: InspirationItem; rowHeight: number; index: number }) {
+function JustifiedGalleryCard({ item, rowHeight, index, onLike }: { item: InspirationItem; rowHeight: number; index: number; onLike?: (id: string) => void }) {
   const [isVisible, setIsVisible] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -100,6 +104,19 @@ function JustifiedGalleryCard({ item, rowHeight, index }: { item: InspirationIte
 
   const aspectRatio = aspectRatioToNumber(item.aspectRatio);
   const cardWidth = rowHeight * aspectRatio;
+
+  const formatLikeCount = (count: number): string => {
+    if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
+    if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
+    return count.toString();
+  };
+
+  const handleLikeClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onLike && !item.isGenerated) {
+      onLike(item.id);
+    }
+  };
 
   return (
     <motion.div
@@ -152,10 +169,17 @@ function JustifiedGalleryCard({ item, rowHeight, index }: { item: InspirationIte
                 <Eye className="h-3 w-3" />
                 <span>{item.views}</span>
               </div>
-              <div className="flex items-center gap-1 text-xs">
-                <Heart className="h-3 w-3" />
-                <span>{item.likes}</span>
-              </div>
+              <button 
+                onClick={handleLikeClick}
+                data-testid={`button-like-${item.id}`}
+                className={cn(
+                  "flex items-center gap-1 text-xs transition-all duration-200 hover:scale-110",
+                  item.isLiked ? "text-[#B94E30]" : "text-white/80 hover:text-[#B94E30]"
+                )}
+              >
+                <Heart className={cn("h-3 w-3", item.isLiked && "fill-current")} />
+                <span>{formatLikeCount(item.likes)}</span>
+              </button>
               <div className="flex items-center gap-1 text-xs">
                 <Wand2 className="h-3 w-3" />
                 <span>{item.uses}</span>
@@ -190,9 +214,10 @@ function JustifiedGalleryCard({ item, rowHeight, index }: { item: InspirationIte
 interface JustifiedGalleryProps {
   items: InspirationItem[];
   generatedImage?: { imageData: string; mimeType: string; aspectRatio: string } | null;
+  onLike?: (id: string) => void;
 }
 
-function JustifiedGallery({ items, generatedImage }: JustifiedGalleryProps) {
+function JustifiedGallery({ items, generatedImage, onLike }: JustifiedGalleryProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(1200);
@@ -204,20 +229,19 @@ function JustifiedGallery({ items, generatedImage }: JustifiedGalleryProps) {
   const lastGeneratedImageRef = useRef<string | null>(null);
   const originalContentHeightRef = useRef<number>(0);
 
-  // When a new generated image comes in, add it to the persisted array
   useEffect(() => {
     if (generatedImage) {
       const imageKey = `${generatedImage.imageData.slice(0, 50)}`;
       if (lastGeneratedImageRef.current !== imageKey) {
         lastGeneratedImageRef.current = imageKey;
         const newGeneratedItem: InspirationItem = {
-          id: -(Date.now()),
+          id: `generated-${Date.now()}`,
           title: "Your AI Creation ✨",
           image: `data:${generatedImage.mimeType};base64,${generatedImage.imageData}`,
           creator: "you",
           verified: false,
           views: "NEW",
-          likes: "0",
+          likes: 0,
           uses: "0",
           category: "Generated",
           aspectRatio: generatedImage.aspectRatio as "1:1" | "9:16" | "16:9" | "4:5" | "3:4",
@@ -230,7 +254,6 @@ function JustifiedGallery({ items, generatedImage }: JustifiedGalleryProps) {
   }, [generatedImage]);
 
   const displayItems = useMemo(() => {
-    // Combine original items with all persisted generated images
     return [...items, ...persistedGeneratedImages];
   }, [items, persistedGeneratedImages]);
 
@@ -252,16 +275,13 @@ function JustifiedGallery({ items, generatedImage }: JustifiedGalleryProps) {
     setRows(calculatedRows);
   }, [displayItems, containerWidth]);
 
-  // Track original content height when rows update
   useEffect(() => {
     if (scrollRef.current && rows.length > 0) {
-      // Calculate height of one set of rows (half of total since we render duplicates)
       const totalHeight = scrollRef.current.scrollHeight;
       originalContentHeightRef.current = totalHeight / 2;
     }
   }, [rows]);
 
-  // Start animation only once on mount - never restart when rows change
   useEffect(() => {
     if (animationStartedRef.current) return;
     
@@ -275,7 +295,6 @@ function JustifiedGallery({ items, generatedImage }: JustifiedGalleryProps) {
         if (halfHeight > 0) {
           const newScroll = currentScroll + scrollSpeed;
           
-          // When we've scrolled past the first set, jump back seamlessly
           if (newScroll >= halfHeight) {
             scrollRef.current.scrollTop = newScroll - halfHeight;
           } else {
@@ -297,7 +316,7 @@ function JustifiedGallery({ items, generatedImage }: JustifiedGalleryProps) {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, []); // Empty dependency array - run only once on mount
+  }, []);
 
   const handleMouseEnter = () => {
     isHoverPausedRef.current = true;
@@ -307,7 +326,6 @@ function JustifiedGallery({ items, generatedImage }: JustifiedGalleryProps) {
     isHoverPausedRef.current = false;
   };
 
-  // Render rows twice for seamless infinite scroll
   const renderRows = (keyPrefix: string) => {
     let itemIndex = 0;
     return rows.map((row, rowIndex) => (
@@ -320,6 +338,7 @@ function JustifiedGallery({ items, generatedImage }: JustifiedGalleryProps) {
               item={item}
               rowHeight={row.height}
               index={currentIndex}
+              onLike={onLike}
             />
           );
         })}
@@ -336,332 +355,134 @@ function JustifiedGallery({ items, generatedImage }: JustifiedGalleryProps) {
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        {/* First set of rows */}
         {renderRows('first')}
-        {/* Duplicate set for seamless infinite scroll */}
         {renderRows('second')}
       </div>
     </div>
   );
 }
 
-const galleryImages: InspirationItem[] = [
+const formatViewCount = (count: number): string => {
+  if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
+  if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
+  return count.toString();
+};
+
+const fallbackGalleryImages: InspirationItem[] = [
   {
-    id: 1,
+    id: "fallback-1",
     title: "Luxury Watch Product Shot",
     image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1000&auto=format&fit=crop",
     creator: "productpro",
     verified: true,
     views: "234.5K",
-    likes: "45.2K",
+    likes: 45200,
     uses: "18.3K",
     category: "Product",
     aspectRatio: "1:1",
-    prompt: "Luxury Swiss timepiece floating on reflective black surface, dramatic side lighting creating golden highlights on brushed steel case, sapphire crystal catching prismatic light"
+    prompt: "Luxury Swiss timepiece floating on reflective black surface, dramatic side lighting"
   },
   {
-    id: 2,
+    id: "fallback-2",
     title: "Golden Hour Portrait",
     image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1000&auto=format&fit=crop",
     creator: "portraitmaster",
     verified: true,
     views: "312.8K",
-    likes: "58.7K",
+    likes: 58700,
     uses: "24.1K",
     category: "Portrait",
     aspectRatio: "4:5",
-    prompt: "Intimate portrait bathed in warm golden hour sunlight, soft bokeh background of autumn leaves, natural skin texture, wind-swept hair catching light"
+    prompt: "Intimate portrait bathed in warm golden hour sunlight"
   },
   {
-    id: 3,
-    title: "Gourmet Burger Perfection",
-    image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=1000&auto=format&fit=crop",
-    creator: "foodartist",
-    verified: true,
-    views: "189.3K",
-    likes: "37.6K",
-    uses: "15.8K",
-    category: "Food",
-    aspectRatio: "1:1",
-    prompt: "Towering gourmet burger with perfectly melted aged cheddar, crispy bacon, caramelized onions, fresh lettuce, brioche bun with sesame seeds"
-  },
-  {
-    id: 4,
-    title: "Majestic Lion King",
-    image: "https://images.unsplash.com/photo-1546182990-dffeafbe841d?q=80&w=1000&auto=format&fit=crop",
-    creator: "wildlifeart",
-    verified: true,
-    views: "456.2K",
-    likes: "89.4K",
-    uses: "35.2K",
-    category: "Wildlife",
-    aspectRatio: "16:9",
-    prompt: "Majestic male lion with full golden mane, intense amber eyes staring directly at camera, African savanna at golden hour, dust particles catching light"
-  },
-  {
-    id: 5,
-    title: "Modern Architecture Marvel",
-    image: "https://images.unsplash.com/photo-1486325212027-8081e485255e?q=80&w=1000&auto=format&fit=crop",
-    creator: "archidesign",
-    verified: false,
-    views: "178.9K",
-    likes: "32.1K",
-    uses: "13.7K",
-    category: "Architecture",
-    aspectRatio: "9:16",
-    prompt: "Stunning modern skyscraper with curved glass facade reflecting blue sky and clouds, geometric patterns created by window frames, dramatic low angle"
-  },
-  {
-    id: 6,
-    title: "Enchanted Forest Path",
-    image: "https://images.unsplash.com/photo-1448375240586-882707db888b?q=80&w=1000&auto=format&fit=crop",
-    creator: "naturelover",
-    verified: true,
-    views: "267.4K",
-    likes: "51.8K",
-    uses: "21.3K",
-    category: "Landscape",
-    aspectRatio: "3:4",
-    prompt: "Mystical forest pathway covered in emerald moss, ancient trees with twisted branches forming natural cathedral, volumetric light rays piercing through canopy"
-  },
-  {
-    id: 7,
-    title: "High Fashion Editorial",
-    image: "https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=1000&auto=format&fit=crop",
-    creator: "fashionista",
-    verified: true,
-    views: "345.6K",
-    likes: "67.3K",
-    uses: "28.9K",
-    category: "Fashion",
-    aspectRatio: "9:16",
-    prompt: "High fashion editorial portrait, model wearing avant-garde couture gown in deep burgundy silk, dramatic studio lighting with sharp shadows"
-  },
-  {
-    id: 8,
-    title: "Neon Tokyo Nights",
-    image: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1000&auto=format&fit=crop",
-    creator: "cityscape",
-    verified: true,
-    views: "298.7K",
-    likes: "57.2K",
-    uses: "23.6K",
-    category: "Urban",
-    aspectRatio: "16:9",
-    prompt: "Rain-soaked Tokyo street at night, neon signs reflecting on wet pavement in pink, blue, and purple, steam rising from street vents"
-  },
-  {
-    id: 9,
-    title: "Artisan Coffee Pour",
-    image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=1000&auto=format&fit=crop",
-    creator: "coffeeculture",
-    verified: false,
-    views: "156.3K",
-    likes: "29.8K",
-    uses: "12.4K",
-    category: "Food",
-    aspectRatio: "4:5",
-    prompt: "Perfect latte art being poured, barista hands creating intricate rosetta pattern, warm cafe lighting, steam rising from ceramic cup"
-  },
-  {
-    id: 10,
-    title: "Ethereal Butterfly Garden",
-    image: "https://images.unsplash.com/photo-1452570053594-1b985d6ea890?q=80&w=1000&auto=format&fit=crop",
-    creator: "macroworld",
-    verified: true,
-    views: "187.4K",
-    likes: "36.5K",
-    uses: "15.1K",
-    category: "Nature",
-    aspectRatio: "1:1",
-    prompt: "Monarch butterfly resting on purple lavender flower, extreme macro photography revealing wing scale details, morning dew droplets on petals"
-  },
-  {
-    id: 11,
-    title: "Minimalist Interior Design",
-    image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=1000&auto=format&fit=crop",
-    creator: "interiorpro",
-    verified: true,
-    views: "234.1K",
-    likes: "45.6K",
-    uses: "19.2K",
-    category: "Interior",
-    aspectRatio: "16:9",
-    prompt: "Scandinavian minimalist living room with clean lines, neutral color palette of whites and warm woods, statement arc floor lamp"
-  },
-  {
-    id: 12,
-    title: "Cosmic Galaxy Spiral",
-    image: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=1000&auto=format&fit=crop",
-    creator: "spaceexplorer",
-    verified: true,
-    views: "378.9K",
-    likes: "74.2K",
-    uses: "31.5K",
-    category: "Space",
-    aspectRatio: "1:1",
-    prompt: "Breathtaking spiral galaxy with vibrant purple and blue nebula clouds, millions of stars in various colors, cosmic dust lanes visible"
-  },
-  {
-    id: 13,
-    title: "Fresh Sushi Platter",
-    image: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?q=80&w=1000&auto=format&fit=crop",
-    creator: "sushimaster",
-    verified: true,
-    views: "198.5K",
-    likes: "38.9K",
-    uses: "16.2K",
-    category: "Food",
-    aspectRatio: "16:9",
-    prompt: "Exquisite omakase sushi platter on black slate, featuring otoro, uni, and ikura, each piece glistening with freshness"
-  },
-  {
-    id: 14,
-    title: "Vintage Porsche 911",
-    image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1000&auto=format&fit=crop",
-    creator: "autoart",
-    verified: true,
-    views: "287.3K",
-    likes: "56.1K",
-    uses: "23.4K",
-    category: "Automotive",
-    aspectRatio: "16:9",
-    prompt: "Classic Porsche 911 in racing green, parked on coastal road at sunset, chrome details catching golden light, mountains in background"
-  },
-  {
-    id: 15,
-    title: "Fluffy Corgi Portrait",
-    image: "https://images.unsplash.com/photo-1612536057832-2ff7ead58194?q=80&w=1000&auto=format&fit=crop",
-    creator: "petlover",
-    verified: true,
-    views: "423.7K",
-    likes: "82.5K",
-    uses: "34.8K",
-    category: "Pets",
-    aspectRatio: "1:1",
-    prompt: "Adorable Pembroke Welsh Corgi with perfect fluffy coat, happy expression with tongue out, sitting in flower meadow, soft natural lighting"
-  },
-  {
-    id: 16,
-    title: "Tropical Paradise Beach",
-    image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1000&auto=format&fit=crop",
-    creator: "travelphoto",
-    verified: true,
-    views: "356.2K",
-    likes: "69.8K",
-    uses: "29.3K",
-    category: "Travel",
-    aspectRatio: "16:9",
-    prompt: "Pristine white sand beach with crystal clear turquoise water, palm trees swaying gently, dramatic sunset with orange and pink clouds"
-  },
-  {
-    id: 17,
-    title: "Abstract Fluid Art",
-    image: "https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=1000&auto=format&fit=crop",
-    creator: "abstractart",
-    verified: true,
-    views: "198.4K",
-    likes: "38.7K",
-    uses: "16.1K",
-    category: "Abstract",
-    aspectRatio: "1:1",
-    prompt: "Mesmerizing fluid art with swirling metallics and vibrant colors, gold, turquoise, and deep purple creating organic patterns"
-  },
-  {
-    id: 18,
-    title: "Elegant Perfume Bottle",
-    image: "https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=1000&auto=format&fit=crop",
-    creator: "luxurybrands",
-    verified: true,
-    views: "145.8K",
-    likes: "28.3K",
-    uses: "11.7K",
-    category: "Product",
-    aspectRatio: "3:4",
-    prompt: "Luxury perfume bottle with faceted crystal design, golden cap reflecting studio lights, dramatic shadows on marble surface"
-  },
-  {
-    id: 19,
-    title: "Mountain Reflection Lake",
+    id: "fallback-3",
+    title: "Mountain Lake Reflection",
     image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=1000&auto=format&fit=crop",
-    creator: "landscapepro",
+    creator: "alpinedreamer",
     verified: true,
-    views: "389.5K",
-    likes: "76.2K",
-    uses: "32.1K",
+    views: "523.4K",
+    likes: 97300,
+    uses: "35.2K",
     category: "Landscape",
     aspectRatio: "16:9",
-    prompt: "Majestic snow-capped mountains perfectly reflected in still alpine lake, pink and orange sunrise colors, foreground wildflowers"
+    prompt: "Crystal clear alpine lake reflecting snow-capped mountains"
   },
   {
-    id: 20,
-    title: "Decadent Chocolate Cake",
-    image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?q=80&w=1000&auto=format&fit=crop",
-    creator: "dessertlover",
+    id: "fallback-4",
+    title: "Neon Tokyo Streets",
+    image: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1000&auto=format&fit=crop",
+    creator: "cyberpunker",
     verified: true,
-    views: "234.7K",
-    likes: "45.8K",
-    uses: "19.1K",
-    category: "Food",
-    aspectRatio: "1:1",
-    prompt: "Three-layer dark chocolate cake with glossy ganache dripping down sides, fresh raspberries on top, dusted with edible gold"
+    views: "398.1K",
+    likes: 72800,
+    uses: "30.1K",
+    category: "Street",
+    aspectRatio: "9:16",
+    prompt: "Rain-soaked Tokyo alleyway at night with vibrant neon signs"
   },
   {
-    id: 21,
-    title: "Aurora Borealis Magic",
-    image: "https://images.unsplash.com/photo-1531366936337-7c912a4589a7?q=80&w=1000&auto=format&fit=crop",
-    creator: "aurorahunter",
+    id: "fallback-5",
+    title: "Cherry Blossom Dreams",
+    image: "https://images.unsplash.com/photo-1522383225653-ed111181a951?q=80&w=1000&auto=format&fit=crop",
+    creator: "sakuralove",
     verified: true,
-    views: "423.6K",
-    likes: "82.9K",
-    uses: "35.1K",
+    views: "342.1K",
+    likes: 63800,
+    uses: "26.5K",
     category: "Nature",
-    aspectRatio: "16:9",
-    prompt: "Spectacular northern lights dancing across Arctic sky, vivid green and purple aurora curtains, snow-covered landscape below"
-  },
-  {
-    id: 22,
-    title: "Modern Sneaker Design",
-    image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1000&auto=format&fit=crop",
-    creator: "sneakerhead",
-    verified: true,
-    views: "312.5K",
-    likes: "61.3K",
-    uses: "25.7K",
-    category: "Product",
-    aspectRatio: "16:9",
-    prompt: "Futuristic running sneaker floating in mid-air, dynamic angle showing sole design, vibrant red colorway with white accents"
-  },
-  {
-    id: 23,
-    title: "Sleeping Kitten Cuteness",
-    image: "https://images.unsplash.com/photo-1543852786-1cf6624b9987?q=80&w=1000&auto=format&fit=crop",
-    creator: "catlover",
-    verified: true,
-    views: "567.8K",
-    likes: "112.4K",
-    uses: "47.2K",
-    category: "Pets",
-    aspectRatio: "1:1",
-    prompt: "Tiny orange tabby kitten curled up sleeping on fluffy white blanket, paws tucked under chin, soft natural window light"
-  },
-  {
-    id: 24,
-    title: "Venice Canal Romance",
-    image: "https://images.unsplash.com/photo-1514890547357-a9ee288728e0?q=80&w=1000&auto=format&fit=crop",
-    creator: "travelroma",
-    verified: true,
-    views: "287.6K",
-    likes: "56.3K",
-    uses: "23.6K",
-    category: "Travel",
     aspectRatio: "3:4",
-    prompt: "Gondola gliding through Venice canal at golden hour, ancient buildings with weathered facades reflecting in water"
+    prompt: "Delicate pink cherry blossoms against soft blue sky"
   }
 ];
 
 export default function PublicHome() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [generatedImage, setGeneratedImage] = useState<{ imageData: string; mimeType: string; aspectRatio: string } | null>(null);
+
+  const { data: galleryData } = useQuery<{ images: any[] }>({
+    queryKey: ['/api/gallery'],
+    queryFn: async () => {
+      const response = await fetch('/api/gallery');
+      if (!response.ok) throw new Error('Failed to fetch gallery');
+      return response.json();
+    },
+    staleTime: 30000,
+  });
+
+  const likeMutation = useMutation({
+    mutationFn: async (imageId: string) => {
+      const response = await apiRequest('POST', `/api/gallery/${imageId}/like`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/gallery'] });
+    }
+  });
+
+  const galleryImages: InspirationItem[] = useMemo(() => {
+    if (!galleryData?.images?.length) return fallbackGalleryImages;
+    return galleryData.images.map((img: any) => ({
+      id: img.id,
+      title: img.title,
+      image: img.imageUrl,
+      creator: img.creator,
+      verified: img.verified,
+      views: formatViewCount(img.viewCount || 0),
+      likes: img.likeCount || 0,
+      uses: formatViewCount(Math.floor((img.likeCount || 0) * 0.4)),
+      category: img.category,
+      aspectRatio: img.aspectRatio as "1:1" | "9:16" | "16:9" | "4:5" | "3:4",
+      prompt: img.prompt,
+      isLiked: img.isLiked
+    }));
+  }, [galleryData]);
+
+  const handleLike = useCallback((imageId: string) => {
+    if (!user) return;
+    likeMutation.mutate(imageId);
+  }, [user, likeMutation]);
 
   const handleImageGenerated = (imageData: { imageData: string; mimeType: string; aspectRatio: string }) => {
     setGeneratedImage(imageData);
@@ -673,7 +494,7 @@ export default function PublicHome() {
       <PublicSidebar className="hidden md:flex border-r border-border/50" />
       
       <main className="flex-1 relative h-full overflow-hidden bg-[#0A0A0B]">
-        <JustifiedGallery items={galleryImages} generatedImage={generatedImage} />
+        <JustifiedGallery items={galleryImages} generatedImage={generatedImage} onLike={handleLike} />
       </main>
 
       <FloatingPromptBar onImageGenerated={handleImageGenerated} />
