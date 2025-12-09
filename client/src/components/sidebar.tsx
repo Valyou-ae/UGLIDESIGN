@@ -98,6 +98,7 @@ export function Sidebar({ className }: SidebarProps) {
     queryFn: userApi.getStats,
     staleTime: 1000 * 60 * 5,
     retry: false,
+    enabled: !!user, // Only fetch stats when user is authenticated
   });
 
   const credits = stats?.credits ?? 0;
@@ -106,25 +107,40 @@ export function Sidebar({ className }: SidebarProps) {
 
   const totalCreations = stats ? (stats.images + stats.mockups + stats.bgRemoved) : 0;
 
-  const navigation = [
-    { name: "Home", shortName: "Home", icon: Home, href: "/home", count: null },
+  type NavItem = {
+    name: string;
+    shortName: string;
+    icon: typeof Home;
+    href: string;
+    count?: string | null;
+    badge?: string;
+    dataTutorial?: string;
+  };
+
+  const publicNavigation: NavItem[] = [
+    { name: "Home", shortName: "Home", icon: Home, href: "/" },
     { name: "Discover", shortName: "Discover", icon: Compass, href: "/discover", badge: "New" },
     { name: "Image Generator", shortName: "Image", icon: ImageIcon, href: "/image-gen", badge: "5 agents" },
     { name: "Mockup Generator", shortName: "Mockup", icon: Shirt, href: "/mockup", badge: "New" },
-    { name: "Background Remover", shortName: "BG", icon: Scissors, href: "/bg-remover", count: null },
-    { name: "Mood Boards", shortName: "Boards", icon: Layers, href: "/mood-boards", count: null },
-    { name: "My Creations", shortName: "Creations", icon: Folder, href: "/my-creations", count: totalCreations > 0 ? totalCreations.toString() : null, dataTutorial: "my-creations-link" },
+    { name: "Background Remover", shortName: "BG", icon: Scissors, href: "/bg-remover" },
   ];
+
+  const privateNavigation: NavItem[] = [
+    { name: "Mood Boards", shortName: "Boards", icon: Layers, href: "/mood-boards" },
+    { name: "My Creations", shortName: "Creations", icon: Folder, href: "/my-creations", count: totalCreations > 0 ? totalCreations.toString() : undefined, dataTutorial: "my-creations-link" },
+  ];
+
+  const navigation: NavItem[] = user ? [...publicNavigation, ...privateNavigation] : publicNavigation;
 
   const account = [
     { name: "Settings", shortName: "Settings", icon: Settings, href: "/settings" },
   ];
 
-  // Mobile Bottom Navigation
+  // Mobile Bottom Navigation - shows different items based on auth state
   const MobileNav = () => (
     <div className="md:hidden fixed bottom-0 left-0 right-0 h-[60px] bg-background border-t border-border z-50 flex items-center justify-around px-2 pb-safe">
-      <Link href="/home">
-        <div className={cn("flex flex-col items-center justify-center p-2 cursor-pointer", location === "/home" ? "text-primary" : "text-muted-foreground")}>
+      <Link href="/">
+        <div className={cn("flex flex-col items-center justify-center p-2 cursor-pointer", location === "/" ? "text-primary" : "text-muted-foreground")}>
           <Home className="h-6 w-6" />
           <span className="text-[10px] mt-1">Home</span>
         </div>
@@ -143,18 +159,37 @@ export function Sidebar({ className }: SidebarProps) {
            <span className="text-[10px] mt-1 font-medium text-foreground">Create</span>
         </div>
       </Link>
-      <Link href="/my-creations">
-        <div className={cn("flex flex-col items-center justify-center p-2 cursor-pointer", location === "/my-creations" ? "text-primary" : "text-muted-foreground")}>
-          <Folder className="h-6 w-6" />
-          <span className="text-[10px] mt-1">Creations</span>
-        </div>
-      </Link>
-      <Link href="/settings">
-        <div className={cn("flex flex-col items-center justify-center p-2 cursor-pointer", location === "/settings" ? "text-primary" : "text-muted-foreground")}>
-          <Settings className="h-6 w-6" />
-          <span className="text-[10px] mt-1">Settings</span>
-        </div>
-      </Link>
+      {user ? (
+        <>
+          <Link href="/my-creations">
+            <div className={cn("flex flex-col items-center justify-center p-2 cursor-pointer", location === "/my-creations" ? "text-primary" : "text-muted-foreground")}>
+              <Folder className="h-6 w-6" />
+              <span className="text-[10px] mt-1">Creations</span>
+            </div>
+          </Link>
+          <Link href="/settings">
+            <div className={cn("flex flex-col items-center justify-center p-2 cursor-pointer", location === "/settings" ? "text-primary" : "text-muted-foreground")}>
+              <Settings className="h-6 w-6" />
+              <span className="text-[10px] mt-1">Settings</span>
+            </div>
+          </Link>
+        </>
+      ) : (
+        <>
+          <Link href="/mockup">
+            <div className={cn("flex flex-col items-center justify-center p-2 cursor-pointer", location === "/mockup" ? "text-primary" : "text-muted-foreground")}>
+              <Shirt className="h-6 w-6" />
+              <span className="text-[10px] mt-1">Mockup</span>
+            </div>
+          </Link>
+          <Link href="/bg-remover">
+            <div className={cn("flex flex-col items-center justify-center p-2 cursor-pointer", location === "/bg-remover" ? "text-primary" : "text-muted-foreground")}>
+              <Scissors className="h-6 w-6" />
+              <span className="text-[10px] mt-1">BG Remove</span>
+            </div>
+          </Link>
+        </>
+      )}
     </div>
   );
 
@@ -254,24 +289,27 @@ export function Sidebar({ className }: SidebarProps) {
           })}
         </nav>
 
-        <Separator className="my-6 bg-sidebar-border/60" />
+        {/* Account section - only show for logged in users */}
+        {(user || isLoading) && (
+          <>
+            <Separator className="my-6 bg-sidebar-border/60" />
 
-        {!collapsed && <div className="mb-2 px-3 text-[11px] font-bold text-muted-foreground tracking-widest animate-fade-in">ACCOUNT</div>}
-        <nav className="space-y-1">
-          {isLoading ? (
-            collapsed ? (
-              <div className="flex flex-col items-center justify-center gap-1 py-2 px-2 mx-auto w-[52px]">
-                <div className="h-5 w-5 rounded-full bg-zinc-700/50 animate-pulse" />
-                <div className="h-2 w-8 bg-zinc-700/50 rounded animate-pulse" />
-              </div>
-            ) : (
-              <div className="flex items-center gap-3 px-3.5 py-3">
-                <div className="h-7 w-7 rounded-full bg-zinc-700/50 animate-pulse" />
-                <div className="h-3 w-16 bg-zinc-700/50 rounded animate-pulse" />
-              </div>
-            )
-          ) : user ? (
-            <Link href="/profile">
+            {!collapsed && <div className="mb-2 px-3 text-[11px] font-bold text-muted-foreground tracking-widest animate-fade-in">ACCOUNT</div>}
+            <nav className="space-y-1">
+              {isLoading ? (
+                collapsed ? (
+                  <div className="flex flex-col items-center justify-center gap-1 py-2 px-2 mx-auto w-[52px]">
+                    <div className="h-5 w-5 rounded-full bg-zinc-700/50 animate-pulse" />
+                    <div className="h-2 w-8 bg-zinc-700/50 rounded animate-pulse" />
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3 px-3.5 py-3">
+                    <div className="h-7 w-7 rounded-full bg-zinc-700/50 animate-pulse" />
+                    <div className="h-3 w-16 bg-zinc-700/50 rounded animate-pulse" />
+                  </div>
+                )
+              ) : user ? (
+                <Link href="/profile">
               {collapsed ? (
                 <div className={cn(
                   "flex flex-col items-center justify-center gap-1 py-2 px-2 rounded-lg font-medium transition-all cursor-pointer group select-none mx-auto w-[52px]",
@@ -327,11 +365,11 @@ export function Sidebar({ className }: SidebarProps) {
                   <span>Profile</span>
                 </div>
               )}
-            </Link>
-          ) : null}
-          
-          {/* Credits/Token display - below Profile */}
-          {collapsed ? (
+                </Link>
+              ) : null}
+              
+              {/* Credits/Token display - below Profile */}
+              {user && (collapsed ? (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -364,37 +402,37 @@ export function Sidebar({ className }: SidebarProps) {
                 </TooltipTrigger>
                 <TooltipContent side="right"><p>{credits} credits available</p></TooltipContent>
               </Tooltip>
-            </TooltipProvider>
-          ) : (
-            <Link href="/billing">
-              <div className="flex items-center gap-3 rounded-lg font-medium text-white/50 hover:bg-white/10 hover:text-white transition-all cursor-pointer group select-none px-3.5 py-3 text-sm">
-                <div className="relative h-5 w-5 flex items-center justify-center">
-                  <svg className="h-full w-full -rotate-90" viewBox="0 0 36 36">
-                    <path
-                      className="text-sidebar-accent"
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                    />
-                    <path
-                      className="text-primary"
-                      strokeDasharray={`${creditsPercentage}, 100`}
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <Coins className="absolute h-2 w-2 text-primary" />
-                </div>
-                <span>{credits} credits</span>
-              </div>
-            </Link>
-          )}
-          
-          {account.map((item) => {
+              </TooltipProvider>
+              ) : (
+                <Link href="/billing">
+                  <div className="flex items-center gap-3 rounded-lg font-medium text-white/50 hover:bg-white/10 hover:text-white transition-all cursor-pointer group select-none px-3.5 py-3 text-sm">
+                    <div className="relative h-5 w-5 flex items-center justify-center">
+                      <svg className="h-full w-full -rotate-90" viewBox="0 0 36 36">
+                        <path
+                          className="text-sidebar-accent"
+                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="3"
+                        />
+                        <path
+                          className="text-primary"
+                          strokeDasharray={`${creditsPercentage}, 100`}
+                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      <Coins className="absolute h-2 w-2 text-primary" />
+                    </div>
+                    <span>{credits} credits</span>
+                  </div>
+                </Link>
+              ))}
+              
+              {user && account.map((item) => {
             const isActive = location === item.href;
             return collapsed ? (
               <Link key={item.name} href={item.href}>
@@ -433,10 +471,12 @@ export function Sidebar({ className }: SidebarProps) {
                   )} />
                   <span>{item.name}</span>
                 </div>
-              </Link>
-            );
-          })}
-        </nav>
+                </Link>
+              );
+              })}
+            </nav>
+          </>
+        )}
 
         {/* Theme Toggle - part of account section for consistent spacing */}
         {collapsed && (
