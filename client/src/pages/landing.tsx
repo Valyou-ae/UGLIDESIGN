@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
-import { motion } from "framer-motion";
+import { motion, useAnimationControls } from "framer-motion";
 import { useLoginPopup } from "@/components/login-popup";
 import { 
   Sparkles, 
@@ -22,6 +22,55 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
+type AspectRatio = "1:1" | "16:9" | "4:5" | "3:4";
+
+interface SampleImage {
+  id: string;
+  aspectRatio: AspectRatio;
+  image: string;
+  prompt: string;
+  isGenerated?: boolean;
+}
+
+const SAMPLE_IMAGES: SampleImage[] = [
+  {
+    id: "sample-1",
+    aspectRatio: "1:1",
+    image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop",
+    prompt: "Luxury watch product shot"
+  },
+  {
+    id: "sample-2", 
+    aspectRatio: "16:9",
+    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=800&auto=format&fit=crop",
+    prompt: "Mountain landscape at sunset"
+  },
+  {
+    id: "sample-3",
+    aspectRatio: "4:5",
+    image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=600&auto=format&fit=crop",
+    prompt: "Portrait photography"
+  },
+  {
+    id: "sample-4",
+    aspectRatio: "1:1",
+    image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=600&auto=format&fit=crop",
+    prompt: "Gourmet food photography"
+  },
+  {
+    id: "sample-5",
+    aspectRatio: "16:9",
+    image: "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=800&auto=format&fit=crop",
+    prompt: "Starry night sky over mountains"
+  },
+  {
+    id: "sample-6",
+    aspectRatio: "3:4",
+    image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=600&auto=format&fit=crop",
+    prompt: "Fashion portrait"
+  }
+];
 
 const FEATURES = [
   {
@@ -300,75 +349,152 @@ function Hero({ prompt, setPrompt, isGenerating, hasUsedFreeGeneration, error, o
   );
 }
 
-interface GeneratedImageShowcaseProps {
-  imageData: string;
-  mimeType: string;
+interface ImageScrollerProps {
+  generatedImage?: { imageData: string; mimeType: string } | null;
   onLogin: () => void;
 }
 
-function GeneratedImageShowcase({ imageData, mimeType, onLogin }: GeneratedImageShowcaseProps) {
+function ImageScroller({ generatedImage, onLogin }: ImageScrollerProps) {
+  const [displayImages, setDisplayImages] = useState<SampleImage[]>(SAMPLE_IMAGES);
+  const [isPaused, setIsPaused] = useState(false);
+  const controls = useAnimationControls();
+
+  useEffect(() => {
+    if (generatedImage) {
+      setDisplayImages(prev => {
+        const newImages = [...prev];
+        const idx = newImages.findIndex(img => img.aspectRatio === "1:1");
+        if (idx !== -1) {
+          newImages[idx] = {
+            ...newImages[idx],
+            id: "generated",
+            image: `data:${generatedImage.mimeType};base64,${generatedImage.imageData}`,
+            prompt: "Your AI Creation ✨",
+            isGenerated: true
+          };
+        }
+        return newImages;
+      });
+    }
+  }, [generatedImage]);
+
+  useEffect(() => {
+    if (isPaused) {
+      controls.stop();
+    } else {
+      controls.start({
+        x: [0, -1600],
+        transition: {
+          x: {
+            repeat: Infinity,
+            repeatType: "loop",
+            duration: 30,
+            ease: "linear"
+          }
+        }
+      });
+    }
+  }, [isPaused, controls]);
+
+  const aspectClasses: Record<AspectRatio, string> = {
+    "1:1": "w-64 h-64",
+    "16:9": "w-80 h-[180px]",
+    "4:5": "w-52 h-[260px]",
+    "3:4": "w-48 h-64"
+  };
+
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 40 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="py-16 px-4 sm:px-6 lg:px-8"
-    >
-      <div className="max-w-4xl mx-auto">
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 200, damping: 20 }}
-          className="relative group"
+    <section className="py-12 overflow-hidden">
+      <div className="mb-6 text-center">
+        <h3 className="text-lg font-medium text-muted-foreground">
+          See what's possible with UGLI
+        </h3>
+      </div>
+      
+      <div 
+        className="relative"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
+        <motion.div 
+          className="flex gap-4 px-4"
+          animate={controls}
+          style={{ width: "fit-content" }}
         >
-          <div className="aspect-square max-w-xl mx-auto rounded-2xl overflow-hidden border border-border shadow-2xl">
-            <img 
-              src={`data:${mimeType};base64,${imageData}`}
-              alt="Your AI generated image"
-              className="w-full h-full object-cover"
-              data-testid="img-generated-image"
-            />
-          </div>
-          
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="absolute inset-0 max-w-xl mx-auto hidden md:flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"
-          >
-            <div className="flex flex-col items-center gap-4 p-6">
-              <p className="text-white text-lg font-medium text-center">Love it? Login to save and create more!</p>
-              <div className="flex flex-wrap justify-center gap-3">
-                <Button onClick={onLogin} className="bg-white text-primary hover:bg-white/90" data-testid="button-save-image">
-                  <Heart className="h-4 w-4 mr-2" />
-                  Save Image
-                </Button>
-                <Button onClick={onLogin} variant="outline" className="border-white text-white hover:bg-white/20" data-testid="button-generate-more">
-                  <Wand2 className="h-4 w-4 mr-2" />
-                  Generate More
-                </Button>
+          {[...displayImages, ...displayImages].map((item, index) => (
+            <motion.div
+              key={`${item.id}-${index}`}
+              className={cn(
+                "relative flex-shrink-0 rounded-2xl overflow-hidden border border-border group cursor-pointer",
+                aspectClasses[item.aspectRatio] || "w-64 h-64",
+                item.isGenerated && "ring-2 ring-primary ring-offset-2 ring-offset-background"
+              )}
+              whileHover={{ scale: 1.02, y: -4 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              data-testid={`image-scroller-item-${index}`}
+            >
+              <img 
+                src={item.image}
+                alt={item.prompt}
+                className="w-full h-full object-cover"
+              />
+              
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute bottom-0 left-0 right-0 p-3">
+                  <p className="text-white text-xs font-medium truncate">{item.prompt}</p>
+                  {item.isGenerated && (
+                    <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 bg-primary/80 rounded-full text-[10px] text-white">
+                      <Sparkles className="h-3 w-3" />
+                      Your Creation
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-          </motion.div>
+
+              {item.isGenerated && (
+                <motion.div 
+                  className="absolute inset-0 bg-primary/20 pointer-events-none"
+                  initial={{ opacity: 1 }}
+                  animate={{ opacity: [1, 0.3, 1] }}
+                  transition={{ duration: 2, repeat: 3 }}
+                />
+              )}
+            </motion.div>
+          ))}
         </motion.div>
         
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3"
-        >
-          <Button onClick={onLogin} className="bg-primary hover:bg-primary/90" data-testid="button-save-image-mobile">
+        <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-background to-transparent pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+      </div>
+    </section>
+  );
+}
+
+interface GeneratedImageCTAProps {
+  onLogin: () => void;
+}
+
+function GeneratedImageCTA({ onLogin }: GeneratedImageCTAProps) {
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="py-8 px-4 sm:px-6 lg:px-8"
+    >
+      <div className="max-w-xl mx-auto text-center">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-4">
+          <Button onClick={onLogin} className="bg-primary hover:bg-primary/90" data-testid="button-save-image">
             <Heart className="h-4 w-4 mr-2" />
-            Save Image
+            Save Your Image
           </Button>
-          <Button onClick={onLogin} variant="outline" data-testid="button-generate-more-mobile">
+          <Button onClick={onLogin} variant="outline" data-testid="button-generate-more">
             <Wand2 className="h-4 w-4 mr-2" />
             Generate More
           </Button>
-        </motion.div>
+        </div>
         
-        <p className="text-center mt-6 text-muted-foreground">
-          ✨ Your first AI creation!{" "}
+        <p className="text-muted-foreground text-sm">
+          ✨ Your first AI creation is in the gallery above!{" "}
           <button onClick={onLogin} className="text-primary underline" data-testid="button-create-account">
             Create an account
           </button>{" "}
@@ -732,12 +858,9 @@ export default function Landing() {
           onGenerate={handleGenerate}
           onLogin={openLoginPopup}
         />
+        <ImageScroller generatedImage={generatedImage} onLogin={openLoginPopup} />
         {generatedImage && (
-          <GeneratedImageShowcase
-            imageData={generatedImage.imageData}
-            mimeType={generatedImage.mimeType}
-            onLogin={openLoginPopup}
-          />
+          <GeneratedImageCTA onLogin={openLoginPopup} />
         )}
         <Features />
         <Pricing />
