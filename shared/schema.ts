@@ -156,6 +156,13 @@ export const imageLikes = pgTable("image_likes", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const galleryImageLikes = pgTable("gallery_image_likes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  imageId: varchar("image_id").notNull(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const galleryImages = pgTable("gallery_images", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
@@ -253,3 +260,4 @@ export type MoodBoardItem = typeof moodBoardItems.$inferSelect;
 export type InsertMoodBoardItem = z.infer<typeof insertMoodBoardItemSchema>;
 export type ImageLike = typeof imageLikes.$inferSelect;
 export type GalleryImage = typeof galleryImages.$inferSelect;
+export type GalleryImageLike = typeof galleryImageLikes.$inferSelect;
