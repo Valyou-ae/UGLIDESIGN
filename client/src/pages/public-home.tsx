@@ -484,9 +484,9 @@ export default function PublicHome() {
     likeMutation.mutate(imageId);
   }, [user, likeMutation]);
 
-  const handleImageGenerated = (imageData: { imageData: string; mimeType: string; aspectRatio: string }) => {
+  const handleImageGenerated = useCallback((imageData: { imageData: string; mimeType: string; aspectRatio: string }) => {
     setGeneratedImage(imageData);
-  };
+  }, []);
 
   return (
     <div className="h-screen bg-background flex font-sans text-foreground overflow-hidden">

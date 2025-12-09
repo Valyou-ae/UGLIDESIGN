@@ -3,9 +3,10 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthGuard, AdminGuard } from "@/components/auth-guard";
+import { AuthGuard, AdminGuard, GuestGuard } from "@/components/auth-guard";
 import { LoginPopupProvider } from "@/components/login-popup";
 import PublicHome from "@/pages/public-home";
+import Home from "@/pages/home";
 import Discover from "@/pages/discover";
 import ImageGenerator from "@/pages/image-generator";
 import BackgroundRemover from "@/pages/background-remover";
@@ -37,8 +38,12 @@ import AdminAnalytics from "@/pages/admin/analytics";
 function Router() {
   return (
     <Switch>
-      {/* Public home page */}
-      <Route path="/" component={PublicHome} />
+      {/* Public home page - redirects logged-in users to /home */}
+      <Route path="/">
+        <GuestGuard>
+          <PublicHome />
+        </GuestGuard>
+      </Route>
 
       {/* Public routes */}
       <Route path="/landing" component={Landing} />
@@ -49,6 +54,11 @@ function Router() {
 
 
       {/* Protected routes (require authentication) */}
+      <Route path="/home">
+        <AuthGuard>
+          <Home />
+        </AuthGuard>
+      </Route>
       <Route path="/discover">
         <AuthGuard>
           <Discover />
