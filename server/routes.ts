@@ -2,8 +2,10 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertImageSchema, insertWithdrawalSchema, updateProfileSchema, insertContactSchema, insertDealSchema, insertActivitySchema, insertPromptFavoriteSchema, insertMoodBoardSchema, insertMoodBoardItemSchema } from "@shared/schema";
+import { insertImageSchema, insertWithdrawalSchema, updateProfileSchema, insertContactSchema, insertDealSchema, insertActivitySchema, insertPromptFavoriteSchema, insertMoodBoardSchema, insertMoodBoardItemSchema, guestGenerations } from "@shared/schema";
 import { ZodError } from "zod";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -627,6 +629,34 @@ export async function registerRoutes(
     enhancePrompt,
     generateImage: generateGeminiImage,
   } = await import("./services/gemini");
+
+  // ============== GUEST IMAGE GENERATION (NO AUTH) ==============
+
+  app.post("/api/guest/generate-image", async (req, res) => {
+    try {
+      const { prompt, guestId } = req.body;
+      if (!prompt || !guestId) {
+        return res.status(400).json({ message: "Missing prompt or guestId" });
+      }
+
+      const existing = await db.select().from(guestGenerations).where(eq(guestGenerations.guestId, guestId));
+      if (existing.length > 0) {
+        return res.status(403).json({ message: "Free generation already used. Please login for more." });
+      }
+
+      const result = await generateGeminiImage(prompt, [], "quality");
+      if (!result) {
+        return res.status(500).json({ message: "Generation failed" });
+      }
+
+      await db.insert(guestGenerations).values({ guestId });
+
+      return res.json({ imageData: result.imageData, mimeType: result.mimeType });
+    } catch (error) {
+      console.error("Guest generation error:", error);
+      return res.status(500).json({ message: "Generation failed" });
+    }
+  });
 
   app.post("/api/generate/analyze", requireAuth, async (req, res) => {
     try {

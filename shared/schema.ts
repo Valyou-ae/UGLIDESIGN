@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, boolean, jsonb, index } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, boolean, jsonb, index, serial } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -140,6 +140,12 @@ export const moodBoardItems = pgTable("mood_board_items", {
   width: integer("width").default(200).notNull(),
   height: integer("height").default(200).notNull(),
   zIndex: integer("z_index").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const guestGenerations = pgTable("guest_generations", {
+  id: serial("id").primaryKey(),
+  guestId: text("guest_id").notNull().unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
