@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { useLoginPopup } from "@/components/login-popup";
@@ -15,7 +15,10 @@ import {
   Menu,
   X,
   Sun,
-  Moon
+  Moon,
+  Loader2,
+  Heart,
+  Wand2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -190,7 +193,23 @@ function Header() {
   );
 }
 
-function Hero() {
+interface HeroProps {
+  prompt: string;
+  setPrompt: (prompt: string) => void;
+  isGenerating: boolean;
+  hasUsedFreeGeneration: boolean;
+  error: string | null;
+  onGenerate: () => void;
+  onLogin: () => void;
+}
+
+function Hero({ prompt, setPrompt, isGenerating, hasUsedFreeGeneration, error, onGenerate, onLogin }: HeroProps) {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !isGenerating && prompt.trim()) {
+      onGenerate();
+    }
+  };
+
   return (
     <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-[#B94E30]/5 via-transparent to-[#E3B436]/5" />
@@ -237,9 +256,110 @@ function Hero() {
           <p className="mt-4 text-sm text-muted-foreground">
             No credit card required. 100 free credits to start.
           </p>
+
+          <div className="mt-8 max-w-2xl mx-auto">
+            <div className="flex flex-col sm:flex-row gap-3 bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-2">
+              <input
+                type="text"
+                placeholder="Describe the image you want to create..."
+                className="flex-1 px-4 py-3 bg-transparent border-0 focus:outline-none text-foreground placeholder:text-muted-foreground"
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={isGenerating}
+                data-testid="input-guest-prompt"
+              />
+              <Button 
+                className="bg-primary hover:bg-primary/90 h-12 px-6"
+                onClick={onGenerate}
+                disabled={isGenerating || !prompt.trim()}
+                data-testid="button-guest-generate"
+              >
+                {isGenerating ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Sparkles className="h-5 w-5 mr-2" />}
+                {isGenerating ? "Creating..." : "Try Free"}
+              </Button>
+            </div>
+            {error && (
+              <p className="mt-3 text-sm text-destructive" data-testid="text-generation-error">
+                {error}
+              </p>
+            )}
+            {hasUsedFreeGeneration && !error && (
+              <p className="mt-3 text-sm text-muted-foreground">
+                You've used your free generation.{" "}
+                <button onClick={onLogin} className="text-primary underline" data-testid="button-login-after-generation">
+                  Login
+                </button>{" "}
+                for unlimited access!
+              </p>
+            )}
+          </div>
         </motion.div>
       </div>
     </section>
+  );
+}
+
+interface GeneratedImageShowcaseProps {
+  imageData: string;
+  mimeType: string;
+  onLogin: () => void;
+}
+
+function GeneratedImageShowcase({ imageData, mimeType, onLogin }: GeneratedImageShowcaseProps) {
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="py-16 px-4 sm:px-6 lg:px-8"
+    >
+      <div className="max-w-4xl mx-auto">
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 200, damping: 20 }}
+          className="relative group"
+        >
+          <div className="aspect-square max-w-xl mx-auto rounded-2xl overflow-hidden border border-border shadow-2xl">
+            <img 
+              src={`data:${mimeType};base64,${imageData}`}
+              alt="Your AI generated image"
+              className="w-full h-full object-cover"
+              data-testid="img-generated-image"
+            />
+          </div>
+          
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="absolute inset-0 max-w-xl mx-auto flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"
+          >
+            <div className="flex flex-col items-center gap-4 p-6">
+              <p className="text-white text-lg font-medium text-center">Love it? Login to save and create more!</p>
+              <div className="flex flex-wrap justify-center gap-3">
+                <Button onClick={onLogin} className="bg-white text-primary hover:bg-white/90" data-testid="button-save-image">
+                  <Heart className="h-4 w-4 mr-2" />
+                  Save Image
+                </Button>
+                <Button onClick={onLogin} variant="outline" className="border-white text-white hover:bg-white/20" data-testid="button-generate-more">
+                  <Wand2 className="h-4 w-4 mr-2" />
+                  Generate More
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+        
+        <p className="text-center mt-6 text-muted-foreground">
+          ✨ Your first AI creation!{" "}
+          <button onClick={onLogin} className="text-primary underline" data-testid="button-create-account">
+            Create an account
+          </button>{" "}
+          for unlimited generations.
+        </p>
+      </div>
+    </motion.section>
   );
 }
 
@@ -526,11 +646,83 @@ function Footer() {
 }
 
 export default function Landing() {
+  const [prompt, setPrompt] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedImage, setGeneratedImage] = useState<{ imageData: string; mimeType: string } | null>(null);
+  const [hasUsedFreeGeneration, setHasUsedFreeGeneration] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { openLoginPopup } = useLoginPopup();
+
+  const guestIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("ugli_guest_id");
+    if (stored) {
+      guestIdRef.current = stored;
+      const hasGenerated = localStorage.getItem("ugli_guest_generated");
+      if (hasGenerated) setHasUsedFreeGeneration(true);
+    } else {
+      const newId = crypto.randomUUID();
+      localStorage.setItem("ugli_guest_id", newId);
+      guestIdRef.current = newId;
+    }
+  }, []);
+
+  const handleGenerate = async () => {
+    if (!prompt.trim() || isGenerating) return;
+
+    setIsGenerating(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/guest/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt, guestId: guestIdRef.current }),
+      });
+
+      if (response.status === 403) {
+        setHasUsedFreeGeneration(true);
+        localStorage.setItem("ugli_guest_generated", "true");
+        setError("You've already used your free generation. Login for more!");
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("Generation failed");
+      }
+
+      const data = await response.json();
+      setGeneratedImage({ imageData: data.imageData, mimeType: data.mimeType });
+      localStorage.setItem("ugli_guest_generated", "true");
+      setHasUsedFreeGeneration(true);
+    } catch (err) {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background font-sans">
       <Header />
       <main>
-        <Hero />
+        <Hero
+          prompt={prompt}
+          setPrompt={setPrompt}
+          isGenerating={isGenerating}
+          hasUsedFreeGeneration={hasUsedFreeGeneration}
+          error={error}
+          onGenerate={handleGenerate}
+          onLogin={openLoginPopup}
+        />
+        {generatedImage && (
+          <GeneratedImageShowcase
+            imageData={generatedImage.imageData}
+            mimeType={generatedImage.mimeType}
+            onLogin={openLoginPopup}
+          />
+        )}
         <Features />
         <Pricing />
         <Testimonials />
