@@ -200,6 +200,7 @@ function JustifiedGallery({ items, generatedImage }: JustifiedGalleryProps) {
   const isPausedRef = useRef(false);
   const animationRef = useRef<number | null>(null);
   const initializedRef = useRef(false);
+  const pauseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const displayItems = useMemo(() => {
     if (!generatedImage) return items;
@@ -221,6 +222,31 @@ function JustifiedGallery({ items, generatedImage }: JustifiedGalleryProps) {
     
     return [generatedItem, ...items];
   }, [items, generatedImage]);
+
+  // When a new generated image is added, scroll to top and pause
+  useEffect(() => {
+    if (generatedImage && scrollRef.current) {
+      // Clear any existing pause timeout
+      if (pauseTimeoutRef.current) {
+        clearTimeout(pauseTimeoutRef.current);
+      }
+      
+      // Scroll to top to show the new image
+      scrollRef.current.scrollTop = 0;
+      
+      // Pause auto-scroll for 8 seconds so user can see their creation
+      isPausedRef.current = true;
+      pauseTimeoutRef.current = setTimeout(() => {
+        isPausedRef.current = false;
+      }, 8000);
+    }
+    
+    return () => {
+      if (pauseTimeoutRef.current) {
+        clearTimeout(pauseTimeoutRef.current);
+      }
+    };
+  }, [generatedImage]);
 
   useEffect(() => {
     const updateWidth = () => {
