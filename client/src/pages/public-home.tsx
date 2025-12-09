@@ -290,26 +290,35 @@ function JustifiedGallery({ items, generatedImage, onLike }: JustifiedGalleryPro
   useEffect(() => {
     if (rows.length === 0) return;
     
-    const scrollSpeed = 0.3;
+    const scrollSpeed = 0.5;
+    let frameCount = 0;
 
     const animate = () => {
       if (!isHoverPausedRef.current && scrollRef.current) {
         const currentScroll = scrollRef.current.scrollTop;
+        const scrollHeight = scrollRef.current.scrollHeight;
+        const clientHeight = scrollRef.current.clientHeight;
         
         // Recalculate height on each frame if not set
-        if (originalContentHeightRef.current === 0 && scrollRef.current.scrollHeight > 0) {
-          originalContentHeightRef.current = scrollRef.current.scrollHeight / 2;
+        if (originalContentHeightRef.current === 0 && scrollHeight > clientHeight) {
+          originalContentHeightRef.current = scrollHeight / 2;
+          console.log('Setting halfHeight:', originalContentHeightRef.current, 'scrollHeight:', scrollHeight, 'clientHeight:', clientHeight);
         }
         
         const halfHeight = originalContentHeightRef.current;
         
-        if (halfHeight > 0) {
+        if (halfHeight > 0 && scrollHeight > clientHeight) {
           const newScroll = currentScroll + scrollSpeed;
           
           if (newScroll >= halfHeight) {
             scrollRef.current.scrollTop = newScroll - halfHeight;
           } else {
             scrollRef.current.scrollTop = newScroll;
+          }
+          
+          // Log every 100 frames
+          if (frameCount++ % 100 === 0) {
+            console.log('Scrolling:', { currentScroll: newScroll.toFixed(2), halfHeight, scrollHeight, clientHeight });
           }
         }
       }
@@ -320,9 +329,10 @@ function JustifiedGallery({ items, generatedImage, onLike }: JustifiedGalleryPro
     const timeoutId = setTimeout(() => {
       if (!animationStartedRef.current) {
         animationStartedRef.current = true;
+        console.log('Starting scroll animation, rows:', rows.length);
         animationRef.current = requestAnimationFrame(animate);
       }
-    }, 800);
+    }, 1000);
 
     return () => {
       clearTimeout(timeoutId);
