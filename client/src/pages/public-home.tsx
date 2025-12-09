@@ -290,7 +290,7 @@ function JustifiedGallery({ items, generatedImage, onLike }: JustifiedGalleryPro
   useEffect(() => {
     if (rows.length === 0) return;
     
-    const scrollSpeed = 0.15;
+    const scrollSpeed = 0.3;
 
     const animate = () => {
       if (!isHoverPausedRef.current && scrollRef.current) {
