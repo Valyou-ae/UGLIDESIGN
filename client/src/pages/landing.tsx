@@ -333,7 +333,7 @@ function GeneratedImageShowcase({ imageData, mimeType, onLogin }: GeneratedImage
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="absolute inset-0 max-w-xl mx-auto flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"
+            className="absolute inset-0 max-w-xl mx-auto hidden md:flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"
           >
             <div className="flex flex-col items-center gap-4 p-6">
               <p className="text-white text-lg font-medium text-center">Love it? Login to save and create more!</p>
@@ -349,6 +349,22 @@ function GeneratedImageShowcase({ imageData, mimeType, onLogin }: GeneratedImage
               </div>
             </div>
           </motion.div>
+        </motion.div>
+        
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3"
+        >
+          <Button onClick={onLogin} className="bg-primary hover:bg-primary/90" data-testid="button-save-image-mobile">
+            <Heart className="h-4 w-4 mr-2" />
+            Save Image
+          </Button>
+          <Button onClick={onLogin} variant="outline" data-testid="button-generate-more-mobile">
+            <Wand2 className="h-4 w-4 mr-2" />
+            Generate More
+          </Button>
         </motion.div>
         
         <p className="text-center mt-6 text-muted-foreground">
