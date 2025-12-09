@@ -13,8 +13,6 @@ import { GoogleAutoSignIn } from "@/components/google-auto-signin";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
-import { useLoginPopup } from "@/components/login-popup";
-import { useToast } from "@/hooks/use-toast";
 
 interface InspirationItem {
   id: string;
@@ -175,11 +173,11 @@ function JustifiedGalleryCard({ item, rowHeight, index, onLike }: { item: Inspir
                 onClick={handleLikeClick}
                 data-testid={`button-like-${item.id}`}
                 className={cn(
-                  "flex items-center gap-1.5 text-xs transition-all duration-200 hover:scale-110 p-1.5 -m-1.5 rounded-md z-20 relative",
-                  item.isLiked ? "text-[#B94E30]" : "text-white/80 hover:text-[#B94E30] hover:bg-white/10"
+                  "flex items-center gap-1 text-xs transition-all duration-200 hover:scale-110",
+                  item.isLiked ? "text-[#B94E30]" : "text-white/80 hover:text-[#B94E30]"
                 )}
               >
-                <Heart className={cn("h-4 w-4", item.isLiked && "fill-current")} />
+                <Heart className={cn("h-3 w-3", item.isLiked && "fill-current")} />
                 <span>{formatLikeCount(item.likes)}</span>
               </button>
               <div className="flex items-center gap-1 text-xs">
@@ -441,8 +439,6 @@ const fallbackGalleryImages: InspirationItem[] = [
 export default function PublicHome() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { openLoginPopup } = useLoginPopup();
-  const { toast } = useToast();
   const [generatedImage, setGeneratedImage] = useState<{ imageData: string; mimeType: string; aspectRatio: string } | null>(null);
 
   const { data: galleryData } = useQuery<{ images: any[] }>({
@@ -462,13 +458,6 @@ export default function PublicHome() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/gallery'] });
-    },
-    onError: () => {
-      toast({
-        title: "Unable to like",
-        description: "Please try again later",
-        variant: "destructive"
-      });
     }
   });
 
@@ -491,12 +480,9 @@ export default function PublicHome() {
   }, [galleryData]);
 
   const handleLike = useCallback((imageId: string) => {
-    if (!user) {
-      openLoginPopup();
-      return;
-    }
+    if (!user) return;
     likeMutation.mutate(imageId);
-  }, [user, likeMutation, openLoginPopup]);
+  }, [user, likeMutation]);
 
   const handleImageGenerated = (imageData: { imageData: string; mimeType: string; aspectRatio: string }) => {
     setGeneratedImage(imageData);
