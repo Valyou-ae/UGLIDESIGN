@@ -459,12 +459,18 @@ export default function PublicHome() {
     queryFn: async () => {
       const response = await fetch('/api/gallery', {
         credentials: 'include',
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
       });
       if (!response.ok) throw new Error('Failed to fetch gallery');
-      return response.json();
+      const data = await response.json();
+      return data;
     },
-    staleTime: 30000,
-    refetchOnMount: true,
+    staleTime: 0,
+    refetchOnMount: 'always',
+    gcTime: 0,
   });
 
   const likeMutation = useMutation({
