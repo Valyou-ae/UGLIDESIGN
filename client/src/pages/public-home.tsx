@@ -481,7 +481,7 @@ export default function PublicHome() {
 
   const galleryImages: InspirationItem[] = useMemo(() => {
     if (!galleryData?.images?.length) {
-      return [];
+      return fallbackGalleryImages;
     }
     return galleryData.images.map((img: any) => ({
       id: img.id,
@@ -514,13 +514,12 @@ export default function PublicHome() {
       <Sidebar className="hidden md:flex border-r border-border/50" />
       
       <main className="flex-1 relative h-full overflow-hidden bg-[#0A0A0B]">
-        {galleryImages.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#E3B436]"></div>
-          </div>
-        ) : (
-          <JustifiedGallery items={galleryImages} generatedImage={generatedImage} onLike={handleLike} />
-        )}
+        <JustifiedGallery 
+          key={`gallery-${galleryData?.images?.length || 0}`} 
+          items={galleryImages} 
+          generatedImage={generatedImage} 
+          onLike={handleLike} 
+        />
       </main>
 
       <FloatingPromptBar onImageGenerated={handleImageGenerated} />
