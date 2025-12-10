@@ -110,6 +110,18 @@ async function initStripe() {
 
   app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 
+  // Disable ETags for API routes to prevent 304 responses with empty bodies
+  // This fixes production issues where browser caching breaks JSON parsing
+  app.use('/api', (req, res, next) => {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    res.set('Surrogate-Control', 'no-store');
+    // Disable ETag generation for API responses
+    app.set('etag', false);
+    next();
+  });
+
   app.use((req, res, next) => {
     const start = Date.now();
     const path = req.path;
