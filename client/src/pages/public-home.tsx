@@ -228,6 +228,8 @@ function JustifiedGallery({ items, generatedImage, onLike }: JustifiedGalleryPro
   const [persistedGeneratedImages, setPersistedGeneratedImages] = useState<InspirationItem[]>([]);
   const lastGeneratedImageRef = useRef<string | null>(null);
   const originalContentHeightRef = useRef<number>(0);
+  const scrollPositionRef = useRef<number>(0);
+  const prevContentHeightRef = useRef<number>(0);
 
   useEffect(() => {
     if (generatedImage) {
@@ -254,8 +256,8 @@ function JustifiedGallery({ items, generatedImage, onLike }: JustifiedGalleryPro
   }, [generatedImage]);
 
   const displayItems = useMemo(() => {
-    // Prepend generated images so they appear at the start (visible in upcoming scroll rows)
-    return [...persistedGeneratedImages, ...items];
+    // Append generated images at the end so they scroll up naturally from below
+    return [...items, ...persistedGeneratedImages];
   }, [items, persistedGeneratedImages]);
 
   useEffect(() => {
@@ -282,7 +284,18 @@ function JustifiedGallery({ items, generatedImage, onLike }: JustifiedGalleryPro
       setTimeout(() => {
         if (scrollRef.current) {
           const totalHeight = scrollRef.current.scrollHeight;
-          originalContentHeightRef.current = totalHeight / 2;
+          const newHalfHeight = totalHeight / 2;
+          const prevHalfHeight = originalContentHeightRef.current;
+          
+          // If content height changed and we have a previous height, adjust scroll position
+          if (prevHalfHeight > 0 && newHalfHeight !== prevHalfHeight) {
+            const heightDiff = newHalfHeight - prevHalfHeight;
+            // Content was added - no need to adjust position since it's added at the end
+            // The scroll will naturally continue and the new content will come into view
+          }
+          
+          originalContentHeightRef.current = newHalfHeight;
+          prevContentHeightRef.current = newHalfHeight;
         }
       }, 100);
     }
@@ -316,34 +329,37 @@ function JustifiedGallery({ items, generatedImage, onLike }: JustifiedGalleryPro
     ));
   };
 
+  // Start animation once and keep it running - don't restart on row changes
   useEffect(() => {
+    if (animationStartedRef.current) return; // Already running
     if (rows.length === 0 || !scrollRef.current) return;
     
-    let animationId: number;
-    let position = 0;
     const speed = 0.5;
     
     const animate = () => {
       if (!isHoverPausedRef.current && scrollRef.current) {
-        position += speed;
+        scrollPositionRef.current += speed;
         const halfHeight = originalContentHeightRef.current;
-        if (halfHeight > 0 && position >= halfHeight) {
-          position = position - halfHeight;
+        if (halfHeight > 0 && scrollPositionRef.current >= halfHeight) {
+          scrollPositionRef.current = scrollPositionRef.current - halfHeight;
         }
-        scrollRef.current.style.transform = `translateY(-${position}px)`;
+        scrollRef.current.style.transform = `translateY(-${scrollPositionRef.current}px)`;
       }
-      animationId = requestAnimationFrame(animate);
+      animationRef.current = requestAnimationFrame(animate);
     };
     
     const timeout = setTimeout(() => {
-      animationId = requestAnimationFrame(animate);
+      animationStartedRef.current = true;
+      animationRef.current = requestAnimationFrame(animate);
     }, 1000);
     
     return () => {
       clearTimeout(timeout);
-      cancelAnimationFrame(animationId);
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
     };
-  }, [rows]);
+  }, [rows.length > 0]); // Only depend on whether we have rows, not the rows themselves
 
   return (
     <div ref={containerRef} className="w-full h-full overflow-hidden">
