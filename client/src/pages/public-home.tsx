@@ -222,7 +222,6 @@ function JustifiedGallery({ items, generatedImage, onLike }: JustifiedGalleryPro
   const scrollRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(1200);
   const [rows, setRows] = useState<JustifiedRow[]>([]);
-  const [contentHeight, setContentHeight] = useState(0);
   const isHoverPausedRef = useRef(false);
   const animationRef = useRef<number | null>(null);
   const animationStartedRef = useRef(false);
@@ -230,7 +229,6 @@ function JustifiedGallery({ items, generatedImage, onLike }: JustifiedGalleryPro
   const lastGeneratedImageRef = useRef<string | null>(null);
   const originalContentHeightRef = useRef<number>(0);
   const scrollPositionRef = useRef<number>(0);
-  const prevContentHeightRef = useRef<number>(0);
 
   useEffect(() => {
     if (generatedImage) {
@@ -275,7 +273,8 @@ function JustifiedGallery({ items, generatedImage, onLike }: JustifiedGalleryPro
   }, []);
 
   useEffect(() => {
-    const targetHeight = containerWidth < 640 ? 180 : containerWidth < 1024 ? 220 : 280;
+    // Use smaller row heights to create more rows and fill the viewport better
+    const targetHeight = containerWidth < 640 ? 140 : containerWidth < 1024 ? 180 : 220;
     const calculatedRows = calculateJustifiedRows(displayItems, containerWidth, targetHeight, 4);
     setRows(calculatedRows);
   }, [displayItems, containerWidth]);
@@ -287,10 +286,7 @@ function JustifiedGallery({ items, generatedImage, onLike }: JustifiedGalleryPro
         if (scrollRef.current) {
           const totalHeight = scrollRef.current.scrollHeight;
           const newHalfHeight = totalHeight / 2;
-          
           originalContentHeightRef.current = newHalfHeight;
-          prevContentHeightRef.current = newHalfHeight;
-          setContentHeight(newHalfHeight);
         }
       }, 100);
     }
@@ -358,20 +354,14 @@ function JustifiedGallery({ items, generatedImage, onLike }: JustifiedGalleryPro
 
   return (
     <div ref={containerRef} className="w-full h-full overflow-hidden">
-      {/* Viewport wrapper - clips to show only one set of content */}
       <div 
-        className="w-full overflow-hidden"
-        style={{ height: contentHeight > 0 ? `${contentHeight}px` : '100%' }}
+        ref={scrollRef}
+        className="w-full px-1"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
-        <div 
-          ref={scrollRef}
-          className="w-full px-1"
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-        >
-          {renderRows('first')}
-          {renderRows('second')}
-        </div>
+        {renderRows('first')}
+        {renderRows('second')}
       </div>
     </div>
   );
