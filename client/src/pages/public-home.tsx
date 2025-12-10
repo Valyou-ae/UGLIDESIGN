@@ -532,7 +532,7 @@ export default function PublicHome() {
       <Sidebar className="hidden md:flex border-r border-border/50" />
       
       <main className="flex-1 relative h-full overflow-hidden bg-[#0A0A0B]">
-        <JustifiedGallery items={galleryImages} generatedImage={generatedImage} onLike={handleLike} />
+        <JustifiedGallery key={`gallery-${galleryImages.length}`} items={galleryImages} generatedImage={generatedImage} onLike={handleLike} />
       </main>
 
       <FloatingPromptBar onImageGenerated={handleImageGenerated} />
