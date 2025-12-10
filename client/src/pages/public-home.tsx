@@ -256,8 +256,16 @@ function JustifiedGallery({ items, generatedImage, onLike }: JustifiedGalleryPro
   }, [generatedImage]);
 
   const displayItems = useMemo(() => {
-    // Append generated images at the end so they scroll up naturally from below
-    return [...items, ...persistedGeneratedImages];
+    // Duplicate items to ensure we have enough content to fill the viewport
+    // This prevents the duplicate rows from being visible when content is short
+    const baseItems = [...items, ...persistedGeneratedImages];
+    // Triple the items to ensure enough content for smooth scrolling
+    const duplicatedItems = [
+      ...baseItems.map((item, i) => ({ ...item, id: `${item.id}-a` })),
+      ...baseItems.map((item, i) => ({ ...item, id: `${item.id}-b` })),
+      ...baseItems.map((item, i) => ({ ...item, id: `${item.id}-c` })),
+    ];
+    return duplicatedItems;
   }, [items, persistedGeneratedImages]);
 
   useEffect(() => {
