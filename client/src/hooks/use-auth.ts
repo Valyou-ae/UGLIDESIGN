@@ -1,18 +1,32 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 async function fetchUser() {
-  const response = await fetch("/api/auth/user", {
+  // Add timestamp to completely bypass any caching (fixes 304 empty body issue in production)
+  const timestamp = Date.now();
+  const response = await fetch(`/api/auth/user?_t=${timestamp}`, {
     credentials: "include",
+    cache: 'no-store',
+    headers: {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+    },
   });
   
   if (!response.ok) {
     if (response.status === 401) {
       return null;
     }
-    throw new Error("Failed to fetch user");
+    // For any other non-OK status (including 304), return null to avoid parse errors
+    console.error('Auth fetch error:', response.status, response.statusText);
+    return null;
   }
   
-  const data = await response.json();
+  const text = await response.text();
+  if (!text) {
+    return null;
+  }
+  
+  const data = JSON.parse(text);
   return data.user;
 }
 

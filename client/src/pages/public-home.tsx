@@ -387,7 +387,9 @@ export default function PublicHome() {
     queryKey: ['/api/gallery'],
     queryFn: async () => {
       try {
-        const response = await fetch('/api/gallery', {
+        // Add timestamp to URL to completely bypass any caching
+        const timestamp = Date.now();
+        const response = await fetch(`/api/gallery?_t=${timestamp}`, {
           method: 'GET',
           cache: 'no-store',
           headers: {
@@ -396,11 +398,25 @@ export default function PublicHome() {
             'Pragma': 'no-cache',
           },
         });
-        if (!response.ok && response.status !== 304) {
+        
+        // Handle non-OK responses (304 has empty body, can't be parsed)
+        if (!response.ok) {
           console.error('Gallery API error:', response.status, response.statusText);
+          // Return cached data from React Query if available
+          const cached = queryClient.getQueryData<{ images: any[] }>(['/api/gallery']);
+          if (cached && cached.images.length > 0) {
+            return cached;
+          }
           return { images: [] };
         }
-        const data = await response.json();
+        
+        const text = await response.text();
+        if (!text) {
+          console.error('Gallery API returned empty response');
+          return { images: [] };
+        }
+        
+        const data = JSON.parse(text);
         return data;
       } catch (error) {
         console.error('Gallery fetch error:', error);
