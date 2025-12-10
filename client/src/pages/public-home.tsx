@@ -389,23 +389,25 @@ export default function PublicHome() {
       try {
         const response = await fetch('/api/gallery', {
           method: 'GET',
+          cache: 'no-store',
           headers: {
             'Accept': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
           },
         });
-        if (!response.ok) {
+        if (!response.ok && response.status !== 304) {
           console.error('Gallery API error:', response.status, response.statusText);
           return { images: [] };
         }
         const data = await response.json();
-        console.log('Gallery API returned:', data?.images?.length, 'images');
         return data;
       } catch (error) {
         console.error('Gallery fetch error:', error);
         return { images: [] };
       }
     },
-    staleTime: 30000,
+    staleTime: 60000,
     refetchOnMount: true,
   });
 
