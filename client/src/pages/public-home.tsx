@@ -377,73 +377,6 @@ const formatViewCount = (count: number): string => {
   return count.toString();
 };
 
-const fallbackGalleryImages: InspirationItem[] = [
-  {
-    id: "fallback-1",
-    title: "Luxury Watch Product Shot",
-    image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1000&auto=format&fit=crop",
-    creator: "productpro",
-    verified: true,
-    views: "234.5K",
-    likes: 45200,
-    uses: "18.3K",
-    category: "Product",
-    aspectRatio: "1:1",
-    prompt: "Luxury Swiss timepiece floating on reflective black surface, dramatic side lighting"
-  },
-  {
-    id: "fallback-2",
-    title: "Golden Hour Portrait",
-    image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1000&auto=format&fit=crop",
-    creator: "portraitmaster",
-    verified: true,
-    views: "312.8K",
-    likes: 58700,
-    uses: "24.1K",
-    category: "Portrait",
-    aspectRatio: "4:5",
-    prompt: "Intimate portrait bathed in warm golden hour sunlight"
-  },
-  {
-    id: "fallback-3",
-    title: "Mountain Lake Reflection",
-    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=1000&auto=format&fit=crop",
-    creator: "alpinedreamer",
-    verified: true,
-    views: "523.4K",
-    likes: 97300,
-    uses: "35.2K",
-    category: "Landscape",
-    aspectRatio: "16:9",
-    prompt: "Crystal clear alpine lake reflecting snow-capped mountains"
-  },
-  {
-    id: "fallback-4",
-    title: "Neon Tokyo Streets",
-    image: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1000&auto=format&fit=crop",
-    creator: "cyberpunker",
-    verified: true,
-    views: "398.1K",
-    likes: 72800,
-    uses: "30.1K",
-    category: "Street",
-    aspectRatio: "9:16",
-    prompt: "Rain-soaked Tokyo alleyway at night with vibrant neon signs"
-  },
-  {
-    id: "fallback-5",
-    title: "Cherry Blossom Dreams",
-    image: "https://images.unsplash.com/photo-1522383225653-ed111181a951?q=80&w=1000&auto=format&fit=crop",
-    creator: "sakuralove",
-    verified: true,
-    views: "342.1K",
-    likes: 63800,
-    uses: "26.5K",
-    category: "Nature",
-    aspectRatio: "3:4",
-    prompt: "Delicate pink cherry blossoms against soft blue sky"
-  }
-];
 
 export default function PublicHome() {
   const { user } = useAuth();
@@ -490,11 +423,9 @@ export default function PublicHome() {
     const apiImages = galleryData?.images;
     
     if (!apiImages || apiImages.length === 0) {
-      console.log('Using fallback images, galleryData:', galleryData);
-      return fallbackGalleryImages;
+      return [];
     }
     
-    console.log('Using API images, count:', apiImages.length);
     return apiImages.map((img: any) => ({
       id: String(img.id),
       title: img.title || 'Untitled',
@@ -510,6 +441,8 @@ export default function PublicHome() {
       isLiked: Boolean(img.isLiked)
     }));
   }, [galleryData]);
+  
+  const isGalleryReady = galleryImages.length > 0;
 
   const handleLike = useCallback((imageId: string) => {
     if (!user) return;
@@ -526,12 +459,20 @@ export default function PublicHome() {
       <Sidebar className="hidden md:flex border-r border-border/50" />
       
       <main className="flex-1 relative h-full overflow-hidden bg-[#0A0A0B]">
-        <JustifiedGallery 
-          key={`gallery-${galleryData?.images?.length || 0}`} 
-          items={galleryImages} 
-          generatedImage={generatedImage} 
-          onLike={handleLike} 
-        />
+        {isGalleryReady ? (
+          <JustifiedGallery 
+            items={galleryImages} 
+            generatedImage={generatedImage} 
+            onLike={handleLike} 
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-12 h-12 border-4 border-[#B94E30] border-t-transparent rounded-full animate-spin" />
+              <p className="text-gray-400 text-sm">Loading gallery...</p>
+            </div>
+          </div>
+        )}
       </main>
 
       <FloatingPromptBar onImageGenerated={handleImageGenerated} />
