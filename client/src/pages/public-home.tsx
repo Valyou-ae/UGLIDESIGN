@@ -256,17 +256,12 @@ function JustifiedGallery({ items, generatedImage, onLike }: JustifiedGalleryPro
   }, [generatedImage]);
 
   const displayItems = useMemo(() => {
-    // Combine gallery items with any generated images
     const baseItems = [...items, ...persistedGeneratedImages];
-    console.log('JustifiedGallery displayItems - baseItems:', baseItems.length, 'items prop:', items.length);
-    // Only duplicate if we have few items (to ensure smooth infinite scroll)
     if (baseItems.length < 20) {
-      const duplicated = [
+      return [
         ...baseItems.map((item) => ({ ...item, id: `${item.id}-a` })),
         ...baseItems.map((item) => ({ ...item, id: `${item.id}-b` })),
       ];
-      console.log('Duplicated to:', duplicated.length);
-      return duplicated;
     }
     return baseItems;
   }, [items, persistedGeneratedImages]);
@@ -274,23 +269,17 @@ function JustifiedGallery({ items, generatedImage, onLike }: JustifiedGalleryPro
   useEffect(() => {
     const updateWidth = () => {
       if (containerRef.current) {
-        const width = containerRef.current.offsetWidth;
-        console.log('Container width updated:', width);
-        setContainerWidth(width);
+        setContainerWidth(containerRef.current.offsetWidth);
       }
     };
-
     updateWidth();
     window.addEventListener('resize', updateWidth);
     return () => window.removeEventListener('resize', updateWidth);
   }, []);
 
   useEffect(() => {
-    // Use smaller row heights to create more rows and fill the viewport better
     const targetHeight = containerWidth < 640 ? 140 : containerWidth < 1024 ? 180 : 220;
     const calculatedRows = calculateJustifiedRows(displayItems, containerWidth, targetHeight, 4);
-    const uniqueImages = new Set(calculatedRows.flatMap(r => r.items.map(i => i.image)));
-    console.log('Setting rows - displayItems:', displayItems.length, 'rows:', calculatedRows.length, 'unique images:', uniqueImages.size, 'first row images:', calculatedRows[0]?.items.map(i => i.title).join(', '));
     setRows(calculatedRows);
   }, [displayItems, containerWidth]);
 
@@ -369,10 +358,6 @@ function JustifiedGallery({ items, generatedImage, onLike }: JustifiedGalleryPro
 
   return (
     <div ref={containerRef} className="w-full h-full overflow-hidden relative">
-      <div className="absolute top-0 left-0 z-50 bg-red-500 text-white p-2 text-xs max-w-xs overflow-hidden">
-        Rows: {rows.length}, Items: {rows.reduce((s, r) => s + r.items.length, 0)}, 
-        First: {rows[0]?.items.slice(0, 2).map(i => i.title.substring(0, 10)).join(', ')}
-      </div>
       <div 
         ref={scrollRef}
         className="w-full px-1"
@@ -495,12 +480,9 @@ export default function PublicHome() {
   });
 
   const galleryImages: InspirationItem[] = useMemo(() => {
-    console.log('Gallery data:', galleryData, 'Images count:', galleryData?.images?.length);
     if (!galleryData?.images?.length) {
-      console.log('Using fallback images');
-      return fallbackGalleryImages;
+      return [];
     }
-    console.log('Using real gallery images:', galleryData.images.length);
     return galleryData.images.map((img: any) => ({
       id: img.id,
       title: img.title,
@@ -532,7 +514,13 @@ export default function PublicHome() {
       <Sidebar className="hidden md:flex border-r border-border/50" />
       
       <main className="flex-1 relative h-full overflow-hidden bg-[#0A0A0B]">
-        <JustifiedGallery key={`gallery-${galleryImages.length}`} items={galleryImages} generatedImage={generatedImage} onLike={handleLike} />
+        {galleryImages.length === 0 ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#E3B436]"></div>
+          </div>
+        ) : (
+          <JustifiedGallery items={galleryImages} generatedImage={generatedImage} onLike={handleLike} />
+        )}
       </main>
 
       <FloatingPromptBar onImageGenerated={handleImageGenerated} />
