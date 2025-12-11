@@ -131,12 +131,15 @@ export function GoogleAutoSignIn({ onSuccess, onError }: GoogleAutoSignInProps) 
 
               if (authResponse.ok) {
                 console.log("Google sign-in successful");
-                await queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
-                console.log("Auth state refreshed, redirecting to discover");
                 onSuccess?.();
-                setTimeout(() => {
-                  setLocation("/discover");
-                }, 100);
+                // Reset auth state before navigation
+                isAuthenticatingRef.current = false;
+                // Check if there's a pending prompt to process
+                const pendingPrompt = localStorage.getItem("pending_prompt");
+                // Use full page navigation to ensure fresh auth state (bypasses CDN caching)
+                // If there's a pending prompt, go to home page where FloatingPromptBar can process it
+                window.location.href = pendingPrompt ? "/" : "/discover";
+                return;
               } else {
                 const error = await authResponse.json();
                 console.error("Google auth failed:", error);
