@@ -159,7 +159,36 @@ Respond with JSON:
 
     const rawJson = response.text;
     if (rawJson) {
-      const result = JSON.parse(rawJson);
+      // Clean the response text - remove markdown code blocks and trim
+      let cleanedJson = rawJson.trim();
+      // Remove markdown code block markers if present
+      if (cleanedJson.startsWith('```json')) {
+        cleanedJson = cleanedJson.slice(7);
+      } else if (cleanedJson.startsWith('```')) {
+        cleanedJson = cleanedJson.slice(3);
+      }
+      if (cleanedJson.endsWith('```')) {
+        cleanedJson = cleanedJson.slice(0, -3);
+      }
+      cleanedJson = cleanedJson.trim();
+      
+      // Try to extract JSON object if wrapped in other text
+      const jsonMatch = cleanedJson.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        cleanedJson = jsonMatch[0];
+      }
+      
+      let result;
+      try {
+        result = JSON.parse(cleanedJson);
+      } catch (parseError) {
+        // If JSON parsing fails, return fallback with original prompt
+        console.warn("JSON parse failed for enhancePrompt, using original prompt");
+        return {
+          enhancedPrompt: originalPrompt,
+          negativePrompts: ["blurry", "low quality", "distorted", "deformed", "watermark"],
+        };
+      }
       
       const baseNegatives = [
         "blurry",
@@ -487,11 +516,32 @@ Respond with JSON:
 
     const rawJson = response.text;
     if (rawJson) {
-      const result = JSON.parse(rawJson);
-      return {
-        prompt: result.prompt || `Professional product photo of a ${params.productColor} ${params.productType} with a ${designAnalysis.designType} design, ${params.scene} background, ${params.angle} view, photorealistic, 8K quality`,
-        negativePrompts: result.negativePrompts || ["blurry", "low quality", "distorted", "watermark"],
-      };
+      // Clean the response text - remove markdown code blocks and trim
+      let cleanedJson = rawJson.trim();
+      if (cleanedJson.startsWith('```json')) {
+        cleanedJson = cleanedJson.slice(7);
+      } else if (cleanedJson.startsWith('```')) {
+        cleanedJson = cleanedJson.slice(3);
+      }
+      if (cleanedJson.endsWith('```')) {
+        cleanedJson = cleanedJson.slice(0, -3);
+      }
+      cleanedJson = cleanedJson.trim();
+      
+      const jsonMatch = cleanedJson.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        cleanedJson = jsonMatch[0];
+      }
+      
+      try {
+        const result = JSON.parse(cleanedJson);
+        return {
+          prompt: result.prompt || `Professional product photo of a ${params.productColor} ${params.productType} with a ${designAnalysis.designType} design, ${params.scene} background, ${params.angle} view, photorealistic, 8K quality`,
+          negativePrompts: result.negativePrompts || ["blurry", "low quality", "distorted", "watermark"],
+        };
+      } catch (parseError) {
+        console.warn("JSON parse failed for mockup prompt, using fallback");
+      }
     }
 
     return {
