@@ -16,7 +16,9 @@ import {
   Coins,
   Layers,
   User,
-  LogIn
+  LogIn,
+  CreditCard,
+  Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -136,6 +138,8 @@ export function Sidebar({ className }: SidebarProps) {
   const navigation: NavItem[] = user ? [...publicNavigation, ...privateNavigation] : publicNavigation;
 
   const account = [
+    { name: "Pricing", shortName: "Pricing", icon: Sparkles, href: "/pricing" },
+    { name: "Billing", shortName: "Billing", icon: CreditCard, href: "/billing" },
     { name: "Settings", shortName: "Settings", icon: Settings, href: "/settings" },
   ];
 
