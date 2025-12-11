@@ -40,6 +40,11 @@ async function initStripe() {
     stripeLogger.info('Stripe schema ready');
 
     const stripeSync = await getStripeSync();
+    
+    if (!stripeSync) {
+      stripeLogger.warn('Stripe not configured, skipping webhook setup');
+      return;
+    }
 
     stripeLogger.info('Setting up managed webhook...');
     const webhookBaseUrl = `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`;
@@ -61,7 +66,7 @@ async function initStripe() {
         stripeLogger.error('Error syncing Stripe data', err);
       });
   } catch (error: any) {
-    stripeLogger.error('Failed to initialize Stripe', error);
+    stripeLogger.warn('Stripe initialization skipped', { reason: error?.message });
   }
 }
 
