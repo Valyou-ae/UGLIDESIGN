@@ -165,17 +165,19 @@ export async function registerRoutes(
       }
 
       // Helper function to retry database operations on DNS failures
-      const retryDbOperation = async <T>(operation: () => Promise<T>, maxRetries = 3): Promise<T> => {
+      const retryDbOperation = async <T>(operation: () => Promise<T>, maxRetries = 5): Promise<T> => {
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
           try {
             return await operation();
           } catch (error: any) {
             const isDnsError = error?.message?.includes('EAI_AGAIN') || 
                                error?.message?.includes('ENOTFOUND') ||
-                               error?.code === 'EAI_AGAIN';
+                               error?.code === 'EAI_AGAIN' ||
+                               error?.message?.includes('helium');
             if (isDnsError && attempt < maxRetries) {
-              console.log(`DNS error on attempt ${attempt}, retrying in ${attempt * 500}ms...`);
-              await new Promise(resolve => setTimeout(resolve, attempt * 500));
+              const delay = attempt * 1000; // 1s, 2s, 3s, 4s delays
+              console.log(`DNS error on attempt ${attempt}/${maxRetries}, retrying in ${delay}ms...`);
+              await new Promise(resolve => setTimeout(resolve, delay));
               continue;
             }
             throw error;

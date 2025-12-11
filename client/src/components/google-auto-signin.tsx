@@ -120,20 +120,36 @@ export function GoogleAutoSignIn({ onSuccess, onError }: GoogleAutoSignInProps) 
             try {
               console.log("Google sign-in triggered, method:", response.select_by);
               
-              // Add timestamp to bypass CDN caching
-              const timestamp = Date.now();
-              const authResponse = await fetch(`/api/auth/google?_t=${timestamp}`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  "Cache-Control": "no-cache, no-store, must-revalidate",
-                  "Pragma": "no-cache",
-                },
-                credentials: "include",
-                cache: "no-store",
-                body: JSON.stringify({ credential: response.credential }),
-              });
+              // Helper function to attempt auth with retries
+              const attemptAuth = async (retryCount = 0): Promise<{ok: boolean; status: number; body: string}> => {
+                const timestamp = Date.now();
+                const authResponse = await fetch(`/api/auth/google?_t=${timestamp}`, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                    "Pragma": "no-cache",
+                  },
+                  credentials: "include",
+                  cache: "no-store",
+                  body: JSON.stringify({ credential: response.credential }),
+                });
+                
+                const responseBody = await authResponse.text();
+                
+                // If server error and we have retries left, wait and retry
+                if (authResponse.status >= 500 && retryCount < 3) {
+                  // Check if it's a DNS-related error
+                  if (responseBody.includes('EAI_AGAIN') || responseBody.includes('helium') || responseBody.includes('DNS')) {
+                    console.log(`DNS error, retrying in ${(retryCount + 1) * 2}s... (attempt ${retryCount + 1}/3)`);
+                    await new Promise(resolve => setTimeout(resolve, (retryCount + 1) * 2000));
+                    return attemptAuth(retryCount + 1);
+                  }
+                }
+                return { ok: authResponse.ok, status: authResponse.status, body: responseBody };
+              };
 
+              const authResponse = await attemptAuth();
               console.log("Auth response status:", authResponse.status);
 
               if (authResponse.ok) {
@@ -150,16 +166,20 @@ export function GoogleAutoSignIn({ onSuccess, onError }: GoogleAutoSignInProps) 
               } else {
                 let errorMessage = "Authentication failed";
                 try {
-                  const errorText = await authResponse.text();
-                  if (errorText) {
-                    const error = JSON.parse(errorText);
+                  if (authResponse.body) {
+                    const error = JSON.parse(authResponse.body);
                     errorMessage = error.detail || error.message || errorMessage;
                   }
                 } catch (e) {
                   errorMessage = `Login failed (${authResponse.status})`;
                 }
                 console.error("Google auth failed:", errorMessage);
-                alert(`Login failed: ${errorMessage}`);
+                // If it's a DNS error, suggest trying again
+                if (errorMessage.includes('EAI_AGAIN') || errorMessage.includes('helium')) {
+                  alert("Connection issue - please try again in a few seconds. The server is warming up.");
+                } else {
+                  alert(`Login failed: ${errorMessage}`);
+                }
                 onError?.(errorMessage);
                 isAuthenticatingRef.current = false;
               }
