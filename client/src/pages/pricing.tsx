@@ -1,275 +1,290 @@
 import { useState } from "react";
-import { Link, useLocation } from "wouter";
-import { Check, ArrowRight, Zap, Mail, Sparkles } from "lucide-react";
+import { Link } from "wouter";
+import { Check, Sparkles, ArrowRight, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sidebar } from "@/components/sidebar";
-import { useAuth } from "@/hooks/use-auth";
-import { useMutation } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
 
-const PLANS = [
+interface PlanFeature {
+  text: string;
+  included: boolean;
+}
+
+interface PricingPlan {
+  name: string;
+  description: string;
+  price: number;
+  priceYearly: number;
+  credits: number;
+  popular?: boolean;
+  features: PlanFeature[];
+  cta: string;
+}
+
+const PLANS: PricingPlan[] = [
   {
-    id: "free",
     name: "Free",
+    description: "Perfect for trying out UGLI",
     price: 0,
-    credits: 20,
-    features: ["20 credits/month", "Basic generation", "Standard quality", "Community access"],
-  },
-  {
-    id: "basic",
-    name: "Basic",
-    price: 9,
+    priceYearly: 0,
     credits: 100,
-    features: ["100 credits/month", "HD exports", "Background remover", "Email support"],
+    features: [
+      { text: "100 credits/month", included: true },
+      { text: "Basic image generation", included: true },
+      { text: "Standard quality", included: true },
+      { text: "Community support", included: true },
+      { text: "Background remover", included: false },
+      { text: "Mockup generator", included: false },
+      { text: "Priority queue", included: false },
+      { text: "API access", included: false },
+    ],
+    cta: "Get Started Free",
   },
   {
-    id: "pro",
     name: "Pro",
+    description: "For creators and small businesses",
     price: 29,
-    credits: 500,
+    priceYearly: 290,
+    credits: 2000,
     popular: true,
-    features: ["500 credits/month", "4K exports", "All tools", "Priority queue", "Commercial license", "Priority support"],
+    features: [
+      { text: "2,000 credits/month", included: true },
+      { text: "All AI generators", included: true },
+      { text: "HD quality exports", included: true },
+      { text: "Background remover", included: true },
+      { text: "Mockup generator", included: true },
+      { text: "Priority support", included: true },
+      { text: "Priority queue", included: false },
+      { text: "API access", included: false },
+    ],
+    cta: "Start Pro Trial",
   },
   {
-    id: "enterprise",
-    name: "Enterprise",
-    price: "Custom",
-    credits: "Unlimited",
-    features: ["Unlimited credits", "Custom integrations", "Dedicated manager", "SLA guarantee"],
+    name: "Business",
+    description: "For teams and agencies",
+    price: 79,
+    priceYearly: 790,
+    credits: 10000,
+    features: [
+      { text: "10,000 credits/month", included: true },
+      { text: "All Pro features", included: true },
+      { text: "Priority queue", included: true },
+      { text: "API access", included: true },
+      { text: "Custom branding", included: true },
+      { text: "Team collaboration", included: true },
+      { text: "Dedicated support", included: true },
+      { text: "SLA guarantee", included: true },
+    ],
+    cta: "Contact Sales",
   },
 ];
 
+const CREDIT_PACKAGES = [
+  { credits: 500, price: 19, perCredit: 0.038 },
+  { credits: 1000, price: 35, perCredit: 0.035, popular: true },
+  { credits: 2500, price: 79, perCredit: 0.032 },
+  { credits: 5000, price: 149, perCredit: 0.030 },
+];
+
 export default function Pricing() {
-  const { user } = useAuth();
-  const [, navigate] = useLocation();
-  const { toast } = useToast();
-  const [selectedPlan, setSelectedPlan] = useState("pro");
-  
-  const currentPlan = user?.planTier || "free";
-
-  const checkoutMutation = useMutation({
-    mutationFn: async (planId: string) => {
-      const response = await fetch("/api/stripe/checkout-plan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId }),
-        credentials: "include",
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to create checkout session");
-      }
-      return response.json();
-    },
-    onSuccess: (data) => {
-      if (data.url) window.location.href = data.url;
-    },
-    onError: (error: Error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    },
-  });
-
-  const handleSubscribe = () => {
-    if (selectedPlan === "enterprise") {
-      navigate("/help");
-      return;
-    }
-    if (!user) {
-      window.location.href = "/api/login";
-      return;
-    }
-    if (selectedPlan === currentPlan) return;
-    if (selectedPlan === "free") {
-      navigate("/billing");
-      return;
-    }
-    checkoutMutation.mutate(selectedPlan);
-  };
-
-  const activePlan = PLANS.find(p => p.id === selectedPlan)!;
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
 
   return (
-    <div className="min-h-screen bg-background flex font-sans text-foreground">
+    <div className="min-h-screen bg-background flex font-sans text-foreground overflow-hidden">
       <Sidebar />
       
       <main className="flex-1 h-screen overflow-y-auto">
-        <div className="min-h-full flex flex-col lg:flex-row">
+        <div className="max-w-6xl mx-auto px-6 py-12">
           
-          <div className="flex-1 flex flex-col justify-center px-8 py-16 lg:px-16">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="max-w-lg"
-            >
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#B94E30]/10 text-[#B94E30] text-sm font-medium mb-6">
-                <Sparkles className="h-4 w-4" />
-                Pricing
-              </div>
-              
-              <h1 className="text-4xl lg:text-5xl font-bold text-foreground mb-4 leading-tight">
-                Pick the plan that
-                <br />
-                <span className="text-[#B94E30]">works for you</span>
-              </h1>
-              
-              <p className="text-lg text-muted-foreground mb-10">
-                Simple pricing with no hidden fees. Start free and upgrade when you're ready.
-              </p>
-
-              <div className="grid grid-cols-2 gap-3 mb-10">
-                {PLANS.map((plan) => (
-                  <motion.button
-                    key={plan.id}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setSelectedPlan(plan.id)}
-                    className={cn(
-                      "relative p-4 rounded-2xl text-left transition-all border-2",
-                      selectedPlan === plan.id
-                        ? "border-[#B94E30] bg-[#B94E30]/5"
-                        : "border-border hover:border-[#B94E30]/30 bg-card"
-                    )}
-                    data-testid={`plan-option-${plan.id}`}
-                  >
-                    {plan.popular && (
-                      <span className="absolute -top-2 right-3 px-2 py-0.5 bg-[#E3B436] text-[#664D3F] text-[10px] font-bold rounded-full">
-                        POPULAR
-                      </span>
-                    )}
-                    {currentPlan === plan.id && (
-                      <span className="absolute -top-2 left-3 px-2 py-0.5 bg-[#664D3F] text-white text-[10px] font-bold rounded-full">
-                        CURRENT
-                      </span>
-                    )}
-                    <div className="flex items-baseline gap-1 mb-1">
-                      <span className={cn(
-                        "text-2xl font-bold",
-                        selectedPlan === plan.id ? "text-[#B94E30]" : "text-foreground"
-                      )}>
-                        {typeof plan.price === "number" ? `$${plan.price}` : plan.price}
-                      </span>
-                      {typeof plan.price === "number" && (
-                        <span className="text-sm text-muted-foreground">/mo</span>
-                      )}
-                    </div>
-                    <div className="text-sm font-medium text-foreground">{plan.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {typeof plan.credits === "number" ? `${plan.credits} credits` : plan.credits}
-                    </div>
-                  </motion.button>
-                ))}
-              </div>
-
-              <Button
-                onClick={handleSubscribe}
-                disabled={selectedPlan === currentPlan || checkoutMutation.isPending}
-                size="lg"
-                className="w-full h-14 text-base font-semibold rounded-xl bg-[#B94E30] hover:bg-[#B94E30]/90 text-white"
-                data-testid="button-subscribe"
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-12"
+          >
+            <h1 className="text-4xl font-bold text-foreground mb-4">
+              Simple, Transparent Pricing
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Choose the plan that fits your creative needs. All plans include access to our AI-powered tools.
+            </p>
+            
+            <div className="inline-flex items-center gap-2 mt-8 p-1 bg-muted rounded-full">
+              <button
+                onClick={() => setBillingPeriod("monthly")}
+                className={cn(
+                  "px-6 py-2 rounded-full text-sm font-medium transition-all",
+                  billingPeriod === "monthly" 
+                    ? "bg-background text-foreground shadow-sm" 
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+                data-testid="button-monthly"
               >
-                {!user ? "Sign Up" : selectedPlan === currentPlan ? "Current Plan" : selectedPlan === "enterprise" ? "Contact Us" : "Subscribe"}
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
+                Monthly
+              </button>
+              <button
+                onClick={() => setBillingPeriod("yearly")}
+                className={cn(
+                  "px-6 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2",
+                  billingPeriod === "yearly" 
+                    ? "bg-background text-foreground shadow-sm" 
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+                data-testid="button-yearly"
+              >
+                Yearly
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                  Save 17%
+                </span>
+              </button>
+            </div>
+          </motion.div>
 
-              <p className="text-center text-sm text-muted-foreground mt-4">
-                Cancel anytime. No questions asked.
-              </p>
-            </motion.div>
-          </div>
-
-          <div className="flex-1 bg-gradient-to-br from-[#B94E30] via-[#a04528] to-[#664D3F] flex flex-col justify-center px-8 py-16 lg:px-16">
-            <motion.div
-              key={selectedPlan}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className="max-w-md mx-auto"
-            >
-              <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h2 className="text-3xl font-bold text-white">{activePlan.name}</h2>
-                    <p className="text-white/70">
-                      {typeof activePlan.credits === "number" 
-                        ? `${activePlan.credits} credits per month` 
-                        : "Unlimited usage"}
-                    </p>
+          <div className="grid md:grid-cols-3 gap-6 mb-16">
+            {PLANS.map((plan, index) => (
+              <motion.div
+                key={plan.name}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className={cn(
+                  "relative rounded-2xl border p-6 flex flex-col",
+                  plan.popular 
+                    ? "border-primary bg-primary/5 shadow-lg shadow-primary/10" 
+                    : "border-border bg-card"
+                )}
+                data-testid={`card-plan-${plan.name.toLowerCase()}`}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-semibold">
+                      <Sparkles className="h-3 w-3" />
+                      Most Popular
+                    </span>
                   </div>
-                  <div className="text-right">
-                    <div className="text-4xl font-bold text-[#E3B436]">
-                      {typeof activePlan.price === "number" ? `$${activePlan.price}` : "Custom"}
-                    </div>
-                    {typeof activePlan.price === "number" && (
-                      <div className="text-white/60 text-sm">per month</div>
-                    )}
-                  </div>
+                )}
+                
+                <div className="mb-6">
+                  <h3 className="text-xl font-bold text-foreground">{plan.name}</h3>
+                  <p className="text-sm text-muted-foreground mt-1">{plan.description}</p>
                 </div>
-
-                <div className="h-px bg-white/20 mb-6" />
-
-                <div className="space-y-4">
-                  <p className="text-white/80 text-sm font-medium uppercase tracking-wide">What's included</p>
-                  {activePlan.features.map((feature, i) => (
-                    <motion.div
-                      key={feature}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                      className="flex items-center gap-3"
-                    >
-                      <div className="h-6 w-6 rounded-full bg-[#E3B436] flex items-center justify-center flex-shrink-0">
-                        <Check className="h-3.5 w-3.5 text-[#664D3F]" />
+                
+                <div className="mb-6">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-bold text-foreground">
+                      ${billingPeriod === "monthly" ? plan.price : plan.priceYearly}
+                    </span>
+                    <span className="text-muted-foreground">
+                      /{billingPeriod === "monthly" ? "mo" : "yr"}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {plan.credits.toLocaleString()} credits included
+                  </p>
+                </div>
+                
+                <ul className="space-y-3 mb-8 flex-1">
+                  {plan.features.map((feature, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <div className={cn(
+                        "h-5 w-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5",
+                        feature.included 
+                          ? "bg-primary/10 text-primary" 
+                          : "bg-muted text-muted-foreground"
+                      )}>
+                        <Check className="h-3 w-3" />
                       </div>
-                      <span className="text-white">{feature}</span>
-                    </motion.div>
+                      <span className={cn(
+                        "text-sm",
+                        feature.included ? "text-foreground" : "text-muted-foreground line-through"
+                      )}>
+                        {feature.text}
+                      </span>
+                    </li>
                   ))}
-                </div>
-              </div>
-
-              <div className="mt-8 text-center">
-                <p className="text-white/60 text-sm mb-4">Need more credits?</p>
-                <Link href={user ? "/billing" : "/api/login"}>
-                  <Button 
-                    variant="outline" 
-                    className="border-white/30 text-white hover:bg-white/10 rounded-xl"
-                    data-testid="button-buy-credits"
-                  >
-                    <Zap className="mr-2 h-4 w-4" />
-                    Buy Credit Packs
-                  </Button>
-                </Link>
-              </div>
-
-              <div className="mt-10 flex items-center justify-center gap-6 text-white/60 text-sm">
-                <div className="flex items-center gap-2">
-                  <Check className="h-4 w-4" />
-                  <span>No setup fees</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="h-4 w-4" />
-                  <span>Cancel anytime</span>
-                </div>
-              </div>
-            </motion.div>
+                </ul>
+                
+                <Button 
+                  className={cn(
+                    "w-full",
+                    plan.popular 
+                      ? "bg-primary hover:bg-primary/90 text-primary-foreground" 
+                      : "bg-secondary hover:bg-secondary/90 text-secondary-foreground"
+                  )}
+                  data-testid={`button-select-${plan.name.toLowerCase()}`}
+                >
+                  {plan.cta}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </motion.div>
+            ))}
           </div>
 
-        </div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="bg-card border border-border rounded-2xl p-8"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="h-10 w-10 rounded-xl bg-secondary/10 flex items-center justify-center">
+                <Zap className="h-5 w-5 text-secondary" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-foreground">Need More Credits?</h2>
+                <p className="text-sm text-muted-foreground">Purchase additional credits anytime</p>
+              </div>
+            </div>
+            
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {CREDIT_PACKAGES.map((pkg) => (
+                <div 
+                  key={pkg.credits}
+                  className={cn(
+                    "relative rounded-xl border p-4 cursor-pointer transition-all hover:border-primary hover:shadow-md",
+                    pkg.popular ? "border-primary bg-primary/5" : "border-border"
+                  )}
+                  data-testid={`card-credits-${pkg.credits}`}
+                >
+                  {pkg.popular && (
+                    <span className="absolute -top-2 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary text-primary-foreground">
+                      Best Value
+                    </span>
+                  )}
+                  <div className="text-2xl font-bold text-foreground">
+                    {pkg.credits.toLocaleString()}
+                  </div>
+                  <div className="text-sm text-muted-foreground">credits</div>
+                  <div className="mt-3 flex items-baseline gap-1">
+                    <span className="text-xl font-semibold text-foreground">${pkg.price}</span>
+                    <span className="text-xs text-muted-foreground">
+                      (${pkg.perCredit.toFixed(3)}/credit)
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
 
-        <div className="bg-card border-t border-border px-8 py-16">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-2xl font-bold mb-4">Questions?</h2>
-            <p className="text-muted-foreground mb-6">
-              Our team is ready to help you find the perfect plan for your needs.
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="mt-16 text-center"
+          >
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              Questions? We're here to help.
+            </h3>
+            <p className="text-muted-foreground mb-4">
+              Contact our team for custom enterprise solutions or any questions about our plans.
             </p>
             <Link href="/help">
-              <Button variant="outline" className="rounded-xl" data-testid="button-contact">
-                <Mail className="mr-2 h-4 w-4" />
+              <Button variant="outline" data-testid="button-contact-support">
                 Contact Support
               </Button>
             </Link>
-          </div>
+          </motion.div>
+
         </div>
       </main>
     </div>

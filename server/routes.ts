@@ -74,8 +74,6 @@ export async function registerRoutes(
           socialLinks: user.socialLinks || [],
           affiliateCode: user.affiliateCode,
           role: user.role,
-          planTier: user.planTier || "free",
-          credits: user.credits,
           createdAt: user.createdAt
         }
       });
@@ -106,8 +104,6 @@ export async function registerRoutes(
           socialLinks: user.socialLinks || [],
           affiliateCode: user.affiliateCode,
           role: user.role,
-          planTier: user.planTier || "free",
-          credits: user.credits,
           createdAt: user.createdAt
         } 
       });
@@ -514,138 +510,6 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Stripe subscription status error:", error);
       res.status(500).json({ message: "Failed to get subscription status" });
-    }
-  });
-
-  // Pricing tiers configuration - maps plan IDs to Stripe price IDs
-  const PRICING_TIERS = {
-    free: {
-      id: "free",
-      name: "Free",
-      description: "Perfect for exploring UGLI",
-      price: 0,
-      credits: 20,
-      priceId: null,
-      features: [
-        "20 credits/month",
-        "Basic image generation",
-        "Standard quality",
-        "Community gallery access"
-      ]
-    },
-    basic: {
-      id: "basic",
-      name: "Basic",
-      description: "For hobbyists and casual creators",
-      price: 900, // cents
-      credits: 100,
-      priceId: process.env.STRIPE_BASIC_PRICE_ID || null,
-      features: [
-        "100 credits/month",
-        "All image styles",
-        "HD quality exports",
-        "Background remover",
-        "Basic mockup templates",
-        "Email support"
-      ]
-    },
-    pro: {
-      id: "pro",
-      name: "Pro",
-      description: "For professionals and power users",
-      price: 2900, // cents
-      credits: 500,
-      priceId: process.env.STRIPE_PRO_PRICE_ID || null,
-      popular: true,
-      features: [
-        "500 credits/month",
-        "All AI generators",
-        "4K quality exports",
-        "All mockup templates",
-        "Priority queue",
-        "Commercial license",
-        "Priority support",
-        "API access (coming soon)"
-      ]
-    },
-    enterprise: {
-      id: "enterprise",
-      name: "Enterprise",
-      description: "For teams and agencies",
-      price: null,
-      credits: "unlimited",
-      priceId: null,
-      features: [
-        "Unlimited credits",
-        "All Pro features",
-        "Custom integrations",
-        "Team collaboration",
-        "Dedicated account manager",
-        "SLA guarantee",
-        "White-label options",
-        "On-premise deployment"
-      ]
-    }
-  };
-
-  app.get("/api/stripe/tiers", async (_req, res) => {
-    try {
-      res.json({ 
-        tiers: Object.values(PRICING_TIERS),
-        configured: !!(PRICING_TIERS.basic.priceId && PRICING_TIERS.pro.priceId)
-      });
-    } catch (error) {
-      console.error("Error fetching pricing tiers:", error);
-      res.status(500).json({ message: "Failed to get pricing tiers" });
-    }
-  });
-
-  // Handle plan-based checkout (maps plan ID to price ID)
-  app.post("/api/stripe/checkout-plan", requireAuth, async (req: any, res) => {
-    try {
-      const userId = getUserId(req);
-      const { planId } = req.body;
-
-      const tier = PRICING_TIERS[planId as keyof typeof PRICING_TIERS];
-      if (!tier || !tier.priceId) {
-        return res.status(400).json({ 
-          message: planId === "enterprise" 
-            ? "Please contact us for Enterprise pricing" 
-            : `Price not configured for ${planId} plan. Please contact support.`
-        });
-      }
-
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      const { stripeService } = await import("./stripeService");
-      
-      let customerId = user.stripeCustomerId;
-      
-      if (!customerId) {
-        const customer = await stripeService.createCustomer(user.email || '', userId);
-        customerId = customer.id;
-        await storage.updateStripeCustomerId(userId, customerId);
-      }
-
-      const baseUrl = process.env.REPLIT_DOMAINS 
-        ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}`
-        : 'http://localhost:5000';
-
-      const session = await stripeService.createCheckoutSession(
-        customerId,
-        tier.priceId,
-        `${baseUrl}/billing?success=true&plan=${planId}`,
-        `${baseUrl}/pricing?canceled=true`,
-        'subscription'
-      );
-
-      res.json({ sessionId: session.id, url: session.url });
-    } catch (error) {
-      console.error("Stripe plan checkout error:", error);
-      res.status(500).json({ message: "Failed to create checkout session" });
     }
   });
 
