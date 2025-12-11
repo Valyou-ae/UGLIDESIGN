@@ -12,6 +12,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Mail } from "lucide-react";
 import ugliLogo from "@assets/Ugli_Logo_1765403922927.png";
+import {
+  initializeGoogleAuth,
+  setPriorityCallback,
+  renderGoogleButton,
+} from "@/lib/google-auth";
 
 interface LoginPopupContextType {
   isOpen: boolean;
@@ -69,103 +74,63 @@ function LoginPopupDialog({ isOpen, onClose, returnTo }: LoginPopupDialogProps) 
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [emailSent, setEmailSent] = useState(false);
+  const [googleButtonReady, setGoogleButtonReady] = useState(false);
   const googleButtonRef = useRef<HTMLDivElement>(null);
-  const initializedRef = useRef(false);
 
   useEffect(() => {
     if (!isOpen) {
-      initializedRef.current = false;
       setEmail("");
       setEmailSent(false);
       setError(null);
+      setGoogleButtonReady(false);
       return;
     }
 
+    let unregister: (() => void) | null = null;
+
     const initializeGoogleButton = async () => {
-      if (initializedRef.current) return;
-
       try {
-        const configResponse = await fetch("/api/auth/google-client-id");
-        if (!configResponse.ok) {
-          setError("Google Sign-In not configured");
+        const ready = await initializeGoogleAuth();
+        if (!ready) {
+          setError("Google Sign-In not available");
           return;
         }
 
-        const { clientId } = await configResponse.json();
-        if (!clientId) {
-          setError("Google Client ID not available");
-          return;
-        }
+        const handleCredential = async (response: { credential: string }) => {
+          setIsLoading(true);
+          setError(null);
 
-        const waitForGoogle = () => {
-          return new Promise<void>((resolve) => {
-            if (window.google?.accounts?.id) {
-              resolve();
-            } else {
-              const checkInterval = setInterval(() => {
-                if (window.google?.accounts?.id) {
-                  clearInterval(checkInterval);
-                  resolve();
-                }
-              }, 50);
+          try {
+            const authResponse = await fetch("/api/auth/google", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+              body: JSON.stringify({ credential: response.credential }),
+            });
 
+            if (authResponse.ok) {
+              await queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
+              onClose();
               setTimeout(() => {
-                clearInterval(checkInterval);
-                resolve();
-              }, 5000);
+                setLocation(returnTo || "/discover");
+              }, 100);
+            } else {
+              const errorData = await authResponse.json();
+              setError(errorData.message || "Authentication failed");
             }
-          });
+          } catch (err) {
+            setError("Authentication failed. Please try again.");
+          } finally {
+            setIsLoading(false);
+          }
         };
 
-        await waitForGoogle();
-
-        if (!window.google?.accounts?.id) {
-          setError("Google services not available");
-          return;
-        }
-
-        initializedRef.current = true;
-
-        window.google.accounts.id.initialize({
-          client_id: clientId,
-          callback: async (response: { credential: string }) => {
-            setIsLoading(true);
-            setError(null);
-
-            try {
-              const authResponse = await fetch("/api/auth/google", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                credentials: "include",
-                body: JSON.stringify({ credential: response.credential }),
-              });
-
-              if (authResponse.ok) {
-                await queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
-                onClose();
-                setTimeout(() => {
-                  setLocation(returnTo || "/discover");
-                }, 100);
-              } else {
-                const errorData = await authResponse.json();
-                setError(errorData.message || "Authentication failed");
-              }
-            } catch (err) {
-              setError("Authentication failed. Please try again.");
-            } finally {
-              setIsLoading(false);
-            }
-          },
-          auto_select: false,
-          cancel_on_tap_outside: true,
-          context: "signin",
-          ux_mode: "popup",
-        });
+        unregister = setPriorityCallback(handleCredential);
 
         if (googleButtonRef.current) {
-          window.google.accounts.id.renderButton(googleButtonRef.current, {
+          renderGoogleButton(googleButtonRef.current, {
             type: "standard",
             theme: "filled_black",
             size: "large",
@@ -174,6 +139,7 @@ function LoginPopupDialog({ isOpen, onClose, returnTo }: LoginPopupDialogProps) 
             logo_alignment: "left",
             width: 300,
           });
+          setGoogleButtonReady(true);
         }
       } catch (err) {
         setError("Failed to initialize Google Sign-In");
@@ -184,6 +150,7 @@ function LoginPopupDialog({ isOpen, onClose, returnTo }: LoginPopupDialogProps) 
 
     return () => {
       clearTimeout(timeoutId);
+      if (unregister) unregister();
     };
   }, [isOpen, onClose, queryClient, setLocation, returnTo]);
 
@@ -263,12 +230,47 @@ function LoginPopupDialog({ isOpen, onClose, returnTo }: LoginPopupDialogProps) 
             </div>
           ) : (
             <div className="space-y-5">
-              {/* Google Button */}
-              <div 
-                ref={googleButtonRef} 
-                className="flex justify-center min-h-[48px]"
-                data-testid="google-signin-button"
-              />
+              {/* Google Button Container */}
+              <div className="flex justify-center min-h-[48px]">
+                {/* Fallback button shown until Google renders its button */}
+                {!googleButtonReady && (
+                  <Button
+                    disabled={isLoading}
+                    className="w-full h-12 bg-white hover:bg-gray-100 text-gray-900 font-medium rounded-xl shadow-sm transition-all hover:shadow-md"
+                    data-testid="button-google-signin-fallback"
+                  >
+                    {isLoading ? (
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    ) : (
+                      <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24">
+                        <path
+                          d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                          fill="#4285F4"
+                        />
+                        <path
+                          d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                          fill="#34A853"
+                        />
+                        <path
+                          d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                          fill="#FBBC05"
+                        />
+                        <path
+                          d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                          fill="#EA4335"
+                        />
+                      </svg>
+                    )}
+                    Continue with Google
+                  </Button>
+                )}
+                {/* Google button renders here */}
+                <div 
+                  ref={googleButtonRef} 
+                  className={googleButtonReady ? "flex justify-center" : "hidden"}
+                  data-testid="google-signin-button"
+                />
+              </div>
 
               {/* Divider */}
               <div className="relative">
