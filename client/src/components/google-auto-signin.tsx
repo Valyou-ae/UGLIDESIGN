@@ -117,8 +117,26 @@ export function GoogleAutoSignIn({ onSuccess, onError }: GoogleAutoSignInProps) 
             if (isAuthenticatingRef.current) return;
             isAuthenticatingRef.current = true;
 
+            // Helper to update loading toast
+            const updateLoadingToast = (text: string) => {
+              const toast = document.getElementById('google-auth-loading');
+              if (toast) toast.textContent = text;
+            };
+            
+            // Helper to remove loading toast
+            const removeLoadingToast = () => {
+              const toast = document.getElementById('google-auth-loading');
+              if (toast) toast.remove();
+            };
+            
             try {
               console.log("Google sign-in triggered, method:", response.select_by);
+              // Show visual indicator that login is in progress
+              const loadingToast = document.createElement('div');
+              loadingToast.id = 'google-auth-loading';
+              loadingToast.style.cssText = 'position:fixed;top:20px;right:20px;background:#333;color:#fff;padding:16px 24px;border-radius:8px;z-index:99999;font-family:sans-serif;';
+              loadingToast.textContent = 'Signing in with Google...';
+              document.body.appendChild(loadingToast);
               
               // Helper function to attempt auth with retries
               const attemptAuth = async (retryCount = 0): Promise<{ok: boolean; status: number; body: string}> => {
@@ -141,6 +159,7 @@ export function GoogleAutoSignIn({ onSuccess, onError }: GoogleAutoSignInProps) 
                 if (authResponse.status >= 500 && retryCount < 3) {
                   // Check if it's a DNS-related error
                   if (responseBody.includes('EAI_AGAIN') || responseBody.includes('helium') || responseBody.includes('DNS')) {
+                    updateLoadingToast(`Connection issue, retrying... (${retryCount + 1}/3)`);
                     console.log(`DNS error, retrying in ${(retryCount + 1) * 2}s... (attempt ${retryCount + 1}/3)`);
                     await new Promise(resolve => setTimeout(resolve, (retryCount + 1) * 2000));
                     return attemptAuth(retryCount + 1);
@@ -154,6 +173,7 @@ export function GoogleAutoSignIn({ onSuccess, onError }: GoogleAutoSignInProps) 
 
               if (authResponse.ok) {
                 console.log("Google sign-in successful");
+                updateLoadingToast("Login successful! Redirecting...");
                 onSuccess?.();
                 // Reset auth state before navigation
                 isAuthenticatingRef.current = false;
@@ -164,6 +184,7 @@ export function GoogleAutoSignIn({ onSuccess, onError }: GoogleAutoSignInProps) 
                 window.location.href = pendingPrompt ? "/" : "/discover";
                 return;
               } else {
+                removeLoadingToast();
                 let errorMessage = "Authentication failed";
                 try {
                   if (authResponse.body) {
@@ -184,6 +205,7 @@ export function GoogleAutoSignIn({ onSuccess, onError }: GoogleAutoSignInProps) 
                 isAuthenticatingRef.current = false;
               }
             } catch (error) {
+              removeLoadingToast();
               console.error("Google auth error:", error);
               const errorMsg = error instanceof Error ? error.message : "Authentication failed";
               alert(`Login error: ${errorMsg}`);
