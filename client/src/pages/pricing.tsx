@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { Link } from "wouter";
-import { Check, Sparkles, ArrowRight, Zap } from "lucide-react";
+import { Link, useLocation } from "wouter";
+import { Check, X, Sparkles, ArrowRight, Zap, Mail } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sidebar } from "@/components/sidebar";
+import { useAuth } from "@/hooks/use-auth";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 interface PlanFeature {
   text: string;
@@ -12,90 +15,177 @@ interface PlanFeature {
 }
 
 interface PricingPlan {
+  id: string;
   name: string;
   description: string;
-  price: number;
-  priceYearly: number;
-  credits: number;
+  price: number | "custom";
+  credits: number | "unlimited";
   popular?: boolean;
   features: PlanFeature[];
   cta: string;
+  ctaVariant: "default" | "primary" | "outline";
 }
 
 const PLANS: PricingPlan[] = [
   {
+    id: "free",
     name: "Free",
-    description: "Perfect for trying out UGLI",
+    description: "Perfect for exploring UGLI",
     price: 0,
-    priceYearly: 0,
-    credits: 100,
+    credits: 20,
     features: [
-      { text: "100 credits/month", included: true },
+      { text: "20 credits/month", included: true },
       { text: "Basic image generation", included: true },
       { text: "Standard quality", included: true },
-      { text: "Community support", included: true },
+      { text: "Community gallery access", included: true },
       { text: "Background remover", included: false },
       { text: "Mockup generator", included: false },
       { text: "Priority queue", included: false },
-      { text: "API access", included: false },
+      { text: "Commercial license", included: false },
     ],
-    cta: "Get Started Free",
+    cta: "Get Started",
+    ctaVariant: "outline",
   },
   {
-    name: "Pro",
-    description: "For creators and small businesses",
-    price: 29,
-    priceYearly: 290,
-    credits: 2000,
-    popular: true,
+    id: "basic",
+    name: "Basic",
+    description: "For hobbyists and casual creators",
+    price: 9,
+    credits: 100,
     features: [
-      { text: "2,000 credits/month", included: true },
-      { text: "All AI generators", included: true },
+      { text: "100 credits/month", included: true },
+      { text: "All image styles", included: true },
       { text: "HD quality exports", included: true },
       { text: "Background remover", included: true },
-      { text: "Mockup generator", included: true },
-      { text: "Priority support", included: true },
+      { text: "Basic mockup templates", included: true },
+      { text: "Email support", included: true },
       { text: "Priority queue", included: false },
-      { text: "API access", included: false },
+      { text: "Commercial license", included: false },
     ],
-    cta: "Start Pro Trial",
+    cta: "Subscribe",
+    ctaVariant: "default",
   },
   {
-    name: "Business",
-    description: "For teams and agencies",
-    price: 79,
-    priceYearly: 790,
-    credits: 10000,
+    id: "pro",
+    name: "Pro",
+    description: "For professionals and power users",
+    price: 29,
+    credits: 500,
+    popular: true,
     features: [
-      { text: "10,000 credits/month", included: true },
-      { text: "All Pro features", included: true },
+      { text: "500 credits/month", included: true },
+      { text: "All AI generators", included: true },
+      { text: "4K quality exports", included: true },
+      { text: "All mockup templates", included: true },
       { text: "Priority queue", included: true },
-      { text: "API access", included: true },
-      { text: "Custom branding", included: true },
-      { text: "Team collaboration", included: true },
-      { text: "Dedicated support", included: true },
-      { text: "SLA guarantee", included: true },
+      { text: "Commercial license", included: true },
+      { text: "Priority support", included: true },
+      { text: "API access (coming soon)", included: true },
     ],
-    cta: "Contact Sales",
+    cta: "Subscribe",
+    ctaVariant: "primary",
   },
-];
-
-const CREDIT_PACKAGES = [
-  { credits: 500, price: 19, perCredit: 0.038 },
-  { credits: 1000, price: 35, perCredit: 0.035, popular: true },
-  { credits: 2500, price: 79, perCredit: 0.032 },
-  { credits: 5000, price: 149, perCredit: 0.030 },
+  {
+    id: "enterprise",
+    name: "Enterprise",
+    description: "For teams and agencies",
+    price: "custom",
+    credits: "unlimited",
+    features: [
+      { text: "Unlimited credits", included: true },
+      { text: "All Pro features", included: true },
+      { text: "Custom integrations", included: true },
+      { text: "Team collaboration", included: true },
+      { text: "Dedicated account manager", included: true },
+      { text: "SLA guarantee", included: true },
+      { text: "White-label options", included: true },
+      { text: "On-premise deployment", included: true },
+    ],
+    cta: "Contact Us",
+    ctaVariant: "outline",
+  },
 ];
 
 export default function Pricing() {
-  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
+  const { user, isLoading: authLoading } = useAuth();
+  const [, navigate] = useLocation();
+  const { toast } = useToast();
+  
+  const currentPlan = user?.planTier || "free";
+
+  const checkoutMutation = useMutation({
+    mutationFn: async (planId: string) => {
+      const response = await fetch("/api/stripe/checkout-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ planId }),
+        credentials: "include",
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to create checkout session");
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handlePlanClick = (plan: PricingPlan) => {
+    if (plan.id === "enterprise") {
+      navigate("/help");
+      return;
+    }
+    
+    if (!user) {
+      window.location.href = "/api/login";
+      return;
+    }
+    
+    if (plan.id === currentPlan) {
+      return;
+    }
+    
+    if (plan.id === "free") {
+      navigate("/billing");
+      return;
+    }
+    
+    checkoutMutation.mutate(plan.id);
+  };
+
+  const getButtonText = (plan: PricingPlan) => {
+    if (!user) {
+      return plan.id === "enterprise" ? "Contact Us" : "Sign Up";
+    }
+    if (plan.id === currentPlan) {
+      return "Current Plan";
+    }
+    if (plan.id === "enterprise") {
+      return "Contact Us";
+    }
+    const planOrder = ["free", "basic", "pro", "enterprise"];
+    const currentIndex = planOrder.indexOf(currentPlan);
+    const planIndex = planOrder.indexOf(plan.id);
+    return planIndex > currentIndex ? "Upgrade" : "Downgrade";
+  };
 
   return (
     <div className="min-h-screen bg-background flex font-sans text-foreground overflow-hidden">
       <Sidebar />
       
       <main className="flex-1 h-screen overflow-y-auto">
-        <div className="max-w-6xl mx-auto px-6 py-12">
+        <div className="max-w-7xl mx-auto px-6 py-12">
           
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -106,164 +196,149 @@ export default function Pricing() {
               Simple, Transparent Pricing
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Choose the plan that fits your creative needs. All plans include access to our AI-powered tools.
+              Choose the plan that fits your creative needs. Upgrade or downgrade anytime.
             </p>
-            
-            <div className="inline-flex items-center gap-2 mt-8 p-1 bg-muted rounded-full">
-              <button
-                onClick={() => setBillingPeriod("monthly")}
-                className={cn(
-                  "px-6 py-2 rounded-full text-sm font-medium transition-all",
-                  billingPeriod === "monthly" 
-                    ? "bg-background text-foreground shadow-sm" 
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-                data-testid="button-monthly"
-              >
-                Monthly
-              </button>
-              <button
-                onClick={() => setBillingPeriod("yearly")}
-                className={cn(
-                  "px-6 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2",
-                  billingPeriod === "yearly" 
-                    ? "bg-background text-foreground shadow-sm" 
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-                data-testid="button-yearly"
-              >
-                Yearly
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                  Save 17%
-                </span>
-              </button>
-            </div>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-6 mb-16">
-            {PLANS.map((plan, index) => (
-              <motion.div
-                key={plan.name}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className={cn(
-                  "relative rounded-2xl border p-6 flex flex-col",
-                  plan.popular 
-                    ? "border-primary bg-primary/5 shadow-lg shadow-primary/10" 
-                    : "border-border bg-card"
-                )}
-                data-testid={`card-plan-${plan.name.toLowerCase()}`}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-semibold">
-                      <Sparkles className="h-3 w-3" />
-                      Most Popular
-                    </span>
-                  </div>
-                )}
-                
-                <div className="mb-6">
-                  <h3 className="text-xl font-bold text-foreground">{plan.name}</h3>
-                  <p className="text-sm text-muted-foreground mt-1">{plan.description}</p>
-                </div>
-                
-                <div className="mb-6">
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold text-foreground">
-                      ${billingPeriod === "monthly" ? plan.price : plan.priceYearly}
-                    </span>
-                    <span className="text-muted-foreground">
-                      /{billingPeriod === "monthly" ? "mo" : "yr"}
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {plan.credits.toLocaleString()} credits included
-                  </p>
-                </div>
-                
-                <ul className="space-y-3 mb-8 flex-1">
-                  {plan.features.map((feature, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <div className={cn(
-                        "h-5 w-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5",
-                        feature.included 
-                          ? "bg-primary/10 text-primary" 
-                          : "bg-muted text-muted-foreground"
-                      )}>
-                        <Check className="h-3 w-3" />
-                      </div>
-                      <span className={cn(
-                        "text-sm",
-                        feature.included ? "text-foreground" : "text-muted-foreground line-through"
-                      )}>
-                        {feature.text}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                
-                <Button 
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+            {PLANS.map((plan, index) => {
+              const isCurrentPlan = user && plan.id === currentPlan;
+              const isPopular = plan.popular;
+              
+              return (
+                <motion.div
+                  key={plan.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
                   className={cn(
-                    "w-full",
-                    plan.popular 
-                      ? "bg-primary hover:bg-primary/90 text-primary-foreground" 
-                      : "bg-secondary hover:bg-secondary/90 text-secondary-foreground"
+                    "relative rounded-2xl border p-6 flex flex-col",
+                    isPopular 
+                      ? "border-[#B94E30] bg-[#B94E30]/5 shadow-lg shadow-[#B94E30]/10" 
+                      : isCurrentPlan
+                        ? "border-[#E3B436] bg-[#E3B436]/5"
+                        : "border-border bg-card"
                   )}
-                  data-testid={`button-select-${plan.name.toLowerCase()}`}
+                  data-testid={`card-plan-${plan.id}`}
                 >
-                  {plan.cta}
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </motion.div>
-            ))}
+                  {isPopular && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#B94E30] text-white text-xs font-semibold">
+                        <Sparkles className="h-3 w-3" />
+                        Most Popular
+                      </span>
+                    </div>
+                  )}
+                  
+                  {isCurrentPlan && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#E3B436] text-[#664D3F] text-xs font-semibold">
+                        Current Plan
+                      </span>
+                    </div>
+                  )}
+                  
+                  <div className="mb-6 pt-2">
+                    <h3 className="text-xl font-bold text-foreground">{plan.name}</h3>
+                    <p className="text-sm text-muted-foreground mt-1">{plan.description}</p>
+                  </div>
+                  
+                  <div className="mb-6">
+                    <div className="flex items-baseline gap-1">
+                      {plan.price === "custom" ? (
+                        <span className="text-3xl font-bold text-foreground">Custom</span>
+                      ) : (
+                        <>
+                          <span className="text-4xl font-bold text-foreground">
+                            ${plan.price}
+                          </span>
+                          <span className="text-muted-foreground">/mo</span>
+                        </>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {plan.credits === "unlimited" 
+                        ? "Unlimited credits" 
+                        : `${plan.credits.toLocaleString()} credits/month`}
+                    </p>
+                  </div>
+                  
+                  <ul className="space-y-3 mb-8 flex-1">
+                    {plan.features.map((feature, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <div className={cn(
+                          "h-5 w-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5",
+                          feature.included 
+                            ? "bg-[#B94E30]/10 text-[#B94E30]" 
+                            : "bg-muted text-muted-foreground"
+                        )}>
+                          {feature.included ? (
+                            <Check className="h-3 w-3" />
+                          ) : (
+                            <X className="h-3 w-3" />
+                          )}
+                        </div>
+                        <span className={cn(
+                          "text-sm",
+                          feature.included ? "text-foreground" : "text-muted-foreground"
+                        )}>
+                          {feature.text}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  
+                  <Button 
+                    onClick={() => handlePlanClick(plan)}
+                    disabled={isCurrentPlan || checkoutMutation.isPending}
+                    className={cn(
+                      "w-full",
+                      isPopular 
+                        ? "bg-[#B94E30] hover:bg-[#B94E30]/90 text-white" 
+                        : plan.ctaVariant === "outline"
+                          ? "border-[#664D3F]/20 hover:bg-[#664D3F]/5"
+                          : "bg-[#E3B436] hover:bg-[#E3B436]/90 text-[#664D3F]"
+                    )}
+                    variant={plan.ctaVariant === "outline" ? "outline" : "default"}
+                    data-testid={`button-select-${plan.id}`}
+                  >
+                    {plan.id === "enterprise" && <Mail className="mr-2 h-4 w-4" />}
+                    {getButtonText(plan)}
+                    {!isCurrentPlan && plan.id !== "enterprise" && (
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    )}
+                  </Button>
+                </motion.div>
+              );
+            })}
           </div>
 
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="bg-card border border-border rounded-2xl p-8"
+            transition={{ delay: 0.5 }}
+            className="bg-gradient-to-r from-[#B94E30]/10 to-[#E3B436]/10 border border-[#B94E30]/20 rounded-2xl p-8 text-center"
           >
-            <div className="flex items-center gap-3 mb-6">
-              <div className="h-10 w-10 rounded-xl bg-secondary/10 flex items-center justify-center">
-                <Zap className="h-5 w-5 text-secondary" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-foreground">Need More Credits?</h2>
-                <p className="text-sm text-muted-foreground">Purchase additional credits anytime</p>
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <div className="h-12 w-12 rounded-xl bg-[#E3B436]/20 flex items-center justify-center">
+                <Zap className="h-6 w-6 text-[#E3B436]" />
               </div>
             </div>
-            
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {CREDIT_PACKAGES.map((pkg) => (
-                <div 
-                  key={pkg.credits}
-                  className={cn(
-                    "relative rounded-xl border p-4 cursor-pointer transition-all hover:border-primary hover:shadow-md",
-                    pkg.popular ? "border-primary bg-primary/5" : "border-border"
-                  )}
-                  data-testid={`card-credits-${pkg.credits}`}
-                >
-                  {pkg.popular && (
-                    <span className="absolute -top-2 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary text-primary-foreground">
-                      Best Value
-                    </span>
-                  )}
-                  <div className="text-2xl font-bold text-foreground">
-                    {pkg.credits.toLocaleString()}
-                  </div>
-                  <div className="text-sm text-muted-foreground">credits</div>
-                  <div className="mt-3 flex items-baseline gap-1">
-                    <span className="text-xl font-semibold text-foreground">${pkg.price}</span>
-                    <span className="text-xs text-muted-foreground">
-                      (${pkg.perCredit.toFixed(3)}/credit)
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <h2 className="text-2xl font-bold text-foreground mb-2">
+              Need More Credits?
+            </h2>
+            <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
+              Running low on credits? You can purchase additional credit packs anytime from your billing page.
+            </p>
+            <Link href={user ? "/billing" : "/api/login"}>
+              <Button 
+                className="bg-[#B94E30] hover:bg-[#B94E30]/90 text-white"
+                data-testid="button-buy-credits"
+              >
+                {user ? "Buy More Credits" : "Sign Up to Get Started"}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
           </motion.div>
 
           <motion.div 
