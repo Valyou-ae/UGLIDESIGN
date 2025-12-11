@@ -138,9 +138,11 @@ export function Sidebar({ className }: SidebarProps) {
   const navigation: NavItem[] = user ? [...publicNavigation, ...privateNavigation] : publicNavigation;
 
   const account = [
-    { name: "Pricing", shortName: "Pricing", icon: Sparkles, href: "/pricing" },
-    { name: "Billing", shortName: "Billing", icon: CreditCard, href: "/billing" },
     { name: "Settings", shortName: "Settings", icon: Settings, href: "/settings" },
+  ];
+
+  const guestNavigation = [
+    { name: "Pricing", shortName: "Pricing", icon: Sparkles, href: "/pricing" },
   ];
 
   // Mobile Bottom Navigation - shows different items based on auth state
@@ -487,6 +489,54 @@ export function Sidebar({ className }: SidebarProps) {
             </nav>
           </>
         ) : null}
+
+        {/* Guest navigation - Pricing for non-logged-in users */}
+        {!user && !isLoading && (
+          <nav className="space-y-1">
+            {guestNavigation.map((item) => {
+              const isActive = location === item.href;
+              return collapsed ? (
+                <Link key={item.name} href={item.href}>
+                  <div className={cn(
+                    "flex flex-col items-center justify-center gap-1 py-2 px-2 rounded-lg font-medium transition-all cursor-pointer group select-none mx-auto w-[52px]",
+                    isActive 
+                      ? "text-white bg-white/15" 
+                      : "text-white/50 hover:bg-white/10 hover:text-white"
+                  )}>
+                    <item.icon className={cn(
+                      "h-5 w-5 flex-shrink-0 transition-all duration-200 group-hover:scale-110",
+                      isActive ? "text-white" : "text-white/50 group-hover:text-white"
+                    )} />
+                    <span className={cn(
+                      "text-[9px] font-medium",
+                      isActive ? "text-white" : "text-white/50 group-hover:text-white"
+                    )}>
+                      {item.shortName}
+                    </span>
+                  </div>
+                </Link>
+              ) : (
+                <Link key={item.name} href={item.href}>
+                  <div className={cn(
+                    "flex items-center gap-3 rounded-lg font-medium transition-all cursor-pointer group select-none px-3.5 py-3 text-sm relative",
+                    isActive 
+                      ? "text-white" 
+                      : "text-white/50 hover:bg-white/10 hover:text-white"
+                  )}>
+                    {isActive && (
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 bg-white rounded-r-full" />
+                    )}
+                    <item.icon className={cn(
+                      "h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110",
+                      isActive ? "text-white" : "text-white/50 group-hover:text-white"
+                    )} />
+                    <span>{item.name}</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </nav>
+        )}
 
         {/* Theme Toggle - inside account section for collapsed state (logged-in users only) */}
         {user && collapsed && (
