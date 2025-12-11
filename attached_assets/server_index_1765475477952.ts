@@ -115,13 +115,13 @@ async function initStripe() {
         upgradeInsecureRequests: [],
       },
     },
-    crossOriginEmbedderPolicy: false,
-    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+    crossOriginEmbedderPolicy: false, // Required for Google Sign-In
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" }, // Required for Google Sign-In popup
   }));
 
   app.use(
     express.json({
-      limit: '15mb',
+      limit: '15mb', // Supports base64 images while preventing DoS
       verify: (req, _res, buf) => {
         req.rawBody = buf;
       },
