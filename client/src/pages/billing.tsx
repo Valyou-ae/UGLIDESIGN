@@ -47,6 +47,8 @@ export default function Billing() {
   const [activeModal, setActiveModal] = useState<"plan" | "credits" | "payment" | "cancel" | null>(null);
   const [selectedPriceId, setSelectedPriceId] = useState<string | null>(null);
   const [selectedCreditPackage, setSelectedCreditPackage] = useState("1000");
+  const [billingPeriod, setBillingPeriod] = useState<"month" | "year">("month");
+  const [selectedPlanName, setSelectedPlanName] = useState<string | null>(null);
 
   const searchParams = new URLSearchParams(window.location.search);
   const isSuccess = searchParams.get('success') === 'true';
@@ -160,6 +162,46 @@ export default function Billing() {
   
   const subscriptionProducts = products.filter(p => p.recurring);
   const oneTimeProducts = products.filter(p => !p.recurring);
+
+  const groupedPlans = subscriptionProducts
+    .filter(p => !p.product_name.toLowerCase().includes('enterprise'))
+    .reduce((acc, product) => {
+      const planName = product.product_name;
+      if (!acc[planName]) {
+        acc[planName] = { name: planName, description: product.product_description, prices: {} };
+      }
+      const interval = product.recurring?.interval || 'month';
+      acc[planName].prices[interval] = {
+        priceId: product.price_id,
+        amount: product.unit_amount || 0,
+        interval
+      };
+      return acc;
+    }, {} as Record<string, { name: string; description: string | null; prices: Record<string, { priceId: string; amount: number; interval: string }> }>);
+
+  const planList = Object.values(groupedPlans).sort((a, b) => {
+    const aPrice = a.prices.month?.amount || a.prices.year?.amount || 0;
+    const bPrice = b.prices.month?.amount || b.prices.year?.amount || 0;
+    return aPrice - bPrice;
+  });
+
+  useEffect(() => {
+    if (selectedPlanName && groupedPlans[selectedPlanName]) {
+      const plan = groupedPlans[selectedPlanName];
+      const newPrice = plan.prices[billingPeriod];
+      if (newPrice) {
+        setSelectedPriceId(newPrice.priceId);
+      } else {
+        setSelectedPriceId(null);
+        setSelectedPlanName(null);
+      }
+    }
+  }, [billingPeriod, selectedPlanName, groupedPlans]);
+
+  const handlePlanSelect = (planName: string, priceId: string) => {
+    setSelectedPlanName(planName);
+    setSelectedPriceId(priceId);
+  };
 
   const getRenewalDate = () => {
     if (subscription?.current_period_end) {
@@ -428,40 +470,83 @@ export default function Billing() {
                       <div className="flex items-center justify-center py-8">
                         <Loader2 className="h-6 w-6 animate-spin text-[#52525B]" />
                       </div>
-                    ) : subscriptionProducts.length > 0 ? (
-                      <div className="mt-6 space-y-0">
-                        {subscriptionProducts.map((product) => (
-                          <div 
-                            key={product.price_id}
-                            onClick={() => setSelectedPriceId(product.price_id)}
-                            className="flex justify-between items-center py-4 border-b border-[#E5E5E5] dark:border-[#1A1A1A] cursor-pointer group transition-colors"
-                          >
-                            <div>
-                              <div className="text-[15px] text-[#18181B] dark:text-[#FAFAFA] font-medium">
-                                {product.product_name}
-                              </div>
-                              <div className="text-[13px] text-[#52525B]">
-                                {product.product_description || 'Premium features'}
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <div className="text-[15px] text-[#18181B] dark:text-[#FAFAFA]">
-                                ${((product.unit_amount || 0) / 100).toFixed(2)}/{product.recurring?.interval || 'mo'}
-                              </div>
-                              <div className={cn(
-                                "h-4 w-4 rounded-full border flex items-center justify-center",
-                                selectedPriceId === product.price_id
-                                  ? "border-[#18181B] dark:border-[#FAFAFA]" 
-                                  : "border-[#D4D4D8] dark:border-[#3F3F46]"
-                              )}>
-                                {selectedPriceId === product.price_id && (
-                                  <div className="h-2 w-2 rounded-full bg-[#18181B] dark:bg-[#FAFAFA]" />
-                                )}
-                              </div>
-                            </div>
+                    ) : planList.length > 0 ? (
+                      <>
+                        <div className="flex justify-center mt-4">
+                          <div className="inline-flex items-center gap-1 p-1 bg-[#F4F4F5] dark:bg-[#1A1A1A] rounded-full">
+                            <button
+                              onClick={() => setBillingPeriod("month")}
+                              className={cn(
+                                "px-4 py-1.5 rounded-full text-[13px] font-medium transition-all",
+                                billingPeriod === "month" 
+                                  ? "bg-white dark:bg-[#27272A] text-[#18181B] dark:text-[#FAFAFA] shadow-sm" 
+                                  : "text-[#71717A] hover:text-[#18181B] dark:hover:text-[#FAFAFA]"
+                              )}
+                              data-testid="button-billing-monthly"
+                            >
+                              Monthly
+                            </button>
+                            <button
+                              onClick={() => setBillingPeriod("year")}
+                              className={cn(
+                                "px-4 py-1.5 rounded-full text-[13px] font-medium transition-all flex items-center gap-1.5",
+                                billingPeriod === "year" 
+                                  ? "bg-white dark:bg-[#27272A] text-[#18181B] dark:text-[#FAFAFA] shadow-sm" 
+                                  : "text-[#71717A] hover:text-[#18181B] dark:hover:text-[#FAFAFA]"
+                              )}
+                              data-testid="button-billing-yearly"
+                            >
+                              Yearly
+                              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-bold">
+                                Save 17%
+                              </span>
+                            </button>
                           </div>
-                        ))}
-                      </div>
+                        </div>
+
+                        <div className="mt-5 space-y-0">
+                          {planList.map((plan) => {
+                            const currentPrice = plan.prices[billingPeriod];
+                            if (!currentPrice) return null;
+                            
+                            return (
+                              <div 
+                                key={plan.name}
+                                onClick={() => handlePlanSelect(plan.name, currentPrice.priceId)}
+                                className={cn(
+                                  "flex justify-between items-center py-4 border-b border-[#E5E5E5] dark:border-[#1A1A1A] cursor-pointer group transition-all",
+                                  selectedPlanName === plan.name && "bg-[#F9F9F9] dark:bg-[#1A1A1A] -mx-4 px-4 rounded-lg border-transparent"
+                                )}
+                                data-testid={`plan-option-${plan.name.toLowerCase().replace(/\s+/g, '-')}`}
+                              >
+                                <div>
+                                  <div className="text-[15px] text-[#18181B] dark:text-[#FAFAFA] font-medium">
+                                    {plan.name}
+                                  </div>
+                                  <div className="text-[13px] text-[#52525B]">
+                                    {plan.description || 'Premium features'}
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <div className="text-[15px] text-[#18181B] dark:text-[#FAFAFA] font-medium">
+                                    ${(currentPrice.amount / 100).toFixed(0)}<span className="text-[13px] text-[#71717A] font-normal">/{billingPeriod === 'month' ? 'mo' : 'yr'}</span>
+                                  </div>
+                                  <div className={cn(
+                                    "h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all",
+                                    selectedPlanName === plan.name
+                                      ? "border-primary bg-primary" 
+                                      : "border-[#D4D4D8] dark:border-[#3F3F46]"
+                                  )}>
+                                    {selectedPlanName === plan.name && (
+                                      <Check className="h-3 w-3 text-white" />
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </>
                     ) : (
                       <div className="mt-6 py-8 text-center">
                         <p className="text-[#71717A]">No subscription plans available yet.</p>
@@ -476,7 +561,7 @@ export default function Billing() {
                       >
                         Cancel
                       </button>
-                      {subscriptionProducts.length > 0 && (
+                      {planList.length > 0 && (
                         <button 
                           onClick={() => {
                             if (selectedPriceId) {
@@ -485,6 +570,7 @@ export default function Billing() {
                           }}
                           disabled={!selectedPriceId || checkoutMutation.isPending}
                           className="flex-1 bg-[#18181B] dark:bg-[#FAFAFA] text-white dark:text-[#18181B] rounded-lg px-5 py-3 text-[14px] font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+                          data-testid="button-subscribe-confirm"
                         >
                           {checkoutMutation.isPending ? (
                             <>
