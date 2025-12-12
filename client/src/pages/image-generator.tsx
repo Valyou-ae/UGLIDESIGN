@@ -175,13 +175,18 @@ const ASPECT_RATIOS = [
   { id: "3:4", label: "Tall", ratioText: "3:4", icon: Smartphone, tooltip: "Tall - Portrait photos, posters" },
 ];
 
+const PROMPT_SUGGESTIONS = [
+  { category: "Trending", prompts: ["Ethereal forest with bioluminescent mushrooms", "Vintage robot in a coffee shop", "Underwater city at sunset"] },
+  { category: "Portrait", prompts: ["Elegant woman in art deco style", "Warrior with glowing armor", "Cyberpunk street vendor"] },
+  { category: "Landscape", prompts: ["Floating islands above clouds", "Ancient temple in jungle mist", "Neon-lit rainy Tokyo street"] },
+  { category: "Abstract", prompts: ["Fractal geometry in gold and purple", "Liquid metal morphing shapes", "Cosmic energy explosion"] },
+];
+
 
 export default function ImageGenerator() {
   const [prompt, setPrompt] = useState("");
   const [status, setStatus] = useState<GenerationStatus>("idle");
   const [generations, setGenerations] = useState<GeneratedImage[]>([]);
-  const [filteredGenerations, setFilteredGenerations] = useState<GeneratedImage[]>([]);
-  const [activeFilter, setActiveFilter] = useState<string>("all");
   const [agents, setAgents] = useState<Agent[]>(AGENTS);
   const [progress, setProgress] = useState(0);
   const [selectedImage, setSelectedImage] = useState<GeneratedImage | null>(null);
@@ -691,17 +696,6 @@ export default function ImageGenerator() {
       textareaRef.current.style.height = textareaRef.current.scrollHeight + "px";
     }
   }, [prompt]);
-
-  // Filter generations
-  useEffect(() => {
-    if (activeFilter === "all") {
-      setFilteredGenerations(generations);
-    } else if (activeFilter === "favorites") {
-      setFilteredGenerations(generations.filter(g => g.isFavorite));
-    } else {
-      setFilteredGenerations(generations.filter(g => g.style === activeFilter));
-    }
-  }, [generations, activeFilter]);
 
   // Generation timer
   useEffect(() => {
@@ -1545,191 +1539,178 @@ export default function ImageGenerator() {
           </div>
         </div>
 
-        {/* SCROLLABLE GALLERY */}
-        <div className="flex-1 overflow-y-auto p-6 md:p-10 pb-40 md:pb-10 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          
-          {/* Gallery Filter Bar */}
-          {generations.length > 0 && (
-             <div className="max-w-[1800px] mx-auto mb-6 flex items-center gap-2 overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden -mx-6 px-6 md:mx-0 md:px-0">
-               <div className="flex p-1 bg-muted/50 rounded-lg shrink-0 h-8 items-center">
-                 <button
-                   onClick={() => setActiveFilter("all")}
-                   className={cn(
-                     "px-3 rounded-md text-[11px] font-medium transition-all h-6 flex items-center",
-                     activeFilter === "all" 
-                       ? "bg-background text-foreground shadow-sm" 
-                       : "text-muted-foreground hover:text-foreground"
-                   )}
-                 >
-                   All ({generations.length})
-                 </button>
-                 <button
-                   onClick={() => setActiveFilter("favorites")}
-                   className={cn(
-                     "px-3 rounded-md text-[11px] font-medium transition-all h-6 flex items-center gap-1",
-                     activeFilter === "favorites" 
-                       ? "bg-background text-foreground shadow-sm" 
-                       : "text-muted-foreground hover:text-foreground"
-                   )}
-                 >
-                   <Star className={cn("h-3 w-3", activeFilter === "favorites" && "fill-yellow-400 text-yellow-400")} />
-                   Favs
-                 </button>
-               </div>
+        {/* CREATIVE WORKSPACE */}
+        <div className="flex-1 overflow-y-auto p-6 md:p-8 pb-40 md:pb-10 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <div className="max-w-[1400px] mx-auto space-y-8">
+            
+            {/* Generation Status - Shows during generation */}
+            {status === "generating" && (
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-gradient-to-br from-[#B94E30]/10 to-[#E3B436]/10 border border-[#B94E30]/30 rounded-2xl p-8 flex flex-col items-center justify-center"
+              >
+                <div className="relative mb-4">
+                  <div className="h-24 w-24 rounded-full border-2 border-[#B94E30]/30 flex items-center justify-center backdrop-blur-sm bg-background/50">
+                    <motion.div
+                      className="absolute inset-0 rounded-full border-2 border-[#B94E30]"
+                      style={{ borderTopColor: 'transparent', borderLeftColor: 'transparent' }}
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    />
+                    <span className="text-3xl font-mono font-bold text-foreground tabular-nums">
+                      {formatTime(elapsedSeconds)}
+                    </span>
+                  </div>
+                </div>
+                <p className="text-foreground font-medium text-lg mb-2">{getProgressText()}</p>
+                <p className="text-muted-foreground text-sm">Your image is being created...</p>
+              </motion.div>
+            )}
 
-               <div className="w-px h-4 bg-border mx-1 shrink-0" />
-               
-               {Array.from(new Set(generations.map(g => g.style))).map(style => (
-                 <button
-                   key={style}
-                   onClick={() => setActiveFilter(style)}
-                   className={cn(
-                     "rounded-full h-7 px-3 text-[11px] capitalize border transition-all whitespace-nowrap",
-                     activeFilter === style 
-                       ? "bg-primary/10 border-primary/20 text-primary" 
-                       : "bg-background border-border text-muted-foreground hover:text-foreground hover:border-primary/30"
-                   )}
-                 >
-                   {STYLE_PRESETS.find(s => s.id === style)?.name || style}
-                 </button>
-               ))}
-             </div>
-          )}
-
-          {filteredGenerations.length === 0 && status !== "generating" ? (
-            <div className="h-full flex flex-col items-center justify-center text-center animate-fade-in max-w-xl mx-auto mt-[-100px]">
-              <div className="w-40 h-40 bg-gradient-to-tr from-[#B94E30] to-[#E3B436] rounded-full blur-[80px] opacity-20 mb-8" />
-              <h2 className="text-3xl font-bold mb-3 text-foreground">Start Creating</h2>
-              <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
-                Enter a prompt above to unleash the power of our 5-agent AI system.
-              </p>
-              
-              <div className="flex flex-wrap justify-center gap-3">
-                {["Futuristic city with neon lights", "Oil painting of a cat king", "Cyberpunk street food stall"].map(p => (
-                  <button 
-                    key={p}
-                    onClick={() => setPrompt(p)}
-                    className="px-4 py-2 bg-muted hover:bg-muted/80 border border-border rounded-full text-sm text-muted-foreground hover:text-foreground transition-all"
+            {/* Session History - Last 6 generations */}
+            {generations.length > 0 && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <h3 className="text-sm font-semibold text-foreground">Recent Creations</h3>
+                    <span className="text-xs text-muted-foreground">({Math.min(generations.length, 6)} of {generations.length})</span>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                    onClick={() => setLocation('/my-creations')}
                   >
-                    {p}
-                  </button>
+                    View All in Library
+                    <ChevronDown className="h-3 w-3 ml-1 -rotate-90" />
+                  </Button>
+                </div>
+                
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                  {generations.slice(0, 6).map((gen) => (
+                    <motion.div 
+                      key={gen.id}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      onClick={() => setSelectedImage(gen)}
+                      className="relative group rounded-xl overflow-hidden cursor-pointer bg-card border border-border hover:border-primary/50 hover:shadow-lg transition-all aspect-square"
+                    >
+                      <img src={gen.src} alt={gen.prompt} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2">
+                        <div className="flex items-center gap-1">
+                          <Button 
+                            size="icon" 
+                            className="h-7 w-7 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleVary(gen);
+                            }}
+                          >
+                            <RefreshCw className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            size="icon" 
+                            className="h-7 w-7 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              downloadImage(gen.src, `generated_${gen.id}.png`);
+                            }}
+                          >
+                            <Download className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            size="icon" 
+                            className="h-7 w-7 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg ml-auto"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFavorite(gen.id);
+                            }}
+                          >
+                            <Star className={cn("h-3 w-3", gen.isFavorite && "fill-yellow-400 text-yellow-400")} />
+                          </Button>
+                        </div>
+                      </div>
+                      {gen.isNew && (
+                        <div className="absolute top-2 left-2 px-1.5 py-0.5 bg-[#B94E30] text-white text-[9px] font-bold rounded">NEW</div>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Style Preview Rail */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Palette className="h-4 w-4 text-muted-foreground" />
+                <h3 className="text-sm font-semibold text-foreground">Style Presets</h3>
+              </div>
+              <div className="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                {STYLE_PRESETS.map((style) => {
+                  const Icon = style.icon;
+                  return (
+                    <button
+                      key={style.id}
+                      onClick={() => setSettings({ ...settings, style: style.id })}
+                      className={cn(
+                        "flex-shrink-0 flex flex-col items-center gap-2 p-3 rounded-xl border transition-all min-w-[100px]",
+                        settings.style === style.id
+                          ? "bg-primary/10 border-primary/30 text-primary"
+                          : "bg-muted/30 border-border text-muted-foreground hover:bg-muted hover:text-foreground hover:border-primary/20"
+                      )}
+                    >
+                      <div className={cn(
+                        "h-10 w-10 rounded-lg flex items-center justify-center",
+                        settings.style === style.id ? "bg-primary/20" : "bg-muted"
+                      )}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <span className="text-xs font-medium">{style.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Prompt Suggestions */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-muted-foreground" />
+                <h3 className="text-sm font-semibold text-foreground">Prompt Ideas</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {PROMPT_SUGGESTIONS.map((category) => (
+                  <div key={category.category} className="bg-muted/30 border border-border rounded-xl p-4 space-y-3">
+                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{category.category}</h4>
+                    <div className="space-y-2">
+                      {category.prompts.map((p) => (
+                        <button
+                          key={p}
+                          onClick={() => setPrompt(p)}
+                          className="w-full text-left text-sm text-foreground/80 hover:text-foreground p-2 rounded-lg hover:bg-muted transition-colors line-clamp-2"
+                        >
+                          {p}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
-          ) : (
-            <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-2 space-y-2 mx-auto max-w-[1800px]">
-              {/* Loading State Card */}
-              {status === "generating" && (
-                <div className="break-inside-avoid mb-2 relative group rounded-xl overflow-hidden bg-card border border-border shadow-xl animate-in fade-in zoom-in duration-300">
-                  <div className="w-full aspect-square bg-gradient-to-br from-[#B94E30] via-[#8B3A24] to-[#664D3F] animate-pulse flex flex-col items-center justify-center relative overflow-hidden">
-                    <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48ZyBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTAgMzhoNDB2MmgtNDB6Ii8+PHBhdGggZD0iTTAgMGg0MHYyaC00MHoiLz48cGF0aCBkPSJNMCAwdjQwaDJWMHoiLz48cGF0aCBkPSJNMzggMHY0MGgyVjB6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
-                    {/* Timer Display */}
-                    <div className="relative">
-                      <div className="h-20 w-20 rounded-full border-2 border-white/20 flex items-center justify-center backdrop-blur-sm bg-white/5">
-                        <motion.div
-                          className="absolute inset-0 rounded-full border-2 border-white/60"
-                          style={{ borderTopColor: 'transparent', borderLeftColor: 'transparent' }}
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                        />
-                        <span className="text-2xl font-mono font-bold text-white tabular-nums">
-                          {formatTime(elapsedSeconds)}
-                        </span>
-                      </div>
-                    </div>
-                    <p className="text-white/90 font-medium mt-4 text-sm">{getProgressText()}</p>
-                    
-                    {/* Animated Loader */}
-                    <div className="w-3/4 mt-3">
-                      <div className="h-1 w-full bg-black/20 rounded-full overflow-hidden backdrop-blur-sm">
-                        <motion.div 
-                          className="h-full bg-white/80 rounded-full w-1/4"
-                          animate={{ x: ["-100%", "400%"] }}
-                          transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-5 space-y-3 bg-card">
-                    <div className="h-4 bg-muted rounded w-3/4 animate-pulse" />
-                    <div className="h-3 bg-muted rounded w-1/2 animate-pulse" />
-                    <div className="pt-2 flex items-center justify-between">
-                       <div className="h-8 w-20 bg-muted rounded animate-pulse" />
-                       <div className="flex gap-1">
-                         <div className="h-8 w-8 bg-muted rounded animate-pulse" />
-                         <div className="h-8 w-8 bg-muted rounded animate-pulse" />
-                       </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              {filteredGenerations.map((gen) => (
-                <div 
-                  key={gen.id}
-                  onClick={() => setSelectedImage(gen)}
-                  className="break-inside-avoid mb-2 relative group rounded-xl overflow-hidden cursor-pointer bg-card border border-border hover:border-primary/50 hover:shadow-xl transition-all hover:scale-[1.02]"
-                >
-                  <img src={gen.src} alt={gen.prompt} className="w-full h-auto object-cover" />
-                  
-                  {/* Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-5">
-                    <p className="text-white text-sm line-clamp-2 mb-4 font-medium leading-relaxed">{gen.prompt}</p>
-                    
-                    <div className="flex items-center gap-2">
-                      <Button 
-                        size="sm" 
-                        className="h-8 px-3 text-xs bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          downloadImage(gen.src, `generated_${gen.id}.png`);
-                        }}
-                      >
-                        <Download className="h-3.5 w-3.5 mr-1.5" />
-                        Download
-                      </Button>
-                      <Button 
-                        size="icon" 
-                        className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          copyImageToClipboard(gen.src);
-                        }}
-                        data-testid={`button-copy-${gen.id}`}
-                      >
-                        <ClipboardCopy className="h-3.5 w-3.5" />
-                      </Button>
-                      <div className="flex items-center gap-1 ml-auto">
-                        <Button 
-                          size="icon" 
-                          className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleFavorite(gen.id);
-                          }}
-                        >
-                          <Star className={cn("h-3.5 w-3.5", gen.isFavorite && "fill-yellow-400 text-yellow-400")} />
-                        </Button>
-                        <Button size="icon" className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg">
-                          <MoreHorizontal className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button 
-                          size="icon" 
-                          className="h-8 w-8 bg-white/10 hover:bg-red-500/20 text-white hover:text-red-400 border-0 backdrop-blur-md rounded-lg transition-colors"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setImageToDelete(gen);
-                          }}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+
+            {/* Empty State - Only when no generations at all */}
+            {generations.length === 0 && status !== "generating" && (
+              <div className="flex flex-col items-center justify-center text-center py-16">
+                <div className="w-32 h-32 bg-gradient-to-tr from-[#B94E30] to-[#E3B436] rounded-full blur-[60px] opacity-20 mb-6" />
+                <h2 className="text-2xl font-bold mb-2 text-foreground">Ready to Create</h2>
+                <p className="text-muted-foreground mb-6 max-w-md">
+                  Type a prompt above or pick one from the suggestions to generate your first image.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Lightbox Modal */}
