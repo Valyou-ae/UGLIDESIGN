@@ -184,7 +184,6 @@ export default function ImageGenerator() {
   const [activeFilter, setActiveFilter] = useState<string>("all");
   const [agents, setAgents] = useState<Agent[]>(AGENTS);
   const [progress, setProgress] = useState(0);
-  const [showSettings, setShowSettings] = useState(false);
   const [selectedImage, setSelectedImage] = useState<GeneratedImage | null>(null);
   const [imageToDelete, setImageToDelete] = useState<GeneratedImage | null>(null);
   const [isListening, setIsListening] = useState(false);
@@ -199,6 +198,9 @@ export default function ImageGenerator() {
     speed: "quality" as "fast" | "quality"
   });
   const [qualityAutoUpgraded, setQualityAutoUpgraded] = useState(false);
+  const [isPromptExpanded, setIsPromptExpanded] = useState(false);
+  const promptContainerRef = useRef<HTMLDivElement>(null);
+  const promptTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [generationStartTime, setGenerationStartTime] = useState<number | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   
@@ -229,7 +231,7 @@ export default function ImageGenerator() {
     
     const timer = setTimeout(() => {
       if (checkFirstVisit()) {
-        setShowSettings(true);
+        setIsPromptExpanded(true);
         startTutorial();
       }
     }, 1000);
@@ -978,6 +980,35 @@ export default function ImageGenerator() {
     }
   };
 
+  // Expandable prompt bar handlers
+  const handlePromptMouseEnter = () => {
+    if (promptTimeoutRef.current) {
+      clearTimeout(promptTimeoutRef.current);
+    }
+    setIsPromptExpanded(true);
+  };
+
+  const handlePromptMouseLeave = () => {
+    promptTimeoutRef.current = setTimeout(() => {
+      setIsPromptExpanded(false);
+    }, 400);
+  };
+
+  const handlePromptFocus = () => {
+    if (promptTimeoutRef.current) {
+      clearTimeout(promptTimeoutRef.current);
+    }
+    setIsPromptExpanded(true);
+  };
+
+  const handlePromptBlur = (e: React.FocusEvent) => {
+    if (promptContainerRef.current && !promptContainerRef.current.contains(e.relatedTarget as Node)) {
+      promptTimeoutRef.current = setTimeout(() => {
+        setIsPromptExpanded(false);
+      }, 400);
+    }
+  };
+
   // Load user's saved images from API or use sample images
   useEffect(() => {
     const loadImages = async () => {
@@ -1066,8 +1097,14 @@ export default function ImageGenerator() {
       
       <main className="flex-1 flex flex-col relative h-full overflow-hidden bg-background text-foreground">
         
-        {/* TOP SECTION: PROMPT BAR (Minimalistic) */}
-        <div className="fixed bottom-[70px] left-0 right-0 md:relative md:bottom-auto md:top-0 z-[60] bg-background/80 backdrop-blur-xl border-t md:border-t-0 md:border-b border-border px-4 md:px-6 py-3 md:py-4 transition-all order-last md:order-first pb-safe">
+        {/* TOP SECTION: PROMPT BAR (Expandable on Hover/Focus) */}
+        <div 
+          ref={promptContainerRef}
+          onMouseEnter={handlePromptMouseEnter}
+          onMouseLeave={handlePromptMouseLeave}
+          onBlur={handlePromptBlur}
+          className="fixed bottom-[70px] left-0 right-0 md:relative md:bottom-auto md:top-0 z-[60] bg-background/80 backdrop-blur-xl border-t md:border-t-0 md:border-b border-border px-4 md:px-6 py-3 md:py-4 transition-all order-last md:order-first pb-safe"
+        >
           <div className="max-w-[1800px] mx-auto w-full space-y-4">
             
             {/* Prompt Input & Controls */}
@@ -1120,6 +1157,7 @@ export default function ImageGenerator() {
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     onKeyDown={handleKeyDown}
+                    onFocus={handlePromptFocus}
                     placeholder="A futuristic city with neon lights and flying cars in cyberpunk style..."
                     className="w-full bg-transparent border-0 focus:ring-0 px-0 pt-[3px] text-sm sm:text-base text-foreground placeholder:text-muted-foreground/50 placeholder:italic resize-none min-h-[24px] max-h-[120px] leading-relaxed outline-none ring-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
                     rows={1}
@@ -1174,22 +1212,6 @@ export default function ImageGenerator() {
                       </motion.div>
                     )}
                   </AnimatePresence>
-
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button 
-                          variant={showSettings ? "secondary" : "ghost"} 
-                          size="icon" 
-                          onClick={() => setShowSettings(!showSettings)}
-                          className={cn("h-9 w-9 rounded-lg transition-all", showSettings && "bg-muted text-foreground")}
-                        >
-                          <SlidersHorizontal className="h-5 w-5" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent><p>Settings</p></TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
 
                   {/* Save Prompt Button */}
                   <TooltipProvider>
@@ -1271,13 +1293,14 @@ export default function ImageGenerator() {
 
             </div>
 
-            {/* Settings Panel (Inline Expandable) */}
-            <AnimatePresence>
-              {showSettings && (
+            {/* Settings Panel (Expandable on Hover/Focus) */}
+            <AnimatePresence mode="sync">
+              {isPromptExpanded && (
                 <motion.div
-                  initial={{ height: 0, opacity: 0, y: -10 }}
-                  animate={{ height: "auto", opacity: 1, y: 0 }}
-                  exit={{ height: 0, opacity: 0, y: -10 }}
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
                   className="overflow-hidden"
                 >
                   <div className="bg-muted/30 border border-border rounded-xl p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 shadow-inner mb-4">
