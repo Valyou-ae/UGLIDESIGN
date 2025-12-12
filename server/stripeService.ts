@@ -6,6 +6,7 @@ import { sql } from 'drizzle-orm';
 export class StripeService {
   async createCustomer(email: string, userId: string) {
     const stripe = await getUncachableStripeClient();
+    if (!stripe) throw new Error('Stripe not configured');
     return await stripe.customers.create({
       email,
       metadata: { userId },
@@ -20,6 +21,7 @@ export class StripeService {
     mode: 'subscription' | 'payment' = 'subscription'
   ) {
     const stripe = await getUncachableStripeClient();
+    if (!stripe) throw new Error('Stripe not configured');
     return await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ['card'],
@@ -32,10 +34,53 @@ export class StripeService {
 
   async createCustomerPortalSession(customerId: string, returnUrl: string) {
     const stripe = await getUncachableStripeClient();
+    if (!stripe) throw new Error('Stripe not configured');
     return await stripe.billingPortal.sessions.create({
       customer: customerId,
       return_url: returnUrl,
     });
+  }
+
+  async syncProductsFromStripe(): Promise<{ products: number; prices: number }> {
+    const stripe = await getUncachableStripeClient();
+    if (!stripe) throw new Error('Stripe not configured');
+
+    const products = await stripe.products.list({ active: true, limit: 100 });
+    const prices = await stripe.prices.list({ active: true, limit: 100 });
+
+    let productsCount = 0;
+    let pricesCount = 0;
+
+    for (const product of products.data) {
+      await db.execute(sql`
+        INSERT INTO stripe.products (id, name, description, active, metadata)
+        VALUES (${product.id}, ${product.name}, ${product.description}, ${product.active}, ${JSON.stringify(product.metadata)}::jsonb)
+        ON CONFLICT (id) DO UPDATE SET
+          name = EXCLUDED.name,
+          description = EXCLUDED.description,
+          active = EXCLUDED.active,
+          metadata = EXCLUDED.metadata
+      `);
+      productsCount++;
+    }
+
+    for (const price of prices.data) {
+      const recurring = price.recurring ? JSON.stringify(price.recurring) : null;
+      await db.execute(sql`
+        INSERT INTO stripe.prices (id, product, unit_amount, currency, active, recurring, metadata)
+        VALUES (${price.id}, ${price.product as string}, ${price.unit_amount}, ${price.currency}, ${price.active}, ${recurring}::jsonb, ${JSON.stringify(price.metadata)}::jsonb)
+        ON CONFLICT (id) DO UPDATE SET
+          product = EXCLUDED.product,
+          unit_amount = EXCLUDED.unit_amount,
+          currency = EXCLUDED.currency,
+          active = EXCLUDED.active,
+          recurring = EXCLUDED.recurring,
+          metadata = EXCLUDED.metadata
+      `);
+      pricesCount++;
+    }
+
+    return { products: productsCount, prices: pricesCount };
   }
 
   async getProduct(productId: string) {

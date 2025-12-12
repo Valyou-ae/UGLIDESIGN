@@ -472,11 +472,28 @@ export async function registerRoutes(
   app.get("/api/stripe/products", requireAuth, async (_req, res) => {
     try {
       const { stripeService } = await import("./stripeService");
-      const products = await stripeService.listProductsWithPrices(true);
+      let products = await stripeService.listProductsWithPrices(true);
+      
+      if (products.length === 0) {
+        await stripeService.syncProductsFromStripe();
+        products = await stripeService.listProductsWithPrices(true);
+      }
+      
       res.json({ products });
     } catch (error) {
       console.error("Stripe products error:", error);
       res.status(500).json({ message: "Failed to get products" });
+    }
+  });
+
+  app.post("/api/stripe/sync-products", requireAdmin, async (_req, res) => {
+    try {
+      const { stripeService } = await import("./stripeService");
+      const result = await stripeService.syncProductsFromStripe();
+      res.json({ success: true, ...result });
+    } catch (error) {
+      console.error("Stripe sync error:", error);
+      res.status(500).json({ message: "Failed to sync products" });
     }
   });
 
