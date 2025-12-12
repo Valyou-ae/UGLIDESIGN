@@ -13,7 +13,8 @@ import {
   List,
   Filter,
   LogOut,
-  Loader2
+  Loader2,
+  Coins
 } from "lucide-react";
 import { Sidebar } from "@/components/sidebar";
 import { Button } from "@/components/ui/button";
@@ -197,23 +198,28 @@ export default function Profile() {
           </div>
 
           {/* Stats Row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10">
             {[
+              { label: "Credits", value: (stats.credits ?? 0).toString(), icon: Coins, highlight: true },
               { label: "Images", value: (stats.images || 0).toString(), icon: ImageIcon },
               { label: "Mockups", value: (stats.mockups || 0).toString(), icon: Layers },
               { label: "Backgrounds", value: (stats.bgRemoved || 0).toString(), icon: Grid },
               { label: "Favorites", value: favoriteCount.toString(), icon: Heart },
-            ].map((stat, i) => (
+            ].map((stat: { label: string; value: string; icon: any; highlight?: boolean }, i) => (
               <div 
                 key={i} 
-                className="bg-card border border-border rounded-xl p-4 flex items-center gap-4 shadow-sm hover:border-primary/50 transition-colors group cursor-default"
+                className={`bg-card border rounded-xl p-4 flex items-center gap-4 shadow-sm hover:border-primary/50 transition-colors group cursor-default ${
+                  stat.highlight ? 'border-primary/30 bg-gradient-to-br from-primary/5 to-transparent' : 'border-border'
+                }`}
                 data-testid={`stat-${stat.label.toLowerCase()}`}
               >
-                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                <div className={`h-10 w-10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform ${
+                  stat.highlight ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'
+                }`}>
                   <stat.icon className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                  <p className={`text-2xl font-bold ${stat.highlight ? 'text-primary' : 'text-foreground'}`}>{stat.value}</p>
                   <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{stat.label}</p>
                 </div>
               </div>
