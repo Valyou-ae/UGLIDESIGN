@@ -1617,10 +1617,10 @@ export default function ImageGenerator() {
               </div>
             </div>
           ) : (
-            <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6 mx-auto max-w-[1800px]">
+            <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-2 space-y-2 mx-auto max-w-[1800px]">
               {/* Loading State Card */}
               {status === "generating" && (
-                <div className="break-inside-avoid mb-6 relative group rounded-xl overflow-hidden bg-card border border-border shadow-xl animate-in fade-in zoom-in duration-300">
+                <div className="break-inside-avoid mb-2 relative group rounded-xl overflow-hidden bg-card border border-border shadow-xl animate-in fade-in zoom-in duration-300">
                   <div className="w-full aspect-square bg-gradient-to-br from-[#B94E30] via-[#8B3A24] to-[#664D3F] animate-pulse flex flex-col items-center justify-center relative overflow-hidden">
                     <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48ZyBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTAgMzhoNDB2MmgtNDB6Ii8+PHBhdGggZD0iTTAgMGg0MHYyaC00MHoiLz48cGF0aCBkPSJNMCAwdjQwaDJWMHoiLz48cGF0aCBkPSJNMzggMHY0MGgyVjB6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
                     {/* Timer Display */}
@@ -1668,7 +1668,7 @@ export default function ImageGenerator() {
                 <div 
                   key={gen.id}
                   onClick={() => setSelectedImage(gen)}
-                  className="break-inside-avoid mb-6 relative group rounded-xl overflow-hidden cursor-pointer bg-card border border-border hover:border-primary/50 hover:shadow-xl transition-all hover:scale-[1.02]"
+                  className="break-inside-avoid mb-2 relative group rounded-xl overflow-hidden cursor-pointer bg-card border border-border hover:border-primary/50 hover:shadow-xl transition-all hover:scale-[1.02]"
                 >
                   <img src={gen.src} alt={gen.prompt} className="w-full h-auto object-cover" />
                   
