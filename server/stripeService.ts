@@ -45,6 +45,9 @@ export class StripeService {
     const stripe = await getUncachableStripeClient();
     if (!stripe) throw new Error('Stripe not configured');
 
+    const account = await stripe.accounts.retrieve();
+    const accountId = account.id;
+
     const products = await stripe.products.list({ active: true, limit: 100 });
     const prices = await stripe.prices.list({ active: true, limit: 100 });
 
@@ -54,8 +57,8 @@ export class StripeService {
     for (const product of products.data) {
       const rawData = JSON.stringify(product);
       await db.execute(sql`
-        INSERT INTO stripe.products (_raw_data, _updated_at)
-        VALUES (${rawData}::jsonb, NOW())
+        INSERT INTO stripe.products (_raw_data, _updated_at, _account_id)
+        VALUES (${rawData}::jsonb, NOW(), ${accountId})
         ON CONFLICT (id) DO UPDATE SET
           _raw_data = EXCLUDED._raw_data,
           _updated_at = NOW()
@@ -66,8 +69,8 @@ export class StripeService {
     for (const price of prices.data) {
       const rawData = JSON.stringify(price);
       await db.execute(sql`
-        INSERT INTO stripe.prices (_raw_data, _updated_at)
-        VALUES (${rawData}::jsonb, NOW())
+        INSERT INTO stripe.prices (_raw_data, _updated_at, _account_id)
+        VALUES (${rawData}::jsonb, NOW(), ${accountId})
         ON CONFLICT (id) DO UPDATE SET
           _raw_data = EXCLUDED._raw_data,
           _updated_at = NOW()
