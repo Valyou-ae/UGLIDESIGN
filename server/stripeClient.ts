@@ -77,9 +77,7 @@ export async function getUncachableStripeClient(): Promise<Stripe | null> {
   const credentials = await getCredentials();
   if (!credentials) return null;
 
-  return new Stripe(credentials.secretKey, {
-    apiVersion: '2025-11-17.clover',
-  });
+  return new Stripe(credentials.secretKey);
 }
 
 export async function getStripePublishableKey(): Promise<string | null> {

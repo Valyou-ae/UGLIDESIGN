@@ -39,34 +39,23 @@ async function initStripe() {
     });
     stripeLogger.info('Stripe schema ready');
 
-    const stripeSync = await getStripeSync();
+    // Verify Stripe credentials work
+    const { getUncachableStripeClient } = await import('./stripeClient');
+    const stripe = await getUncachableStripeClient();
     
-    if (!stripeSync) {
+    if (!stripe) {
       stripeLogger.warn('Stripe not configured, skipping webhook setup');
       return;
     }
 
-    stripeLogger.info('Setting up managed webhook...');
-    const webhookBaseUrl = `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`;
-    const { webhook, uuid } = await stripeSync.findOrCreateManagedWebhook(
-      `${webhookBaseUrl}/api/stripe/webhook`,
-      {
-        enabled_events: ['*'],
-        description: 'Managed webhook for Stripe sync',
-      }
-    );
-    stripeLogger.info(`Webhook configured: ${webhook.url}`, { uuid });
+    // Test the connection by fetching account info
+    const account = await stripe.accounts.retrieve();
+    stripeLogger.info('Stripe connected successfully', { 
+      accountId: account.id?.slice(0, 10) + '***'
+    });
 
-    stripeLogger.info('Syncing Stripe data in background...');
-    stripeSync.syncBackfill()
-      .then(() => {
-        stripeLogger.info('Stripe data synced');
-      })
-      .catch((err: Error) => {
-        stripeLogger.error('Error syncing Stripe data', err);
-      });
   } catch (error: any) {
-    stripeLogger.warn('Stripe initialization skipped', { reason: error?.message });
+    stripeLogger.warn('Stripe initialization issue', { reason: error?.message });
   }
 }
 
