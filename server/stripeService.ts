@@ -52,30 +52,25 @@ export class StripeService {
     let pricesCount = 0;
 
     for (const product of products.data) {
+      const rawData = JSON.stringify(product);
       await db.execute(sql`
-        INSERT INTO stripe.products (id, name, description, active, metadata)
-        VALUES (${product.id}, ${product.name}, ${product.description}, ${product.active}, ${JSON.stringify(product.metadata)}::jsonb)
+        INSERT INTO stripe.products (_raw_data, _updated_at)
+        VALUES (${rawData}::jsonb, NOW())
         ON CONFLICT (id) DO UPDATE SET
-          name = EXCLUDED.name,
-          description = EXCLUDED.description,
-          active = EXCLUDED.active,
-          metadata = EXCLUDED.metadata
+          _raw_data = EXCLUDED._raw_data,
+          _updated_at = NOW()
       `);
       productsCount++;
     }
 
     for (const price of prices.data) {
-      const recurring = price.recurring ? JSON.stringify(price.recurring) : null;
+      const rawData = JSON.stringify(price);
       await db.execute(sql`
-        INSERT INTO stripe.prices (id, product, unit_amount, currency, active, recurring, metadata)
-        VALUES (${price.id}, ${price.product as string}, ${price.unit_amount}, ${price.currency}, ${price.active}, ${recurring}::jsonb, ${JSON.stringify(price.metadata)}::jsonb)
+        INSERT INTO stripe.prices (_raw_data, _updated_at)
+        VALUES (${rawData}::jsonb, NOW())
         ON CONFLICT (id) DO UPDATE SET
-          product = EXCLUDED.product,
-          unit_amount = EXCLUDED.unit_amount,
-          currency = EXCLUDED.currency,
-          active = EXCLUDED.active,
-          recurring = EXCLUDED.recurring,
-          metadata = EXCLUDED.metadata
+          _raw_data = EXCLUDED._raw_data,
+          _updated_at = NOW()
       `);
       pricesCount++;
     }
