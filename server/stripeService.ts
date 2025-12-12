@@ -48,6 +48,15 @@ export class StripeService {
     const account = await stripe.accounts.retrieve();
     const accountId = account.id;
 
+    const accountRawData = JSON.stringify(account);
+    await db.execute(sql`
+      INSERT INTO stripe.accounts (_raw_data, _updated_at, _account_id)
+      VALUES (${accountRawData}::jsonb, NOW(), ${accountId})
+      ON CONFLICT (id) DO UPDATE SET
+        _raw_data = EXCLUDED._raw_data,
+        _updated_at = NOW()
+    `);
+
     const products = await stripe.products.list({ active: true, limit: 100 });
     const prices = await stripe.prices.list({ active: true, limit: 100 });
 
