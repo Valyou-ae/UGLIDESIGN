@@ -50,8 +50,8 @@ export class StripeService {
 
     const accountRawData = JSON.stringify(account);
     await db.execute(sql`
-      INSERT INTO stripe.accounts (_raw_data, _updated_at, _account_id)
-      VALUES (${accountRawData}::jsonb, NOW(), ${accountId})
+      INSERT INTO stripe.accounts (_raw_data, _updated_at)
+      VALUES (${accountRawData}::jsonb, NOW())
       ON CONFLICT (id) DO UPDATE SET
         _raw_data = EXCLUDED._raw_data,
         _updated_at = NOW()
