@@ -4,15 +4,16 @@ let stripeAvailable = false;
 let cachedCredentials: { publishableKey: string; secretKey: string } | null = null;
 
 async function getCredentials(): Promise<{ publishableKey: string; secretKey: string } | null> {
-  if (cachedCredentials) {
-    return cachedCredentials;
-  }
-
+  // Always refresh from env vars on each call to pick up secret changes
   // First check environment variables (secrets)
   const envPublishableKey = process.env.STRIPE_PUBLISHABLE_KEY;
   const envSecretKey = process.env.STRIPE_SECRET_KEY;
 
   if (envPublishableKey && envSecretKey) {
+    // Log key prefix to help debug (safe to log first 10 chars)
+    const keyPrefix = envSecretKey.substring(0, 10);
+    console.log(`[Stripe] Using key with prefix: ${keyPrefix}...`);
+    
     stripeAvailable = true;
     cachedCredentials = {
       publishableKey: envPublishableKey,
