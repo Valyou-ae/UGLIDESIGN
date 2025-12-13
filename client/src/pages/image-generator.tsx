@@ -1146,29 +1146,29 @@ export default function ImageGenerator() {
                   data-tutorial="prompt-input"
                   className="flex-1 flex items-end gap-2 group min-h-[56px]">
                 
-                {/* Hidden file input for reference image upload */}
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  accept="image/*"
-                  className="hidden"
-                  data-testid="input-reference-image"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      if (referenceImage) {
-                        URL.revokeObjectURL(referenceImage.previewUrl);
-                      }
-                      const previewUrl = URL.createObjectURL(file);
-                      setReferenceImage({ file, previewUrl });
-                      toast({ title: "Image uploaded", description: "Reference image ready for generation." });
-                    }
-                    e.target.value = '';
-                  }}
-                />
-
-                {/* Reference Image Button */}
+                {/* Reference Image Upload */}
                 <div className="self-end mb-0.5 shrink-0 flex items-center gap-1">
+                  {/* Hidden file input */}
+                  <input
+                    type="file"
+                    id="reference-image-input"
+                    accept="image/*"
+                    className="sr-only"
+                    data-testid="input-reference-image"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        if (referenceImage) {
+                          URL.revokeObjectURL(referenceImage.previewUrl);
+                        }
+                        const previewUrl = URL.createObjectURL(file);
+                        setReferenceImage({ file, previewUrl });
+                        toast({ title: "Image uploaded", description: "Reference image ready for generation." });
+                      }
+                      e.target.value = '';
+                    }}
+                  />
+                  
                   {referenceImage ? (
                     <div className="relative group">
                       <img 
@@ -1178,8 +1178,10 @@ export default function ImageGenerator() {
                         data-testid="img-reference-preview"
                       />
                       <button 
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
+                          e.preventDefault();
                           URL.revokeObjectURL(referenceImage.previewUrl);
                           setReferenceImage(null);
                         }}
@@ -1193,18 +1195,13 @@ export default function ImageGenerator() {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              fileInputRef.current?.click();
-                            }}
+                          <label 
+                            htmlFor="reference-image-input"
                             data-testid="button-upload-reference"
-                            className="h-10 w-10 text-muted-foreground hover:text-foreground bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-transparent hover:border-border/40"
+                            className="h-10 w-10 text-muted-foreground hover:text-foreground bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-transparent hover:border-border/40 flex items-center justify-center cursor-pointer"
                           >
                             <ImageIconLucide className="h-5 w-5" strokeWidth={1.5} />
-                          </Button>
+                          </label>
                         </TooltipTrigger>
                         <TooltipContent><p>Upload reference image</p></TooltipContent>
                       </Tooltip>
