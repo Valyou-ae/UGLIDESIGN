@@ -1456,7 +1456,7 @@ export default function ImageGenerator() {
                     {/* Details */}
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block px-0.5">Details</label>
-                      <div className="grid grid-cols-3 gap-1">
+                      <div className="flex gap-1.5">
                         {DETAIL_LEVELS.map(d => (
                           <TooltipProvider key={d.id}>
                             <Tooltip>
@@ -1464,7 +1464,7 @@ export default function ImageGenerator() {
                                 <button
                                   onClick={() => setSettings({...settings, detail: d.id})}
                                   className={cn(
-                                    "h-9 rounded-lg flex items-center justify-center gap-1 transition-all border",
+                                    "h-9 px-2.5 rounded-lg flex items-center justify-center gap-1.5 transition-all border whitespace-nowrap",
                                     settings.detail === d.id 
                                       ? "bg-background border-primary/50 text-primary shadow-sm" 
                                       : "bg-background/50 border-transparent text-muted-foreground hover:bg-background hover:text-foreground"
