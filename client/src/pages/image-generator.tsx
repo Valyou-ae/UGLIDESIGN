@@ -2060,7 +2060,19 @@ export default function ImageGenerator() {
                       </div>
                       <div className="flex justify-between py-2 border-b border-border">
                         <span className="text-xs text-muted-foreground">Dimensions</span>
-                        <span className="text-xs font-medium text-foreground">1024 × 1024</span>
+                        <span className="text-xs font-medium text-foreground">
+                          {(() => {
+                            const ratio = selectedImage.aspectRatio || "1:1";
+                            const dims: Record<string, string> = {
+                              "1:1": "1024 × 1024",
+                              "16:9": "1024 × 576",
+                              "9:16": "576 × 1024",
+                              "4:3": "1024 × 768",
+                              "3:4": "768 × 1024"
+                            };
+                            return dims[ratio] || "1024 × 1024";
+                          })()}
+                        </span>
                       </div>
                       <div className="flex justify-between py-2 border-b border-border">
                         <span className="text-xs text-muted-foreground">Model</span>
