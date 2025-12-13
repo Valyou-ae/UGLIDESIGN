@@ -863,8 +863,10 @@ export default function ImageGenerator() {
                 className: "bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-900/50 dark:text-green-400",
               });
               setTimeout(() => {
-                setLocation("/my-creations");
-              }, 1000);
+                setStatus("idle");
+                setAgents(AGENTS.map(a => ({ ...a, status: "idle" })));
+                setProgress(0);
+              }, 2000);
             } else {
               toast({
                 title: "Save Failed",
