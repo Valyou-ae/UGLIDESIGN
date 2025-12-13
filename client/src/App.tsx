@@ -27,6 +27,7 @@ import AffiliateProgram from "@/pages/affiliate-program";
 import Pricing from "@/pages/pricing";
 import Landing from "@/pages/landing";
 import MoodBoard from "@/pages/mood-board";
+import Leaderboard from "@/pages/leaderboard";
 import AdminDashboard from "@/pages/admin/index";
 import AdminUsers from "@/pages/admin/users";
 import AdminCRM from "@/pages/admin/crm";
@@ -123,6 +124,9 @@ function Router() {
           <MoodBoard />
         </AuthGuard>
       </Route>
+
+      {/* Public leaderboard */}
+      <Route path="/leaderboard" component={Leaderboard} />
 
       {/* Admin routes (require admin role) */}
       <Route path="/admin">

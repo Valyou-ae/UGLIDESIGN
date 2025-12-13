@@ -120,6 +120,10 @@ export interface IStorage {
   
   getPublicImages(limit?: number): Promise<GeneratedImage[]>;
   setImageVisibility(imageId: string, userId: string, isPublic: boolean): Promise<GeneratedImage | undefined>;
+  
+  getLeaderboard(period: 'weekly' | 'monthly' | 'all-time', limit?: number): Promise<{ userId: string; username: string | null; displayName: string | null; profileImageUrl: string | null; imageCount: number; rank: number }[]>;
+  getReferralStats(userId: string): Promise<{ referralCode: string | null; referredCount: number; bonusCreditsEarned: number }>;
+  applyReferralCode(userId: string, referralCode: string): Promise<{ success: boolean; bonusCredits?: number; error?: string }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -826,6 +830,106 @@ export class DatabaseStorage implements IStorage {
       .returning();
     
     return updated;
+  }
+
+  async getLeaderboard(period: 'weekly' | 'monthly' | 'all-time', limit: number = 50): Promise<{ userId: string; username: string | null; displayName: string | null; profileImageUrl: string | null; imageCount: number; rank: number }[]> {
+    let startDate: Date | null = null;
+    const now = new Date();
+    
+    if (period === 'weekly') {
+      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    } else if (period === 'monthly') {
+      startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    }
+    
+    const query = startDate
+      ? sql`
+          SELECT 
+            u.id as user_id,
+            u.username,
+            u.display_name,
+            u.profile_image_url,
+            COUNT(gi.id) as image_count
+          FROM ${users} u
+          LEFT JOIN ${generatedImages} gi ON gi.user_id = u.id AND gi.created_at >= ${startDate}
+          GROUP BY u.id, u.username, u.display_name, u.profile_image_url
+          HAVING COUNT(gi.id) > 0
+          ORDER BY image_count DESC
+          LIMIT ${limit}
+        `
+      : sql`
+          SELECT 
+            u.id as user_id,
+            u.username,
+            u.display_name,
+            u.profile_image_url,
+            COUNT(gi.id) as image_count
+          FROM ${users} u
+          LEFT JOIN ${generatedImages} gi ON gi.user_id = u.id
+          GROUP BY u.id, u.username, u.display_name, u.profile_image_url
+          HAVING COUNT(gi.id) > 0
+          ORDER BY image_count DESC
+          LIMIT ${limit}
+        `;
+    
+    const results = await db.execute(query);
+    
+    return (results.rows as any[]).map((row, index) => ({
+      userId: row.user_id,
+      username: row.username,
+      displayName: row.display_name,
+      profileImageUrl: row.profile_image_url,
+      imageCount: Number(row.image_count),
+      rank: index + 1,
+    }));
+  }
+
+  async getReferralStats(userId: string): Promise<{ referralCode: string | null; referredCount: number; bonusCreditsEarned: number }> {
+    const user = await this.getUser(userId);
+    if (!user) {
+      return { referralCode: null, referredCount: 0, bonusCreditsEarned: 0 };
+    }
+    
+    const [referredResult] = await db
+      .select({ count: count() })
+      .from(users)
+      .where(eq(users.referredBy, userId));
+    
+    const referredCount = referredResult?.count || 0;
+    const bonusCreditsEarned = referredCount * 10;
+    
+    return {
+      referralCode: user.affiliateCode,
+      referredCount,
+      bonusCreditsEarned,
+    };
+  }
+
+  async applyReferralCode(userId: string, referralCode: string): Promise<{ success: boolean; bonusCredits?: number; error?: string }> {
+    const user = await this.getUser(userId);
+    if (!user) {
+      return { success: false, error: 'User not found' };
+    }
+    
+    if (user.referredBy) {
+      return { success: false, error: 'You have already used a referral code' };
+    }
+    
+    const referrer = await this.getUserByAffiliateCode(referralCode);
+    if (!referrer) {
+      return { success: false, error: 'Invalid referral code' };
+    }
+    
+    if (referrer.id === userId) {
+      return { success: false, error: 'You cannot use your own referral code' };
+    }
+    
+    await db.update(users).set({ referredBy: referrer.id }).where(eq(users.id, userId));
+    
+    await this.addCredits(userId, 10);
+    await this.addCredits(referrer.id, 10);
+    
+    return { success: true, bonusCredits: 10 };
   }
 }
 

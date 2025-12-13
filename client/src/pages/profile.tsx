@@ -14,7 +14,12 @@ import {
   Filter,
   LogOut,
   Loader2,
-  Coins
+  Coins,
+  Gift,
+  Copy,
+  Check,
+  Users,
+  Sparkles
 } from "lucide-react";
 import { Sidebar } from "@/components/sidebar";
 import { Button } from "@/components/ui/button";
@@ -27,9 +32,17 @@ import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { imagesApi } from "@/lib/api";
 import { useLocation } from "wouter";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Profile() {
   const [activeTab, setActiveTab] = useState("projects");
+  const [copied, setCopied] = useState(false);
+  const [applyCode, setApplyCode] = useState("");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { user, isLoading: authLoading, logout, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
 
@@ -48,6 +61,65 @@ export default function Profile() {
     queryFn: imagesApi.getAll,
     enabled: isAuthenticated,
   });
+
+  const { data: referralStats, isLoading: referralLoading } = useQuery({
+    queryKey: ["referral", "stats"],
+    queryFn: async () => {
+      const res = await fetch("/api/referral/stats", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch referral stats");
+      return res.json();
+    },
+    enabled: isAuthenticated,
+  });
+
+  const generateCodeMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/referral/generate-code", { 
+        method: "POST",
+        credentials: "include" 
+      });
+      if (!res.ok) throw new Error("Failed to generate code");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["referral", "stats"] });
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+      toast({ title: "Referral code generated!", description: "Share it with friends to earn credits." });
+    },
+  });
+
+  const applyCodeMutation = useMutation({
+    mutationFn: async (code: string) => {
+      const res = await fetch("/api/referral/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ referralCode: code }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to apply code");
+      return data;
+    },
+    onSuccess: (data) => {
+      setApplyCode("");
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+      queryClient.invalidateQueries({ queryKey: ["referral", "stats"] });
+      toast({ title: "Success!", description: data.message });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const copyReferralLink = () => {
+    const code = referralStats?.referralCode || user?.affiliateCode;
+    if (code) {
+      navigator.clipboard.writeText(`${window.location.origin}?ref=${code}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+      toast({ title: "Copied!", description: "Referral link copied to clipboard" });
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -232,6 +304,7 @@ export default function Profile() {
               <TabsList className="bg-muted/50 p-1 rounded-xl">
                 <TabsTrigger value="projects" className="rounded-lg px-6" data-testid="tab-projects">Projects</TabsTrigger>
                 <TabsTrigger value="favorites" className="rounded-lg px-6" data-testid="tab-favorites">Favorites</TabsTrigger>
+                <TabsTrigger value="referral" className="rounded-lg px-6" data-testid="tab-referral">Referral</TabsTrigger>
                 <TabsTrigger value="about" className="rounded-lg px-6" data-testid="tab-about">About</TabsTrigger>
               </TabsList>
               
@@ -339,6 +412,103 @@ export default function Profile() {
                   )}
                 </div>
               )}
+            </TabsContent>
+
+            <TabsContent value="referral">
+              <div className="max-w-2xl space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Gift className="h-5 w-5 text-primary" />
+                      Your Referral Code
+                    </CardTitle>
+                    <CardDescription>
+                      Share your code with friends. You both get 10 bonus credits when they sign up!
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {referralStats?.referralCode || user?.affiliateCode ? (
+                      <div className="flex gap-2">
+                        <Input 
+                          readOnly 
+                          value={`${window.location.origin}?ref=${referralStats?.referralCode || user?.affiliateCode}`}
+                          className="font-mono"
+                          data-testid="input-referral-link"
+                        />
+                        <Button onClick={copyReferralLink} variant="outline" data-testid="button-copy-link">
+                          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button 
+                        onClick={() => generateCodeMutation.mutate()}
+                        disabled={generateCodeMutation.isPending}
+                        data-testid="button-generate-code"
+                      >
+                        {generateCodeMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        ) : (
+                          <Sparkles className="h-4 w-4 mr-2" />
+                        )}
+                        Generate Referral Code
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <Card>
+                    <CardContent className="pt-6 text-center">
+                      <Users className="h-8 w-8 mx-auto mb-2 text-primary" />
+                      <p className="text-3xl font-bold" data-testid="text-referred-count">
+                        {referralStats?.referredCount ?? 0}
+                      </p>
+                      <p className="text-sm text-muted-foreground">Friends Referred</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="pt-6 text-center">
+                      <Coins className="h-8 w-8 mx-auto mb-2 text-yellow-500" />
+                      <p className="text-3xl font-bold" data-testid="text-bonus-credits">
+                        {referralStats?.bonusCreditsEarned ?? 0}
+                      </p>
+                      <p className="text-sm text-muted-foreground">Bonus Credits Earned</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {!user?.referredBy && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Have a Referral Code?</CardTitle>
+                      <CardDescription>
+                        Enter a friend's referral code to get 10 bonus credits
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Enter referral code (e.g., UGLI-ABC123)"
+                          value={applyCode}
+                          onChange={(e) => setApplyCode(e.target.value)}
+                          data-testid="input-apply-code"
+                        />
+                        <Button 
+                          onClick={() => applyCodeMutation.mutate(applyCode)}
+                          disabled={!applyCode || applyCodeMutation.isPending}
+                          data-testid="button-apply-code"
+                        >
+                          {applyCodeMutation.isPending ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            "Apply"
+                          )}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
             </TabsContent>
 
             <TabsContent value="about">

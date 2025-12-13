@@ -900,6 +900,83 @@ export async function registerRoutes(
     }
   });
 
+  // ============== LEADERBOARD ROUTES ==============
+
+  app.get("/api/leaderboard", async (req, res) => {
+    try {
+      const period = (req.query.period as 'weekly' | 'monthly' | 'all-time') || 'all-time';
+      const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
+      
+      if (!['weekly', 'monthly', 'all-time'].includes(period)) {
+        return res.status(400).json({ message: "Invalid period. Use 'weekly', 'monthly', or 'all-time'" });
+      }
+      
+      const leaderboard = await storage.getLeaderboard(period, limit);
+      res.json({ leaderboard, period });
+    } catch (error) {
+      console.error("Leaderboard error:", error);
+      res.status(500).json({ message: "Failed to fetch leaderboard" });
+    }
+  });
+
+  // ============== REFERRAL ROUTES ==============
+
+  app.get("/api/referral/stats", requireAuth, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const stats = await storage.getReferralStats(userId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Referral stats error:", error);
+      res.status(500).json({ message: "Failed to fetch referral stats" });
+    }
+  });
+
+  app.post("/api/referral/apply", requireAuth, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const { referralCode } = req.body;
+      
+      if (!referralCode || typeof referralCode !== 'string') {
+        return res.status(400).json({ message: "Referral code is required" });
+      }
+      
+      const result = await storage.applyReferralCode(userId, referralCode.trim());
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+      
+      res.json({ success: true, bonusCredits: result.bonusCredits, message: "Referral code applied! You earned 10 bonus credits." });
+    } catch (error) {
+      console.error("Apply referral error:", error);
+      res.status(500).json({ message: "Failed to apply referral code" });
+    }
+  });
+
+  app.post("/api/referral/generate-code", requireAuth, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      if (user.affiliateCode) {
+        return res.json({ code: user.affiliateCode, message: "You already have a referral code" });
+      }
+      
+      const code = `UGLI-${userId.slice(0, 8).toUpperCase()}`;
+      await storage.updateUserProfile(userId, { affiliateCode: code });
+      
+      res.json({ code, message: "Referral code generated successfully" });
+    } catch (error) {
+      console.error("Generate referral code error:", error);
+      res.status(500).json({ message: "Failed to generate referral code" });
+    }
+  });
+
   // ============== IMAGE GENERATION ROUTES ==============
 
   const {

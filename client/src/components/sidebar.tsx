@@ -18,7 +18,8 @@ import {
   User,
   LogIn,
   CreditCard,
-  Sparkles
+  Sparkles,
+  Trophy
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -125,6 +126,7 @@ export function Sidebar({ className }: SidebarProps) {
   const publicNavigation: NavItem[] = [
     { name: "Home", shortName: "Home", icon: Home, href: "/" },
     { name: "Discover", shortName: "Discover", icon: Compass, href: "/discover", badge: "New" },
+    { name: "Leaderboard", shortName: "Ranks", icon: Trophy, href: "/leaderboard" },
     { name: "Image Generator", shortName: "Image", icon: ImageIcon, href: "/image-gen", badge: "5 agents" },
     { name: "Mockup Generator", shortName: "Mockup", icon: Shirt, href: "/mockup", badge: "New" },
     { name: "Background Remover", shortName: "BG", icon: Scissors, href: "/bg-remover" },
