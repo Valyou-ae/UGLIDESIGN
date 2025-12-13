@@ -666,7 +666,49 @@ export async function registerRoutes(
       const limit = parseInt(req.query.limit as string) || 20;
       const offset = parseInt(req.query.offset as string) || 0;
       const { images, total } = await storage.getImagesByUserId(userId, limit, offset);
-      res.json({ images, total, limit, offset, hasMore: offset + images.length < total });
+      
+      // Return images with URL paths instead of full base64 for faster loading
+      const optimizedImages = images.map(img => ({
+        ...img,
+        imageUrl: `/api/images/${img.id}/image`
+      }));
+      
+      res.json({ images: optimizedImages, total, limit, offset, hasMore: offset + images.length < total });
+    } catch (error) {
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Serve actual image data by ID (lazy loading for performance)
+  app.get("/api/images/:id/image", requireAuth, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const image = await storage.getImageById(req.params.id, userId);
+      
+      if (!image) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+      
+      // Handle base64 data URLs
+      const imageUrl = image.imageUrl;
+      if (imageUrl.startsWith('data:')) {
+        const matches = imageUrl.match(/^data:([^;]+);base64,(.+)$/);
+        if (matches) {
+          const mimeType = matches[1];
+          const base64Data = matches[2];
+          const buffer = Buffer.from(base64Data, 'base64');
+          
+          res.set({
+            'Content-Type': mimeType,
+            'Content-Length': buffer.length,
+            'Cache-Control': 'private, max-age=31536000, immutable'
+          });
+          return res.send(buffer);
+        }
+      }
+      
+      // For regular URLs, redirect
+      res.redirect(imageUrl);
     } catch (error) {
       res.status(500).json({ message: "Server error" });
     }

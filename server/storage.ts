@@ -46,6 +46,7 @@ export interface IStorage {
   upsertUser(userData: UpsertUser): Promise<User>;
   
   createImage(image: InsertImage): Promise<GeneratedImage>;
+  getImageById(imageId: string, userId: string): Promise<GeneratedImage | undefined>;
   getImagesByUserId(userId: string, limit?: number, offset?: number): Promise<{ images: GeneratedImage[]; total: number }>;
   getImageCountByUserId(userId: string): Promise<number>;
   toggleImageFavorite(imageId: string, userId: string): Promise<GeneratedImage | undefined>;
@@ -183,6 +184,14 @@ export class DatabaseStorage implements IStorage {
       .values(image)
       .returning();
     return created;
+  }
+
+  async getImageById(imageId: string, userId: string): Promise<GeneratedImage | undefined> {
+    const [image] = await db
+      .select()
+      .from(generatedImages)
+      .where(and(eq(generatedImages.id, imageId), eq(generatedImages.userId, userId)));
+    return image;
   }
 
   async getImagesByUserId(userId: string, limit: number = 20, offset: number = 0): Promise<{ images: GeneratedImage[]; total: number }> {
