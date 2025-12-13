@@ -1187,6 +1187,7 @@ export default function ImageGenerator() {
                             e.preventDefault();
                             URL.revokeObjectURL(referenceImage.previewUrl);
                             setReferenceImage(null);
+                            setImageMode("reference");
                           }}
                           data-testid="button-remove-reference"
                           className="absolute -top-1 -right-1 h-4 w-4 bg-destructive text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
