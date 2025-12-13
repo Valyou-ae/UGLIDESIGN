@@ -1,12 +1,26 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
 import { imagesApi } from "@/lib/api";
+
+const PAGE_SIZE = 20;
 
 export function useImages() {
   const queryClient = useQueryClient();
 
-  const { data, isLoading, error } = useQuery({
+  const {
+    data,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: ["images"],
-    queryFn: imagesApi.getAll,
+    queryFn: ({ pageParam = 0 }) => imagesApi.getAll(PAGE_SIZE, pageParam),
+    getNextPageParam: (lastPage, allPages) => {
+      if (!lastPage.hasMore) return undefined;
+      return allPages.length * PAGE_SIZE;
+    },
+    initialPageParam: 0,
   });
 
   const createImageMutation = useMutation({
@@ -30,13 +44,20 @@ export function useImages() {
     },
   });
 
+  const allImages = data?.pages.flatMap(page => page.images) || [];
+  const total = data?.pages[0]?.total || 0;
+
   return {
-    images: data?.images || [],
+    images: allImages,
+    total,
     isLoading,
     error,
     createImage: createImageMutation.mutateAsync,
     toggleFavorite: toggleFavoriteMutation.mutateAsync,
     deleteImage: deleteImageMutation.mutateAsync,
     isCreating: createImageMutation.isPending,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
   };
 }

@@ -46,7 +46,8 @@ export interface IStorage {
   upsertUser(userData: UpsertUser): Promise<User>;
   
   createImage(image: InsertImage): Promise<GeneratedImage>;
-  getImagesByUserId(userId: string): Promise<GeneratedImage[]>;
+  getImagesByUserId(userId: string, limit?: number, offset?: number): Promise<{ images: GeneratedImage[]; total: number }>;
+  getImageCountByUserId(userId: string): Promise<number>;
   toggleImageFavorite(imageId: string, userId: string): Promise<GeneratedImage | undefined>;
   deleteImage(imageId: string, userId: string): Promise<boolean>;
   getUserStats(userId: string): Promise<{ images: number; mockups: number; bgRemoved: number; total: number }>;
@@ -184,12 +185,31 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
 
-  async getImagesByUserId(userId: string): Promise<GeneratedImage[]> {
-    return db
+  async getImagesByUserId(userId: string, limit: number = 20, offset: number = 0): Promise<{ images: GeneratedImage[]; total: number }> {
+    const [totalResult] = await db
+      .select({ count: count() })
+      .from(generatedImages)
+      .where(eq(generatedImages.userId, userId));
+    
+    const total = totalResult?.count || 0;
+    
+    const images = await db
       .select()
       .from(generatedImages)
       .where(eq(generatedImages.userId, userId))
-      .orderBy(desc(generatedImages.createdAt));
+      .orderBy(desc(generatedImages.createdAt))
+      .limit(limit)
+      .offset(offset);
+    
+    return { images, total };
+  }
+
+  async getImageCountByUserId(userId: string): Promise<number> {
+    const [result] = await db
+      .select({ count: count() })
+      .from(generatedImages)
+      .where(eq(generatedImages.userId, userId));
+    return result?.count || 0;
   }
 
   async toggleImageFavorite(imageId: string, userId: string): Promise<GeneratedImage | undefined> {
@@ -219,11 +239,41 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserStats(userId: string): Promise<{ images: number; mockups: number; bgRemoved: number; total: number }> {
-    const allImages = await this.getImagesByUserId(userId);
-    const images = allImages.filter(img => !img.generationType || img.generationType === 'image').length;
-    const mockups = allImages.filter(img => img.generationType === 'mockup').length;
-    const bgRemoved = allImages.filter(img => img.generationType === 'bg-removed').length;
-    return { images, mockups, bgRemoved, total: allImages.length };
+    const [totalResult] = await db
+      .select({ count: count() })
+      .from(generatedImages)
+      .where(eq(generatedImages.userId, userId));
+    
+    const [imageResult] = await db
+      .select({ count: count() })
+      .from(generatedImages)
+      .where(and(
+        eq(generatedImages.userId, userId),
+        sql`(${generatedImages.generationType} IS NULL OR ${generatedImages.generationType} = 'image')`
+      ));
+    
+    const [mockupResult] = await db
+      .select({ count: count() })
+      .from(generatedImages)
+      .where(and(
+        eq(generatedImages.userId, userId),
+        eq(generatedImages.generationType, 'mockup')
+      ));
+    
+    const [bgRemovedResult] = await db
+      .select({ count: count() })
+      .from(generatedImages)
+      .where(and(
+        eq(generatedImages.userId, userId),
+        eq(generatedImages.generationType, 'bg-removed')
+      ));
+    
+    return {
+      images: imageResult?.count || 0,
+      mockups: mockupResult?.count || 0,
+      bgRemoved: bgRemovedResult?.count || 0,
+      total: totalResult?.count || 0
+    };
   }
 
   async getUserByAffiliateCode(code: string): Promise<User | undefined> {

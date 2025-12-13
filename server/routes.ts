@@ -663,8 +663,10 @@ export async function registerRoutes(
   app.get("/api/images", requireAuth, async (req: any, res) => {
     try {
       const userId = getUserId(req);
-      const images = await storage.getImagesByUserId(userId);
-      res.json({ images });
+      const limit = parseInt(req.query.limit as string) || 20;
+      const offset = parseInt(req.query.offset as string) || 0;
+      const { images, total } = await storage.getImagesByUserId(userId, limit, offset);
+      res.json({ images, total, limit, offset, hasMore: offset + images.length < total });
     } catch (error) {
       res.status(500).json({ message: "Server error" });
     }

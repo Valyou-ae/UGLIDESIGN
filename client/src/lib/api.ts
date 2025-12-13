@@ -80,7 +80,10 @@ export const imagesApi = {
       body: JSON.stringify(data),
     }),
 
-  getAll: () => fetchApi<{ images: any[] }>("/images"),
+  getAll: (limit?: number, offset?: number) => 
+    fetchApi<{ images: any[]; total: number; hasMore: boolean }>(
+      `/images${limit || offset ? `?limit=${limit || 20}&offset=${offset || 0}` : ''}`
+    ),
 
   toggleFavorite: (id: string) =>
     fetchApi<{ image: any }>(`/images/${id}/favorite`, { method: "PATCH" }),

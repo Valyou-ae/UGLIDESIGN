@@ -29,7 +29,8 @@ import {
   RefreshCw,
   Calendar,
   Clock,
-  ClipboardCopy
+  ClipboardCopy,
+  Loader2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -91,7 +92,7 @@ export default function MyCreations() {
   const { toast } = useToast();
   
   // Fetch images from backend API
-  const { images: dbImages, isLoading, toggleFavorite: apiToggleFavorite, deleteImage: apiDeleteImage } = useImages();
+  const { images: dbImages, isLoading, toggleFavorite: apiToggleFavorite, deleteImage: apiDeleteImage, hasNextPage, fetchNextPage, isFetchingNextPage, total } = useImages();
 
   const items: ItemType[] = useMemo(() => {
     return dbImages.map((img: any) => ({
@@ -539,7 +540,19 @@ export default function MyCreations() {
 
           {/* FAVORITES CONTENT */}
           <div className="flex-1 pb-10">
-            {filteredItems.length === 0 ? (
+            {isLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="rounded-xl overflow-hidden bg-card border border-border animate-pulse">
+                    <div className="aspect-square bg-muted/50" />
+                    <div className="p-3 space-y-2">
+                      <div className="h-4 bg-muted/50 rounded w-3/4" />
+                      <div className="h-3 bg-muted/30 rounded w-1/2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : filteredItems.length === 0 ? (
               <div className="h-[400px] flex flex-col items-center justify-center text-center">
                 <div className="w-24 h-24 bg-muted/50 rounded-full flex items-center justify-center mb-6">
                   <Star className="h-10 w-10 text-muted-foreground/50" />
@@ -767,6 +780,27 @@ export default function MyCreations() {
                     </motion.div>
                   );
                 })}
+              </div>
+            )}
+
+            {/* Load More Button */}
+            {hasNextPage && !isLoading && (
+              <div className="flex justify-center mt-8">
+                <Button
+                  onClick={() => fetchNextPage()}
+                  disabled={isFetchingNextPage}
+                  className="bg-[#B94E30] hover:bg-[#9A3E25] text-white px-8 py-2"
+                  data-testid="button-load-more"
+                >
+                  {isFetchingNextPage ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    `Load More (${items.length} of ${total})`
+                  )}
+                </Button>
               </div>
             )}
           </div>
