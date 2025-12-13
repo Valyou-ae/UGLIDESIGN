@@ -225,6 +225,7 @@ export default function ImageGenerator() {
   const [isSavingFavorite, setIsSavingFavorite] = useState(false);
   const [referenceImage, setReferenceImage] = useState<{ file: File; previewUrl: string } | null>(null);
   const [imageMode, setImageMode] = useState<"reference" | "remix">("reference");
+  const [isPublicImage, setIsPublicImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { 
@@ -423,6 +424,7 @@ export default function ImageGenerator() {
         prompt: image.prompt,
         style: image.style || "auto",
         aspectRatio: image.aspectRatio || "1:1",
+        isPublic: isPublicImage,
       });
       const savedImage = response.image;
       setGenerations(prev => prev.map(g => 
@@ -1610,6 +1612,36 @@ export default function ImageGenerator() {
                       </div>
                     </div>
 
+                    {/* Visibility Toggle - Public/Private */}
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block px-0.5">Visibility</label>
+                      <div className="flex bg-background/50 rounded-lg p-0.5 h-9 items-center border border-transparent hover:border-border/50 transition-colors">
+                        <button
+                          onClick={() => setIsPublicImage(false)}
+                          data-testid="button-visibility-private"
+                          className={cn(
+                            "flex-1 h-full rounded-md flex items-center justify-center text-[10px] font-medium transition-all gap-1",
+                            !isPublicImage 
+                              ? "bg-background shadow-sm text-primary font-bold" 
+                              : "text-muted-foreground hover:text-foreground"
+                          )}
+                        >
+                          Private
+                        </button>
+                        <button
+                          onClick={() => setIsPublicImage(true)}
+                          data-testid="button-visibility-public"
+                          className={cn(
+                            "flex-1 h-full rounded-md flex items-center justify-center text-[10px] font-medium transition-all gap-1",
+                            isPublicImage 
+                              ? "bg-background shadow-sm text-primary font-bold" 
+                              : "text-muted-foreground hover:text-foreground"
+                          )}
+                        >
+                          Public
+                        </button>
+                      </div>
+                    </div>
                     
                   </div>
                 </div>

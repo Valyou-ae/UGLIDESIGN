@@ -1,15 +1,17 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { 
   TrendingUp, 
   BadgeCheck, 
   Eye, 
   Heart, 
   Wand2,
-  Loader2
+  Loader2,
+  Users
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Sidebar } from "@/components/sidebar";
+import { imagesApi } from "@/lib/api";
 
 interface InspirationItem {
   id: number;
@@ -92,7 +94,12 @@ function LazyMasonryCard({ item, index }: { item: InspirationItem; index: number
           
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-90 transition-opacity" />
           
-          
+          {item.category === 'Community' && (
+            <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2 py-1 bg-[#B94E30]/90 backdrop-blur-sm rounded-full">
+              <Users className="h-3 w-3 text-white" />
+              <span className="text-[10px] font-medium text-white">Community</span>
+            </div>
+          )}
           
           <div className="absolute bottom-0 left-0 right-0 p-4">
             <h3 className="text-base font-semibold text-white truncate drop-shadow-lg">{item.title}</h3>
@@ -1760,15 +1767,51 @@ const allInspirations: InspirationItem[] = [
 
 export default function Discover() {
   const [displayedItems, setDisplayedItems] = useState<InspirationItem[]>([]);
+  const [communityImages, setCommunityImages] = useState<InspirationItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingCommunity, setIsLoadingCommunity] = useState(true);
   const [page, setPage] = useState(0);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const ITEMS_PER_LOAD = 12;
 
   useEffect(() => {
-    setDisplayedItems(allInspirations.slice(0, ITEMS_PER_LOAD));
-    setPage(1);
+    const fetchPublicImages = async () => {
+      try {
+        setIsLoadingCommunity(true);
+        const response = await imagesApi.getPublic(50);
+        const publicItems: InspirationItem[] = (response.images || []).map((img: any, index: number) => ({
+          id: 10000 + index,
+          title: img.prompt?.slice(0, 40) + (img.prompt?.length > 40 ? '...' : '') || 'Community Creation',
+          image: img.imageUrl,
+          creator: img.username || 'anonymous',
+          verified: false,
+          views: `${Math.floor(Math.random() * 50 + 10)}`,
+          likes: `${Math.floor(Math.random() * 20 + 5)}`,
+          uses: `${Math.floor(Math.random() * 10 + 1)}`,
+          tags: [img.style || 'creative'],
+          category: 'Community',
+          aspectRatio: (img.aspectRatio as "1:1" | "9:16" | "16:9" | "4:5" | "3:4") || '1:1',
+          prompt: img.prompt || ''
+        }));
+        setCommunityImages(publicItems);
+      } catch (error) {
+        console.error('Failed to fetch public images:', error);
+      } finally {
+        setIsLoadingCommunity(false);
+      }
+    };
+    fetchPublicImages();
   }, []);
+
+  const allContent = useMemo(() => [...communityImages, ...allInspirations], [communityImages]);
+  const totalItems = allContent.length;
+
+  useEffect(() => {
+    if (!isLoadingCommunity) {
+      setDisplayedItems(allContent.slice(0, ITEMS_PER_LOAD));
+      setPage(1);
+    }
+  }, [isLoadingCommunity, allContent]);
 
   const loadMore = useCallback(() => {
     if (isLoading) return;
@@ -1776,24 +1819,24 @@ export default function Discover() {
     const startIndex = page * ITEMS_PER_LOAD;
     const endIndex = startIndex + ITEMS_PER_LOAD;
     
-    if (startIndex >= allInspirations.length) {
+    if (startIndex >= totalItems) {
       return;
     }
     
     setIsLoading(true);
     
     setTimeout(() => {
-      const nextItems = allInspirations.slice(startIndex, endIndex);
+      const nextItems = allContent.slice(startIndex, endIndex);
       setDisplayedItems(prev => [...prev, ...nextItems]);
       setPage(prev => prev + 1);
       setIsLoading(false);
     }, 300);
-  }, [page, isLoading]);
+  }, [page, isLoading, totalItems, allContent]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && displayedItems.length < allInspirations.length) {
+        if (entry.isIntersecting && displayedItems.length < totalItems) {
           loadMore();
         }
       },
@@ -1805,7 +1848,7 @@ export default function Discover() {
     }
 
     return () => observer.disconnect();
-  }, [loadMore, displayedItems.length]);
+  }, [loadMore, displayedItems.length, totalItems]);
 
   return (
     <div className="h-screen bg-background flex font-sans text-foreground overflow-hidden">

@@ -73,6 +73,7 @@ export const imagesApi = {
     style?: string;
     aspectRatio?: string;
     generationType?: string;
+    isPublic?: boolean;
   }) =>
     fetchApi<{ image: any }>("/images", {
       method: "POST",
@@ -83,6 +84,15 @@ export const imagesApi = {
 
   toggleFavorite: (id: string) =>
     fetchApi<{ image: any }>(`/images/${id}/favorite`, { method: "PATCH" }),
+
+  setVisibility: (id: string, isPublic: boolean) =>
+    fetchApi<{ image: any }>(`/images/${id}/visibility`, { 
+      method: "PATCH", 
+      body: JSON.stringify({ isPublic }) 
+    }),
+
+  getPublic: (limit?: number) =>
+    fetchApi<{ images: any[] }>(`/images/public${limit ? `?limit=${limit}` : ''}`),
 
   delete: (id: string) =>
     fetchApi<{ message: string }>(`/images/${id}`, { method: "DELETE" }),
