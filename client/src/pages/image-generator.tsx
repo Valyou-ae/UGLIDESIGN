@@ -1126,18 +1126,23 @@ export default function ImageGenerator() {
           onClick={() => setIsPromptExpanded(true)}
           className="fixed bottom-[70px] left-0 right-0 md:relative md:bottom-auto md:top-0 z-[60] bg-background/80 backdrop-blur-xl border-t md:border-t-0 md:border-b border-border px-4 md:px-6 py-3 md:py-4 transition-all order-last md:order-first pb-safe"
         >
-          <div className="max-w-[1800px] mx-auto w-full space-y-4">
+          <div className="max-w-[1800px] mx-auto w-full">
             
-            {/* Prompt Input & Controls */}
-            <div className="flex items-end gap-3">
-              
-              {/* Main Input Wrapper */}
-              <div 
-                data-tutorial="prompt-input"
-                className={cn(
-                "flex-1 bg-muted/40 border border-border rounded-xl transition-all duration-200 flex items-end p-2 gap-2 group focus-within:bg-background shadow-sm min-h-[56px]",
-                prompt.trim().length > 0 && "bg-background border-muted-foreground/40"
-              )}>
+            {/* Unified Prompt Card - Contains Input + Settings */}
+            <div 
+              className={cn(
+                "bg-muted/40 border border-border rounded-xl transition-all duration-300 ease-out shadow-sm overflow-hidden",
+                prompt.trim().length > 0 && "bg-background/60 border-muted-foreground/30",
+                isPromptExpanded && "bg-background/80 border-muted-foreground/40"
+              )}
+            >
+              {/* Prompt Input Section */}
+              <div className="flex items-end gap-3 p-2">
+                
+                {/* Main Input Wrapper */}
+                <div 
+                  data-tutorial="prompt-input"
+                  className="flex-1 flex items-end gap-2 group min-h-[56px]">
                 
                 {/* Reference Image Trigger with Popover */}
                 <div className="self-end mb-0.5 shrink-0">
@@ -1330,37 +1335,37 @@ export default function ImageGenerator() {
                   )}
                 </div>
               </div>
-
-            </div>
-
-            {/* Expand Hint - shows when collapsed */}
-            <AnimatePresence>
+              </div>
+              
+              {/* Expand Hint - shows when collapsed */}
               {!isPromptExpanded && (
-                <motion.div
-                  initial={{ opacity: 0, y: -5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -5 }}
-                  className="flex items-center justify-center gap-2 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors py-1"
-                  onClick={() => setIsPromptExpanded(true)}
+                <div 
+                  className="flex items-center justify-center gap-2 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors py-2 border-t border-border/50"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsPromptExpanded(true);
+                  }}
                 >
                   <SlidersHorizontal className="h-3 w-3" />
                   <span>Tap to adjust settings</span>
                   <ChevronDown className="h-3 w-3" />
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
 
-            {/* Settings Panel (Expandable on Hover/Focus) */}
-            <AnimatePresence mode="sync">
-              {isPromptExpanded && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-                  className="overflow-hidden"
-                >
-                  <div className="bg-muted/30 border border-border rounded-xl p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 shadow-inner mb-4">
+              {/* Settings Panel - CSS Transition for smooth expand/collapse */}
+              <div 
+                className={cn(
+                  "grid transition-all duration-300 ease-out",
+                  isPromptExpanded 
+                    ? "grid-rows-[1fr] opacity-100" 
+                    : "grid-rows-[0fr] opacity-0"
+                )}
+              >
+                <div className="overflow-hidden">
+                  {/* Subtle divider */}
+                  <div className="border-t border-border/50 mx-2" />
+                  
+                  <div className="p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                     
                     {/* Quality */}
                     <div className="space-y-1.5">
@@ -1552,9 +1557,9 @@ export default function ImageGenerator() {
 
                     
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                </div>
+              </div>
+            </div>
 
             {/* AI Agents Status Bar (During Generation) */}
             {/* Removed as per user request */}
