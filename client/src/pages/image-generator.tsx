@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { 
   Wand2, 
   Sparkles, 
@@ -61,7 +62,11 @@ import {
   Bookmark,
   BookmarkCheck,
   Heart,
-  Coins
+  Coins,
+  Trophy,
+  Crown,
+  Medal,
+  Award
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -87,6 +92,7 @@ import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -126,6 +132,34 @@ type GeneratedImage = {
   isNew?: boolean;
   isFavorite?: boolean;
 };
+
+interface LeaderboardEntry {
+  userId: string;
+  username: string | null;
+  displayName: string | null;
+  profileImageUrl: string | null;
+  imageCount: number;
+  rank: number;
+}
+
+async function fetchLeaderboard(): Promise<{ leaderboard: LeaderboardEntry[] }> {
+  const response = await fetch(`/api/leaderboard?period=all-time&limit=5`);
+  if (!response.ok) throw new Error("Failed to fetch leaderboard");
+  return response.json();
+}
+
+function getRankIcon(rank: number) {
+  switch (rank) {
+    case 1:
+      return <Crown className="h-4 w-4 text-yellow-500" />;
+    case 2:
+      return <Medal className="h-4 w-4 text-gray-400" />;
+    case 3:
+      return <Award className="h-4 w-4 text-amber-600" />;
+    default:
+      return <span className="text-muted-foreground font-mono text-xs">#{rank}</span>;
+  }
+}
 
 type Agent = {
   id: number;
@@ -238,6 +272,13 @@ export default function ImageGenerator() {
   } = useTutorial();
 
   const { credits, invalidate: invalidateCredits } = useCredits();
+
+  const { data: leaderboardData, isLoading: isLoadingLeaderboard, error: leaderboardError } = useQuery({
+    queryKey: ['leaderboard', 'all-time'],
+    queryFn: fetchLeaderboard,
+    staleTime: 1000 * 60 * 5,
+  });
+  const topCreators = leaderboardData?.leaderboard || [];
 
   useEffect(() => {
     if (tutorialCompleted) return;
@@ -1797,6 +1838,69 @@ export default function ImageGenerator() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* Top Creators Leaderboard */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Trophy className="h-4 w-4 text-[#E3B436]" />
+                <h3 className="text-sm font-semibold text-foreground">Top Creators</h3>
+              </div>
+              <div className="bg-muted/30 border border-border rounded-xl p-4">
+                {isLoadingLeaderboard ? (
+                  <div className="space-y-3">
+                    {[...Array(5)].map((_, i) => (
+                      <div key={i} className="flex items-center gap-3 p-2 animate-pulse">
+                        <div className="w-6 h-4 bg-muted rounded" />
+                        <div className="h-8 w-8 bg-muted rounded-full" />
+                        <div className="flex-1">
+                          <div className="h-4 w-24 bg-muted rounded" />
+                        </div>
+                        <div className="text-right">
+                          <div className="h-4 w-8 bg-muted rounded" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : leaderboardError ? (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-muted-foreground">Could not load leaderboard</p>
+                  </div>
+                ) : topCreators.length === 0 ? (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-muted-foreground">Be the first to create!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {topCreators.map((creator) => (
+                      <div
+                        key={creator.userId}
+                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                        data-testid={`leaderboard-entry-${creator.rank}`}
+                      >
+                        <div className="w-6 flex justify-center shrink-0">
+                          {getRankIcon(creator.rank)}
+                        </div>
+                        <Avatar className="h-8 w-8 shrink-0">
+                          <AvatarImage src={creator.profileImageUrl || undefined} />
+                          <AvatarFallback className="text-xs">
+                            {(creator.displayName || creator.username || "U").slice(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {creator.displayName || creator.username || "Anonymous"}
+                          </p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-sm font-semibold text-foreground">{creator.imageCount}</p>
+                          <p className="text-[10px] text-muted-foreground">creations</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
