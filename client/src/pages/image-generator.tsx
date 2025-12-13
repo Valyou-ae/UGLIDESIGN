@@ -1422,7 +1422,7 @@ export default function ImageGenerator() {
                   {/* Subtle divider */}
                   <div className="border-t border-border/50 mx-2" />
                   
-                  <div className="p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                  <div className="p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                     
                     {/* Quality */}
                     <div className="space-y-1.5">
@@ -1529,6 +1529,34 @@ export default function ImageGenerator() {
                       </div>
                     </div>
 
+                    {/* Details */}
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block px-0.5">Details</label>
+                      <div className="flex gap-1.5">
+                        {DETAIL_LEVELS.map(d => (
+                          <TooltipProvider key={d.id}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  onClick={() => setSettings({...settings, detail: d.id})}
+                                  className={cn(
+                                    "h-9 px-2.5 rounded-lg flex items-center justify-center gap-1.5 transition-all border whitespace-nowrap",
+                                    settings.detail === d.id 
+                                      ? "bg-background border-primary/50 text-primary shadow-sm" 
+                                      : "bg-background/50 border-transparent text-muted-foreground hover:bg-background hover:text-foreground"
+                                  )}
+                                >
+                                  <d.icon className={cn("h-3.5 w-3.5 shrink-0", settings.detail === d.id ? "text-primary" : "opacity-70")} />
+                                  <span className="text-[10px] font-medium hidden sm:inline">{d.name}</span>
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent side="bottom"><p>{d.tooltip}</p></TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ))}
+                      </div>
+                    </div>
+
                     {/* Style */}
                     <div className="space-y-1.5" data-tutorial="style-selector">
                       <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block px-0.5">Style</label>
@@ -1563,7 +1591,7 @@ export default function ImageGenerator() {
                       </DropdownMenu>
                     </div>
 
-                    {/* More Options Dropdown - Details, Count, Visibility */}
+                    {/* More Options Dropdown - Count, Visibility */}
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block px-0.5">More</label>
                       <Popover>
@@ -1572,35 +1600,13 @@ export default function ImageGenerator() {
                             <div className="flex items-center gap-2 overflow-hidden">
                               <Settings className="h-3.5 w-3.5 text-primary shrink-0" />
                               <span className="font-medium truncate text-[10px]">
-                                {DETAIL_LEVELS.find(d => d.id === settings.detail)?.name} · {settings.variations}x · {isPublicImage ? 'Public' : 'Private'}
+                                {settings.variations}x · {isPublicImage ? 'Public' : 'Private'}
                               </span>
                             </div>
                             <ChevronDown className="h-3 w-3 opacity-50 flex-shrink-0 ml-1" />
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent align="end" className="w-[220px] p-3 space-y-4">
-                          {/* Details */}
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Details</label>
-                            <div className="flex gap-1">
-                              {DETAIL_LEVELS.map(d => (
-                                <button
-                                  key={d.id}
-                                  onClick={() => setSettings({...settings, detail: d.id})}
-                                  className={cn(
-                                    "flex-1 h-8 rounded-md flex items-center justify-center gap-1.5 transition-all border text-[10px] font-medium",
-                                    settings.detail === d.id 
-                                      ? "bg-primary/10 border-primary/50 text-primary" 
-                                      : "bg-muted/30 border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
-                                  )}
-                                >
-                                  <d.icon className="h-3 w-3" />
-                                  {d.name}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                          
+                        <PopoverContent align="end" className="w-[200px] p-3 space-y-4">
                           {/* Count */}
                           <div className="space-y-2">
                             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Image Count</label>
