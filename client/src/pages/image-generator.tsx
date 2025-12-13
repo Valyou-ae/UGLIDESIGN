@@ -891,6 +891,7 @@ export default function ImageGenerator() {
                   prompt: img.prompt,
                   style: img.style || "auto",
                   aspectRatio: img.aspectRatio || "1:1",
+                  isPublic: isPublicImage,
                 });
                 savedCount++;
               } catch (error) {
