@@ -1774,39 +1774,6 @@ export default function ImageGenerator() {
               </div>
             )}
 
-            {/* Style Preview Rail */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Palette className="h-4 w-4 text-muted-foreground" />
-                <h3 className="text-sm font-semibold text-foreground">Style Presets</h3>
-              </div>
-              <div className="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                {STYLE_PRESETS.map((style) => {
-                  const Icon = style.icon;
-                  return (
-                    <button
-                      key={style.id}
-                      onClick={() => setSettings({ ...settings, style: style.id })}
-                      className={cn(
-                        "flex-shrink-0 flex flex-col items-center gap-2 p-3 rounded-xl border transition-all min-w-[100px]",
-                        settings.style === style.id
-                          ? "bg-primary/10 border-primary/30 text-primary"
-                          : "bg-muted/30 border-border text-muted-foreground hover:bg-muted hover:text-foreground hover:border-primary/20"
-                      )}
-                    >
-                      <div className={cn(
-                        "h-10 w-10 rounded-lg flex items-center justify-center",
-                        settings.style === style.id ? "bg-primary/20" : "bg-muted"
-                      )}>
-                        <Icon className="h-5 w-5" />
-                      </div>
-                      <span className="text-xs font-medium">{style.name}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
             {/* Prompt Suggestions */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
