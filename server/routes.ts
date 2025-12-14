@@ -1207,7 +1207,7 @@ export async function registerRoutes(
         return res.status(403).json({ message: "Free generation already used. Please login for more." });
       }
 
-      const result = await generateGeminiImage(prompt, [], "quality");
+      const result = await generateGeminiImage(prompt, [], "quality", "1:1", "draft", false);
       if (!result) {
         return res.status(500).json({ message: "Generation failed" });
       }
@@ -1273,7 +1273,7 @@ export async function registerRoutes(
 
       sendEvent("status", { agent: "Visual Synthesizer", status: "working", message: "Generating image..." });
 
-      const result = await generateGeminiImage(enhancedPrompt, negativePrompts, speed, aspectRatio);
+      const result = await generateGeminiImage(enhancedPrompt, negativePrompts, speed, aspectRatio, "draft", analysis.hasTextRequest);
 
       if (result) {
         sendEvent("image", {
@@ -1343,7 +1343,7 @@ export async function registerRoutes(
 
       sendEvent("status", { agent: "Visual Synthesizer", status: "working", message: "Generating image..." });
 
-      const result = await generateGeminiImage(enhancedPrompt, negativePrompts, speed, aspectRatio);
+      const result = await generateGeminiImage(enhancedPrompt, negativePrompts, speed, aspectRatio, qualityLevel as "draft" | "premium", analysis.hasTextRequest);
 
       if (result) {
         const imageUrl = `data:${result.mimeType};base64,${result.imageData}`;
@@ -1407,7 +1407,7 @@ export async function registerRoutes(
         "standard"
       );
 
-      const result = await generateGeminiImage(enhancedPrompt, negativePrompts);
+      const result = await generateGeminiImage(enhancedPrompt, negativePrompts, "quality", "1:1", "draft", analysis.hasTextRequest);
 
       if (result) {
         res.json({

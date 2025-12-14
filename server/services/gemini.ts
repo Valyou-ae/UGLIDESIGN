@@ -193,8 +193,8 @@ export { keyManager, GeminiKeyManager };
 export const MODELS = {
   FAST_ANALYSIS: "gemini-2.0-flash",
   DEEP_ANALYSIS: "gemini-2.0-flash",
-  IMAGE_GENERATION: "gemini-2.0-flash-exp",
-  IMAGE_GENERATION_FAST: "gemini-2.0-flash-exp",
+  IMAGE_DRAFT: "imagen-4.0-generate-001",
+  IMAGE_PREMIUM: "gemini-3-pro-image-preview",
 } as const;
 
 export interface PromptAnalysis {
@@ -421,7 +421,9 @@ export async function generateImage(
   prompt: string,
   negativePrompts: string[],
   speed: "fast" | "quality" = "quality",
-  aspectRatio: string = "1:1"
+  aspectRatio: string = "1:1",
+  qualityLevel: "draft" | "premium" = "draft",
+  hasTextRequest: boolean = false
 ): Promise<GeneratedImageResult | null> {
   const client = keyManager.getNextClient();
 
@@ -439,7 +441,11 @@ export async function generateImage(
       ? `${prompt}\n\nAvoid: ${negativePrompts.join(", ")}`
       : prompt;
 
-    const model = speed === "fast" ? MODELS.IMAGE_GENERATION_FAST : MODELS.IMAGE_GENERATION;
+    // Auto-select premium for text-heavy images, otherwise use selected quality
+    const effectiveQuality = hasTextRequest ? "premium" : qualityLevel;
+    const model = effectiveQuality === "premium" ? MODELS.IMAGE_PREMIUM : MODELS.IMAGE_DRAFT;
+    
+    console.log(`[Image Generation] Using model: ${model} (quality: ${effectiveQuality}, hasText: ${hasTextRequest})`);
 
     const response = await client.models.generateContent({
       model,
@@ -771,7 +777,7 @@ export async function generateMockup(
       : `${prompt}\n\nApply the provided design image onto the product accurately. Maintain the design's colors and details.`;
 
     const response = await client.models.generateContent({
-      model: MODELS.IMAGE_GENERATION,
+      model: MODELS.IMAGE_PREMIUM,
       contents: [
         {
           role: "user",
@@ -865,7 +871,7 @@ Generate a beautiful, creative seamless pattern based on this design:`;
 
   try {
     const response = await client.models.generateContent({
-      model: MODELS.IMAGE_GENERATION,
+      model: MODELS.IMAGE_PREMIUM,
       contents: [
         {
           role: "user",
