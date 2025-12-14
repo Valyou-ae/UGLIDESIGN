@@ -1,4 +1,6 @@
 import type { Express } from "express";
+import express from "express";
+import path from "path";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
@@ -34,6 +36,9 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  
+  // Serve attached_assets folder for user-uploaded images
+  app.use('/attached_assets', express.static(path.resolve(process.cwd(), 'attached_assets')));
   
   await setupAuth(app);
 
