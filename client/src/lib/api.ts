@@ -62,22 +62,37 @@ export const userApi = {
     }),
 
   uploadProfilePhoto: async (file: File): Promise<{ profileImageUrl: string; user: any }> => {
-    const formData = new FormData();
-    formData.append("photo", file);
-    
-    const response = await fetch("/api/user/profile/photo", {
-      method: "POST",
-      credentials: "include",
-      body: formData,
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const base64 = reader.result as string;
+          const response = await fetch("/api/user/profile/photo", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+              photo: base64, 
+              fileName: file.name,
+              mimeType: file.type 
+            }),
+          });
+          
+          const data = await response.json();
+          
+          if (!response.ok) {
+            reject(new Error(data.message || "Failed to upload photo"));
+            return;
+          }
+          
+          resolve(data);
+        } catch (error: any) {
+          reject(error);
+        }
+      };
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsDataURL(file);
     });
-    
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.message || "Failed to upload photo");
-    }
-    
-    return data;
   },
 
   removeProfilePhoto: () =>

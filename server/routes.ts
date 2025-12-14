@@ -438,63 +438,24 @@ export async function registerRoutes(
     }
   });
 
-  // Profile photo upload endpoint
+  // Profile photo upload endpoint (accepts base64 encoded image)
   app.post("/api/user/profile/photo", requireAuth, async (req: any, res) => {
     try {
       const userId = getUserId(req);
+      const { photo, fileName, mimeType } = req.body;
       
-      // Check content type
-      const contentType = req.headers['content-type'] || '';
-      if (!contentType.includes('multipart/form-data')) {
-        return res.status(400).json({ message: "Content-Type must be multipart/form-data" });
-      }
-
-      // Parse multipart data manually (simple implementation)
-      const chunks: Buffer[] = [];
-      for await (const chunk of req) {
-        chunks.push(chunk);
-      }
-      const buffer = Buffer.concat(chunks);
-      
-      // Find boundary
-      const boundaryMatch = contentType.match(/boundary=(.+)/);
-      if (!boundaryMatch) {
-        return res.status(400).json({ message: "No boundary found" });
-      }
-      const boundary = boundaryMatch[1];
-      
-      // Parse parts
-      const parts = buffer.toString('binary').split(`--${boundary}`);
-      let fileData: Buffer | null = null;
-      let fileName = '';
-      let mimeType = '';
-      
-      for (const part of parts) {
-        if (part.includes('Content-Disposition: form-data')) {
-          const contentDispMatch = part.match(/Content-Disposition: form-data;[^]*name="([^"]+)"(?:;[^]*filename="([^"]+)")?/);
-          if (contentDispMatch && contentDispMatch[2]) {
-            fileName = contentDispMatch[2];
-            const contentTypeMatch = part.match(/Content-Type: ([^\r\n]+)/);
-            mimeType = contentTypeMatch ? contentTypeMatch[1].trim() : 'application/octet-stream';
-            
-            // Find where content starts (after double CRLF)
-            const contentStart = part.indexOf('\r\n\r\n') + 4;
-            const contentEnd = part.lastIndexOf('\r\n');
-            if (contentStart > 4 && contentEnd > contentStart) {
-              fileData = Buffer.from(part.substring(contentStart, contentEnd), 'binary');
-            }
-          }
-        }
-      }
-      
-      if (!fileData || !fileName) {
-        return res.status(400).json({ message: "No file uploaded" });
+      if (!photo || !fileName) {
+        return res.status(400).json({ message: "No photo data provided" });
       }
       
       // Validate file type
       if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(mimeType)) {
         return res.status(400).json({ message: "Invalid file type. Only JPG, PNG, GIF, and WebP are allowed." });
       }
+      
+      // Extract base64 data (remove data URL prefix if present)
+      const base64Data = photo.replace(/^data:image\/\w+;base64,/, '');
+      const fileData = Buffer.from(base64Data, 'base64');
       
       // Validate file size (2MB limit)
       if (fileData.length > 2 * 1024 * 1024) {
