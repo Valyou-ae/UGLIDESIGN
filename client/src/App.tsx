@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthGuard, AdminGuard } from "@/components/auth-guard";
 import { LoginPopupProvider } from "@/components/login-popup";
+import { ErrorBoundary } from "@/components/error-boundary";
 import PublicHome from "@/pages/public-home";
 import Discover from "@/pages/discover";
 import ImageGenerator from "@/pages/image-generator";
@@ -165,14 +166,16 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <LoginPopupProvider>
-          <Toaster />
-          <Router />
-        </LoginPopupProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <LoginPopupProvider>
+            <Toaster />
+            <Router />
+          </LoginPopupProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
