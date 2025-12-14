@@ -78,7 +78,8 @@ export const adminRateLimiter = createRateLimiter(
 // Cleanup every 10 seconds instead of 60 for more responsive memory management
 setInterval(() => {
   const now = Date.now();
-  for (const [key, entry] of rateLimitStore.entries()) {
+  const entries = Array.from(rateLimitStore.entries());
+  for (const [key, entry] of entries) {
     if (now > entry.resetTime) {
       rateLimitStore.delete(key);
     }
