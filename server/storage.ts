@@ -59,6 +59,9 @@ export interface IStorage {
   getCommissionByStripeSessionId(stripeSessionId: string): Promise<AffiliateCommission | undefined>;
   getCommissionsByUserId(userId: string): Promise<AffiliateCommission[]>;
   getTotalEarnings(userId: string): Promise<number>;
+  getPendingPayout(userId: string): Promise<number>;
+  getTotalWithdrawn(userId: string): Promise<number>;
+  getReferredUsers(userId: string): Promise<User[]>;
   
   createWithdrawalRequest(request: InsertWithdrawal): Promise<WithdrawalRequest>;
   getWithdrawalsByUserId(userId: string): Promise<WithdrawalRequest[]>;
@@ -325,6 +328,28 @@ export class DatabaseStorage implements IStorage {
   async getTotalEarnings(userId: string): Promise<number> {
     const commissions = await this.getCommissionsByUserId(userId);
     return commissions.reduce((total, c) => total + c.amount, 0);
+  }
+
+  async getPendingPayout(userId: string): Promise<number> {
+    const commissions = await this.getCommissionsByUserId(userId);
+    return commissions
+      .filter(c => c.status === 'pending')
+      .reduce((total, c) => total + c.amount, 0);
+  }
+
+  async getTotalWithdrawn(userId: string): Promise<number> {
+    const withdrawals = await this.getWithdrawalsByUserId(userId);
+    return withdrawals
+      .filter(w => w.status === 'completed')
+      .reduce((total, w) => total + w.amount, 0);
+  }
+
+  async getReferredUsers(userId: string): Promise<User[]> {
+    return db
+      .select()
+      .from(users)
+      .where(eq(users.referredBy, userId))
+      .orderBy(desc(users.createdAt));
   }
 
   async createWithdrawalRequest(request: InsertWithdrawal): Promise<WithdrawalRequest> {

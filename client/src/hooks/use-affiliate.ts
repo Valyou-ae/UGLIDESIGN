@@ -23,8 +23,10 @@ export function useAffiliate() {
 
   return {
     totalEarnings: stats?.totalEarnings || 0,
+    pendingPayout: stats?.pendingPayout || 0,
     activeReferrals: stats?.activeReferrals || 0,
     commissions: stats?.commissions || [],
+    referredUsers: stats?.referredUsers || [],
     withdrawals: withdrawals?.withdrawals || [],
     isLoadingStats,
     isLoadingWithdrawals,

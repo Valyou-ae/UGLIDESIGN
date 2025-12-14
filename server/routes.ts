@@ -955,13 +955,26 @@ export async function registerRoutes(
   app.get("/api/affiliate/stats", requireAuth, async (req: any, res) => {
     try {
       const userId = getUserId(req);
-      const commissions = await storage.getCommissionsByUserId(userId);
-      const totalEarnings = await storage.getTotalEarnings(userId);
+      const [commissions, totalEarnings, pendingPayout, referredUsers] = await Promise.all([
+        storage.getCommissionsByUserId(userId),
+        storage.getTotalEarnings(userId),
+        storage.getPendingPayout(userId),
+        storage.getReferredUsers(userId),
+      ]);
       
       res.json({ 
-        totalEarnings,
-        activeReferrals: commissions.length,
-        commissions 
+        totalEarnings: totalEarnings / 100,
+        pendingPayout: pendingPayout / 100,
+        activeReferrals: referredUsers.length,
+        commissions: commissions.map(c => ({
+          ...c,
+          amount: c.amount / 100,
+        })),
+        referredUsers: referredUsers.map(u => ({
+          id: u.id,
+          email: u.email,
+          createdAt: u.createdAt,
+        })),
       });
     } catch (error) {
       res.status(500).json({ message: "Server error" });
@@ -971,8 +984,13 @@ export async function registerRoutes(
   app.post("/api/affiliate/withdraw", requireAuth, async (req: any, res) => {
     try {
       const userId = getUserId(req);
+      
+      // Convert user-entered dollars to cents for storage
+      const amountInCents = Math.round(req.body.amount * 100);
+      
       const withdrawalData = insertWithdrawalSchema.parse({
         ...req.body,
+        amount: amountInCents,
         userId,
       });
 
@@ -980,8 +998,9 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Bank name, account number, and account holder name are required" });
       }
 
-      const totalEarnings = await storage.getTotalEarnings(userId);
-      if (withdrawalData.amount > totalEarnings) {
+      // Get pending payout (available for withdrawal) in cents
+      const pendingPayout = await storage.getPendingPayout(userId);
+      if (withdrawalData.amount > pendingPayout) {
         return res.status(400).json({ message: "Withdrawal amount exceeds available balance" });
       }
 
@@ -990,7 +1009,7 @@ export async function registerRoutes(
       }
 
       const withdrawal = await storage.createWithdrawalRequest(withdrawalData);
-      res.json({ withdrawal });
+      res.json({ withdrawal: { ...withdrawal, amount: withdrawal.amount / 100 } });
     } catch (error) {
       if (error instanceof ZodError) {
         return res.status(400).json({ message: "Invalid input", errors: error.errors });
@@ -1003,7 +1022,10 @@ export async function registerRoutes(
     try {
       const userId = getUserId(req);
       const withdrawals = await storage.getWithdrawalsByUserId(userId);
-      res.json({ withdrawals });
+      // Convert cents to dollars for display
+      res.json({ 
+        withdrawals: withdrawals.map(w => ({ ...w, amount: w.amount / 100 }))
+      });
     } catch (error) {
       res.status(500).json({ message: "Server error" });
     }

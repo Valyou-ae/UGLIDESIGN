@@ -43,7 +43,7 @@ export default function AffiliateProgram() {
   const [routingNumber, setRoutingNumber] = useState("");
   
   const { user } = useAuth();
-  const { totalEarnings, activeReferrals, withdraw, isWithdrawing } = useAffiliate();
+  const { totalEarnings, activeReferrals, pendingPayout, commissions, referredUsers, withdraw, isWithdrawing } = useAffiliate();
   
   const affiliateCode = user?.affiliateCode || "testuser-demo";
   const affiliateLink = `https://aistudio.com/ref/${affiliateCode}`;
@@ -71,11 +71,11 @@ export default function AffiliateProgram() {
       return;
     }
     
-    if (amount > totalEarnings) {
+    if (amount > pendingPayout) {
       toast({
         variant: "destructive",
         title: "Insufficient balance",
-        description: "You cannot withdraw more than your available earnings.",
+        description: "You cannot withdraw more than your available pending payout.",
       });
       return;
     }
@@ -151,7 +151,7 @@ export default function AffiliateProgram() {
                       required 
                       data-testid="input-withdraw-amount"
                     />
-                    <p className="text-xs text-muted-foreground">Available: ${totalEarnings.toFixed(2)}</p>
+                    <p className="text-xs text-muted-foreground">Available: ${pendingPayout.toFixed(2)}</p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="account-name">Account Holder Name</Label>
@@ -301,13 +301,15 @@ export default function AffiliateProgram() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Click Rate</CardTitle>
+                <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
                 <BarChart3 className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">4.8%</div>
+                <div className="text-2xl font-bold" data-testid="text-conversion-rate">
+                  {activeReferrals > 0 ? `${Math.min(100, Math.round((commissions.length / activeReferrals) * 100))}%` : '0%'}
+                </div>
                 <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                  <span className="text-muted-foreground">1,240 total clicks</span>
+                  <span className="text-muted-foreground">{commissions.length} paid conversions</span>
                 </p>
               </CardContent>
             </Card>
@@ -317,9 +319,9 @@ export default function AffiliateProgram() {
                 <Gift className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">$342.00</div>
+                <div className="text-2xl font-bold" data-testid="text-pending-payout">${pendingPayout.toFixed(2)}</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Next payout on Dec 15
+                  Available to withdraw
                 </p>
               </CardContent>
             </Card>
@@ -376,32 +378,32 @@ export default function AffiliateProgram() {
                   <Card>
                     <CardHeader>
                       <CardTitle>Recent Activity</CardTitle>
-                      <CardDescription>Your latest referral clicks and signups</CardDescription>
+                      <CardDescription>Your latest commission earnings</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
-                        {[
-                          { action: "New Signup", user: "alex.m***@gmail.com", date: "2 hours ago", amount: "+$12.00" },
-                          { action: "Link Click", user: "From Twitter", date: "5 hours ago", amount: null },
-                          { action: "Link Click", user: "From LinkedIn", date: "8 hours ago", amount: null },
-                          { action: "Recurring Payment", user: "sarah.j***@company.com", date: "Yesterday", amount: "+$24.00" },
-                          { action: "New Signup", user: "mike.t***@studio.io", date: "2 days ago", amount: "+$48.00" },
-                        ].map((item, i) => (
-                          <div key={i} className="flex items-center justify-between py-2 border-b last:border-0 border-border">
-                            <div className="flex items-center gap-3">
-                              <div className={`h-2 w-2 rounded-full ${item.amount ? 'bg-green-500' : 'bg-[#B94E30]'}`} />
-                              <div>
-                                <p className="text-sm font-medium">{item.action}</p>
-                                <p className="text-xs text-muted-foreground">{item.user} • {item.date}</p>
-                              </div>
-                            </div>
-                            {item.amount && (
-                              <Badge variant="secondary" className="bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                                {item.amount}
-                              </Badge>
-                            )}
+                        {commissions.length === 0 ? (
+                          <div className="text-center py-8 text-muted-foreground">
+                            No commissions yet. Share your affiliate link to start earning!
                           </div>
-                        ))}
+                        ) : (
+                          commissions.slice(0, 5).map((commission: any, i: number) => (
+                            <div key={commission.id || i} className="flex items-center justify-between py-2 border-b last:border-0 border-border" data-testid={`row-commission-${i}`}>
+                              <div className="flex items-center gap-3">
+                                <div className={`h-2 w-2 rounded-full ${commission.status === 'pending' ? 'bg-yellow-500' : 'bg-green-500'}`} />
+                                <div>
+                                  <p className="text-sm font-medium">Commission Earned</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {commission.status === 'pending' ? 'Pending' : 'Paid'} • {new Date(commission.createdAt).toLocaleDateString()}
+                                  </p>
+                                </div>
+                              </div>
+                              <Badge variant="secondary" className="bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                                +${commission.amount.toFixed(2)}
+                              </Badge>
+                            </div>
+                          ))
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -414,9 +416,28 @@ export default function AffiliateProgram() {
                       <CardDescription>List of all users you've referred</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-center py-8 text-muted-foreground">
-                        Detailed referral table would go here
-                      </div>
+                      {referredUsers.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          No referrals yet. Share your link to get started!
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {referredUsers.map((user: any, i: number) => (
+                            <div key={user.id || i} className="flex items-center justify-between py-2 border-b last:border-0 border-border" data-testid={`row-referral-${i}`}>
+                              <div className="flex items-center gap-3">
+                                <div className="h-8 w-8 rounded-full bg-[#B94E30]/10 flex items-center justify-center">
+                                  <Users className="h-4 w-4 text-[#B94E30]" />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium">{user.email ? user.email.replace(/(.{3}).*(@.*)/, '$1***$2') : 'User'}</p>
+                                  <p className="text-xs text-muted-foreground">Joined {new Date(user.createdAt).toLocaleDateString()}</p>
+                                </div>
+                              </div>
+                              <Badge variant="outline">Referred</Badge>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </TabsContent>

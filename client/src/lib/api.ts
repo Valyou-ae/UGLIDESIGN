@@ -145,8 +145,10 @@ export const affiliateApi = {
   getStats: () =>
     fetchApi<{
       totalEarnings: number;
+      pendingPayout: number;
       activeReferrals: number;
       commissions: any[];
+      referredUsers: any[];
     }>("/affiliate/stats"),
 
   withdraw: (data: {
