@@ -29,6 +29,8 @@ import {
 import { cn } from "@/lib/utils";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
+import { userApi } from "@/lib/api";
 import {
   Popover,
   PopoverContent,
@@ -104,6 +106,14 @@ export function FloatingPromptBar({ onImageGenerated }: FloatingPromptBarProps =
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const googleInitializedRef = useRef(false);
   const pendingGenerationRef = useRef(false);
+
+  const { data: stats } = useQuery({
+    queryKey: ["user", "stats"],
+    queryFn: userApi.getStats,
+    staleTime: 1000 * 60 * 5,
+    enabled: isAuthenticated,
+  });
+  const credits = stats?.credits ?? 0;
 
   useEffect(() => {
     const pendingPrompt = localStorage.getItem("pending_prompt");
@@ -338,7 +348,7 @@ export function FloatingPromptBar({ onImageGenerated }: FloatingPromptBarProps =
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-full">
               <Zap className="h-3.5 w-3.5 text-[#E3B436]" />
-              <span className="text-xs font-medium text-white/70">10</span>
+              <span className="text-xs font-medium text-white/70">{isAuthenticated ? credits.toLocaleString() : '0'}</span>
             </div>
 
             <motion.button
