@@ -62,6 +62,37 @@ export async function registerRoutes(
     }
   });
 
+  // Gemini API key stats endpoint for monitoring (admin-only)
+  app.get('/api/admin/gemini-stats', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { keyManager } = await import('./services/gemini');
+      const stats = keyManager.getStats();
+
+      res.json({
+        ...stats,
+        timestamp: new Date().toISOString(),
+        estimatedCapacity: {
+          standardTierRPM: stats.availableKeys * 360,
+          enterpriseTierRPM: stats.availableKeys * 1000,
+          customEnterpriseTierRPM: stats.availableKeys * 10000,
+        }
+      });
+    } catch (error) {
+      console.error("Gemini stats error:", error);
+      res.status(500).json({ message: "Failed to get Gemini stats" });
+    }
+  });
+
   // Serve attached_assets folder for user-uploaded images
   app.use('/attached_assets', express.static(path.resolve(process.cwd(), 'attached_assets')));
 
