@@ -270,7 +270,8 @@ function ProfileSettings() {
     } else {
       setSocialLinkUrls(["", "", "", ""]);
     }
-  }, [profile]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile.firstName, profile.lastName, profile.displayName, profile.bio, JSON.stringify(profile.socialLinks)]);
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -290,7 +291,7 @@ function ProfileSettings() {
       setIsUploadingPhoto(true);
       const { userApi } = await import("@/lib/api");
       const result = await userApi.uploadProfilePhoto(file);
-      queryClient.setQueryData(["auth", "me"], { user: result.user });
+      queryClient.setQueryData(["/api/auth/user"], result.user);
       toast({ title: "Photo uploaded", description: "Your profile photo has been updated." });
     } catch (error: any) {
       toast({ title: "Upload failed", description: error.message || "Failed to upload photo", variant: "destructive" });
@@ -305,7 +306,7 @@ function ProfileSettings() {
       setIsUploadingPhoto(true);
       const { userApi } = await import("@/lib/api");
       const result = await userApi.removeProfilePhoto();
-      queryClient.setQueryData(["auth", "me"], { user: result.user });
+      queryClient.setQueryData(["/api/auth/user"], result.user);
       toast({ title: "Photo removed", description: "Your profile photo has been removed." });
     } catch (error: any) {
       toast({ title: "Error", description: error.message || "Failed to remove photo", variant: "destructive" });
