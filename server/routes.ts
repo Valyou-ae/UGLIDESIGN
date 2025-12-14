@@ -1056,7 +1056,7 @@ export async function registerRoutes(
         return res.status(400).json({ message: result.error });
       }
       
-      res.json({ success: true, bonusCredits: result.bonusCredits, message: "Referral code applied! You earned 10 bonus credits." });
+      res.json({ success: true, referrerCredits: 5, message: "Referral code applied! Your referrer earned 5 bonus credits." });
     } catch (error) {
       console.error("Apply referral error:", error);
       res.status(500).json({ message: "Failed to apply referral code" });

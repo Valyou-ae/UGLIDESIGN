@@ -56,6 +56,7 @@ export const affiliateCommissions = pgTable("affiliate_commissions", {
   referredUserId: varchar("referred_user_id").references(() => users.id).notNull(),
   amount: integer("amount").notNull(),
   status: text("status").notNull().default("pending"),
+  stripeSessionId: text("stripe_session_id").unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
