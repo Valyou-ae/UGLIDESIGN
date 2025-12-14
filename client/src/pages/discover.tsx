@@ -1879,20 +1879,29 @@ export default function Discover() {
             </div>
           </div>
 
-          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-2">
-            {displayedItems.map((item, index) => (
-              <LazyMasonryCard key={item.id} item={item} index={index} />
-            ))}
-          </div>
-
-          <div ref={loadMoreRef} className="flex justify-center py-8">
-            {isLoading && (
-              <div className="flex items-center gap-3 text-[#71717A]">
-                <Loader2 className="h-5 w-5 animate-spin" />
-                <span className="text-sm">Loading more...</span>
+          {isLoadingCommunity ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin text-[#B94E30] mb-4" />
+              <span className="text-sm text-[#71717A]">Loading community creations...</span>
+            </div>
+          ) : (
+            <>
+              <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-2">
+                {displayedItems.map((item, index) => (
+                  <LazyMasonryCard key={item.id} item={item} index={index} />
+                ))}
               </div>
-            )}
-          </div>
+
+              <div ref={loadMoreRef} className="flex justify-center py-8">
+                {isLoading && (
+                  <div className="flex items-center gap-3 text-[#71717A]">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span className="text-sm">Loading more...</span>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </main>
     </div>
