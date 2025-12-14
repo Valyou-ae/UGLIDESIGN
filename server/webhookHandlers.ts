@@ -1,4 +1,6 @@
-import { getStripeSync } from './stripeClient';
+import { getStripeSync, getUncachableStripeClient } from './stripeClient';
+import { storage } from './storage';
+import Stripe from 'stripe';
 
 export class WebhookHandlers {
   static async processWebhook(payload: Buffer, signature: string, uuid: string): Promise<void> {
@@ -11,7 +13,92 @@ export class WebhookHandlers {
       );
     }
 
+    // First, let stripe-replit-sync process the webhook (this verifies the signature internally)
     const sync = await getStripeSync();
     await sync.processWebhook(payload, signature, uuid);
+
+    // Then handle commission tracking for completed payments
+    // The signature has been verified by stripe-replit-sync above, so we can trust the payload
+    try {
+      await WebhookHandlers.handleCommissionTracking(payload, signature);
+    } catch (error) {
+      console.error('Commission tracking error:', error);
+      // Don't throw - we don't want to fail the webhook for commission errors
+    }
+  }
+
+  static async handleCommissionTracking(payload: Buffer, signature: string): Promise<void> {
+    // Use Stripe SDK to verify and construct the event
+    const stripe = await getUncachableStripeClient();
+    if (!stripe) {
+      console.log('Commission: Stripe not configured');
+      return;
+    }
+
+    // Require webhook secret for security - without it we cannot verify the webhook signature
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      console.error('Commission: STRIPE_WEBHOOK_SECRET not configured, skipping commission tracking for security');
+      return;
+    }
+    
+    let event: Stripe.Event;
+    
+    // Verify the webhook signature
+    try {
+      event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
+    } catch (err: any) {
+      console.error('Commission: Webhook signature verification failed:', err.message);
+      return;
+    }
+    
+    // Only process checkout.session.completed events
+    if (event.type !== 'checkout.session.completed') {
+      return;
+    }
+
+    const session = event.data.object as Stripe.Checkout.Session;
+    if (!session) return;
+
+    const sessionId = session.id;
+    const customerId = session.customer as string;
+    const amountTotal = session.amount_total; // Amount in cents
+
+    if (!sessionId || !customerId || !amountTotal || amountTotal <= 0) {
+      return;
+    }
+
+    // Check for idempotency - if we already processed this session, skip
+    const existingCommission = await storage.getCommissionByStripeSessionId(sessionId);
+    if (existingCommission) {
+      console.log('Commission: Already processed session', sessionId);
+      return;
+    }
+
+    // Find the user who made the purchase by their Stripe customer ID
+    const buyer = await storage.getUserByStripeCustomerId(customerId);
+    if (!buyer) {
+      console.log('Commission: No user found for customer', customerId);
+      return;
+    }
+
+    // Check if this user was referred
+    if (!buyer.referredBy) {
+      console.log('Commission: User has no referrer', buyer.id);
+      return;
+    }
+
+    // Calculate 20% commission using integer arithmetic to avoid floating-point errors
+    // Formula: (amountTotal * 20) / 100 with proper rounding
+    const commissionAmount = Math.trunc((amountTotal * 20 + 50) / 100);
+    
+    if (commissionAmount <= 0) {
+      return;
+    }
+
+    // Create the commission record with session ID for idempotency (storing as cents for precision)
+    await storage.createCommission(buyer.referredBy, buyer.id, commissionAmount, sessionId);
+    
+    console.log(`Commission created: ${commissionAmount} cents for referrer ${buyer.referredBy} from buyer ${buyer.id} (session: ${sessionId})`);
   }
 }

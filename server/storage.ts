@@ -55,7 +55,8 @@ export interface IStorage {
   getUserStats(userId: string): Promise<{ images: number; mockups: number; bgRemoved: number; total: number }>;
   
   getUserByAffiliateCode(code: string): Promise<User | undefined>;
-  createCommission(affiliateUserId: string, referredUserId: string, amount: number): Promise<AffiliateCommission>;
+  createCommission(affiliateUserId: string, referredUserId: string, amount: number, stripeSessionId?: string): Promise<AffiliateCommission>;
+  getCommissionByStripeSessionId(stripeSessionId: string): Promise<AffiliateCommission | undefined>;
   getCommissionsByUserId(userId: string): Promise<AffiliateCommission[]>;
   getTotalEarnings(userId: string): Promise<number>;
   
@@ -64,6 +65,7 @@ export interface IStorage {
   
   updateStripeCustomerId(userId: string, stripeCustomerId: string): Promise<User | undefined>;
   updateStripeSubscriptionId(userId: string, stripeSubscriptionId: string | null): Promise<User | undefined>;
+  getUserByStripeCustomerId(stripeCustomerId: string): Promise<User | undefined>;
   
   setPasswordResetToken(email: string, tokenHash: string, expires: Date): Promise<User | undefined>;
   getUserWithResetToken(email: string): Promise<User | undefined>;
@@ -124,7 +126,7 @@ export interface IStorage {
   
   getLeaderboard(period: 'weekly' | 'monthly' | 'all-time', limit?: number): Promise<{ userId: string; username: string | null; displayName: string | null; profileImageUrl: string | null; imageCount: number; likeCount: number; viewCount: number; rank: number }[]>;
   getReferralStats(userId: string): Promise<{ referralCode: string | null; referredCount: number; bonusCreditsEarned: number }>;
-  applyReferralCode(userId: string, referralCode: string): Promise<{ success: boolean; bonusCredits?: number; error?: string }>;
+  applyReferralCode(userId: string, referralCode: string): Promise<{ success: boolean; referrerCredits?: number; error?: string }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -296,12 +298,20 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
-  async createCommission(affiliateUserId: string, referredUserId: string, amount: number): Promise<AffiliateCommission> {
+  async createCommission(affiliateUserId: string, referredUserId: string, amount: number, stripeSessionId?: string): Promise<AffiliateCommission> {
     const [commission] = await db
       .insert(affiliateCommissions)
-      .values({ affiliateUserId, referredUserId, amount })
+      .values({ affiliateUserId, referredUserId, amount, stripeSessionId })
       .returning();
     return commission;
+  }
+
+  async getCommissionByStripeSessionId(stripeSessionId: string): Promise<AffiliateCommission | undefined> {
+    const [commission] = await db
+      .select()
+      .from(affiliateCommissions)
+      .where(eq(affiliateCommissions.stripeSessionId, stripeSessionId));
+    return commission || undefined;
   }
 
   async getCommissionsByUserId(userId: string): Promise<AffiliateCommission[]> {
@@ -348,6 +358,14 @@ export class DatabaseStorage implements IStorage {
       .set({ stripeSubscriptionId })
       .where(eq(users.id, userId))
       .returning();
+    return user || undefined;
+  }
+
+  async getUserByStripeCustomerId(stripeCustomerId: string): Promise<User | undefined> {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.stripeCustomerId, stripeCustomerId));
     return user || undefined;
   }
 
@@ -917,7 +935,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.referredBy, userId));
     
     const referredCount = referredResult?.count || 0;
-    const bonusCreditsEarned = referredCount * 10;
+    const bonusCreditsEarned = referredCount * 5;
     
     return {
       referralCode: user.affiliateCode,
@@ -926,7 +944,7 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async applyReferralCode(userId: string, referralCode: string): Promise<{ success: boolean; bonusCredits?: number; error?: string }> {
+  async applyReferralCode(userId: string, referralCode: string): Promise<{ success: boolean; referrerCredits?: number; error?: string }> {
     const user = await this.getUser(userId);
     if (!user) {
       return { success: false, error: 'User not found' };
@@ -947,10 +965,10 @@ export class DatabaseStorage implements IStorage {
     
     await db.update(users).set({ referredBy: referrer.id }).where(eq(users.id, userId));
     
-    await this.addCredits(userId, 10);
-    await this.addCredits(referrer.id, 10);
+    // Give 5 bonus credits to the referrer only (one-time signup bonus)
+    await this.addCredits(referrer.id, 5);
     
-    return { success: true, bonusCredits: 10 };
+    return { success: true, referrerCredits: 5 };
   }
 }
 
