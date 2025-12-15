@@ -46,6 +46,7 @@ function LazyMasonryCard({ item, index, onLike, onUse, onCopy }: { item: Inspira
   const [liked, setLiked] = useState(item.isLiked || false);
   const [likeCount, setLikeCount] = useState(item.likes);
   const [useCount, setUseCount] = useState(item.uses);
+  const [viewCount, setViewCount] = useState(item.views);
   const [copied, setCopied] = useState(false);
   const [remixed, setRemixed] = useState(false);
   const [viewTracked, setViewTracked] = useState(false);
@@ -58,7 +59,9 @@ function LazyMasonryCard({ item, index, onLike, onUse, onCopy }: { item: Inspira
           setIsVisible(true);
           if (item.isGalleryImage && !viewTracked) {
             setViewTracked(true);
-            galleryApi.viewImage(String(item.id)).catch(() => {});
+            galleryApi.viewImage(String(item.id))
+              .then(result => setViewCount(result.viewCount))
+              .catch(() => {});
           }
           observer.disconnect();
         }
@@ -201,9 +204,9 @@ function LazyMasonryCard({ item, index, onLike, onUse, onCopy }: { item: Inspira
         <div className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex gap-4">
-              <div className="flex items-center gap-1 text-xs text-[#71717A] dark:text-[#52525B]">
+              <div className="flex items-center gap-1 text-xs text-[#71717A] dark:text-[#52525B]" title="Views">
                 <Eye className="h-3.5 w-3.5" />
-                <span>{formatCount(item.views)}</span>
+                <span>{formatCount(viewCount)}</span>
               </div>
               <button
                 onClick={handleLike}
