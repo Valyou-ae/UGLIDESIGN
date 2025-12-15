@@ -842,7 +842,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getGalleryImages(): Promise<GalleryImage[]> {
-    return db.select().from(galleryImages).orderBy(desc(galleryImages.likeCount));
+    return db.select().from(galleryImages).orderBy(desc(galleryImages.createdAt));
   }
 
   async getGalleryImageById(imageId: string): Promise<GalleryImage | undefined> {
