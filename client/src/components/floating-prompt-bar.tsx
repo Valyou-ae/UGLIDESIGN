@@ -198,64 +198,93 @@ export function FloatingPromptBar({ onImageGenerated }: FloatingPromptBarProps =
     const textToUse = promptText || prompt;
     if (!textToUse.trim()) return;
 
-    if (!isAuthenticated) {
-      localStorage.setItem("pending_prompt", textToUse);
-      pendingGenerationRef.current = true;
-      const success = await initGoogleSignIn();
-      if (!success) {
-        localStorage.removeItem("pending_prompt");
-        pendingGenerationRef.current = false;
-      }
-      return;
-    }
-
     setIsGenerating(true);
     try {
-      const generateResponse = await fetch("/api/generate/single", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          prompt: textToUse,
-          stylePreset: selectedStyle,
-        }),
-      });
+      if (!isAuthenticated) {
+        // Guest generation - use guest endpoint which saves to gallery
+        // Generate or retrieve a persistent guest ID
+        let guestId = localStorage.getItem("ugli_guest_id");
+        if (!guestId) {
+          guestId = `guest_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+          localStorage.setItem("ugli_guest_id", guestId);
+        }
 
-      if (!generateResponse.ok) {
-        const error = await generateResponse.json();
-        console.error("Generation failed:", error);
-        alert("Image generation failed. Please try again.");
-        return;
-      }
+        const response = await fetch("/api/guest/generate-image", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            prompt: textToUse,
+            guestId,
+          }),
+        });
 
-      const { image } = await generateResponse.json();
+        if (!response.ok) {
+          const error = await response.json();
+          console.error("Guest generation failed:", error);
+          alert(error.message || "Image generation failed. Please try again.");
+          return;
+        }
 
-      const saveResponse = await fetch("/api/images", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          prompt: textToUse,
-          imageUrl: `data:${image.mimeType};base64,${image.data}`,
-          style: selectedStyle,
-          aspectRatio: selectedRatio,
-          generationType: "image",
-        }),
-      });
-
-      if (saveResponse.ok) {
+        const data = await response.json();
         setPrompt("");
         if (onImageGenerated) {
           onImageGenerated({ 
-            imageData: image.data, 
-            mimeType: image.mimeType,
-            aspectRatio: selectedRatio 
+            imageData: data.imageData, 
+            mimeType: data.mimeType,
+            aspectRatio: "1:1"
           });
         } else {
-          setLocation("/my-creations");
+          // Fallback: redirect to discover page to see the generated image
+          setLocation("/discover");
         }
       } else {
-        alert("Failed to save image. Please try again.");
+        // Authenticated generation
+        const generateResponse = await fetch("/api/generate/single", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            prompt: textToUse,
+            stylePreset: selectedStyle,
+          }),
+        });
+
+        if (!generateResponse.ok) {
+          const error = await generateResponse.json();
+          console.error("Generation failed:", error);
+          alert("Image generation failed. Please try again.");
+          return;
+        }
+
+        const { image } = await generateResponse.json();
+
+        const saveResponse = await fetch("/api/images", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            prompt: textToUse,
+            imageUrl: `data:${image.mimeType};base64,${image.data}`,
+            style: selectedStyle,
+            aspectRatio: selectedRatio,
+            generationType: "image",
+          }),
+        });
+
+        if (saveResponse.ok) {
+          setPrompt("");
+          if (onImageGenerated) {
+            onImageGenerated({ 
+              imageData: image.data, 
+              mimeType: image.mimeType,
+              aspectRatio: selectedRatio 
+            });
+          } else {
+            setLocation("/my-creations");
+          }
+        } else {
+          alert("Failed to save image. Please try again.");
+        }
       }
     } catch (error) {
       console.error("Generation error:", error);
