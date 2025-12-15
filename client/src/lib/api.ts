@@ -756,6 +756,30 @@ export const promptFavoritesApi = {
     fetchApi<{ message: string }>(`/prompts/favorites/${id}`, { method: "DELETE" }),
 };
 
+// Gallery API
+export const galleryApi = {
+  getAll: () =>
+    fetchApi<{ images: any[] }>("/gallery"),
+
+  getImage: (imageId: string) =>
+    fetchApi<any>(`/gallery/${imageId}`),
+
+  likeImage: (imageId: string) =>
+    fetchApi<{ liked: boolean; likeCount: number }>(`/gallery/${imageId}/like`, {
+      method: "POST",
+    }),
+
+  viewImage: (imageId: string) =>
+    fetchApi<{ viewCount: number }>(`/gallery/${imageId}/view`, {
+      method: "POST",
+    }),
+
+  useImage: (imageId: string) =>
+    fetchApi<{ useCount: number }>(`/gallery/${imageId}/use`, {
+      method: "POST",
+    }),
+};
+
 // Background Removal API
 export const backgroundRemovalApi = {
   removeBackground: async (image: string, options: BackgroundRemovalOptions): Promise<{ success: boolean; result: BackgroundRemovalResult; message?: string }> => {

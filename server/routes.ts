@@ -32,7 +32,7 @@ import {
 import { ZodError } from "zod";
 import { db } from "./db";
 import { eq, sql } from "drizzle-orm";
-import { getFromCache, CACHE_TTL } from "./cache";
+import { getFromCache, CACHE_TTL, invalidateCache } from "./cache";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -995,7 +995,7 @@ export async function registerRoutes(
         CACHE_TTL.GALLERY_IMAGES,
         () => storage.getGalleryImages()
       );
-      const userId = req.user?.id;
+      const userId = req.user?.claims?.sub;
 
       let likedImageIds: string[] = [];
       if (userId) {
@@ -1020,9 +1020,76 @@ export async function registerRoutes(
       const { imageId } = req.params;
       
       const result = await storage.likeGalleryImage(imageId, userId);
+      invalidateCache('gallery:images');
       res.json(result);
     } catch (error) {
       console.error("Like error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.post("/api/gallery/:imageId/view", generationRateLimiter, async (req: any, res) => {
+    try {
+      const { imageId } = req.params;
+      
+      const image = await storage.incrementGalleryImageView(imageId);
+      if (!image) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+      invalidateCache('gallery:images');
+      res.json({ viewCount: image.viewCount });
+    } catch (error) {
+      console.error("View tracking error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.post("/api/gallery/:imageId/use", requireAuth, async (req: any, res) => {
+    try {
+      const { imageId } = req.params;
+      
+      const image = await storage.incrementGalleryImageUse(imageId);
+      if (!image) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+      invalidateCache('gallery:images');
+      res.json({ useCount: image.useCount });
+    } catch (error) {
+      console.error("Use tracking error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.get("/api/gallery/:imageId", async (req: any, res) => {
+    try {
+      const { imageId } = req.params;
+      
+      // Try to get from cache first, fall back to direct query
+      const cachedImages = await getFromCache(
+        'gallery:images',
+        CACHE_TTL.GALLERY_IMAGES,
+        () => storage.getGalleryImages()
+      );
+      
+      let image = cachedImages.find(img => img.id === imageId);
+      if (!image) {
+        // If not in cache, try direct query (for newly added images)
+        image = await storage.getGalleryImageById(imageId);
+      }
+      
+      if (!image) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+      
+      const userId = req.user?.claims?.sub;
+      let isLiked = false;
+      if (userId) {
+        isLiked = await storage.hasUserLikedImage(imageId, userId);
+      }
+      
+      res.json({ ...image, isLiked });
+    } catch (error) {
+      console.error("Gallery image error:", error);
       res.status(500).json({ message: "Server error" });
     }
   });

@@ -122,9 +122,12 @@ export interface IStorage {
   verifyBoardItemOwnership(userId: string, itemId: string): Promise<boolean>;
 
   getGalleryImages(): Promise<GalleryImage[]>;
+  getGalleryImageById(imageId: string): Promise<GalleryImage | undefined>;
   likeGalleryImage(imageId: string, userId: string): Promise<{ liked: boolean; likeCount: number }>;
   hasUserLikedImage(imageId: string, userId: string): Promise<boolean>;
   getUserLikedImages(userId: string): Promise<string[]>;
+  incrementGalleryImageView(imageId: string): Promise<GalleryImage | undefined>;
+  incrementGalleryImageUse(imageId: string): Promise<GalleryImage | undefined>;
   
   getPublicImages(limit?: number): Promise<GeneratedImage[]>;
   setImageVisibility(imageId: string, userId: string, isPublic: boolean): Promise<GeneratedImage | undefined>;
@@ -839,6 +842,29 @@ export class DatabaseStorage implements IStorage {
 
   async getGalleryImages(): Promise<GalleryImage[]> {
     return db.select().from(galleryImages).orderBy(desc(galleryImages.likeCount));
+  }
+
+  async getGalleryImageById(imageId: string): Promise<GalleryImage | undefined> {
+    const [image] = await db.select().from(galleryImages).where(eq(galleryImages.id, imageId));
+    return image || undefined;
+  }
+
+  async incrementGalleryImageView(imageId: string): Promise<GalleryImage | undefined> {
+    const [updated] = await db
+      .update(galleryImages)
+      .set({ viewCount: sql`${galleryImages.viewCount} + 1` })
+      .where(eq(galleryImages.id, imageId))
+      .returning();
+    return updated || undefined;
+  }
+
+  async incrementGalleryImageUse(imageId: string): Promise<GalleryImage | undefined> {
+    const [updated] = await db
+      .update(galleryImages)
+      .set({ useCount: sql`${galleryImages.useCount} + 1` })
+      .where(eq(galleryImages.id, imageId))
+      .returning();
+    return updated || undefined;
   }
 
   async likeGalleryImage(imageId: string, userId: string): Promise<{ liked: boolean; likeCount: number }> {
