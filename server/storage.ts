@@ -123,6 +123,7 @@ export interface IStorage {
 
   getGalleryImages(): Promise<GalleryImage[]>;
   getGalleryImageById(imageId: string): Promise<GalleryImage | undefined>;
+  createGalleryImage(data: { title: string; imageUrl: string; creator: string; category?: string; aspectRatio?: string; prompt?: string }): Promise<GalleryImage>;
   likeGalleryImage(imageId: string, userId: string): Promise<{ liked: boolean; likeCount: number }>;
   hasUserLikedImage(imageId: string, userId: string): Promise<boolean>;
   getUserLikedImages(userId: string): Promise<string[]>;
@@ -847,6 +848,21 @@ export class DatabaseStorage implements IStorage {
   async getGalleryImageById(imageId: string): Promise<GalleryImage | undefined> {
     const [image] = await db.select().from(galleryImages).where(eq(galleryImages.id, imageId));
     return image || undefined;
+  }
+
+  async createGalleryImage(data: { title: string; imageUrl: string; creator: string; category?: string; aspectRatio?: string; prompt?: string }): Promise<GalleryImage> {
+    const [image] = await db
+      .insert(galleryImages)
+      .values({
+        title: data.title,
+        imageUrl: data.imageUrl,
+        creator: data.creator,
+        category: data.category || "ai-generated",
+        aspectRatio: data.aspectRatio || "1:1",
+        prompt: data.prompt,
+      })
+      .returning();
+    return image;
   }
 
   async incrementGalleryImageView(imageId: string): Promise<GalleryImage | undefined> {

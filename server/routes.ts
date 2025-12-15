@@ -1296,6 +1296,8 @@ export async function registerRoutes(
 
       await ensureGuestGalleryUser();
       const imageUrl = `data:${result.mimeType};base64,${result.imageData}`;
+      
+      // Save to generatedImages table
       await storage.createImage({
         userId: GUEST_GALLERY_USER_ID,
         imageUrl,
@@ -1305,6 +1307,19 @@ export async function registerRoutes(
         generationType: "image",
         isPublic: true,
       });
+
+      // Also save to galleryImages for discover page
+      await storage.createGalleryImage({
+        title: prompt.slice(0, 100),
+        imageUrl,
+        creator: "UGLI Guest",
+        category: "ai-generated",
+        aspectRatio: "1:1",
+        prompt,
+      });
+
+      // Invalidate gallery cache so new image appears immediately
+      await invalidateCache('gallery:images');
 
       return res.json({ imageData: result.imageData, mimeType: result.mimeType });
     } catch (error) {
