@@ -236,7 +236,7 @@ export default function ImageGenerator() {
     quality: "draft",
     detail: "medium",
     aspectRatio: "1:1",
-    variations: "1",
+    variations: "4",
     aiCuration: true,
     autoOptimize: true,
     speed: "quality" as "fast" | "quality"
