@@ -45,7 +45,9 @@ function LazyMasonryCard({ item, index, onLike, onUse, onCopy }: { item: Inspira
   const [isHovered, setIsHovered] = useState(false);
   const [liked, setLiked] = useState(item.isLiked || false);
   const [likeCount, setLikeCount] = useState(item.likes);
+  const [useCount, setUseCount] = useState(item.uses);
   const [copied, setCopied] = useState(false);
+  const [remixed, setRemixed] = useState(false);
   const [viewTracked, setViewTracked] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -93,6 +95,25 @@ function LazyMasonryCard({ item, index, onLike, onUse, onCopy }: { item: Inspira
     
     if (item.isGalleryImage) {
       galleryApi.useImage(String(item.id)).catch(() => {});
+      onUse?.(String(item.id));
+    }
+    
+    onCopy?.(item.prompt);
+  };
+
+  const handleRemix = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    await navigator.clipboard.writeText(item.prompt);
+    setRemixed(true);
+    setTimeout(() => setRemixed(false), 2000);
+    
+    if (item.isGalleryImage) {
+      try {
+        const result = await galleryApi.useImage(String(item.id));
+        setUseCount(result.useCount);
+      } catch {
+        setUseCount(prev => prev + 1);
+      }
       onUse?.(String(item.id));
     }
     
@@ -201,10 +222,20 @@ function LazyMasonryCard({ item, index, onLike, onUse, onCopy }: { item: Inspira
                 <Heart className={cn("h-3.5 w-3.5", liked && "fill-current")} />
                 <span>{formatCount(likeCount)}</span>
               </button>
-              <div className="flex items-center gap-1 text-xs text-[#71717A] dark:text-[#52525B]">
-                <Wand2 className="h-3.5 w-3.5" />
-                <span>{formatCount(item.uses)}</span>
-              </div>
+              <button
+                onClick={handleRemix}
+                title="Remix - Copy prompt to create your own version"
+                className={cn(
+                  "flex items-center gap-1 text-xs transition-colors",
+                  remixed 
+                    ? "text-[#B94E30]" 
+                    : "text-[#71717A] dark:text-[#52525B] hover:text-[#B94E30]"
+                )}
+                data-testid={`button-remix-${item.id}`}
+              >
+                {remixed ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Wand2 className="h-3.5 w-3.5" />}
+                <span>{formatCount(useCount)}</span>
+              </button>
             </div>
             <button
               onClick={handleCopyPrompt}
