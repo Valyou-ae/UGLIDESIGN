@@ -228,6 +228,7 @@ export default function ImageGenerator() {
   const [generations, setGenerations] = useState<GeneratedImage[]>([]);
   const [agents, setAgents] = useState<Agent[]>(AGENTS);
   const [progress, setProgress] = useState(0);
+  const [imageProgress, setImageProgress] = useState<{ current: number; total: number }>({ current: 0, total: 1 });
   const [selectedImage, setSelectedImage] = useState<GeneratedImage | null>(null);
   const [imageToDelete, setImageToDelete] = useState<GeneratedImage | null>(null);
   const [isListening, setIsListening] = useState(false);
@@ -800,13 +801,14 @@ export default function ImageGenerator() {
     
     setStatus("generating");
     setProgress(0);
+    setImageProgress({ current: 0, total: parseInt(settings.variations) || 1 });
     setGenerationStartTime(Date.now());
     setElapsedSeconds(0);
     setAgents(AGENTS.map(a => ({ ...a, status: "idle" })));
 
     const generatedImages: GeneratedImage[] = [];
     let imageCount = 0;
-    let totalExpected = 1;
+    let totalExpected = parseInt(settings.variations) || 1;
 
     const handleEvent = (event: GenerationEvent) => {
       const { type, data } = event;
@@ -835,6 +837,7 @@ export default function ImageGenerator() {
       if (type === "progress" && data.completed !== undefined && data.total !== undefined) {
         const progressPercent = Math.round((data.completed / data.total) * 100);
         setProgress(prev => Math.max(prev, progressPercent));
+        setImageProgress({ current: data.completed + 1, total: data.total });
         totalExpected = data.total;
       }
 
@@ -1744,7 +1747,11 @@ export default function ImageGenerator() {
                   </div>
                 </div>
                 <p className="text-foreground font-medium text-lg mb-2">{getProgressText()}</p>
-                <p className="text-muted-foreground text-sm">Your image is being created...</p>
+                <p className="text-muted-foreground text-sm">
+                  {imageProgress.total > 1 
+                    ? `Generating image ${imageProgress.current} of ${imageProgress.total}...`
+                    : "Your image is being created..."}
+                </p>
               </motion.div>
             )}
 
