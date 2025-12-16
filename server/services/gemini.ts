@@ -441,11 +441,10 @@ export async function generateImage(
       ? `${prompt}\n\nAvoid: ${negativePrompts.join(", ")}`
       : prompt;
 
-    // Auto-select premium for text-heavy images, otherwise use selected quality
-    const effectiveQuality = hasTextRequest ? "premium" : qualityLevel;
-    const model = effectiveQuality === "premium" ? MODELS.IMAGE_PREMIUM : MODELS.IMAGE_DRAFT;
+    // Use user-selected quality level (no longer auto-forcing premium for text)
+    const model = qualityLevel === "premium" ? MODELS.IMAGE_PREMIUM : MODELS.IMAGE_DRAFT;
     
-    console.log(`[Image Generation] Using model: ${model} (quality: ${effectiveQuality}, hasText: ${hasTextRequest})`);
+    console.log(`[Image Generation] Using model: ${model} (quality: ${qualityLevel}, hasText: ${hasTextRequest})`);
 
     const response = await client.models.generateContent({
       model,
