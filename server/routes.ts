@@ -1474,6 +1474,10 @@ export async function registerRoutes(
 
       const sendEvent = (event: string, data: any) => {
         res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+        // Flush immediately to ensure SSE events are sent to client
+        if (typeof (res as any).flush === 'function') {
+          (res as any).flush();
+        }
       };
 
       sendEvent("status", { agent: "Text Sentinel", status: "working", message: "Deep analysis..." });
@@ -1509,6 +1513,7 @@ export async function registerRoutes(
           sendEvent("progress", { completed: currentCount, total: count });
 
           if (result) {
+            console.log(`[Premium Gen] Image ${index} generated successfully, saving to database...`);
             const imageUrl = `data:${result.mimeType};base64,${result.imageData}`;
             
             try {
@@ -1522,6 +1527,7 @@ export async function registerRoutes(
                 isFavorite: false,
               });
               
+              console.log(`[Premium Gen] Image ${index} saved, sending to client...`);
               sendEvent("final_image", {
                 index,
                 imageData: result.imageData,
@@ -1529,6 +1535,7 @@ export async function registerRoutes(
                 savedImageId: savedImage.id,
                 progress: `${currentCount}/${count}`,
               });
+              console.log(`[Premium Gen] Image ${index} sent to client`);
             } catch (saveError) {
               console.error("Failed to save image to database:", saveError);
               sendEvent("final_image", {
@@ -1540,6 +1547,7 @@ export async function registerRoutes(
             }
             return { success: true, index };
           } else {
+            console.log(`[Premium Gen] Image ${index} generation returned null`);
             sendEvent("image_error", { index, error: "Generation failed" });
             return { success: false, index };
           }
