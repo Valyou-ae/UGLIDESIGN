@@ -243,7 +243,7 @@ export default function ImageGenerator() {
     autoOptimize: true,
     speed: "quality" as "fast" | "quality"
   });
-  const [qualityAutoUpgraded, setQualityAutoUpgraded] = useState(false);
+  // qualityAutoUpgraded removed - user now controls quality directly
   const [isPromptExpanded, setIsPromptExpanded] = useState(false);
   const promptContainerRef = useRef<HTMLDivElement>(null);
   const promptTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -776,29 +776,11 @@ export default function ImageGenerator() {
     return `${secs}s`;
   };
 
-  const isTextHeavyPrompt = (text: string): boolean => {
-    const wordCount = text.trim().split(/\s+/).length;
-    const charCount = text.length;
-    const hasTextRenderingKeywords = /\b(text|write|letter|word|font|typography|quote|sign|banner|label|caption|title|heading)\b/i.test(text);
-    const hasQuotedText = /"[^"]+"|'[^']+'/.test(text);
-    return wordCount > 30 || charCount > 180 || hasTextRenderingKeywords || hasQuotedText;
-  };
-
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
     
-    let effectiveQuality = settings.quality;
-    
-    if (settings.quality === "draft" && isTextHeavyPrompt(prompt) && !qualityAutoUpgraded) {
-      effectiveQuality = "premium";
-      setSettings(prev => ({ ...prev, quality: "premium" }));
-      setQualityAutoUpgraded(true);
-      toast({
-        title: "Quality Upgraded to Premium",
-        description: "Your prompt contains detailed text or is complex. Using Premium mode for better results.",
-        className: "bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-900/20 dark:border-amber-900/50 dark:text-amber-400",
-      });
-    }
+    // Use user-selected quality (no auto-upgrade to premium)
+    const effectiveQuality = settings.quality;
     
     setStatus("generating");
     setProgress(0);
@@ -1517,7 +1499,6 @@ export default function ImageGenerator() {
                                 <button
                                   onClick={() => {
                                     setSettings({...settings, quality: q.id});
-                                    setQualityAutoUpgraded(false);
                                   }}
                                   className={cn(
                                     "h-9 rounded-lg flex items-center justify-center gap-1.5 transition-all border",
