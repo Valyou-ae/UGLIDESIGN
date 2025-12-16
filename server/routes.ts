@@ -881,9 +881,16 @@ export async function registerRoutes(
   });
 
   // Serve actual image data by ID (lazy loading for performance)
-  app.get("/api/images/:id/image", requireAuth, async (req: any, res) => {
+  // Supports both authenticated users and guests via session
+  app.get("/api/images/:id/image", async (req: any, res) => {
     try {
-      const userId = getUserId(req);
+      // Get userId from authenticated user OR guestId from session
+      const userId = req.user?.id || (req.session as any)?.guestId;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
       const image = await storage.getImageById(req.params.id, userId);
       
       if (!image) {
@@ -1467,14 +1474,18 @@ export async function registerRoutes(
 
       const count = Math.min(Math.max(1, parseInt(imageCount) || 1), 4);
 
+      // SSE headers with anti-buffering settings
       res.setHeader("Content-Type", "text/event-stream");
-      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Cache-Control", "no-cache, no-transform");
       res.setHeader("Connection", "keep-alive");
+      res.setHeader("X-Accel-Buffering", "no"); // Disable nginx buffering
+      res.setHeader("Content-Encoding", "none"); // Disable compression
       res.flushHeaders();
 
       const sendEvent = (event: string, data: any) => {
-        res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
-        // Flush immediately to ensure SSE events are sent to client
+        const eventStr = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+        res.write(eventStr);
+        // Force immediate send
         if (typeof (res as any).flush === 'function') {
           (res as any).flush();
         }
@@ -1527,17 +1538,18 @@ export async function registerRoutes(
                 isFavorite: false,
               });
               
-              console.log(`[Premium Gen] Image ${index} saved, sending to client...`);
+              console.log(`[Premium Gen] Image ${index} saved with ID ${savedImage.id}, sending to client...`);
+              // Send small event with just the ID - frontend will fetch the image separately
               sendEvent("final_image", {
                 index,
-                imageData: result.imageData,
-                mimeType: result.mimeType,
                 savedImageId: savedImage.id,
+                mimeType: result.mimeType,
                 progress: `${currentCount}/${count}`,
               });
-              console.log(`[Premium Gen] Image ${index} sent to client`);
+              console.log(`[Premium Gen] Image ${index} event sent to client`);
             } catch (saveError) {
               console.error("Failed to save image to database:", saveError);
+              // Fallback: send image data directly if save failed
               sendEvent("final_image", {
                 index,
                 imageData: result.imageData,

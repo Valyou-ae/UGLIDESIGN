@@ -132,6 +132,7 @@ type GeneratedImage = {
   timestamp: string;
   isNew?: boolean;
   isFavorite?: boolean;
+  alreadySaved?: boolean;  // For images already saved by backend (premium mode)
 };
 
 interface LeaderboardEntry {
@@ -854,26 +855,50 @@ export default function ImageGenerator() {
         ));
       }
 
-      if (type === "final_image" && data.imageData && data.mimeType && typeof data.index === 'number') {
+      if (type === "final_image" && typeof data.index === 'number') {
         const imageIndex = data.index;
         imageCount++;
-        const newImage: GeneratedImage = {
-          id: `${Date.now()}-${imageCount}`,
-          src: `data:${data.mimeType};base64,${data.imageData}`,
-          prompt: prompt,
-          style: settings.style,
-          aspectRatio: settings.aspectRatio,
-          timestamp: "Just now",
-          isNew: true,
-          isFavorite: false
-        };
-        generatedImages.push(newImage);
-        setGenerations(prev => [newImage, ...prev]);
         
-        // Update pending image slot only if still loading (prevent overwriting)
-        setPendingImages(prev => prev.map((p, i) => 
-          i === imageIndex && p.status === 'loading' ? { ...p, status: 'complete' as const, image: newImage } : p
-        ));
+        // If we have savedImageId, fetch the image from the API (already saved by backend)
+        if (data.savedImageId) {
+          const newImage: GeneratedImage = {
+            id: data.savedImageId,
+            src: `/api/images/${data.savedImageId}/image`,
+            prompt: prompt,
+            style: settings.style,
+            aspectRatio: settings.aspectRatio,
+            timestamp: "Just now",
+            isNew: true,
+            isFavorite: false,
+            alreadySaved: true  // Mark as already saved by backend
+          };
+          generatedImages.push(newImage);
+          setGenerations(prev => [newImage, ...prev]);
+          
+          // Update pending image slot
+          setPendingImages(prev => prev.map((p, i) => 
+            i === imageIndex && p.status === 'loading' ? { ...p, status: 'complete' as const, image: newImage } : p
+          ));
+        } else if (data.imageData && data.mimeType) {
+          // Fallback: use inline image data if provided
+          const newImage: GeneratedImage = {
+            id: `${Date.now()}-${imageCount}`,
+            src: `data:${data.mimeType};base64,${data.imageData}`,
+            prompt: prompt,
+            style: settings.style,
+            aspectRatio: settings.aspectRatio,
+            timestamp: "Just now",
+            isNew: true,
+            isFavorite: false
+          };
+          generatedImages.push(newImage);
+          setGenerations(prev => [newImage, ...prev]);
+          
+          // Update pending image slot
+          setPendingImages(prev => prev.map((p, i) => 
+            i === imageIndex && p.status === 'loading' ? { ...p, status: 'complete' as const, image: newImage } : p
+          ));
+        }
       }
       
       if (type === "image_error" && typeof data.index === 'number') {
@@ -889,35 +914,67 @@ export default function ImageGenerator() {
         setStatus("complete");
 
         const saveAndRedirect = async () => {
+          // Filter out images that were already saved by backend (premium mode)
+          const unsavedImages = generatedImages.filter(img => !img.alreadySaved);
+          const preSavedCount = generatedImages.filter(img => img.alreadySaved).length;
+          
           if (generatedImages.length > 0 && user) {
-            toast({
-              title: "Image Generated!",
-              description: `Created ${imageCount} image${imageCount > 1 ? "s" : ""}. Saving to your creations...`,
-              className: "bg-[#B94E30]/10 border-[#B94E30]/30 text-[#B94E30] dark:bg-[#B94E30]/20 dark:border-[#B94E30]/50 dark:text-[#E3B436]",
-            });
-            
-            let savedCount = 0;
-            const savePromises = generatedImages.map(async (img) => {
-              try {
-                await imagesApi.create({
-                  imageUrl: img.src,
-                  prompt: img.prompt,
-                  style: img.style || "auto",
-                  aspectRatio: img.aspectRatio || "1:1",
-                  isPublic: isPublicImage,
-                });
-                savedCount++;
-              } catch (error) {
-                console.error("Failed to save image:", error);
-              }
-            });
-            
-            await Promise.all(savePromises);
-            
-            if (savedCount > 0) {
+            if (unsavedImages.length > 0) {
               toast({
-                title: "Saved!",
-                description: `${savedCount} image${savedCount > 1 ? "s" : ""} saved to your creations.`,
+                title: "Image Generated!",
+                description: `Created ${imageCount} image${imageCount > 1 ? "s" : ""}. Saving to your creations...`,
+                className: "bg-[#B94E30]/10 border-[#B94E30]/30 text-[#B94E30] dark:bg-[#B94E30]/20 dark:border-[#B94E30]/50 dark:text-[#E3B436]",
+              });
+              
+              let savedCount = 0;
+              const savePromises = unsavedImages.map(async (img) => {
+                try {
+                  await imagesApi.create({
+                    imageUrl: img.src,
+                    prompt: img.prompt,
+                    style: img.style || "auto",
+                    aspectRatio: img.aspectRatio || "1:1",
+                    isPublic: isPublicImage,
+                  });
+                  savedCount++;
+                } catch (error) {
+                  console.error("Failed to save image:", error);
+                }
+              });
+              
+              await Promise.all(savePromises);
+              
+              const totalSaved = savedCount + preSavedCount;
+              if (totalSaved > 0) {
+                toast({
+                  title: "Saved!",
+                  description: `${totalSaved} image${totalSaved > 1 ? "s" : ""} saved to your creations.`,
+                  className: "bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-900/50 dark:text-green-400",
+                });
+                setTimeout(() => {
+                  setStatus("idle");
+                  setAgents(AGENTS.map(a => ({ ...a, status: "idle" })));
+                  setProgress(0);
+                  setPendingImages([]);
+                }, 2000);
+              } else {
+                toast({
+                  title: "Save Failed",
+                  description: "Could not save images. They are still visible below.",
+                  variant: "destructive",
+                });
+                setTimeout(() => {
+                  setStatus("idle");
+                  setAgents(AGENTS.map(a => ({ ...a, status: "idle" })));
+                  setProgress(0);
+                  setPendingImages([]);
+                }, 3000);
+              }
+            } else {
+              // All images were pre-saved by backend
+              toast({
+                title: "Image Generated!",
+                description: `Created ${imageCount} image${imageCount > 1 ? "s" : ""}. Already saved to your creations!`,
                 className: "bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-900/50 dark:text-green-400",
               });
               setTimeout(() => {
@@ -926,23 +983,11 @@ export default function ImageGenerator() {
                 setProgress(0);
                 setPendingImages([]);
               }, 2000);
-            } else {
-              toast({
-                title: "Save Failed",
-                description: "Could not save images. They are still visible below.",
-                variant: "destructive",
-              });
-              setTimeout(() => {
-                setStatus("idle");
-                setAgents(AGENTS.map(a => ({ ...a, status: "idle" })));
-                setProgress(0);
-                setPendingImages([]);
-              }, 3000);
             }
           } else {
             toast({
               title: "Image Generated!",
-              description: `Created ${imageCount} image${imageCount > 1 ? "s" : ""}. Sign in to save to your library.`,
+              description: `Created ${imageCount} image${imageCount > 1 ? "s" : ""}. ${preSavedCount > 0 ? 'Saved!' : 'Sign in to save to your library.'}`,
               className: "bg-[#B94E30]/10 border-[#B94E30]/30 text-[#B94E30] dark:bg-[#B94E30]/20 dark:border-[#B94E30]/50 dark:text-[#E3B436]",
             });
             setTimeout(() => {
