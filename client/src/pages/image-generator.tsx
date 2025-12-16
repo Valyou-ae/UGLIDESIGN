@@ -229,6 +229,7 @@ export default function ImageGenerator() {
   const [agents, setAgents] = useState<Agent[]>(AGENTS);
   const [progress, setProgress] = useState(0);
   const [imageProgress, setImageProgress] = useState<{ current: number; total: number }>({ current: 0, total: 1 });
+  const [pendingImages, setPendingImages] = useState<Array<{ id: string; status: 'loading' | 'complete' | 'error'; image?: GeneratedImage }>>([]);
   const [selectedImage, setSelectedImage] = useState<GeneratedImage | null>(null);
   const [imageToDelete, setImageToDelete] = useState<GeneratedImage | null>(null);
   const [isListening, setIsListening] = useState(false);
@@ -801,14 +802,22 @@ export default function ImageGenerator() {
     
     setStatus("generating");
     setProgress(0);
-    setImageProgress({ current: 0, total: parseInt(settings.variations) || 1 });
+    const totalCount = parseInt(settings.variations) || 1;
+    setImageProgress({ current: 0, total: totalCount });
     setGenerationStartTime(Date.now());
     setElapsedSeconds(0);
     setAgents(AGENTS.map(a => ({ ...a, status: "idle" })));
+    
+    // Initialize pending image slots
+    const initialPending = Array.from({ length: totalCount }, (_, i) => ({
+      id: `pending-${Date.now()}-${i}`,
+      status: 'loading' as const
+    }));
+    setPendingImages(initialPending);
 
     const generatedImages: GeneratedImage[] = [];
     let imageCount = 0;
-    let totalExpected = parseInt(settings.variations) || 1;
+    let totalExpected = totalCount;
 
     const handleEvent = (event: GenerationEvent) => {
       const { type, data } = event;
@@ -841,7 +850,8 @@ export default function ImageGenerator() {
         totalExpected = data.total;
       }
 
-      if (type === "image" && data.imageData && data.mimeType) {
+      if (type === "image" && data.imageData && data.mimeType && typeof data.index === 'number') {
+        const imageIndex = data.index;
         imageCount++;
         const newImage: GeneratedImage = {
           id: `${Date.now()}-${imageCount}`,
@@ -855,9 +865,15 @@ export default function ImageGenerator() {
         };
         generatedImages.push(newImage);
         setGenerations(prev => [newImage, ...prev]);
+        
+        // Update pending image slot only if still loading (prevent overwriting)
+        setPendingImages(prev => prev.map((p, i) => 
+          i === imageIndex && p.status === 'loading' ? { ...p, status: 'complete' as const, image: newImage } : p
+        ));
       }
 
-      if (type === "final_image" && data.imageData && data.mimeType) {
+      if (type === "final_image" && data.imageData && data.mimeType && typeof data.index === 'number') {
+        const imageIndex = data.index;
         imageCount++;
         const newImage: GeneratedImage = {
           id: `${Date.now()}-${imageCount}`,
@@ -871,6 +887,18 @@ export default function ImageGenerator() {
         };
         generatedImages.push(newImage);
         setGenerations(prev => [newImage, ...prev]);
+        
+        // Update pending image slot only if still loading (prevent overwriting)
+        setPendingImages(prev => prev.map((p, i) => 
+          i === imageIndex && p.status === 'loading' ? { ...p, status: 'complete' as const, image: newImage } : p
+        ));
+      }
+      
+      if (type === "image_error" && typeof data.index === 'number') {
+        // Mark the corresponding slot as failed only if still loading
+        setPendingImages(prev => prev.map((p, i) => 
+          i === data.index && p.status === 'loading' ? { ...p, status: 'error' as const } : p
+        ));
       }
 
       if (type === "complete") {
@@ -914,6 +942,7 @@ export default function ImageGenerator() {
                 setStatus("idle");
                 setAgents(AGENTS.map(a => ({ ...a, status: "idle" })));
                 setProgress(0);
+                setPendingImages([]);
               }, 2000);
             } else {
               toast({
@@ -925,6 +954,7 @@ export default function ImageGenerator() {
                 setStatus("idle");
                 setAgents(AGENTS.map(a => ({ ...a, status: "idle" })));
                 setProgress(0);
+                setPendingImages([]);
               }, 3000);
             }
           } else {
@@ -937,6 +967,7 @@ export default function ImageGenerator() {
               setStatus("idle");
               setAgents(AGENTS.map(a => ({ ...a, status: "idle" })));
               setProgress(0);
+              setPendingImages([]);
             }, 3000);
           }
         };
@@ -947,6 +978,7 @@ export default function ImageGenerator() {
         setStatus("idle");
         setAgents(AGENTS.map(a => ({ ...a, status: "idle" })));
         setProgress(0);
+        setPendingImages([]);
         toast({
           title: "Generation Failed",
           description: data.message || "An error occurred during generation.",
@@ -987,6 +1019,7 @@ export default function ImageGenerator() {
       setStatus("idle");
       setAgents(AGENTS.map(a => ({ ...a, status: "idle" })));
       setProgress(0);
+      setPendingImages([]);
       toast({
         title: "Generation Failed",
         description: error instanceof Error ? error.message : "An error occurred during generation.",
@@ -1726,32 +1759,85 @@ export default function ImageGenerator() {
         <div className="flex-1 overflow-y-auto p-6 md:p-8 pb-40 md:pb-10 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           <div className="max-w-[1400px] mx-auto space-y-8">
             
-            {/* Generation Status - Shows during generation */}
-            {status === "generating" && (
+            {/* Generation Status - Shows during generation with progressive image cards */}
+            {status === "generating" && pendingImages.length > 0 && (
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-gradient-to-br from-[#B94E30]/10 to-[#E3B436]/10 border border-[#B94E30]/30 rounded-2xl p-8 flex flex-col items-center justify-center"
+                className="space-y-4"
               >
-                <div className="relative mb-4">
-                  <div className="h-24 w-24 rounded-full border-2 border-[#B94E30]/30 flex items-center justify-center backdrop-blur-sm bg-background/50">
-                    <motion.div
-                      className="absolute inset-0 rounded-full border-2 border-[#B94E30]"
-                      style={{ borderTopColor: 'transparent', borderLeftColor: 'transparent' }}
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    />
-                    <span className="text-3xl font-mono font-bold text-foreground tabular-nums">
-                      {formatTime(elapsedSeconds)}
-                    </span>
+                {/* Header with timer */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <div className="h-10 w-10 rounded-full border-2 border-[#B94E30]/30 flex items-center justify-center backdrop-blur-sm bg-background/50">
+                        <motion.div
+                          className="absolute inset-0 rounded-full border-2 border-[#B94E30]"
+                          style={{ borderTopColor: 'transparent', borderLeftColor: 'transparent' }}
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        />
+                        <span className="text-sm font-mono font-bold text-foreground tabular-nums">
+                          {formatTime(elapsedSeconds)}
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-foreground font-medium">{getProgressText()}</p>
+                      <p className="text-muted-foreground text-xs">
+                        {pendingImages.filter(p => p.status === 'complete').length} of {pendingImages.length} complete
+                      </p>
+                    </div>
                   </div>
                 </div>
-                <p className="text-foreground font-medium text-lg mb-2">{getProgressText()}</p>
-                <p className="text-muted-foreground text-sm">
-                  {imageProgress.total > 1 
-                    ? `Generating image ${imageProgress.current} of ${imageProgress.total}...`
-                    : "Your image is being created..."}
-                </p>
+                
+                {/* Progressive Image Grid */}
+                <div className={cn(
+                  "grid gap-3",
+                  pendingImages.length === 1 ? "grid-cols-1 max-w-md mx-auto" :
+                  pendingImages.length === 2 ? "grid-cols-2" :
+                  "grid-cols-2 md:grid-cols-4"
+                )}>
+                  {pendingImages.map((pending, index) => (
+                    <motion.div
+                      key={pending.id}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.1 }}
+                      className={cn(
+                        "relative rounded-xl overflow-hidden border transition-all",
+                        pending.status === 'loading' 
+                          ? "bg-gradient-to-br from-[#B94E30]/5 to-[#E3B436]/5 border-[#B94E30]/20" 
+                          : "border-border bg-card"
+                      )}
+                      style={{ aspectRatio: settings.aspectRatio === "16:9" ? "16/9" : settings.aspectRatio === "9:16" ? "9/16" : settings.aspectRatio === "4:3" ? "4/3" : settings.aspectRatio === "3:4" ? "3/4" : "1/1" }}
+                    >
+                      {pending.status === 'loading' ? (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                          <motion.div
+                            className="h-8 w-8 rounded-full border-2 border-[#B94E30] border-t-transparent"
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          />
+                          <span className="text-xs text-muted-foreground">Image {index + 1}</span>
+                        </div>
+                      ) : pending.image ? (
+                        <motion.img 
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          src={pending.image.src} 
+                          alt={pending.image.prompt} 
+                          className="w-full h-full object-cover cursor-pointer"
+                          onClick={() => setSelectedImage(pending.image!)}
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-xs text-destructive">Failed</span>
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
               </motion.div>
             )}
 
