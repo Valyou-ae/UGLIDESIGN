@@ -468,12 +468,15 @@ export async function generateImage(
     console.log(`[Image Generation] API call completed in ${Date.now() - startTime}ms`);
 
     const candidates = response.candidates;
+    console.log(`[Image Generation] Response has ${candidates?.length || 0} candidates`);
     if (!candidates || candidates.length === 0) {
       console.error("No candidates in response");
+      console.error("[Image Generation] Full response:", JSON.stringify(response, null, 2).slice(0, 500));
       return null;
     }
 
     const content = candidates[0].content;
+    console.log(`[Image Generation] Content has ${content?.parts?.length || 0} parts`);
     if (!content || !content.parts) {
       console.error("No content parts in response");
       return null;
@@ -486,13 +489,16 @@ export async function generateImage(
     for (const part of content.parts) {
       if (part.text) {
         textResponse = part.text;
+        console.log(`[Image Generation] Found text part: ${part.text.slice(0, 100)}...`);
       } else if (part.inlineData && part.inlineData.data) {
         imageData = part.inlineData.data;
         mimeType = part.inlineData.mimeType || "image/png";
+        console.log(`[Image Generation] Found image data: ${imageData.length} bytes, type: ${mimeType}`);
       }
     }
 
     if (imageData) {
+      console.log(`[Image Generation] Success! Returning image data`);
       keyManager.reportSuccess(client);
       return {
         imageData,
@@ -502,6 +508,7 @@ export async function generateImage(
     }
 
     console.error("No image data in response parts");
+    console.error("[Image Generation] Parts:", JSON.stringify(content.parts.map((p: any) => Object.keys(p)), null, 2));
     return null;
   } catch (error) {
     console.error("Image generation failed:", error);
