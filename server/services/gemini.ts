@@ -444,17 +444,19 @@ export async function generateImage(
     // Use user-selected quality level (no longer auto-forcing premium for text)
     const model = qualityLevel === "premium" ? MODELS.IMAGE_PREMIUM : MODELS.IMAGE_DRAFT;
     
+    const startTime = Date.now();
     console.log(`[Image Generation] Using model: ${model} (quality: ${qualityLevel}, hasText: ${hasTextRequest})`);
 
     // Build config with optimizations for speed
+    // For premium: request IMAGE only (no TEXT) and disable thinking
     const config: any = {
-      responseModalities: [Modality.TEXT, Modality.IMAGE],
+      responseModalities: qualityLevel === "premium" ? [Modality.IMAGE] : [Modality.TEXT, Modality.IMAGE],
       aspectRatio: validAspectRatio,
     };
     
     // For premium model, disable thinking to reduce latency
     if (qualityLevel === "premium") {
-      config.thinkingConfig = { thinkingBudget: 0 };
+      config.generationConfig = { thinkingConfig: { thinkingBudget: 0 } };
     }
 
     const response = await client.models.generateContent({
@@ -462,6 +464,8 @@ export async function generateImage(
       contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
       config,
     });
+    
+    console.log(`[Image Generation] API call completed in ${Date.now() - startTime}ms`);
 
     const candidates = response.candidates;
     if (!candidates || candidates.length === 0) {
@@ -783,6 +787,7 @@ export async function generateMockup(
       ? `${prompt}\n\nApply the provided design image onto the product accurately. Maintain the design's colors and details.\n\nAvoid: ${negativePrompts.join(", ")}`
       : `${prompt}\n\nApply the provided design image onto the product accurately. Maintain the design's colors and details.`;
 
+    const startTime = Date.now();
     const response = await client.models.generateContent({
       model: MODELS.IMAGE_PREMIUM,
       contents: [
@@ -802,10 +807,11 @@ export async function generateMockup(
         },
       ],
       config: {
-        responseModalities: [Modality.TEXT, Modality.IMAGE],
-        thinkingConfig: { thinkingBudget: 0 },
+        responseModalities: [Modality.IMAGE],
+        generationConfig: { thinkingConfig: { thinkingBudget: 0 } },
       } as any,
     });
+    console.log(`[Mockup Generation] API call completed in ${Date.now() - startTime}ms`);
 
     const candidates = response.candidates;
     if (!candidates || candidates.length === 0) {
@@ -878,6 +884,7 @@ TECHNICAL SPECIFICATIONS:
 Generate a beautiful, creative seamless pattern based on this design:`;
 
   try {
+    const startTime = Date.now();
     const response = await client.models.generateContent({
       model: MODELS.IMAGE_PREMIUM,
       contents: [
@@ -897,10 +904,11 @@ Generate a beautiful, creative seamless pattern based on this design:`;
         },
       ],
       config: {
-        responseModalities: [Modality.TEXT, Modality.IMAGE],
-        thinkingConfig: { thinkingBudget: 0 },
+        responseModalities: [Modality.IMAGE],
+        generationConfig: { thinkingConfig: { thinkingBudget: 0 } },
       } as any,
     });
+    console.log(`[Seamless Pattern] API call completed in ${Date.now() - startTime}ms`);
 
     const candidates = response.candidates;
     if (!candidates || candidates.length === 0) {
