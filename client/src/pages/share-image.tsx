@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useRoute, Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, Download, Sparkles, Lock, ExternalLink, Heart, RefreshCw, Eye } from "lucide-react";
+import { ArrowLeft, Download, Sparkles, Lock, ExternalLink, Heart, RefreshCw, Eye, Share2, Check, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +31,33 @@ export default function ShareImage() {
   const [error, setError] = useState<string | null>(null);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const [linkCopied, setLinkCopied] = useState(false);
   const { toast } = useToast();
+
+  const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/share/${imageId}` : '';
+  const shareText = image?.prompt ? `Check out this AI-generated image: "${image.prompt.slice(0, 100)}${image.prompt.length > 100 ? '...' : ''}"` : 'Check out this AI-generated image!';
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(shareUrl);
+    setLinkCopied(true);
+    toast({ title: "Link Copied!", description: "Share link copied to clipboard" });
+    setTimeout(() => setLinkCopied(false), 2000);
+  };
+
+  const handleShareTwitter = () => {
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+    window.open(url, '_blank', 'width=550,height=420');
+  };
+
+  const handleShareFacebook = () => {
+    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+    window.open(url, '_blank', 'width=550,height=420');
+  };
+
+  const handleShareWhatsApp = () => {
+    const url = `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`;
+    window.open(url, '_blank');
+  };
 
   useEffect(() => {
     async function fetchImage() {
@@ -297,13 +324,70 @@ export default function ShareImage() {
                 <RefreshCw className="w-4 h-4" />
                 Remix
               </Button>
-              <Link href="/image-gen">
-                <Button className="w-full gap-2 bg-[#B94E30] hover:bg-[#A04228] text-white" data-testid="button-try-ugli">
-                  <Sparkles className="w-4 h-4" />
-                  Try UGLI
-                </Button>
-              </Link>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="gap-2" data-testid="button-quick-share">
+                    <Share2 className="w-4 h-4" />
+                    Quick Share
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-2" align="end">
+                  <div className="grid gap-1">
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start gap-3 h-10"
+                      onClick={handleShareTwitter}
+                      data-testid="button-share-twitter"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                      </svg>
+                      Share on X
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start gap-3 h-10"
+                      onClick={handleShareFacebook}
+                      data-testid="button-share-facebook"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                      </svg>
+                      Share on Facebook
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start gap-3 h-10"
+                      onClick={handleShareWhatsApp}
+                      data-testid="button-share-whatsapp"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                      </svg>
+                      Share on WhatsApp
+                    </Button>
+                    <div className="border-t border-border my-1" />
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start gap-3 h-10"
+                      onClick={handleCopyLink}
+                      data-testid="button-copy-share-link"
+                    >
+                      {linkCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      {linkCopied ? "Copied!" : "Copy Link"}
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
+            
+            {/* Try UGLI Button - Full Width */}
+            <Link href="/image-gen">
+              <Button className="w-full gap-2 bg-[#B94E30] hover:bg-[#A04228] text-white" data-testid="button-try-ugli">
+                <Sparkles className="w-4 h-4" />
+                Try UGLI
+              </Button>
+            </Link>
 
             {/* CTA Box */}
             <div className="p-6 rounded-2xl bg-gradient-to-br from-[#B94E30]/10 to-[#E3B436]/10 border border-[#B94E30]/20">
