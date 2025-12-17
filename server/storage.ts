@@ -869,25 +869,34 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteGalleryImageBySourceId(sourceImageId: string, imageUrl?: string): Promise<void> {
+    console.log(`[Gallery Delete] Looking for sourceImageId: ${sourceImageId}`);
     // First try to find by sourceImageId
     let [galleryImage] = await db
       .select()
       .from(galleryImages)
       .where(eq(galleryImages.sourceImageId, sourceImageId));
     
+    console.log(`[Gallery Delete] Found by sourceImageId: ${galleryImage ? galleryImage.id : 'none'}`);
+    
     // Fallback: try to find by imageUrl for older images without sourceImageId
     if (!galleryImage && imageUrl) {
+      console.log(`[Gallery Delete] Trying imageUrl fallback, url length: ${imageUrl.length}`);
       [galleryImage] = await db
         .select()
         .from(galleryImages)
         .where(eq(galleryImages.imageUrl, imageUrl));
+      console.log(`[Gallery Delete] Found by imageUrl: ${galleryImage ? galleryImage.id : 'none'}`);
     }
     
     if (galleryImage) {
+      console.log(`[Gallery Delete] Deleting gallery image: ${galleryImage.id}`);
       // Delete associated likes
       await db.delete(galleryImageLikes).where(eq(galleryImageLikes.imageId, galleryImage.id));
       // Delete the gallery image
       await db.delete(galleryImages).where(eq(galleryImages.id, galleryImage.id));
+      console.log(`[Gallery Delete] Deleted successfully`);
+    } else {
+      console.log(`[Gallery Delete] No gallery image found to delete`);
     }
   }
 
@@ -1006,6 +1015,7 @@ export class DatabaseStorage implements IStorage {
       }
     } else {
       // Remove from gallery - pass imageUrl as fallback for older images without sourceImageId
+      console.log(`[setImageVisibility] Removing from gallery, imageId: ${imageId}, imageUrl length: ${image.imageUrl.length}`);
       await this.deleteGalleryImageBySourceId(imageId, image.imageUrl);
     }
     
