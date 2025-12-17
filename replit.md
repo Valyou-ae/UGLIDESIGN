@@ -52,6 +52,7 @@ Preferred communication style: Simple, everyday language.
 -   **Password Reset Flow**: Secure token-based reset - tokens are bcrypt-hashed before storage, verified via bcrypt.compare, reset links include email+token parameters, tokens never returned to frontend.
 -   **Voice Input**: Uses Web Speech API for image generator prompt input with graceful fallback for unsupported browsers.
 -   **Profile Page**: Connected to real user data from auth context and database (username, email, join date, stats, creations).
+-   **Image Sharing**: Public images can be shared via unique URL (`/share/:imageId`). Share page displays image, prompt, style, aspect ratio, creation date, and creator info. Dynamic Open Graph meta tags are injected server-side for rich social media previews. "Copy Link" buttons appear in Image Generator and My Creations detail panels when images are set to public.
 
 ## Admin Dashboard & CRM
 

@@ -30,7 +30,8 @@ import {
   Calendar,
   Clock,
   ClipboardCopy,
-  Loader2
+  Loader2,
+  Share2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -950,7 +951,7 @@ export default function MyCreations() {
                       <span className="text-xs text-muted-foreground">Date Created</span>
                       <span className="text-xs font-medium text-foreground">{selectedItem.date} at {selectedItem.time}</span>
                     </div>
-                    <div className="flex justify-between items-center py-2">
+                    <div className="flex justify-between items-center py-2 border-b border-border">
                       <span className="text-xs text-muted-foreground">Visibility</span>
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-medium text-foreground">
@@ -964,6 +965,25 @@ export default function MyCreations() {
                         />
                       </div>
                     </div>
+                    {selectedItem.isPublic && (
+                      <div className="flex justify-between items-center py-2">
+                        <span className="text-xs text-muted-foreground">Share Link</span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs gap-1.5"
+                          onClick={() => {
+                            const shareUrl = `${window.location.origin}/share/${selectedItem.id}`;
+                            navigator.clipboard.writeText(shareUrl);
+                            toast({ title: "Link Copied!", description: "Share link copied to clipboard" });
+                          }}
+                          data-testid="button-copy-share-link"
+                        >
+                          <Share2 className="h-3.5 w-3.5" />
+                          Copy Link
+                        </Button>
+                      </div>
+                    )}
                   </div>
 
                   {/* Tags */}

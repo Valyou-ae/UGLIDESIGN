@@ -978,6 +978,18 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/images/share/:id", async (req: any, res) => {
+    try {
+      const image = await storage.getPublicImageById(req.params.id);
+      if (!image) {
+        return res.status(404).json({ message: "Image not found or is private" });
+      }
+      res.json({ image });
+    } catch (error) {
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   app.get("/api/images/calendar", requireAuth, async (req: any, res) => {
     try {
       const userId = getUserId(req);
