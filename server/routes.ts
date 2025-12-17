@@ -984,7 +984,25 @@ export async function registerRoutes(
       if (!image) {
         return res.status(404).json({ message: "Image not found or is private" });
       }
-      res.json({ image });
+      // Get gallery image ID for like functionality
+      const galleryImage = await storage.getGalleryImageBySourceId(req.params.id);
+      const likeCount = galleryImage?.likes || 0;
+      
+      // Check if current user has liked this image (if logged in)
+      let likedByViewer = false;
+      const userId = req.user?.claims?.sub || req.session?.passport?.user?.id;
+      if (userId && galleryImage?.id) {
+        likedByViewer = await storage.hasUserLikedImage(String(galleryImage.id), userId);
+      }
+      
+      res.json({ 
+        image: {
+          ...image,
+          galleryImageId: galleryImage?.id ? String(galleryImage.id) : null,
+          likeCount,
+          likedByViewer
+        }
+      });
     } catch (error) {
       res.status(500).json({ message: "Server error" });
     }

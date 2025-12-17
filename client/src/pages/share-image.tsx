@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { useRoute, Link } from "wouter";
+import { useRoute, Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, Download, Sparkles, Lock, ExternalLink } from "lucide-react";
+import { ArrowLeft, Download, Sparkles, Lock, ExternalLink, Heart, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface SharedImage {
   id: string;
@@ -13,14 +14,20 @@ interface SharedImage {
   aspectRatio?: string;
   username?: string;
   createdAt: string;
+  galleryImageId?: string;
+  likeCount?: number;
+  likedByViewer?: boolean;
 }
 
 export default function ShareImage() {
   const [, params] = useRoute("/share/:id");
+  const [, setLocation] = useLocation();
   const imageId = params?.id;
   const [image, setImage] = useState<SharedImage | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -39,6 +46,8 @@ export default function ShareImage() {
         }
         const data = await response.json();
         setImage(data.image);
+        setLikeCount(data.image.likeCount || 0);
+        setLiked(data.image.likedByViewer || false);
       } catch (err) {
         setError("Failed to load image.");
       } finally {
@@ -54,20 +63,67 @@ export default function ShareImage() {
     
     try {
       toast({ title: "Downloading...", description: "Preparing your image" });
-      const response = await fetch(image.imageUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `ugli-${image.id}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      
+      // Handle base64 images differently from URL images
+      if (image.imageUrl.startsWith('data:')) {
+        // For base64 images, create a link directly
+        const a = document.createElement("a");
+        a.href = image.imageUrl;
+        a.download = `ugli-${image.id}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      } else {
+        // For URL images, fetch and create blob
+        const response = await fetch(image.imageUrl);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `ugli-${image.id}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }
       toast({ title: "Downloaded!", description: "Image saved to your device" });
     } catch (err) {
       toast({ variant: "destructive", title: "Download failed", description: "Please try again" });
     }
+  };
+
+  const handleLike = async () => {
+    if (!image?.galleryImageId) {
+      toast({ title: "Like feature", description: "Sign in to like images" });
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/api/gallery/${image.galleryImageId}/like`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setLiked(data.liked);
+        setLikeCount(prev => data.liked ? prev + 1 : prev - 1);
+      } else {
+        toast({ title: "Sign in to like", description: "Create an account to like images" });
+      }
+    } catch (err) {
+      toast({ variant: "destructive", title: "Error", description: "Could not like image" });
+    }
+  };
+
+  const handleRemix = () => {
+    if (!image?.prompt) {
+      toast({ title: "No prompt available", description: "This image doesn't have a prompt to remix" });
+      return;
+    }
+    // Navigate to image generator with prompt in URL
+    const encodedPrompt = encodeURIComponent(image.prompt);
+    setLocation(`/image-gen?remix=${encodedPrompt}`);
   };
 
   if (loading) {
@@ -186,20 +242,38 @@ export default function ShareImage() {
             </div>
 
             {/* Actions */}
-            <div className="flex gap-3 pt-4">
+            <div className="grid grid-cols-2 gap-3 pt-4">
               <Button
                 onClick={handleDownload}
                 variant="outline"
-                className="flex-1 gap-2"
+                className="gap-2"
                 data-testid="button-download-shared"
               >
                 <Download className="w-4 h-4" />
                 Download
               </Button>
-              <Link href="/image-gen" className="flex-1">
+              <Button
+                onClick={handleLike}
+                variant="outline"
+                className={cn("gap-2", liked && "bg-red-50 border-red-200 text-red-600 hover:bg-red-100")}
+                data-testid="button-like-shared"
+              >
+                <Heart className={cn("w-4 h-4", liked && "fill-current")} />
+                {likeCount > 0 ? likeCount : "Like"}
+              </Button>
+              <Button
+                onClick={handleRemix}
+                variant="outline"
+                className="gap-2"
+                data-testid="button-remix-shared"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Remix
+              </Button>
+              <Link href="/image-gen">
                 <Button className="w-full gap-2 bg-[#B94E30] hover:bg-[#A04228] text-white" data-testid="button-try-ugli">
                   <Sparkles className="w-4 h-4" />
-                  Try UGLI Free
+                  Try UGLI
                 </Button>
               </Link>
             </div>

@@ -784,11 +784,15 @@ export default function ImageGenerator() {
     }
   };
 
-  // Initialize prompt from URL if available
+  // Initialize prompt from URL if available (supports 'prompt' and 'remix' params)
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const promptParam = searchParams.get('prompt');
-    if (promptParam) {
+    const remixParam = searchParams.get('remix');
+    if (remixParam) {
+      setPrompt(decodeURIComponent(remixParam));
+      toast({ title: "Remix Mode", description: "Edit the prompt and generate your own version!" });
+    } else if (promptParam) {
       setPrompt(promptParam);
     }
   }, []);
