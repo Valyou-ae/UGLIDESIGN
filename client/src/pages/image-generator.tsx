@@ -2278,7 +2278,7 @@ export default function ImageGenerator() {
                         <span className="text-xs text-muted-foreground">Seed</span>
                         <span className="text-xs font-medium text-foreground font-mono">82739103</span>
                       </div>
-                      <div className="flex justify-between items-center py-2">
+                      <div className="flex justify-between items-center py-2 border-b border-border">
                         <span className="text-xs text-muted-foreground">Visibility</span>
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-medium text-foreground">
@@ -2292,6 +2292,25 @@ export default function ImageGenerator() {
                           />
                         </div>
                       </div>
+                      {selectedImage.isPublic && (
+                        <div className="flex justify-between items-center py-2">
+                          <span className="text-xs text-muted-foreground">Share Link</span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs gap-1.5"
+                            onClick={() => {
+                              const shareUrl = `${window.location.origin}/share/${selectedImage.id}`;
+                              navigator.clipboard.writeText(shareUrl);
+                              toast({ title: "Link Copied!", description: "Share link copied to clipboard" });
+                            }}
+                            data-testid="button-copy-share-link-generator"
+                          >
+                            <Share2 className="h-3.5 w-3.5" />
+                            Copy Link
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

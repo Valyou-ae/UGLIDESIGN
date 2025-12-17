@@ -34,6 +34,7 @@ import AdminCRM from "@/pages/admin/crm";
 import AdminContacts from "@/pages/admin/contacts";
 import AdminDeals from "@/pages/admin/deals";
 import AdminAnalytics from "@/pages/admin/analytics";
+import ShareImage from "@/pages/share-image";
 
 function Router() {
   return (
@@ -47,6 +48,7 @@ function Router() {
       <Route path="/forgot-password" component={ForgotPassword} />
       <Route path="/reset-password" component={ResetPassword} />
       <Route path="/help" component={HelpSupport} />
+      <Route path="/share/:id" component={ShareImage} />
 
       {/* Protected routes (require authentication) */}
       <Route path="/discover">
