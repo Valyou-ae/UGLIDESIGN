@@ -45,6 +45,13 @@ export function useImages() {
     },
   });
 
+  const setVisibilityMutation = useMutation({
+    mutationFn: ({ id, isPublic }: { id: string; isPublic: boolean }) => imagesApi.setVisibility(id, isPublic),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["images"] });
+    },
+  });
+
   // Optimized: Memoize flatMap to prevent recalculation on every render
   const allImages = useMemo(
     () => data?.pages.flatMap(page => page.images) || [],
@@ -60,6 +67,7 @@ export function useImages() {
     createImage: createImageMutation.mutateAsync,
     toggleFavorite: toggleFavoriteMutation.mutateAsync,
     deleteImage: deleteImageMutation.mutateAsync,
+    setVisibility: setVisibilityMutation.mutateAsync,
     isCreating: createImageMutation.isPending,
     fetchNextPage,
     hasNextPage,

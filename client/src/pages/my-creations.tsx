@@ -56,6 +56,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useImages } from "@/hooks/use-images";
 import { CalendarHistoryModal } from "@/components/calendar-history-modal";
@@ -72,6 +73,7 @@ type ItemType = {
   src: string;
   tags: string[];
   favorite: boolean;
+  isPublic: boolean;
 };
 
 import { useLocation } from "wouter";
@@ -92,7 +94,7 @@ export default function MyCreations() {
   const { toast } = useToast();
   
   // Fetch images from backend API
-  const { images: dbImages, isLoading, toggleFavorite: apiToggleFavorite, deleteImage: apiDeleteImage, hasNextPage, fetchNextPage, isFetchingNextPage, total } = useImages();
+  const { images: dbImages, isLoading, toggleFavorite: apiToggleFavorite, deleteImage: apiDeleteImage, setVisibility: apiSetVisibility, hasNextPage, fetchNextPage, isFetchingNextPage, total } = useImages();
 
   const items: ItemType[] = useMemo(() => {
     return dbImages.map((img: any) => ({
@@ -106,6 +108,7 @@ export default function MyCreations() {
       src: img.imageUrl,
       tags: [img.style || "Generated"],
       favorite: img.isFavorite || false,
+      isPublic: img.isPublic || false,
     }));
   }, [dbImages]);
 
@@ -129,6 +132,29 @@ export default function MyCreations() {
         title: "Error",
         description: "Failed to update favorite status",
       });
+    }
+  };
+
+  const toggleVisibility = async (id: string, currentIsPublic: boolean) => {
+    const newIsPublic = !currentIsPublic;
+    // Optimistic update for selectedItem
+    if (selectedItem && selectedItem.id === id) {
+      setSelectedItem(prev => prev ? { ...prev, isPublic: newIsPublic } : null);
+    }
+    
+    try {
+      // Use the hook's setVisibility which invalidates the query cache
+      await apiSetVisibility({ id, isPublic: newIsPublic });
+      toast({ 
+        title: newIsPublic ? "Image is now Public" : "Image is now Private", 
+        description: newIsPublic ? "This image will appear in the public gallery." : "This image is only visible to you." 
+      });
+    } catch (error) {
+      // Rollback on error
+      if (selectedItem && selectedItem.id === id) {
+        setSelectedItem(prev => prev ? { ...prev, isPublic: currentIsPublic } : null);
+      }
+      toast({ variant: "destructive", title: "Failed", description: "Could not update visibility." });
     }
   };
 
@@ -923,6 +949,20 @@ export default function MyCreations() {
                     <div className="flex justify-between py-2 border-b border-border">
                       <span className="text-xs text-muted-foreground">Date Created</span>
                       <span className="text-xs font-medium text-foreground">{selectedItem.date} at {selectedItem.time}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-2">
+                      <span className="text-xs text-muted-foreground">Visibility</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium text-foreground">
+                          {selectedItem.isPublic ? "Public" : "Private"}
+                        </span>
+                        <Switch
+                          checked={selectedItem.isPublic}
+                          onCheckedChange={() => toggleVisibility(selectedItem.id, selectedItem.isPublic)}
+                          data-testid="switch-visibility-creations"
+                          className="data-[state=checked]:bg-[#B94E30] scale-75"
+                        />
+                      </div>
                     </div>
                   </div>
 
