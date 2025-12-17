@@ -242,25 +242,6 @@ export default function ShareImage() {
               )}
             </div>
 
-            {/* Social Stats */}
-            <div className="flex items-center gap-6 py-3 px-4 rounded-xl bg-muted/20 border border-border">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Eye className="w-4 h-4" />
-                <span className="text-sm font-medium">{image.viewCount || 0}</span>
-                <span className="text-xs">views</span>
-              </div>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Heart className="w-4 h-4" />
-                <span className="text-sm font-medium">{likeCount}</span>
-                <span className="text-xs">likes</span>
-              </div>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <RefreshCw className="w-4 h-4" />
-                <span className="text-sm font-medium">{image.remixCount || 0}</span>
-                <span className="text-xs">remixes</span>
-              </div>
-            </div>
-
             {/* Prompt */}
             <div className="space-y-2">
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
@@ -292,6 +273,25 @@ export default function ShareImage() {
                 <span className="text-xs font-medium text-foreground">
                   {new Date(image.createdAt).toLocaleDateString()}
                 </span>
+              </div>
+            </div>
+
+            {/* Social Stats */}
+            <div className="flex items-center gap-6 py-3 px-4 rounded-xl bg-muted/20 border border-border">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Eye className="w-4 h-4" />
+                <span className="text-sm font-medium">{image.viewCount || 0}</span>
+                <span className="text-xs">views</span>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Heart className="w-4 h-4" />
+                <span className="text-sm font-medium">{likeCount}</span>
+                <span className="text-xs">likes</span>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <RefreshCw className="w-4 h-4" />
+                <span className="text-sm font-medium">{image.remixCount || 0}</span>
+                <span className="text-xs">remixes</span>
               </div>
             </div>
 
