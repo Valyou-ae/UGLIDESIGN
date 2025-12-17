@@ -2272,24 +2272,19 @@ export default function ImageGenerator() {
                         <span className="text-xs text-muted-foreground">Seed</span>
                         <span className="text-xs font-medium text-foreground font-mono">82739103</span>
                       </div>
-                    </div>
-
-                    {/* Visibility Toggle */}
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Visibility</label>
-                      <div className="flex items-center justify-between bg-muted/30 rounded-xl p-4 border border-border">
-                        <div className="space-y-0.5">
-                          <span className="text-sm font-medium text-foreground">Public</span>
-                          <p className="text-[10px] text-muted-foreground">
-                            {selectedImage.isPublic ? "Visible to everyone on home & discovery" : "Only visible to you"}
-                          </p>
+                      <div className="flex justify-between items-center py-2">
+                        <span className="text-xs text-muted-foreground">Visibility</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-medium text-foreground">
+                            {selectedImage.isPublic ? "Public" : "Private"}
+                          </span>
+                          <Switch
+                            checked={selectedImage.isPublic || false}
+                            onCheckedChange={() => toggleVisibility(selectedImage.id, selectedImage.isPublic || false)}
+                            data-testid="switch-visibility"
+                            className="data-[state=checked]:bg-[#B94E30] scale-75"
+                          />
                         </div>
-                        <Switch
-                          checked={selectedImage.isPublic || false}
-                          onCheckedChange={() => toggleVisibility(selectedImage.id, selectedImage.isPublic || false)}
-                          data-testid="switch-visibility"
-                          className="data-[state=checked]:bg-[#B94E30]"
-                        />
                       </div>
                     </div>
                   </div>
