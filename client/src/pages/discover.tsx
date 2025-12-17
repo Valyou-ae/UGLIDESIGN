@@ -8,7 +8,8 @@ import {
   Loader2,
   Users,
   Copy,
-  Check
+  Check,
+  Clock
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -20,6 +21,24 @@ function formatCount(num: number): string {
   if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
   if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
   return num.toString();
+}
+
+function formatTimeAgo(date: Date): string {
+  const now = Date.now();
+  const diffMs = now - date.getTime();
+  const diffSecs = Math.floor(diffMs / 1000);
+  const diffMins = Math.floor(diffSecs / 60);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+  const diffWeeks = Math.floor(diffDays / 7);
+
+  if (diffSecs < 60) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffWeeks < 4) return `${diffWeeks}w ago`;
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 interface InspirationItem {
@@ -37,6 +56,7 @@ interface InspirationItem {
   prompt: string;
   isLiked?: boolean;
   isGalleryImage?: boolean;
+  createdAt?: string;
 }
 
 function LazyMasonryCard({ item, index, onLike, onUse, onCopy }: { item: InspirationItem; index: number; onLike?: (id: string) => void; onUse?: (id: string) => void; onCopy?: (prompt: string) => void }) {
@@ -207,6 +227,12 @@ function LazyMasonryCard({ item, index, onLike, onUse, onCopy }: { item: Inspira
         <div className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex gap-4">
+              {item.createdAt && (
+                <div className="flex items-center gap-1 text-xs text-[#E3B436]" title="Created">
+                  <Clock className="h-3.5 w-3.5" />
+                  <span>{formatTimeAgo(new Date(item.createdAt))}</span>
+                </div>
+              )}
               <div className="flex items-center gap-1 text-xs text-[#71717A] dark:text-[#52525B]" title="Views">
                 <Eye className="h-3.5 w-3.5" />
                 <span>{formatCount(viewCount)}</span>
@@ -1898,7 +1924,8 @@ export default function Discover() {
           aspectRatio: (img.aspectRatio as "1:1" | "9:16" | "16:9" | "4:5" | "3:4") || '1:1',
           prompt: img.prompt || '',
           isLiked: img.isLiked || false,
-          isGalleryImage: true
+          isGalleryImage: true,
+          createdAt: img.createdAt
         }));
         setCommunityImages(galleryItems);
       } catch (error) {
