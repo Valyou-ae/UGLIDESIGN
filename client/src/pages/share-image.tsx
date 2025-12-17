@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRoute, Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, Download, Sparkles, Lock, ExternalLink, Heart, RefreshCw } from "lucide-react";
+import { ArrowLeft, Download, Sparkles, Lock, ExternalLink, Heart, RefreshCw, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,8 @@ interface SharedImage {
   createdAt: string;
   galleryImageId?: string;
   likeCount?: number;
+  viewCount?: number;
+  remixCount?: number;
   likedByViewer?: boolean;
 }
 
@@ -116,10 +118,16 @@ export default function ShareImage() {
     }
   };
 
-  const handleRemix = () => {
+  const handleRemix = async () => {
     if (!image?.prompt) {
       toast({ title: "No prompt available", description: "This image doesn't have a prompt to remix" });
       return;
+    }
+    // Track remix
+    try {
+      await fetch(`/api/images/${image.id}/remix`, { method: 'POST', credentials: 'include' });
+    } catch (e) {
+      // Ignore tracking errors
     }
     // Navigate to image generator with prompt in URL
     const encodedPrompt = encodeURIComponent(image.prompt);
@@ -205,6 +213,25 @@ export default function ShareImage() {
                   Created by <span className="font-medium text-foreground">@{image.username}</span>
                 </p>
               )}
+            </div>
+
+            {/* Social Stats */}
+            <div className="flex items-center gap-6 py-3 px-4 rounded-xl bg-muted/20 border border-border">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Eye className="w-4 h-4" />
+                <span className="text-sm font-medium">{image.viewCount || 0}</span>
+                <span className="text-xs">views</span>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Heart className="w-4 h-4" />
+                <span className="text-sm font-medium">{likeCount}</span>
+                <span className="text-xs">likes</span>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <RefreshCw className="w-4 h-4" />
+                <span className="text-sm font-medium">{image.remixCount || 0}</span>
+                <span className="text-xs">remixes</span>
+              </div>
             </div>
 
             {/* Prompt */}

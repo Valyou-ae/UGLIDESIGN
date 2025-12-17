@@ -986,7 +986,9 @@ export async function registerRoutes(
       }
       // Get gallery image ID for like functionality
       const galleryImage = await storage.getGalleryImageBySourceId(req.params.id);
-      const likeCount = galleryImage?.likes || 0;
+      const likeCount = galleryImage?.likeCount || 0;
+      const viewCount = galleryImage?.viewCount || 0;
+      const remixCount = galleryImage?.useCount || 0;
       
       // Check if current user has liked this image (if logged in)
       let likedByViewer = false;
@@ -995,14 +997,34 @@ export async function registerRoutes(
         likedByViewer = await storage.hasUserLikedImage(String(galleryImage.id), userId);
       }
       
+      // Increment view count asynchronously
+      if (galleryImage?.id) {
+        storage.incrementGalleryImageView(String(galleryImage.id)).catch(() => {});
+      }
+      
       res.json({ 
         image: {
           ...image,
           galleryImageId: galleryImage?.id ? String(galleryImage.id) : null,
           likeCount,
+          viewCount: viewCount + 1, // Include the current view
+          remixCount,
           likedByViewer
         }
       });
+    } catch (error) {
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+  
+  // Track remix when user clicks remix button
+  app.post("/api/images/:id/remix", async (req: any, res) => {
+    try {
+      const galleryImage = await storage.getGalleryImageBySourceId(req.params.id);
+      if (galleryImage?.id) {
+        await storage.incrementGalleryImageUse(String(galleryImage.id));
+      }
+      res.json({ success: true });
     } catch (error) {
       res.status(500).json({ message: "Server error" });
     }
