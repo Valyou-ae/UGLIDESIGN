@@ -267,6 +267,7 @@ export default function ImageGenerator() {
   const [referenceImage, setReferenceImage] = useState<{ file: File; previewUrl: string } | null>(null);
   const [imageMode, setImageMode] = useState<"reference" | "remix">("reference");
   const [isPublicImage, setIsPublicImage] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { 
@@ -2302,16 +2303,18 @@ export default function ImageGenerator() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="h-7 text-xs gap-1.5"
+                            className="h-7 text-xs gap-1.5 cursor-pointer"
                             onClick={() => {
                               const shareUrl = `${window.location.origin}/share/${selectedImage.id}`;
                               navigator.clipboard.writeText(shareUrl);
+                              setLinkCopied(true);
                               toast({ title: "Link Copied!", description: "Share link copied to clipboard" });
+                              setTimeout(() => setLinkCopied(false), 2000);
                             }}
                             data-testid="button-copy-share-link-generator"
                           >
-                            <Share2 className="h-3.5 w-3.5" />
-                            Copy Link
+                            {linkCopied ? <Check className="h-3.5 w-3.5" /> : <Share2 className="h-3.5 w-3.5" />}
+                            {linkCopied ? "Copied!" : "Copy Link"}
                           </Button>
                         </div>
                       )}
