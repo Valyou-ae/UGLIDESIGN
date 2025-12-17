@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRoute, Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, Download, Sparkles, Lock, Heart, RefreshCw, Copy, Check } from "lucide-react";
+import { ArrowLeft, Download, Sparkles, Lock, ExternalLink, Heart, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -28,7 +28,6 @@ export default function ShareImage() {
   const [error, setError] = useState<string | null>(null);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
-  const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -65,7 +64,9 @@ export default function ShareImage() {
     try {
       toast({ title: "Downloading...", description: "Preparing your image" });
       
+      // Handle base64 images differently from URL images
       if (image.imageUrl.startsWith('data:')) {
+        // For base64 images, create a link directly
         const a = document.createElement("a");
         a.href = image.imageUrl;
         a.download = `ugli-${image.id}.png`;
@@ -73,6 +74,7 @@ export default function ShareImage() {
         a.click();
         document.body.removeChild(a);
       } else {
+        // For URL images, fetch and create blob
         const response = await fetch(image.imageUrl);
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -119,44 +121,33 @@ export default function ShareImage() {
       toast({ title: "No prompt available", description: "This image doesn't have a prompt to remix" });
       return;
     }
+    // Navigate to image generator with prompt in URL
     const encodedPrompt = encodeURIComponent(image.prompt);
     setLocation(`/image-gen?remix=${encodedPrompt}`);
   };
 
-  const handleCopyPrompt = () => {
-    if (!image?.prompt) return;
-    navigator.clipboard.writeText(image.prompt);
-    setCopied(true);
-    toast({ title: "Copied!", description: "Prompt copied to clipboard" });
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 flex items-center justify-center">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-          className="w-8 h-8 border-2 border-[#B94E30] border-t-transparent rounded-full"
-        />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Loading...</div>
       </div>
     );
   }
 
   if (error || !image) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 flex flex-col items-center justify-center gap-6 p-4">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6 p-4">
         <div className="text-center space-y-4">
-          <div className="w-20 h-20 mx-auto rounded-full bg-white/5 flex items-center justify-center">
-            <Lock className="w-10 h-10 text-white/40" />
+          <div className="w-20 h-20 mx-auto rounded-full bg-muted/50 flex items-center justify-center">
+            <Lock className="w-10 h-10 text-muted-foreground" />
           </div>
-          <h1 className="text-2xl font-bold text-white">Image Not Available</h1>
-          <p className="text-white/60 max-w-md">
+          <h1 className="text-2xl font-bold text-foreground">Image Not Available</h1>
+          <p className="text-muted-foreground max-w-md">
             {error || "This image might be private or has been removed."}
           </p>
         </div>
         <Link href="/">
-          <Button variant="outline" className="gap-2 border-white/20 text-white hover:bg-white/10" data-testid="button-go-home">
+          <Button variant="outline" className="gap-2" data-testid="button-go-home">
             <ArrowLeft className="w-4 h-4" />
             Go to UGLI
           </Button>
@@ -166,171 +157,141 @@ export default function ShareImage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="p-4 flex items-center justify-between border-b border-white/5">
-        <Link href="/">
-          <Button variant="ghost" className="gap-2 text-white/80 hover:text-white">
-            <ArrowLeft className="w-4 h-4" />
-            <span className="font-bold text-xl text-[#B94E30]">UGLI</span>
-          </Button>
-        </Link>
-        <Link href="/image-gen">
-          <Button className="gap-2 bg-[#B94E30] hover:bg-[#A04228] text-white">
-            <Sparkles className="w-4 h-4" />
-            Create
-          </Button>
-        </Link>
+      <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <Link href="/">
+            <Button variant="ghost" className="gap-2 text-muted-foreground hover:text-foreground" data-testid="link-back-home">
+              <ArrowLeft className="w-4 h-4" />
+              <span className="font-bold text-xl text-[#B94E30]">UGLI</span>
+            </Button>
+          </Link>
+          <Link href="/image-gen">
+            <Button className="gap-2 bg-[#B94E30] hover:bg-[#A04228] text-white" data-testid="button-create-own">
+              <Sparkles className="w-4 h-4" />
+              Create Your Own
+            </Button>
+          </Link>
+        </div>
       </header>
 
-      {/* Moodboard Grid */}
-      <main className="max-w-6xl mx-auto p-4 md:p-6">
-        <div className="grid grid-cols-12 gap-3 md:gap-4 auto-rows-[80px] md:auto-rows-[100px]">
-          {/* Main Image - Large Card */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="col-span-12 md:col-span-8 row-span-4 md:row-span-5 relative group rounded-2xl md:rounded-3xl overflow-hidden bg-neutral-800"
-          >
+      {/* Main Content */}
+      <main className="max-w-5xl mx-auto px-4 py-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="grid md:grid-cols-2 gap-8"
+        >
+          {/* Image Display */}
+          <div className="relative rounded-2xl overflow-hidden bg-muted/20 border border-border">
             <img
               src={image.imageUrl}
               alt={image.prompt || "AI Generated Image"}
-              className="w-full h-full object-cover"
+              className="w-full h-auto object-contain"
               data-testid="img-shared-image"
             />
-            
-            {/* Hover Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 md:p-6">
-              <div className="flex gap-2">
-                <Button
-                  onClick={handleDownload}
-                  size="sm"
-                  className="bg-white/20 backdrop-blur-md hover:bg-white/30 text-white border-0"
-                  data-testid="button-download-shared"
-                >
-                  <Download className="w-4 h-4" />
-                </Button>
-                <Button
-                  onClick={handleLike}
-                  size="sm"
-                  className={cn(
-                    "backdrop-blur-md border-0",
-                    liked ? "bg-red-500 text-white" : "bg-white/20 hover:bg-white/30 text-white"
-                  )}
-                  data-testid="button-like-shared"
-                >
-                  <Heart className={cn("w-4 h-4", liked && "fill-current")} />
-                </Button>
-                <Button
-                  onClick={handleRemix}
-                  size="sm"
-                  className="bg-[#B94E30] hover:bg-[#A04228] text-white border-0"
-                  data-testid="button-remix-shared"
-                >
-                  <RefreshCw className="w-4 h-4 mr-1" />
-                  Remix
-                </Button>
+          </div>
+
+          {/* Image Details */}
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <h1 className="text-2xl font-bold text-foreground" data-testid="text-image-title">
+                AI Generated Image
+              </h1>
+              {image.username && (
+                <p className="text-sm text-muted-foreground" data-testid="text-creator">
+                  Created by <span className="font-medium text-foreground">@{image.username}</span>
+                </p>
+              )}
+            </div>
+
+            {/* Prompt */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                Prompt
+              </label>
+              <div className="p-4 rounded-xl bg-muted/30 border border-border">
+                <p className="text-sm text-foreground leading-relaxed" data-testid="text-prompt">
+                  {image.prompt || "No prompt available"}
+                </p>
               </div>
             </div>
 
-            {/* Creator Badge */}
-            {image.username && (
-              <div className="absolute top-3 left-3 md:top-4 md:left-4 px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-md flex items-center gap-2">
-                <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#B94E30] to-[#E3B436] flex items-center justify-center text-white text-[10px] font-bold">
-                  {image.username.charAt(0).toUpperCase()}
+            {/* Details */}
+            <div className="space-y-3">
+              {image.style && (
+                <div className="flex justify-between py-2 border-b border-border">
+                  <span className="text-xs text-muted-foreground">Style</span>
+                  <span className="text-xs font-medium text-foreground capitalize">{image.style}</span>
                 </div>
-                <span className="text-white text-xs font-medium">@{image.username}</span>
+              )}
+              {image.aspectRatio && (
+                <div className="flex justify-between py-2 border-b border-border">
+                  <span className="text-xs text-muted-foreground">Aspect Ratio</span>
+                  <span className="text-xs font-medium text-foreground">{image.aspectRatio}</span>
+                </div>
+              )}
+              <div className="flex justify-between py-2">
+                <span className="text-xs text-muted-foreground">Created</span>
+                <span className="text-xs font-medium text-foreground">
+                  {new Date(image.createdAt).toLocaleDateString()}
+                </span>
               </div>
-            )}
-          </motion.div>
-
-          {/* Prompt Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="col-span-12 md:col-span-4 row-span-3 rounded-2xl md:rounded-3xl bg-gradient-to-br from-[#B94E30]/20 to-[#E3B436]/10 border border-[#B94E30]/30 p-4 md:p-5 flex flex-col group hover:border-[#B94E30]/60 transition-colors cursor-pointer"
-            onClick={handleCopyPrompt}
-          >
-            <div className="flex items-center justify-between mb-2 md:mb-3">
-              <span className="text-[10px] uppercase tracking-widest text-[#E3B436] font-bold">Prompt</span>
-              {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4 text-white/40 group-hover:text-white/80" />}
             </div>
-            <p className="text-white/90 text-sm leading-relaxed flex-1 line-clamp-4 md:line-clamp-6">
-              "{image.prompt}"
-            </p>
-            <p className="text-white/40 text-xs mt-2 group-hover:text-white/60">Click to copy</p>
-          </motion.div>
 
-          {/* Stats Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            onClick={handleLike}
-            className={cn(
-              "col-span-6 md:col-span-2 row-span-2 rounded-2xl md:rounded-3xl border p-3 md:p-4 flex flex-col items-center justify-center cursor-pointer transition-colors",
-              liked ? "bg-red-500/10 border-red-500/30 hover:bg-red-500/20" : "bg-white/5 border-white/10 hover:bg-white/10"
-            )}
-          >
-            <Heart className={cn("w-6 h-6 md:w-8 md:h-8 mb-1 md:mb-2", liked ? "text-red-500 fill-current" : "text-white/40")} />
-            <span className="text-xl md:text-2xl font-bold text-white">{likeCount}</span>
-            <span className="text-[10px] md:text-xs text-white/40">{liked ? "Liked!" : "Tap to Like"}</span>
-          </motion.div>
-
-          {/* Action Card - Remix */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            onClick={handleRemix}
-            className="col-span-6 md:col-span-2 row-span-2 rounded-2xl md:rounded-3xl bg-[#B94E30] p-3 md:p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-[#A04228] transition-colors group"
-          >
-            <RefreshCw className="w-6 h-6 md:w-8 md:h-8 mb-1 md:mb-2 text-white group-hover:rotate-180 transition-transform duration-500" />
-            <span className="text-white font-bold text-sm md:text-base">Remix</span>
-            <span className="text-[10px] md:text-xs text-white/70">Make it yours</span>
-          </motion.div>
-
-          {/* Details Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="col-span-12 md:col-span-4 row-span-2 rounded-2xl md:rounded-3xl bg-white/5 border border-white/10 p-4 md:p-5 grid grid-cols-3 gap-4"
-          >
-            <div className="text-center">
-              <p className="text-[10px] md:text-xs text-white/40 mb-1">Style</p>
-              <p className="text-white font-medium capitalize text-xs md:text-sm">{image.style || "Auto"}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-[10px] md:text-xs text-white/40 mb-1">Ratio</p>
-              <p className="text-white font-medium text-xs md:text-sm">{image.aspectRatio || "1:1"}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-[10px] md:text-xs text-white/40 mb-1">Created</p>
-              <p className="text-white font-medium text-xs md:text-sm">{new Date(image.createdAt).toLocaleDateString()}</p>
-            </div>
-          </motion.div>
-
-          {/* CTA Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="col-span-12 md:col-span-8 row-span-2 rounded-2xl md:rounded-3xl bg-gradient-to-r from-[#B94E30] to-[#E3B436] p-4 md:p-6 flex flex-col md:flex-row items-center justify-between gap-4"
-          >
-            <div className="text-center md:text-left">
-              <h3 className="text-white font-bold text-lg md:text-xl mb-1">Create Your Own Masterpiece</h3>
-              <p className="text-white/80 text-xs md:text-sm">Join thousands of creators using UGLI</p>
-            </div>
-            <Link href="/image-gen">
-              <Button className="bg-white text-[#B94E30] hover:bg-white/90 font-bold px-6" data-testid="button-try-ugli">
-                <Sparkles className="w-4 h-4 mr-2" />
-                Start Creating
+            {/* Actions */}
+            <div className="grid grid-cols-2 gap-3 pt-4">
+              <Button
+                onClick={handleDownload}
+                variant="outline"
+                className="gap-2"
+                data-testid="button-download-shared"
+              >
+                <Download className="w-4 h-4" />
+                Download
               </Button>
-            </Link>
-          </motion.div>
-        </div>
+              <Button
+                onClick={handleLike}
+                variant="outline"
+                className={cn("gap-2", liked && "bg-red-50 border-red-200 text-red-600 hover:bg-red-100")}
+                data-testid="button-like-shared"
+              >
+                <Heart className={cn("w-4 h-4", liked && "fill-current")} />
+                {likeCount > 0 ? likeCount : "Like"}
+              </Button>
+              <Button
+                onClick={handleRemix}
+                variant="outline"
+                className="gap-2"
+                data-testid="button-remix-shared"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Remix
+              </Button>
+              <Link href="/image-gen">
+                <Button className="w-full gap-2 bg-[#B94E30] hover:bg-[#A04228] text-white" data-testid="button-try-ugli">
+                  <Sparkles className="w-4 h-4" />
+                  Try UGLI
+                </Button>
+              </Link>
+            </div>
+
+            {/* CTA Box */}
+            <div className="p-6 rounded-2xl bg-gradient-to-br from-[#B94E30]/10 to-[#E3B436]/10 border border-[#B94E30]/20">
+              <h3 className="font-bold text-foreground mb-2">Generate Your Own AI Images</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Create stunning AI-generated images with UGLI. Fast, powerful, and free to try.
+              </p>
+              <Link href="/">
+                <Button variant="link" className="p-0 h-auto text-[#B94E30] gap-1" data-testid="link-learn-more">
+                  Learn more <ExternalLink className="w-3 h-3" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </motion.div>
       </main>
     </div>
   );
