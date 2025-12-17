@@ -2313,7 +2313,7 @@ export default function ImageGenerator() {
                                   Quick Share
                                 </Button>
                               </PopoverTrigger>
-                              <PopoverContent className="w-56 p-2" align="end">
+                              <PopoverContent className="w-56 p-2 z-[200]" align="end" sideOffset={5}>
                                 <div className="grid gap-1">
                                   <Button
                                     variant="ghost"
