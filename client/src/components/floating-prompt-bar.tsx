@@ -268,6 +268,7 @@ export function FloatingPromptBar({ onImageGenerated }: FloatingPromptBarProps =
             style: selectedStyle,
             aspectRatio: selectedRatio,
             generationType: "image",
+            isPublic: true, // Images from home page are public by default
           }),
         });
 
