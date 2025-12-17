@@ -385,7 +385,7 @@ export default function ShareImage() {
             <Link href="/image-gen">
               <Button className="w-full gap-2 bg-[#B94E30] hover:bg-[#A04228] text-white" data-testid="button-try-ugli">
                 <Sparkles className="w-4 h-4" />
-                Try UGLI
+                Try UGLI for Free!
               </Button>
             </Link>
 
