@@ -181,16 +181,17 @@ function JustifiedGalleryCard({ item, rowHeight, index, onLike }: { item: Inspir
             </div>
           )}
           
+          {!item.isGenerated && item.createdAt && (
+            <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 z-10">
+              <Clock className="h-3 w-3 text-[#E3B436]" />
+              <span className="text-[10px] font-medium text-white">{formatTimeAgo(new Date(item.createdAt))}</span>
+            </div>
+          )}
+          
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-90 transition-opacity duration-300 pointer-events-none" />
 
           <div className="absolute bottom-0 left-0 right-0 p-3">
             <div className="flex items-center gap-3 text-white/80 flex-wrap">
-              {item.createdAt && (
-                <div className="flex items-center gap-1 text-xs text-[#E3B436]">
-                  <Clock className="h-3 w-3" />
-                  <span>{formatTimeAgo(new Date(item.createdAt))}</span>
-                </div>
-              )}
               <div className="flex items-center gap-1 text-xs">
                 <Eye className="h-3 w-3" />
                 <span>{item.views}</span>
