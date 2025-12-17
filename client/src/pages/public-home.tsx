@@ -3,7 +3,8 @@ import {
   Eye, 
   Heart, 
   Wand2,
-  Sparkles
+  Sparkles,
+  Clock
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,7 @@ interface InspirationItem {
   prompt: string;
   isGenerated?: boolean;
   isLiked?: boolean;
+  createdAt?: string;
 }
 
 const aspectRatioToNumber = (ratio: string): number => {
@@ -40,6 +42,24 @@ const aspectRatioToNumber = (ratio: string): number => {
   };
   return ratios[ratio] || 1;
 };
+
+function formatTimeAgo(date: Date): string {
+  const now = Date.now();
+  const diffMs = now - date.getTime();
+  const diffSecs = Math.floor(diffMs / 1000);
+  const diffMins = Math.floor(diffSecs / 60);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+  const diffWeeks = Math.floor(diffDays / 7);
+
+  if (diffSecs < 60) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffWeeks < 4) return `${diffWeeks}w ago`;
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
 
 interface JustifiedRow {
   items: InspirationItem[];
@@ -164,7 +184,13 @@ function JustifiedGalleryCard({ item, rowHeight, index, onLike }: { item: Inspir
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-90 transition-opacity duration-300 pointer-events-none" />
 
           <div className="absolute bottom-0 left-0 right-0 p-3">
-            <div className="flex items-center gap-3 text-white/80">
+            <div className="flex items-center gap-3 text-white/80 flex-wrap">
+              {item.createdAt && (
+                <div className="flex items-center gap-1 text-xs text-[#E3B436]">
+                  <Clock className="h-3 w-3" />
+                  <span>{formatTimeAgo(new Date(item.createdAt))}</span>
+                </div>
+              )}
               <div className="flex items-center gap-1 text-xs">
                 <Eye className="h-3 w-3" />
                 <span>{item.views}</span>
@@ -503,7 +529,8 @@ export default function PublicHome() {
         category: img.category || 'General',
         aspectRatio: (img.aspectRatio || '1:1') as "1:1" | "9:16" | "16:9" | "4:5" | "3:4",
         prompt: img.prompt || '',
-        isLiked: Boolean(img.isLiked)
+        isLiked: Boolean(img.isLiked),
+        createdAt: img.createdAt
       }));
     }
     
