@@ -854,12 +854,22 @@ export default function MyCreations() {
               onClick={e => e.stopPropagation()}
             >
               {/* Left: Image */}
-              <div className="w-full h-[40vh] md:h-auto md:flex-1 bg-muted/20 flex items-center justify-center p-4 md:p-8 relative group overflow-hidden">
-                <img 
-                  src={selectedItem.src} 
-                  alt={selectedItem.name} 
-                  className="max-w-full max-h-[calc(85vh-4rem)] object-contain shadow-2xl rounded-lg" 
-                />
+              <div className="w-full md:flex-1 bg-muted/20 flex items-center justify-center p-4 md:p-8 relative group overflow-hidden min-h-[300px]">
+                <div className={cn(
+                  "relative max-h-[calc(85vh-4rem)] w-auto h-auto",
+                  selectedItem.aspectRatio === "9:16" && "aspect-[9/16]",
+                  selectedItem.aspectRatio === "16:9" && "aspect-[16/9]",
+                  selectedItem.aspectRatio === "4:5" && "aspect-[4/5]",
+                  selectedItem.aspectRatio === "3:4" && "aspect-[3/4]",
+                  selectedItem.aspectRatio === "1:1" && "aspect-square",
+                  !selectedItem.aspectRatio && "aspect-square"
+                )}>
+                  <img 
+                    src={selectedItem.src} 
+                    alt={selectedItem.name} 
+                    className="w-full h-full object-cover shadow-2xl rounded-lg" 
+                  />
+                </div>
                 <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                    <Button size="icon" className="rounded-full bg-black/50 text-white border-0 hover:bg-black/70">
                      <Maximize2 className="h-4 w-4" />
