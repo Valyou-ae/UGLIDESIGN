@@ -12,6 +12,7 @@ import {
   galleryImages,
   galleryImageLikes,
   imageLikes,
+  dailyInspirations,
   type User, 
   type InsertUser, 
   type UpdateProfile, 
@@ -33,7 +34,8 @@ import {
   type InsertMoodBoard,
   type MoodBoardItem,
   type InsertMoodBoardItem,
-  type GalleryImage
+  type GalleryImage,
+  type DailyInspiration
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, gte, lte, sql } from "drizzle-orm";
@@ -139,6 +141,10 @@ export interface IStorage {
   getLeaderboard(period: 'weekly' | 'monthly' | 'all-time', limit?: number): Promise<{ userId: string; username: string | null; displayName: string | null; profileImageUrl: string | null; imageCount: number; likeCount: number; viewCount: number; rank: number }[]>;
   getReferralStats(userId: string): Promise<{ referralCode: string | null; referredCount: number; bonusCreditsEarned: number }>;
   applyReferralCode(userId: string, referralCode: string): Promise<{ success: boolean; referrerCredits?: number; error?: string }>;
+  
+  getDailyInspirations(limit?: number): Promise<DailyInspiration[]>;
+  getTodaysInspiration(): Promise<DailyInspiration | undefined>;
+  getFeaturedInspirations(limit?: number): Promise<DailyInspiration[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1140,6 +1146,52 @@ export class DatabaseStorage implements IStorage {
     await this.addCredits(referrer.id, 5);
     
     return { success: true, referrerCredits: 5 };
+  }
+
+  async getDailyInspirations(limit: number = 20): Promise<DailyInspiration[]> {
+    return db
+      .select()
+      .from(dailyInspirations)
+      .orderBy(desc(dailyInspirations.activeDate))
+      .limit(limit);
+  }
+
+  async getTodaysInspiration(): Promise<DailyInspiration | undefined> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const [inspiration] = await db
+      .select()
+      .from(dailyInspirations)
+      .where(and(
+        gte(dailyInspirations.activeDate, today),
+        lte(dailyInspirations.activeDate, tomorrow)
+      ))
+      .orderBy(desc(dailyInspirations.activeDate))
+      .limit(1);
+    
+    if (inspiration) return inspiration;
+    
+    // Fallback: get most recent featured inspiration
+    const [featured] = await db
+      .select()
+      .from(dailyInspirations)
+      .where(eq(dailyInspirations.featured, true))
+      .orderBy(desc(dailyInspirations.activeDate))
+      .limit(1);
+    
+    return featured || undefined;
+  }
+
+  async getFeaturedInspirations(limit: number = 10): Promise<DailyInspiration[]> {
+    return db
+      .select()
+      .from(dailyInspirations)
+      .where(eq(dailyInspirations.featured, true))
+      .orderBy(desc(dailyInspirations.activeDate))
+      .limit(limit);
   }
 }
 
