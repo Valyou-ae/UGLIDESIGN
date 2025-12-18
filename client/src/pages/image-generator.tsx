@@ -2035,32 +2035,6 @@ export default function ImageGenerator() {
             {/* Daily Inspiration */}
             <DailyInspirationFeed onTryPrompt={(prompt) => setPrompt(prompt)} />
 
-            {/* Prompt Suggestions */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-muted-foreground" />
-                <h3 className="text-sm font-semibold text-foreground">Prompt Ideas</h3>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {PROMPT_SUGGESTIONS.map((category) => (
-                  <div key={category.category} className="bg-muted/30 border border-border rounded-xl p-4 space-y-3">
-                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{category.category}</h4>
-                    <div className="space-y-2">
-                      {category.prompts.map((p) => (
-                        <button
-                          key={p}
-                          onClick={() => setPrompt(p)}
-                          className="w-full text-left text-sm text-foreground/80 hover:text-foreground p-2 rounded-lg hover:bg-muted transition-colors line-clamp-2"
-                        >
-                          {p}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
             {/* Top Creators Leaderboard */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
