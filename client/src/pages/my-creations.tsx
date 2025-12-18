@@ -72,6 +72,7 @@ type ItemType = {
   time: string;
   size: string;
   dimensions: string;
+  aspectRatio: string;
   src: string;
   tags: string[];
   favorite: boolean;
@@ -100,18 +101,32 @@ export default function MyCreations() {
   const { images: dbImages, isLoading, toggleFavorite: apiToggleFavorite, deleteImage: apiDeleteImage, setVisibility: apiSetVisibility, hasNextPage, fetchNextPage, isFetchingNextPage, total } = useImages();
 
   const items: ItemType[] = useMemo(() => {
+    const getDimensionsFromRatio = (ratio: string | null | undefined): string => {
+      if (!ratio) return "1024 × 1024";
+      const parts = ratio.split(":").map(Number);
+      if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return "1024 × 1024";
+      const [w, h] = parts;
+      const maxSize = 1024;
+      if (w >= h) {
+        return `${maxSize} × ${Math.round((maxSize * h) / w)}`;
+      } else {
+        return `${Math.round((maxSize * w) / h)} × ${maxSize}`;
+      }
+    };
+    
     return dbImages.map((img: any) => ({
       id: img.id,
       name: img.prompt?.slice(0, 30) || "Generated Image",
       type: img.generationType || "image",
       date: new Date(img.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
       time: new Date(img.createdAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }),
-      size: "—",
-      dimensions: img.aspectRatio || "1024×1024",
+      size: img.fileSize ? `${(img.fileSize / 1024).toFixed(1)} KB` : "—",
+      dimensions: getDimensionsFromRatio(img.aspectRatio),
       src: img.imageUrl,
       tags: [img.style || "Generated"],
       favorite: img.isFavorite || false,
       isPublic: img.isPublic || false,
+      aspectRatio: img.aspectRatio || "1:1",
     }));
   }, [dbImages]);
 
@@ -947,17 +962,7 @@ export default function MyCreations() {
                     </div>
                     <div className="flex justify-between py-2 border-b border-border">
                       <span className="text-xs text-muted-foreground">Ratio</span>
-                      <span className="text-xs font-medium text-foreground">
-                        {(() => {
-                          const dims = selectedItem.dimensions?.match(/(\d+)\s*[x×]\s*(\d+)/);
-                          if (!dims) return "—";
-                          const w = parseInt(dims[1], 10);
-                          const h = parseInt(dims[2], 10);
-                          const gcd = (a: number, b: number): number => b === 0 ? a : gcd(b, a % b);
-                          const d = gcd(w, h);
-                          return `${w / d}:${h / d}`;
-                        })()}
-                      </span>
+                      <span className="text-xs font-medium text-foreground">{selectedItem.aspectRatio}</span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-border">
                       <span className="text-xs text-muted-foreground">Size</span>
