@@ -215,6 +215,19 @@ export const galleryImages = pgTable("gallery_images", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const dailyInspirations = pgTable("daily_inspirations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  prompt: text("prompt").notNull(),
+  imageUrl: text("image_url"),
+  category: text("category").notNull(),
+  tags: text("tags").array(),
+  difficulty: text("difficulty").default("medium"),
+  featured: boolean("featured").default(false),
+  activeDate: timestamp("active_date").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   email: true,
@@ -322,6 +335,7 @@ export type InsertMoodBoardItem = z.infer<typeof insertMoodBoardItemSchema>;
 export type ImageLike = typeof imageLikes.$inferSelect;
 export type GalleryImage = typeof galleryImages.$inferSelect;
 export type GalleryImageLike = typeof galleryImageLikes.$inferSelect;
+export type DailyInspiration = typeof dailyInspirations.$inferSelect;
 
 // ============== VALIDATION SCHEMAS ==============
 
