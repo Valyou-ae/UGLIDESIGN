@@ -2124,20 +2124,31 @@ export default function ImageGenerator() {
 
         {/* Lightbox Modal */}
         <AnimatePresence>
-          {selectedImage && (
+          {selectedImage && (() => {
+            const isPortrait = ["9:16", "3:4", "2:3"].includes(selectedImage.aspectRatio);
+            const isLandscape = ["16:9", "4:3", "3:2"].includes(selectedImage.aspectRatio);
+            return (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-md flex items-center justify-center p-6"
+              className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-md flex items-center justify-center p-4 md:p-6"
               onClick={() => setSelectedImage(null)}
             >
               <div 
-                className="w-full max-w-7xl h-[90vh] md:h-[85vh] bg-card rounded-2xl overflow-hidden flex flex-col md:flex-row border border-border shadow-2xl"
+                className={cn(
+                  "bg-card rounded-2xl overflow-hidden flex flex-col md:flex-row border border-border shadow-2xl",
+                  isPortrait ? "w-full max-w-4xl h-[90vh] md:h-[85vh]" : "w-full max-w-7xl h-[90vh] md:h-[85vh]"
+                )}
                 onClick={e => e.stopPropagation()}
               >
                 {/* Left: Image */}
-                <div className="w-full h-[40vh] md:h-auto md:flex-1 bg-muted/20 flex items-center justify-center p-4 md:p-8 relative group bg-checkerboard">
+                <div className={cn(
+                  "bg-muted/20 flex items-center justify-center p-4 md:p-8 relative group bg-checkerboard",
+                  isPortrait 
+                    ? "w-full h-[50vh] md:h-auto md:w-[45%] md:flex-shrink-0" 
+                    : "w-full h-[40vh] md:h-auto md:flex-1"
+                )}>
                   <img 
                     src={selectedImage.src} 
                     alt={selectedImage.prompt} 
@@ -2376,7 +2387,8 @@ export default function ImageGenerator() {
                 </div>
               </div>
             </motion.div>
-          )}
+          );
+          })()}
         </AnimatePresence>
 
       </main>
