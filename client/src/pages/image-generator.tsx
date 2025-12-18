@@ -1978,9 +1978,17 @@ export default function ImageGenerator() {
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       onClick={() => setSelectedImage(gen)}
-                      className="relative group rounded-xl overflow-hidden cursor-pointer bg-card border border-border hover:border-primary/50 hover:shadow-lg transition-all break-inside-avoid mb-3"
+                      className={cn(
+                        "relative group rounded-xl overflow-hidden cursor-pointer bg-card border border-border hover:border-primary/50 hover:shadow-lg transition-all break-inside-avoid mb-3",
+                        gen.aspectRatio === "9:16" && "aspect-[9/16]",
+                        gen.aspectRatio === "16:9" && "aspect-[16/9]",
+                        gen.aspectRatio === "4:5" && "aspect-[4/5]",
+                        gen.aspectRatio === "3:4" && "aspect-[3/4]",
+                        gen.aspectRatio === "1:1" && "aspect-square",
+                        !gen.aspectRatio && "aspect-square"
+                      )}
                     >
-                      <img src={gen.src} alt={gen.prompt} className="w-full h-auto object-cover" loading="lazy" />
+                      <img src={gen.src} alt={gen.prompt} className="w-full h-full object-cover" loading="lazy" />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2">
                         <div className="flex items-center gap-1">
                           <Button 

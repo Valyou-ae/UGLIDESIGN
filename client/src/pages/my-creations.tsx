@@ -717,12 +717,20 @@ export default function MyCreations() {
                           : ""
                       )}
                     >
-                      {/* Image Container - Natural aspect ratio */}
-                      <div className="w-full relative overflow-hidden bg-muted/20">
+                      {/* Image Container - Dynamic aspect ratio */}
+                      <div className={cn(
+                        "w-full relative overflow-hidden bg-muted/20",
+                        item.aspectRatio === "9:16" && "aspect-[9/16]",
+                        item.aspectRatio === "16:9" && "aspect-[16/9]",
+                        item.aspectRatio === "4:5" && "aspect-[4/5]",
+                        item.aspectRatio === "3:4" && "aspect-[3/4]",
+                        item.aspectRatio === "1:1" && "aspect-square",
+                        !item.aspectRatio && "aspect-square"
+                      )}>
                         <img 
                           src={item.src} 
                           alt={item.name}
-                          className="w-full h-auto object-cover"
+                          className="w-full h-full object-cover"
                           loading="lazy"
                         />
                         
