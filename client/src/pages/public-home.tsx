@@ -427,7 +427,7 @@ const FALLBACK_GALLERY: InspirationItem[] = [
   { id: "f16", title: "Aboriginal Art", image: "/attached_assets/WhatsApp_Image_2025-12-11_at_19.54.06_1765705682455.jpeg", creator: "art", verified: false, views: "156K", likes: 29801, uses: "11K", category: "Art", aspectRatio: "1:1", prompt: "Aboriginal art sunset scene" },
 ];
 
-function BrandingHeader() {
+function BrandingHeader({ isLoggedIn }: { isLoggedIn: boolean }) {
   const { openLoginPopup } = useLoginPopup();
   
   return (
@@ -437,7 +437,10 @@ function BrandingHeader() {
       transition={{ duration: 0.5, delay: 0.2 }}
       className="absolute top-0 left-0 right-0 z-20 pointer-events-none"
     >
-      <div className="bg-gradient-to-b from-[#0A0A0B]/90 via-[#0A0A0B]/60 to-transparent pt-8 pb-24 px-6">
+      <div className={cn(
+        "bg-gradient-to-b from-[#0A0A0B]/90 via-[#0A0A0B]/60 to-transparent px-6",
+        isLoggedIn ? "pt-6 pb-16" : "pt-8 pb-24"
+      )}>
         <div className="max-w-4xl mx-auto text-center pointer-events-auto">
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#B94E30] to-[#E3B436] flex items-center justify-center shadow-lg shadow-[#B94E30]/30">
@@ -449,18 +452,20 @@ function BrandingHeader() {
           <h1 className="text-xl md:text-2xl font-medium text-white/90 mb-2" data-testid="text-tagline">
             AI-Powered Creative Studio
           </h1>
-          <p className="text-sm md:text-base text-white/60 mb-6 max-w-lg mx-auto" data-testid="text-description">
+          <p className="text-sm md:text-base text-white/60 max-w-lg mx-auto" data-testid="text-description">
             Generate stunning images, product mockups, and remove backgrounds — all with AI
           </p>
           
-          <Button 
-            onClick={() => openLoginPopup()}
-            className="bg-gradient-to-r from-[#B94E30] to-[#E3B436] hover:from-[#A3442A] hover:to-[#CDA130] text-white font-medium px-6 py-2.5 rounded-full shadow-lg shadow-[#B94E30]/30 transition-all hover:scale-105"
-            data-testid="button-get-started-hero"
-          >
-            Get Started Free
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+          {!isLoggedIn && (
+            <Button 
+              onClick={() => openLoginPopup()}
+              className="bg-gradient-to-r from-[#B94E30] to-[#E3B436] hover:from-[#A3442A] hover:to-[#CDA130] text-white font-medium px-6 py-2.5 rounded-full shadow-lg shadow-[#B94E30]/30 transition-all hover:scale-105 mt-6"
+              data-testid="button-get-started-hero"
+            >
+              Get Started Free
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
     </motion.div>
@@ -603,7 +608,7 @@ export default function PublicHome() {
       <Sidebar className="hidden md:flex border-r border-border/50" />
       
       <main className="flex-1 relative h-full overflow-hidden bg-[#0A0A0B]">
-        {!user && <BrandingHeader />}
+        <BrandingHeader isLoggedIn={!!user} />
         {isGalleryReady ? (
           <JustifiedGallery 
             items={galleryImages} 
