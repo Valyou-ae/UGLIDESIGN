@@ -946,6 +946,20 @@ export default function MyCreations() {
                       <span className="text-xs font-medium text-foreground">{selectedItem.dimensions}</span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-border">
+                      <span className="text-xs text-muted-foreground">Ratio</span>
+                      <span className="text-xs font-medium text-foreground">
+                        {(() => {
+                          const dims = selectedItem.dimensions?.match(/(\d+)\s*[x×]\s*(\d+)/);
+                          if (!dims) return "—";
+                          const w = parseInt(dims[1], 10);
+                          const h = parseInt(dims[2], 10);
+                          const gcd = (a: number, b: number): number => b === 0 ? a : gcd(b, a % b);
+                          const d = gcd(w, h);
+                          return `${w / d}:${h / d}`;
+                        })()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-2 border-b border-border">
                       <span className="text-xs text-muted-foreground">Size</span>
                       <span className="text-xs font-medium text-foreground font-mono">{selectedItem.size}</span>
                     </div>
