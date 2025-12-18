@@ -59,6 +59,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { getTransferredImage, clearTransferredImage, fetchImageAsDataUrl } from "@/lib/image-transfer";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
@@ -199,6 +200,33 @@ export default function BackgroundRemover() {
 
   const currentCredits = QUALITY_LEVELS.find(q => q.id === quality)?.credits || 1;
   const totalBatchCredits = batchImages.length * currentCredits;
+
+  // Check for transferred image from My Creations on mount
+  useEffect(() => {
+    const transferred = getTransferredImage();
+    if (transferred && transferred.src) {
+      const loadTransferredImage = async () => {
+        try {
+          let imageSrc = transferred.src;
+          // If it's a URL (not data URL), fetch and convert to data URL
+          if (!imageSrc.startsWith('data:')) {
+            imageSrc = await fetchImageAsDataUrl(imageSrc);
+          }
+          setSelectedImage(imageSrc);
+          setState("configuring");
+          clearTransferredImage();
+          toast({
+            title: "Image loaded",
+            description: "Your image is ready for background removal.",
+          });
+        } catch (error) {
+          console.error("Failed to load transferred image:", error);
+          clearTransferredImage();
+        }
+      };
+      loadTransferredImage();
+    }
+  }, []);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {

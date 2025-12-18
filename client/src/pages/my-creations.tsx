@@ -31,7 +31,9 @@ import {
   Clock,
   ClipboardCopy,
   Loader2,
-  Share2
+  Share2,
+  Shirt,
+  Palette
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -62,6 +64,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useToast } from "@/hooks/use-toast";
 import { useImages } from "@/hooks/use-images";
 import { CalendarHistoryModal } from "@/components/calendar-history-modal";
+import { transferImageToTool } from "@/lib/image-transfer";
 
 
 type ItemType = {
@@ -689,6 +692,35 @@ export default function MyCreations() {
                           <DropdownMenuItem onClick={() => handleAction("Download", item)} className="hover:bg-[#2A2A30] cursor-pointer"><Download className="h-4 w-4 mr-2" /> Download</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleAction("Copy", item)} className="hover:bg-[#2A2A30] cursor-pointer"><ClipboardCopy className="h-4 w-4 mr-2" /> Copy to Clipboard</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleAction("Duplicate", item)} className="hover:bg-[#2A2A30] cursor-pointer"><Copy className="h-4 w-4 mr-2" /> Duplicate</DropdownMenuItem>
+                          <DropdownMenuSeparator className="bg-[#2A2A30]" />
+                          <DropdownMenuItem 
+                            onClick={() => {
+                              const route = transferImageToTool(item, "mockup");
+                              setLocation(route);
+                            }} 
+                            className="hover:bg-[#2A2A30] cursor-pointer"
+                          >
+                            <Shirt className="h-4 w-4 mr-2" /> Use in Mockup Creator
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => {
+                              const route = transferImageToTool(item, "bg-remover");
+                              setLocation(route);
+                            }} 
+                            className="hover:bg-[#2A2A30] cursor-pointer"
+                          >
+                            <Scissors className="h-4 w-4 mr-2" /> Remove Background
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => {
+                              const route = transferImageToTool(item, "style-transfer");
+                              setLocation(route);
+                            }} 
+                            className="hover:bg-[#2A2A30] cursor-pointer"
+                          >
+                            <Palette className="h-4 w-4 mr-2" /> Apply Style Transfer
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator className="bg-[#2A2A30]" />
                           <DropdownMenuItem onClick={() => handleAction("Unfavorite", item)} className="text-[#F59E0B] hover:bg-[#2A2A30] cursor-pointer"><StarOff className="h-4 w-4 mr-2" /> Unfavorite</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleAction("Delete", item)} className="text-[#DC2626] hover:bg-[#2A2A30] cursor-pointer"><Trash2 className="h-4 w-4 mr-2" /> Delete</DropdownMenuItem>
                         </DropdownMenuContent>
