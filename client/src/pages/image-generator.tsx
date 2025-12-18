@@ -2153,7 +2153,7 @@ export default function ImageGenerator() {
                 {/* Right: Details */}
                 <div className="w-full md:w-[400px] bg-card border-t md:border-t-0 md:border-l border-border flex flex-col h-[50vh] md:h-auto">
                   <div className="p-4 md:p-6 border-b border-border flex justify-between items-center shrink-0">
-                    <h3 className="font-bold text-foreground">Image Details</h3>
+                    <h3 className="font-bold text-foreground">Creation Details</h3>
                     <Button variant="ghost" size="icon" onClick={() => setSelectedImage(null)} className="text-muted-foreground hover:text-foreground">
                       <X className="h-5 w-5" />
                     </Button>
@@ -2266,12 +2266,14 @@ export default function ImageGenerator() {
                         </span>
                       </div>
                       <div className="flex justify-between py-2 border-b border-border">
-                        <span className="text-xs text-muted-foreground">Model</span>
-                        <span className="text-xs font-medium text-foreground">V5.2</span>
+                        <span className="text-xs text-muted-foreground">Ratio</span>
+                        <span className="text-xs font-medium text-foreground">{selectedImage.aspectRatio || "1:1"}</span>
                       </div>
                       <div className="flex justify-between py-2 border-b border-border">
-                        <span className="text-xs text-muted-foreground">Seed</span>
-                        <span className="text-xs font-medium text-foreground font-mono">82739103</span>
+                        <span className="text-xs text-muted-foreground">Date Created</span>
+                        <span className="text-xs font-medium text-foreground">
+                          {selectedImage.timestamp ? new Date(selectedImage.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Just now'}
+                        </span>
                       </div>
                       <div className="flex justify-between items-center py-2 border-b border-border">
                         <span className="text-xs text-muted-foreground">Visibility</span>
