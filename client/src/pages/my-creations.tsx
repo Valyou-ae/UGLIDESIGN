@@ -831,6 +831,34 @@ export default function MyCreations() {
                                   <DropdownMenuItem onClick={() => handleAction("Copy", item)} className="hover:bg-[#2A2A30] cursor-pointer"><ClipboardCopy className="h-4 w-4 mr-2" /> Copy to Clipboard</DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => handleAction("Duplicate", item)} className="hover:bg-[#2A2A30] cursor-pointer"><Copy className="h-4 w-4 mr-2" /> Duplicate</DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => handleAction("Move", item)} className="hover:bg-[#2A2A30] cursor-pointer"><FolderInput className="h-4 w-4 mr-2" /> Move to Folder</DropdownMenuItem>
+                                  <DropdownMenuSeparator className="bg-[#2A2A30]" />
+                                  <DropdownMenuItem 
+                                    onClick={() => {
+                                      const route = transferImageToTool(item, "mockup");
+                                      setLocation(route);
+                                    }} 
+                                    className="hover:bg-[#2A2A30] cursor-pointer"
+                                  >
+                                    <Shirt className="h-4 w-4 mr-2" /> Use in Mockup Creator
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem 
+                                    onClick={() => {
+                                      const route = transferImageToTool(item, "bg-remover");
+                                      setLocation(route);
+                                    }} 
+                                    className="hover:bg-[#2A2A30] cursor-pointer"
+                                  >
+                                    <Scissors className="h-4 w-4 mr-2" /> Remove Background
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem 
+                                    onClick={() => {
+                                      const route = transferImageToTool(item, "style-transfer");
+                                      setLocation(route);
+                                    }} 
+                                    className="hover:bg-[#2A2A30] cursor-pointer"
+                                  >
+                                    <Palette className="h-4 w-4 mr-2" /> Apply Style Transfer
+                                  </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
 
