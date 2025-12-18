@@ -1298,39 +1298,6 @@ export default function MockupGenerator() {
       <Sidebar />
       
       <main className="flex-1 h-screen overflow-y-auto relative flex flex-col pb-20 md:pb-0">
-        {/* Design Transfer Banner */}
-        <AnimatePresence>
-          {showTransferBanner && uploadedImage && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="sticky top-0 z-40 bg-gradient-to-r from-[#B94E30]/10 via-[#E3B436]/10 to-[#B94E30]/10 border-b border-[#B94E30]/20 backdrop-blur-sm"
-            >
-              <div className="max-w-[1400px] mx-auto px-4 py-3 flex items-center gap-4">
-                <div className="h-12 w-12 rounded-lg border-2 border-[#B94E30] overflow-hidden bg-white/10 flex-shrink-0">
-                  <img src={uploadedImage} alt="Transferred design" className="h-full w-full object-contain" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-[#B94E30]" />
-                    <span className="font-semibold text-foreground text-sm">Design loaded from My Creations</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-0.5">Choose a print method below to create mockups with this design</p>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                  onClick={() => setShowTransferBanner(false)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         {/* State 1: Journey Selection */}
         {!journey ? (
           <div className="p-4 md:p-8 lg:p-10 max-w-[1400px] mx-auto min-h-full flex flex-col animate-fade-in">
@@ -1416,6 +1383,39 @@ export default function MockupGenerator() {
                   </span>
                 </div>
               </div>
+
+              {/* Design Transfer Banner - shown below DTG/AOP cards */}
+              <AnimatePresence>
+                {showTransferBanner && uploadedImage && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    className="mt-6 md:mt-8 w-full max-w-[900px] bg-gradient-to-r from-[#B94E30]/10 via-[#E3B436]/10 to-[#B94E30]/10 border border-[#B94E30]/30 rounded-2xl p-4"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="h-16 w-16 md:h-20 md:w-20 rounded-xl border-2 border-[#B94E30] overflow-hidden bg-white/10 flex-shrink-0 shadow-lg">
+                        <img src={uploadedImage} alt="Transferred design" className="h-full w-full object-contain" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <CheckCircle2 className="h-5 w-5 text-[#B94E30]" />
+                          <span className="font-bold text-foreground">Design Ready</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">Your design from My Creations is loaded. Choose DTG or AOP above to continue.</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground flex-shrink-0"
+                        onClick={() => setShowTransferBanner(false)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         ) : (
