@@ -113,6 +113,7 @@ import { Label } from "@/components/ui/label";
 import { useLocation } from "wouter";
 import { TutorialOverlay, useTutorial } from "@/components/tutorial-overlay";
 import { useCredits } from "@/hooks/use-credits";
+import { DailyInspirationFeed } from "@/components/daily-inspiration";
 
 // Import generated images for the gallery
 import cyberpunkCity from "@assets/generated_images/futuristic_cyberpunk_city_street_at_night_with_neon_lights_and_rain.png";
@@ -2022,6 +2023,9 @@ export default function ImageGenerator() {
                 </div>
               </div>
             )}
+
+            {/* Daily Inspiration */}
+            <DailyInspirationFeed onTryPrompt={(prompt) => setPrompt(prompt)} />
 
             {/* Prompt Suggestions */}
             <div className="space-y-4">
