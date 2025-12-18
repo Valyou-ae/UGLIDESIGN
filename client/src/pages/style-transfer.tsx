@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -39,6 +39,7 @@ import {
 import { Sidebar } from "@/components/sidebar";
 import { useToast } from "@/hooks/use-toast";
 import { styleTransferApi, type StylePreset } from "@/lib/api";
+import { getTransferredImage, clearTransferredImage, fetchImageAsDataUrl } from "@/lib/image-transfer";
 
 type TransferMode = "preset" | "custom";
 
@@ -88,6 +89,38 @@ export default function StyleTransferPage() {
 
   const presets = presetsData?.presets || [];
   const presetsByCategory = presetsData?.byCategory || {};
+
+  // Check for transferred image from My Creations on mount
+  useEffect(() => {
+    const transferred = getTransferredImage();
+    if (transferred && transferred.src) {
+      const loadTransferredImage = async () => {
+        try {
+          let imageSrc = transferred.src;
+          // If it's a URL (not data URL), fetch and convert to data URL
+          if (!imageSrc.startsWith('data:')) {
+            imageSrc = await fetchImageAsDataUrl(imageSrc);
+          }
+          // Extract base64 from data URL
+          const base64 = imageSrc.split(",")[1] || "";
+          setContentImage({
+            file: null,
+            previewUrl: imageSrc,
+            base64,
+          });
+          clearTransferredImage();
+          toast({
+            title: "Image loaded",
+            description: "Your image is ready for style transfer.",
+          });
+        } catch (error) {
+          console.error("Failed to load transferred image:", error);
+          clearTransferredImage();
+        }
+      };
+      loadTransferredImage();
+    }
+  }, []);
 
   const handleImageUpload = async (
     file: File,

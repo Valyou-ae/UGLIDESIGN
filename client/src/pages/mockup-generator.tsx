@@ -104,6 +104,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
+import { getTransferredImage, clearTransferredImage, fetchImageAsDataUrl } from "@/lib/image-transfer";
 import { Input } from "@/components/ui/input";
 import { mockupApi, MockupEvent } from "@/lib/api";
 import {
@@ -814,6 +815,32 @@ export default function MockupGenerator() {
   const completedJobs = batchJobs.filter(j => j.status === 'completed').length;
   const failedJobsCount = batchJobs.filter(j => j.status === 'failed').length;
   const pendingJobs = batchJobs.filter(j => j.status === 'pending').length;
+
+  // Check for transferred image from My Creations on mount
+  useEffect(() => {
+    const transferred = getTransferredImage();
+    if (transferred && transferred.src) {
+      const loadTransferredImage = async () => {
+        try {
+          let imageSrc = transferred.src;
+          // If it's a URL (not data URL), fetch and convert to data URL
+          if (!imageSrc.startsWith('data:')) {
+            imageSrc = await fetchImageAsDataUrl(imageSrc);
+          }
+          setUploadedImage(imageSrc);
+          clearTransferredImage();
+          toast({
+            title: "Design loaded",
+            description: "Your design is ready for mockup generation.",
+          });
+        } catch (error) {
+          console.error("Failed to load transferred image:", error);
+          clearTransferredImage();
+        }
+      };
+      loadTransferredImage();
+    }
+  }, []);
 
   const downloadImage = (url: string, filename: string) => {
     const link = document.createElement('a');
