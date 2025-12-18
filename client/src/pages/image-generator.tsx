@@ -286,7 +286,8 @@ export default function ImageGenerator() {
   const { data: leaderboardData, isLoading: isLoadingLeaderboard, error: leaderboardError } = useQuery({
     queryKey: ['leaderboard', 'all-time'],
     queryFn: fetchLeaderboard,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 30,
+    refetchInterval: 1000 * 30,
   });
   const topCreators = leaderboardData?.leaderboard || [];
 
