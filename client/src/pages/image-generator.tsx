@@ -2124,35 +2124,24 @@ export default function ImageGenerator() {
 
         {/* Lightbox Modal */}
         <AnimatePresence>
-          {selectedImage && (() => {
-            const isPortrait = ["9:16", "3:4", "2:3"].includes(selectedImage.aspectRatio);
-            const isLandscape = ["16:9", "4:3", "3:2"].includes(selectedImage.aspectRatio);
-            return (
+          {selectedImage && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-md flex items-center justify-center p-4 md:p-6"
+              className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 md:p-6"
               onClick={() => setSelectedImage(null)}
             >
               <div 
-                className={cn(
-                  "bg-card rounded-2xl overflow-hidden flex flex-col md:flex-row border border-border shadow-2xl",
-                  isPortrait ? "w-full max-w-4xl h-[90vh] md:h-[85vh]" : "w-full max-w-7xl h-[90vh] md:h-[85vh]"
-                )}
+                className="bg-card rounded-2xl overflow-hidden flex flex-col md:flex-row border border-border shadow-2xl w-full max-w-6xl max-h-[90vh]"
                 onClick={e => e.stopPropagation()}
               >
                 {/* Left: Image */}
-                <div className={cn(
-                  "bg-black/40 flex items-center justify-center p-4 md:p-6 relative group",
-                  isPortrait 
-                    ? "w-full h-[50vh] md:h-auto md:w-[50%] md:flex-shrink-0" 
-                    : "w-full h-[40vh] md:h-auto md:flex-1"
-                )}>
+                <div className="flex-1 bg-black/60 flex items-center justify-center p-4 md:p-6 relative group min-h-[300px] md:min-h-0">
                   <img 
                     src={selectedImage.src} 
                     alt={selectedImage.prompt} 
-                    className="max-w-full max-h-full object-contain rounded-lg" 
+                    className="w-auto h-auto max-w-full max-h-[70vh] object-contain rounded-lg" 
                   />
                   <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                      <Button size="icon" className="rounded-full bg-black/50 text-white border-0 hover:bg-black/70">
@@ -2387,8 +2376,7 @@ export default function ImageGenerator() {
                 </div>
               </div>
             </motion.div>
-          );
-          })()}
+          )}
         </AnimatePresence>
 
       </main>
