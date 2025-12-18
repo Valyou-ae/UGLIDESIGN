@@ -2144,15 +2144,15 @@ export default function ImageGenerator() {
               >
                 {/* Left: Image */}
                 <div className={cn(
-                  "bg-muted/20 flex items-center justify-center p-4 md:p-8 relative group bg-checkerboard",
+                  "bg-black/40 flex items-center justify-center p-4 md:p-6 relative group",
                   isPortrait 
-                    ? "w-full h-[50vh] md:h-auto md:w-[45%] md:flex-shrink-0" 
+                    ? "w-full h-[50vh] md:h-auto md:w-[50%] md:flex-shrink-0" 
                     : "w-full h-[40vh] md:h-auto md:flex-1"
                 )}>
                   <img 
                     src={selectedImage.src} 
                     alt={selectedImage.prompt} 
-                    className="max-w-full max-h-full object-contain shadow-2xl rounded-lg" 
+                    className="max-w-full max-h-full object-contain rounded-lg" 
                   />
                   <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                      <Button size="icon" className="rounded-full bg-black/50 text-white border-0 hover:bg-black/70">

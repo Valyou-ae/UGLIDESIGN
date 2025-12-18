@@ -909,35 +909,35 @@ export default function MyCreations() {
 
       {/* Lightbox Modal */}
       <AnimatePresence>
-        {selectedItem && (
+        {selectedItem && (() => {
+          const isPortrait = ["9:16", "3:4", "2:3", "4:5"].includes(selectedItem.aspectRatio || "");
+          return (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/20 backdrop-blur-md flex items-center justify-center p-6"
+            className="fixed inset-0 z-[100] bg-black/20 backdrop-blur-md flex items-center justify-center p-4 md:p-6"
             onClick={() => setSelectedItem(null)}
           >
             <div 
-              className="w-full max-w-7xl h-[90vh] md:h-[85vh] bg-card rounded-2xl overflow-hidden flex flex-col md:flex-row border border-border shadow-2xl"
+              className={cn(
+                "bg-card rounded-2xl overflow-hidden flex flex-col md:flex-row border border-border shadow-2xl",
+                isPortrait ? "w-full max-w-4xl h-[90vh] md:h-[85vh]" : "w-full max-w-7xl h-[90vh] md:h-[85vh]"
+              )}
               onClick={e => e.stopPropagation()}
             >
               {/* Left: Image */}
-              <div className="w-full md:flex-1 bg-muted/20 flex items-center justify-center p-4 md:p-8 relative group overflow-hidden min-h-[300px]">
-                <div className={cn(
-                  "relative max-h-[calc(85vh-4rem)] w-auto h-auto",
-                  selectedItem.aspectRatio === "9:16" && "aspect-[9/16]",
-                  selectedItem.aspectRatio === "16:9" && "aspect-[16/9]",
-                  selectedItem.aspectRatio === "4:5" && "aspect-[4/5]",
-                  selectedItem.aspectRatio === "3:4" && "aspect-[3/4]",
-                  selectedItem.aspectRatio === "1:1" && "aspect-square",
-                  !selectedItem.aspectRatio && "aspect-square"
-                )}>
-                  <img 
-                    src={selectedItem.src} 
-                    alt={selectedItem.name} 
-                    className="w-full h-full object-cover shadow-2xl rounded-lg" 
-                  />
-                </div>
+              <div className={cn(
+                "bg-black/40 flex items-center justify-center p-4 md:p-6 relative group overflow-hidden",
+                isPortrait
+                  ? "w-full h-[50vh] md:h-auto md:w-[50%] md:flex-shrink-0"
+                  : "w-full h-[40vh] md:h-auto md:flex-1"
+              )}>
+                <img 
+                  src={selectedItem.src} 
+                  alt={selectedItem.name} 
+                  className="max-w-full max-h-full object-contain rounded-lg" 
+                />
                 <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                    <Button size="icon" className="rounded-full bg-black/50 text-white border-0 hover:bg-black/70">
                      <Maximize2 className="h-4 w-4" />
@@ -1158,7 +1158,8 @@ export default function MyCreations() {
               </div>
             </div>
           </motion.div>
-        )}
+        );
+        })()}
       </AnimatePresence>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
