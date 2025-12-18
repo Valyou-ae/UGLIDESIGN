@@ -1176,6 +1176,43 @@ export async function registerRoutes(
     }
   });
 
+  // ============== DAILY INSPIRATION ROUTES ==============
+
+  app.get("/api/inspirations", async (req: any, res) => {
+    try {
+      const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
+      const inspirations = await storage.getDailyInspirations(limit);
+      res.json({ inspirations });
+    } catch (error) {
+      console.error("Inspirations error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.get("/api/inspirations/today", async (_req, res) => {
+    try {
+      const inspiration = await storage.getTodaysInspiration();
+      if (!inspiration) {
+        return res.status(404).json({ message: "No inspiration available today" });
+      }
+      res.json(inspiration);
+    } catch (error) {
+      console.error("Today's inspiration error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.get("/api/inspirations/featured", async (req: any, res) => {
+    try {
+      const limit = Math.min(parseInt(req.query.limit as string) || 10, 20);
+      const inspirations = await storage.getFeaturedInspirations(limit);
+      res.json({ inspirations });
+    } catch (error) {
+      console.error("Featured inspirations error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   // ============== AFFILIATE ROUTES ==============
 
   app.get("/api/affiliate/stats", requireAuth, async (req: any, res) => {
