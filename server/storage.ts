@@ -126,7 +126,7 @@ export interface IStorage {
   getGalleryImageById(imageId: string): Promise<GalleryImage | undefined>;
   getGalleryImageBySourceId(sourceImageId: string): Promise<GalleryImage | undefined>;
   createGalleryImage(data: { title: string; imageUrl: string; creator: string; category?: string; aspectRatio?: string; prompt?: string; sourceImageId?: string }): Promise<GalleryImage>;
-  deleteGalleryImageBySourceId(sourceImageId: string, imageUrl?: string): Promise<void>;
+  deleteGalleryImageBySourceId(sourceImageId: string, imageUrl?: string, prompt?: string): Promise<void>;
   likeGalleryImage(imageId: string, userId: string): Promise<{ liked: boolean; likeCount: number }>;
   hasUserLikedImage(imageId: string, userId: string): Promise<boolean>;
   getUserLikedImages(userId: string): Promise<string[]>;
@@ -883,7 +883,7 @@ export class DatabaseStorage implements IStorage {
     return image;
   }
 
-  async deleteGalleryImageBySourceId(sourceImageId: string, imageUrl?: string): Promise<void> {
+  async deleteGalleryImageBySourceId(sourceImageId: string, imageUrl?: string, prompt?: string): Promise<void> {
     // First try to find by sourceImageId
     let [galleryImage] = await db
       .select()
@@ -896,6 +896,14 @@ export class DatabaseStorage implements IStorage {
         .select()
         .from(galleryImages)
         .where(eq(galleryImages.imageUrl, imageUrl));
+    }
+    
+    // Fallback 2: try to find by prompt for older images without sourceImageId or different imageUrl
+    if (!galleryImage && prompt) {
+      [galleryImage] = await db
+        .select()
+        .from(galleryImages)
+        .where(eq(galleryImages.prompt, prompt));
     }
     
     if (galleryImage) {
@@ -1020,8 +1028,8 @@ export class DatabaseStorage implements IStorage {
         });
       }
     } else {
-      // Remove from gallery - pass imageUrl as fallback for older images without sourceImageId
-      await this.deleteGalleryImageBySourceId(imageId, image.imageUrl);
+      // Remove from gallery - pass imageUrl and prompt as fallbacks for older images without sourceImageId
+      await this.deleteGalleryImageBySourceId(imageId, image.imageUrl, image.prompt || undefined);
     }
     
     return updated;
