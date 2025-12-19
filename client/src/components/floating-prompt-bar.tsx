@@ -79,8 +79,6 @@ const DETAIL_LEVELS = [
 
 const countOptions = [
   { id: "1", label: "1" },
-  { id: "2", label: "2" },
-  { id: "4", label: "4" },
 ];
 
 type DropdownType = "style" | "count" | "quality" | "speed" | "ratio" | "detail" | "styleExpanded" | "countExpanded" | null;
