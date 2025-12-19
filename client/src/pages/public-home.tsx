@@ -440,7 +440,7 @@ function BrandingHeader({ isLoggedIn }: { isLoggedIn: boolean }) {
         className="shrink-0 bg-[#0A0A0B] border-b border-white/10 px-6 py-4"
       >
         <div className="flex items-center justify-center gap-3">
-          <img src={ugliLogo} alt="UGLI" className="h-10 object-contain" data-testid="img-ugli-logo" />
+          <img src={ugliLogo} alt="UGLI" className="h-12 object-contain" data-testid="img-ugli-logo" />
           <span className="text-white/40 mx-2">|</span>
           <span className="text-sm text-white/60" data-testid="text-tagline">AI-Powered Creative Studio</span>
         </div>
@@ -457,7 +457,7 @@ function BrandingHeader({ isLoggedIn }: { isLoggedIn: boolean }) {
     >
       <div className="max-w-4xl mx-auto text-center">
         <div className="flex items-center justify-center gap-3 mb-3">
-          <img src={ugliLogo} alt="UGLI" className="h-14 object-contain" data-testid="img-ugli-logo" />
+          <img src={ugliLogo} alt="UGLI" className="h-[67px] object-contain" data-testid="img-ugli-logo" />
         </div>
         
         <h1 className="text-lg md:text-xl font-medium text-white/90 mb-1" data-testid="text-tagline">
