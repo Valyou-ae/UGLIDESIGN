@@ -29,6 +29,7 @@ import Pricing from "@/pages/pricing";
 import Landing from "@/pages/landing";
 import MoodBoard from "@/pages/mood-board";
 import StyleTransfer from "@/pages/style-transfer";
+import ChatStudio from "@/pages/chat-studio";
 import AdminDashboard from "@/pages/admin/index";
 import AdminUsers from "@/pages/admin/users";
 import AdminCRM from "@/pages/admin/crm";
@@ -132,7 +133,11 @@ function Router() {
           <MoodBoard />
         </AuthGuard>
       </Route>
-
+      <Route path="/chat-studio">
+        <AuthGuard>
+          <ChatStudio />
+        </AuthGuard>
+      </Route>
 
       {/* Admin routes (require admin role) */}
       <Route path="/admin">

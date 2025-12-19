@@ -228,6 +228,43 @@ export const dailyInspirations = pgTable("daily_inspirations", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const chatSessions = pgTable("chat_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  name: text("name").notNull(),
+  preferences: jsonb("preferences").$type<{
+    preferredStyles: string[];
+    preferredMood: string;
+    preferredAspectRatio: string;
+    colorPalette: string[];
+  }>().default({ preferredStyles: [], preferredMood: '', preferredAspectRatio: '1:1', colorPalette: [] }),
+  projectTheme: jsonb("project_theme").$type<{
+    mainSubject: string;
+    setting: string;
+  }>().default({ mainSubject: '', setting: '' }),
+  convergence: integer("convergence").default(0),
+  momentum: text("momentum").default("exploring"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_chat_sessions_user_id").on(table.userId),
+  index("idx_chat_sessions_created_at").on(table.createdAt),
+]);
+
+export const chatMessages = pgTable("chat_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").references(() => chatSessions.id).notNull(),
+  role: text("role").notNull(),
+  content: text("content").notNull(),
+  options: jsonb("options").$type<{ label: string; icon?: string; value: string; type: string }[]>(),
+  imageId: varchar("image_id").references(() => generatedImages.id),
+  enhancedPrompt: text("enhanced_prompt"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_chat_messages_session_id").on(table.sessionId),
+  index("idx_chat_messages_created_at").on(table.createdAt),
+]);
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   email: true,
@@ -336,6 +373,22 @@ export type ImageLike = typeof imageLikes.$inferSelect;
 export type GalleryImage = typeof galleryImages.$inferSelect;
 export type GalleryImageLike = typeof galleryImageLikes.$inferSelect;
 export type DailyInspiration = typeof dailyInspirations.$inferSelect;
+export type ChatSession = typeof chatSessions.$inferSelect;
+export type ChatMessage = typeof chatMessages.$inferSelect;
+
+export const insertChatSessionSchema = createInsertSchema(chatSessions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertChatSession = z.infer<typeof insertChatSessionSchema>;
+export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 
 // ============== VALIDATION SCHEMAS ==============
 
