@@ -170,7 +170,6 @@ const CHECKERBOARD_BG = "bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0
 const MAX_BATCH_IMAGES = 20;
 
 export default function BackgroundRemover() {
-  const [mode, setMode] = useState<ProcessingMode>("single");
   const [state, setState] = useState<ProcessingState>("idle");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [processedImage, setProcessedImage] = useState<string | null>(null);
@@ -193,9 +192,11 @@ export default function BackgroundRemover() {
   const [batchResults, setBatchResults] = useState<{ successful: number; failed: number }>({ successful: 0, failed: 0 });
   const [showBatchOriginal, setShowBatchOriginal] = useState<Record<string, boolean>>({});
   
+  // Auto-detect mode based on number of images
+  const mode: ProcessingMode = batchImages.length > 0 ? "batch" : "single";
+  
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const batchFileInputRef = useRef<HTMLInputElement>(null);
   const comparisonRef = useRef<HTMLDivElement>(null);
 
   const currentCredits = QUALITY_LEVELS.find(q => q.id === quality)?.credits || 1;
@@ -230,51 +231,51 @@ export default function BackgroundRemover() {
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setSelectedImage(event.target.result as string);
-          setState("configuring");
-          setProcessedImage(null);
-          setErrorMessage(null);
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleBatchFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
       const files = Array.from(e.target.files);
-      const remainingSlots = MAX_BATCH_IMAGES - batchImages.length;
-      const filesToProcess = files.slice(0, remainingSlots);
-
-      if (files.length > remainingSlots) {
-        toast({
-          title: "Limit reached",
-          description: `Only ${remainingSlots} more image${remainingSlots !== 1 ? 's' : ''} can be added. Maximum is ${MAX_BATCH_IMAGES}.`,
-          variant: "destructive",
-        });
-      }
-
-      filesToProcess.forEach((file) => {
+      
+      // Auto-detect mode: 1 file = single mode, multiple = batch mode
+      if (files.length === 1) {
         const reader = new FileReader();
         reader.onload = (event) => {
           if (event.target?.result) {
-            const newImage: BatchImage = {
-              id: `batch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-              originalImage: event.target.result as string,
-              status: 'pending'
-            };
-            setBatchImages(prev => [...prev, newImage]);
+            setSelectedImage(event.target.result as string);
+            setState("configuring");
+            setProcessedImage(null);
+            setErrorMessage(null);
           }
         };
-        reader.readAsDataURL(file);
-      });
+        reader.readAsDataURL(files[0]);
+      } else {
+        // Multiple files - batch mode
+        const remainingSlots = MAX_BATCH_IMAGES - batchImages.length;
+        const filesToProcess = files.slice(0, remainingSlots);
 
-      if (filesToProcess.length > 0) {
-        setState("configuring");
+        if (files.length > remainingSlots) {
+          toast({
+            title: "Limit reached",
+            description: `Only ${remainingSlots} more image${remainingSlots !== 1 ? 's' : ''} can be added. Maximum is ${MAX_BATCH_IMAGES}.`,
+            variant: "destructive",
+          });
+        }
+
+        filesToProcess.forEach((file) => {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            if (event.target?.result) {
+              const newImage: BatchImage = {
+                id: `batch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                originalImage: event.target.result as string,
+                status: 'pending'
+              };
+              setBatchImages(prev => [...prev, newImage]);
+            }
+          };
+          reader.readAsDataURL(file);
+        });
+
+        if (filesToProcess.length > 0) {
+          setState("configuring");
+        }
       }
     }
     if (e.target) {
@@ -361,7 +362,10 @@ export default function BackgroundRemover() {
     e.preventDefault();
     const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
     
-    if (mode === "single" && files.length > 0) {
+    if (files.length === 0) return;
+    
+    // Auto-detect mode: 1 file = single mode, multiple = batch mode
+    if (files.length === 1) {
       const reader = new FileReader();
       reader.onload = (event) => {
         if (event.target?.result) {
@@ -372,7 +376,8 @@ export default function BackgroundRemover() {
         }
       };
       reader.readAsDataURL(files[0]);
-    } else if (mode === "batch") {
+    } else {
+      // Multiple files - batch mode
       const remainingSlots = MAX_BATCH_IMAGES - batchImages.length;
       const filesToProcess = files.slice(0, remainingSlots);
 
@@ -665,12 +670,6 @@ export default function BackgroundRemover() {
     setShowBatchOriginal({});
   };
 
-  const handleModeChange = (newMode: ProcessingMode) => {
-    if (state === "processing") return;
-    setMode(newMode);
-    reset();
-  };
-
   const toggleBatchOriginal = (id: string) => {
     setShowBatchOriginal(prev => ({
       ...prev,
@@ -719,7 +718,7 @@ export default function BackgroundRemover() {
         
         <div 
           className="group relative bg-card border-2 border-dashed border-border rounded-[20px] md:rounded-[24px] p-6 md:p-16 text-center transition-all duration-300 hover:border-primary hover:bg-primary/5 dark:hover:bg-primary/10 hover:scale-[1.01] cursor-pointer"
-          onClick={() => mode === "single" ? fileInputRef.current?.click() : batchFileInputRef.current?.click()}
+          onClick={() => fileInputRef.current?.click()}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           data-testid="upload-zone"
@@ -729,46 +728,28 @@ export default function BackgroundRemover() {
             ref={fileInputRef}
             className="hidden" 
             accept="image/png, image/jpeg, image/webp, image/gif"
+            multiple
             onChange={handleFileSelect}
             data-testid="file-input"
-          />
-          <input 
-            type="file" 
-            ref={batchFileInputRef}
-            className="hidden" 
-            accept="image/png, image/jpeg, image/webp, image/gif"
-            multiple
-            onChange={handleBatchFileSelect}
-            data-testid="batch-file-input"
           />
           
           <div className="mb-4 md:mb-6 relative inline-block">
             <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full group-hover:bg-primary/30 transition-colors" />
             <div className="relative">
-              {mode === "single" ? (
-                <Upload className="h-12 w-12 md:h-20 md:w-20 text-primary relative z-10 transition-transform duration-500 group-hover:-translate-y-2" />
-              ) : (
-                <ImagePlus className="h-12 w-12 md:h-20 md:w-20 text-primary relative z-10 transition-transform duration-500 group-hover:-translate-y-2" />
-              )}
+              <Upload className="h-12 w-12 md:h-20 md:w-20 text-primary relative z-10 transition-transform duration-500 group-hover:-translate-y-2" />
               <div className="absolute -right-2 -bottom-1 md:-right-4 md:-bottom-2 bg-white dark:bg-black rounded-full p-1 md:p-1.5 shadow-lg border border-border">
-                {mode === "single" ? (
-                  <Layers className="h-4 w-4 md:h-6 md:w-6 text-[#1A1A2E]" />
-                ) : (
-                  <Grid3X3 className="h-4 w-4 md:h-6 md:w-6 text-[#1A1A2E]" />
-                )}
+                <Layers className="h-4 w-4 md:h-6 md:w-6 text-[#1A1A2E]" />
               </div>
             </div>
           </div>
           
           <h2 className="text-lg md:text-2xl font-bold text-foreground mb-2">
-            {mode === "single" ? "Drag & drop your image" : "Drag & drop multiple images"}
+            Drag & drop your image(s)
           </h2>
           <p className="text-sm md:text-lg text-muted-foreground mb-4">or click to browse</p>
-          {mode === "batch" && (
-            <p className="text-sm text-primary font-medium mb-2">
-              Upload up to {MAX_BATCH_IMAGES} images at once
-            </p>
-          )}
+          <p className="text-sm text-primary font-medium mb-2">
+            Upload 1 image or up to {MAX_BATCH_IMAGES} at once
+          </p>
           <p className="text-[10px] md:text-sm text-muted-foreground/60 uppercase tracking-wider font-medium">
             PNG, JPG, JPEG, WEBP, GIF
           </p>
@@ -843,7 +824,7 @@ export default function BackgroundRemover() {
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={() => batchFileInputRef.current?.click()}
+            onClick={() => fileInputRef.current?.click()}
             disabled={batchImages.length >= MAX_BATCH_IMAGES || state === "processing"}
           >
             <ImagePlus className="h-4 w-4 mr-1" />
@@ -935,7 +916,7 @@ export default function BackgroundRemover() {
 
         {batchImages.length < MAX_BATCH_IMAGES && state !== "processing" && (
           <button
-            onClick={() => batchFileInputRef.current?.click()}
+            onClick={() => fileInputRef.current?.click()}
             className="aspect-square rounded-xl border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 dark:hover:bg-primary/10 transition-all flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary"
             data-testid="add-more-batch"
           >
@@ -1141,21 +1122,6 @@ export default function BackgroundRemover() {
             <p className="text-sm md:text-[15px] text-muted-foreground mt-2">
               Remove backgrounds instantly with AI precision • Powered by Gemini
             </p>
-
-            <div className="mt-4">
-              <Tabs value={mode} onValueChange={(v) => handleModeChange(v as ProcessingMode)} className="w-fit">
-                <TabsList className="grid w-full grid-cols-2 h-10">
-                  <TabsTrigger value="single" className="px-6" disabled={state === "processing"} data-testid="mode-single">
-                    <ImageIcon className="h-4 w-4 mr-2" />
-                    Single
-                  </TabsTrigger>
-                  <TabsTrigger value="batch" className="px-6" disabled={state === "processing"} data-testid="mode-batch">
-                    <Grid3X3 className="h-4 w-4 mr-2" />
-                    Batch
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
           </div>
 
           <div className="flex-1 flex flex-col">
