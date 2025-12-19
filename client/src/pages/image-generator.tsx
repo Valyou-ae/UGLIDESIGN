@@ -1316,7 +1316,7 @@ export default function ImageGenerator() {
         onComplete={handleTutorialComplete}
       />
       
-      <main className="flex-1 flex flex-col relative h-full overflow-hidden bg-[#F8F8F8] dark:bg-[#292929] text-foreground">
+      <main className="flex-1 flex flex-col relative h-full overflow-hidden bg-[#F8F8F8] dark:bg-[#0a0a0a] text-foreground">
         
         {/* TOP SECTION: PROMPT BAR (Expandable on Focus/Type) */}
         <div 
