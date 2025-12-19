@@ -3423,5 +3423,142 @@ export async function registerRoutes(
     }
   });
 
+  // Chat Sessions API
+  app.get("/api/chat/sessions", requireAuth, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const sessions = await storage.getChatSessions(userId);
+      res.json({ sessions });
+    } catch (error) {
+      console.error("Get chat sessions error:", error);
+      res.status(500).json({ message: "Failed to get chat sessions" });
+    }
+  });
+
+  app.post("/api/chat/sessions", requireAuth, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const { name, createProject } = req.body;
+      
+      let projectId: string | undefined;
+      
+      // Auto-create a project folder if requested
+      if (createProject) {
+        const projectName = name || `Chat Project ${new Date().toLocaleDateString()}`;
+        const project = await storage.createMoodBoard(userId, projectName, "Auto-created from Chat Studio");
+        projectId = project.id;
+      }
+      
+      const session = await storage.createChatSession(userId, name || "New Chat", projectId);
+      res.json({ session, projectId });
+    } catch (error) {
+      console.error("Create chat session error:", error);
+      res.status(500).json({ message: "Failed to create chat session" });
+    }
+  });
+
+  app.get("/api/chat/sessions/:id", requireAuth, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const { id } = req.params;
+      
+      const session = await storage.getChatSession(id, userId);
+      if (!session) {
+        return res.status(404).json({ message: "Chat session not found" });
+      }
+      
+      const messages = await storage.getChatMessages(id);
+      
+      // Get linked project info if exists
+      let project = null;
+      if (session.projectId) {
+        const projectData = await storage.getMoodBoard(userId, session.projectId);
+        if (projectData) {
+          project = projectData.board;
+        }
+      }
+      
+      res.json({ session, messages, project });
+    } catch (error) {
+      console.error("Get chat session error:", error);
+      res.status(500).json({ message: "Failed to get chat session" });
+    }
+  });
+
+  app.patch("/api/chat/sessions/:id", requireAuth, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const { id } = req.params;
+      const data = req.body;
+      
+      const session = await storage.updateChatSession(id, userId, data);
+      if (!session) {
+        return res.status(404).json({ message: "Chat session not found" });
+      }
+      
+      res.json({ session });
+    } catch (error) {
+      console.error("Update chat session error:", error);
+      res.status(500).json({ message: "Failed to update chat session" });
+    }
+  });
+
+  app.delete("/api/chat/sessions/:id", requireAuth, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const { id } = req.params;
+      
+      await storage.deleteChatSession(id, userId);
+      res.json({ message: "Chat session deleted" });
+    } catch (error) {
+      console.error("Delete chat session error:", error);
+      res.status(500).json({ message: "Failed to delete chat session" });
+    }
+  });
+
+  app.post("/api/chat/sessions/:id/messages", requireAuth, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const { id: sessionId } = req.params;
+      const { role, content, options, imageId, enhancedPrompt } = req.body;
+      
+      // Verify session belongs to user
+      const session = await storage.getChatSession(sessionId, userId);
+      if (!session) {
+        return res.status(404).json({ message: "Chat session not found" });
+      }
+      
+      const message = await storage.addChatMessage(sessionId, {
+        role,
+        content,
+        options,
+        imageId,
+        enhancedPrompt,
+      });
+      
+      // If there's an image and session has a linked project, add image to project
+      if (imageId && session.projectId) {
+        try {
+          const existingItems = await storage.getMoodBoard(userId, session.projectId);
+          const itemCount = existingItems?.items.length || 0;
+          await storage.addItemToBoard(session.projectId, imageId, {
+            positionX: (itemCount % 3) * 220,
+            positionY: Math.floor(itemCount / 3) * 220,
+            width: 200,
+            height: 200,
+            zIndex: itemCount,
+          });
+        } catch (e) {
+          console.error("Failed to add image to project:", e);
+        }
+      }
+      
+      res.json({ message });
+    } catch (error) {
+      console.error("Add chat message error:", error);
+      res.status(500).json({ message: "Failed to add chat message" });
+    }
+  });
+
   return httpServer;
 }
