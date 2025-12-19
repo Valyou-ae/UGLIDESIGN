@@ -1581,40 +1581,39 @@ export default function MockupGenerator() {
                                 {selectedStyle && <Badge variant="secondary" className="text-[10px] ml-auto">{BRAND_STYLES.find(s => s.id === selectedStyle)?.name}</Badge>}
                               </div>
                               
-                              <div className="flex justify-between gap-1 sm:gap-2">
+                              <div className="flex justify-between gap-1">
                                 {BRAND_STYLES.map((style) => {
                                   const isSelected = selectedStyle === style.id;
                                   return (
-                                    <TooltipProvider key={style.id} delayDuration={200}>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <button 
-                                            onClick={() => setSelectedStyle(style.id)}
-                                            data-testid={`style-card-${style.id}`}
-                                            className={cn(
-                                              "relative flex-1 aspect-square max-w-[72px] rounded-full overflow-hidden border-2 transition-all duration-200 hover:scale-105 active:scale-95",
-                                              isSelected 
-                                                ? "border-primary ring-2 ring-primary/30" 
-                                                : "border-border hover:border-primary/50"
-                                            )}
-                                          >
-                                            <img 
-                                              src={style.img} 
-                                              alt={style.name} 
-                                              className="w-full h-full object-cover" 
-                                            />
-                                            {isSelected && (
-                                              <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
-                                                <Check className="h-4 w-4 text-white drop-shadow-lg" />
-                                              </div>
-                                            )}
-                                          </button>
-                                        </TooltipTrigger>
-                                        <TooltipContent side="bottom" className="text-xs">
-                                          <p className="font-medium">{style.name}</p>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
+                                    <div key={style.id} className="flex flex-col items-center flex-1 min-w-0">
+                                      <button 
+                                        onClick={() => setSelectedStyle(style.id)}
+                                        data-testid={`style-card-${style.id}`}
+                                        className={cn(
+                                          "relative w-full aspect-square rounded-full overflow-hidden border-2 transition-all duration-200 hover:scale-105 active:scale-95",
+                                          isSelected 
+                                            ? "border-primary ring-2 ring-primary/30" 
+                                            : "border-border hover:border-primary/50"
+                                        )}
+                                      >
+                                        <img 
+                                          src={style.img} 
+                                          alt={style.name} 
+                                          className="w-full h-full object-cover" 
+                                        />
+                                        {isSelected && (
+                                          <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                                            <Check className="h-4 w-4 text-white drop-shadow-lg" />
+                                          </div>
+                                        )}
+                                      </button>
+                                      <span className={cn(
+                                        "text-[10px] mt-1 text-center truncate w-full",
+                                        isSelected ? "text-primary font-medium" : "text-muted-foreground"
+                                      )}>
+                                        {style.name}
+                                      </span>
+                                    </div>
                                   );
                                 })}
                               </div>
