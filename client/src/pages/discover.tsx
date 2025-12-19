@@ -287,7 +287,7 @@ function LazyMasonryCard({ item, index, onLike, onUse, onCopy }: { item: Inspira
                       <Share2 className="h-3.5 w-3.5" />
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-48 p-2 z-[200]" align="end" sideOffset={5}>
+                  <PopoverContent className="w-56 p-2 z-[200]" align="end" sideOffset={5}>
                     <div className="grid gap-1">
                       <button
                         className="flex items-center gap-3 w-full px-3 py-2 text-sm rounded-md hover:bg-muted transition-colors"
