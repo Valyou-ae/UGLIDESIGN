@@ -66,7 +66,7 @@ function InspirationCard({
       className={cn(
         "relative rounded-2xl overflow-hidden border backdrop-blur-sm",
         colorScheme.border,
-        "bg-gradient-to-br from-[#1A1A2E]/90 to-[#1A1A2E]/90",
+        "bg-gradient-to-br from-[#1a1a1a]/90 to-[#0f0f0f]/90",
         isActive && "ring-2 ring-[#E91E63]/50"
       )}
       data-testid={`inspiration-card-${inspiration.id}`}
@@ -78,7 +78,7 @@ function InspirationCard({
             alt={inspiration.title}
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A2E] via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-transparent to-transparent" />
         </div>
       )}
 
@@ -107,7 +107,7 @@ function InspirationCard({
           </span>
         </div>
 
-        <div className="relative bg-[#1A1A2E] rounded-lg p-3 border border-white/5">
+        <div className="relative bg-[#1a1a1a] rounded-lg p-3 border border-white/5">
           <p className="text-sm text-white/80 line-clamp-3 pr-8">
             {inspiration.prompt}
           </p>

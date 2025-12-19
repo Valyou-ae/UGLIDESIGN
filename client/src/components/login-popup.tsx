@@ -186,7 +186,7 @@ function LoginPopupDialog({ isOpen, onClose, returnTo }: LoginPopupDialogProps) 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent 
-        className="sm:max-w-[420px] p-0 bg-gradient-to-b from-[#1A1A2E] to-[#1A1A2E] border border-[#333]/50 overflow-hidden rounded-2xl shadow-2xl"
+        className="sm:max-w-[420px] p-0 bg-gradient-to-b from-[#1a1a1a] to-[#0f0f0f] border border-[#333]/50 overflow-hidden rounded-2xl shadow-2xl"
         data-testid="login-popup"
         aria-describedby="login-dialog-description"
       >
@@ -292,7 +292,7 @@ function LoginPopupDialog({ isOpen, onClose, returnTo }: LoginPopupDialogProps) 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={isEmailLoading}
-                    className="pl-12 h-12 bg-[#1A1A2E] border-[#333] text-white placeholder:text-gray-500 rounded-xl focus:border-[#E91E63] focus:ring-1 focus:ring-[#E91E63] transition-all"
+                    className="pl-12 h-12 bg-[#1a1a1a] border-[#333] text-white placeholder:text-gray-500 rounded-xl focus:border-[#E91E63] focus:ring-1 focus:ring-[#E91E63] transition-all"
                     data-testid="input-email"
                   />
                 </div>

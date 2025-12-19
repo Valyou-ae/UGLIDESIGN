@@ -160,9 +160,9 @@ const QUALITY_LEVELS: Array<{
 ];
 
 const PRESET_COLORS = [
-  '#FFFFFF', '#000000', '#F8F8F8', '#1A1A2E',
-  '#E91E63', '#8B5CF6', '#3B82F6', '#10B981',
-  '#F59E0B', '#EF4444', '#3F51B5', '#14B8A6'
+  '#FFFFFF', '#000000', '#F8F8F8', '#1A1A1A',
+  '#EC4899', '#8B5CF6', '#3B82F6', '#10B981',
+  '#F59E0B', '#EF4444', '#6366F1', '#14B8A6'
 ];
 
 const CHECKERBOARD_BG = "bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbC1vcGFjaXR5PSIwLjEiPjxyZWN0IHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iIzAwMCIvPjxyZWN0IHg9IjEwIiB5PSIxMCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjMDAwIi8+PC9zdmc+')] bg-repeat";

@@ -544,7 +544,7 @@ const CATEGORIES: Category[] = [
   { id: "getting-started", icon: Rocket, color: "#7C3AED", title: "Getting Started", desc: "Learn the basics and set up your account", articleIds: ["getting-started-1", "getting-started-more", "getting-started-faqs"] },
   { id: "image-gen", icon: Wand2, color: "#7C3AED", title: "Image Generation", desc: "Create stunning AI-generated images", articleIds: ["prompt-guide", "image-gen-more", "image-gen-faqs"] },
   { id: "mockup", icon: ShoppingBag, color: "#4F46E5", title: "Mockup Generator", desc: "Create product mockups for your designs", articleIds: ["seamless-patterns", "mockup-guide", "mockup-export"] },
-  { id: "bg-remover", icon: Scissors, color: "#E91E63", title: "Background Removal", desc: "Remove and replace image backgrounds", articleIds: ["bg-removal-tips", "bg-removal-more", "bg-removal-faqs"] },
+  { id: "bg-remover", icon: Scissors, color: "#EC4899", title: "Background Removal", desc: "Remove and replace image backgrounds", articleIds: ["bg-removal-tips", "bg-removal-more", "bg-removal-faqs"] },
   { id: "ai-agents", icon: BrainCircuit, color: "#10B981", title: "AI Agents", desc: "Understand the 5 AI agents and how they work", articleIds: ["ai-agents", "ai-agents-more", "ai-agents-faqs"] },
   { id: "billing", icon: CreditCard, color: "#F59E0B", title: "Billing & Credits", desc: "Manage subscriptions, payments, and credits", articleIds: ["credits-guide", "billing-upgrade", "billing-more", "billing-faqs"] },
   { id: "account", icon: Shield, color: "#3B82F6", title: "Account & Security", desc: "Secure your account and manage settings", articleIds: ["account-security", "password-reset"] },
@@ -681,7 +681,7 @@ export default function HelpSupport() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
               onClick={() => handleCategoryClick(cat)}
-              className="group relative bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-7 cursor-pointer hover:border-[#D4D4D8] dark:hover:border-[#2A2A30] hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-black/20 transition-all duration-300"
+              className="group relative bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-7 cursor-pointer hover:border-[#D4D4D8] dark:hover:border-[#2A2A30] hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-black/20 transition-all duration-300"
             >
               <div className="absolute top-6 right-6 opacity-0 transform translate-x-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300">
                 <ArrowRight className="h-4 w-4 text-[#71717A] dark:text-[#52525B]" />
@@ -713,7 +713,7 @@ export default function HelpSupport() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl overflow-hidden shadow-sm dark:shadow-none">
+        <div className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl overflow-hidden shadow-sm dark:shadow-none">
           {popularArticlesList.map((article, i) => (
             <div 
               key={i}
@@ -759,7 +759,7 @@ export default function HelpSupport() {
           {videos.map((video, i) => (
             <div 
               key={i}
-              className="group bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-xl overflow-hidden cursor-pointer hover:border-[#D4D4D8] dark:hover:border-[#2A2A30] hover:-translate-y-1 transition-all duration-200"
+              className="group bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-xl overflow-hidden cursor-pointer hover:border-[#D4D4D8] dark:hover:border-[#2A2A30] hover:-translate-y-1 transition-all duration-200"
             >
               <div className="aspect-video bg-[#1A1A1F] relative overflow-hidden">
                 <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-60 transition-opacity" />
@@ -791,7 +791,7 @@ export default function HelpSupport() {
           <h2 className="text-[22px] font-semibold text-[#18181B] dark:text-[#FAFAFA]">Frequently Asked Questions</h2>
         </div>
 
-        <div className="bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl overflow-hidden">
+        <div className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl overflow-hidden">
           {faqs.map((faq, i) => (
             <div 
               key={i}
@@ -864,7 +864,7 @@ export default function HelpSupport() {
             <div 
               key={i}
               onClick={() => handleArticleClick(article.id)}
-              className="bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-xl p-6 cursor-pointer hover:border-[#7C3AED] hover:shadow-md transition-all group"
+              className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-xl p-6 cursor-pointer hover:border-[#7C3AED] hover:shadow-md transition-all group"
             >
               <h3 className="text-lg font-semibold text-[#18181B] dark:text-[#FAFAFA] mb-2 group-hover:text-[#7C3AED] transition-colors">
                 {article.title}
@@ -910,7 +910,7 @@ export default function HelpSupport() {
           </div>
         </div>
 
-        <article className="bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-8 md:p-12 shadow-sm">
+        <article className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-8 md:p-12 shadow-sm">
           <div className="mb-8 border-b border-[#E4E4E7] dark:border-[#1F1F23] pb-8">
             <div className="flex items-center gap-2 text-sm text-[#7C3AED] font-medium mb-4">
               <span>{activeArticle.category}</span>
@@ -955,11 +955,11 @@ export default function HelpSupport() {
       {/* Main Sidebar */}
       <Sidebar className="hidden md:flex border-r border-border/50" />
       
-      <main className="flex-1 flex flex-col h-full overflow-y-auto bg-[#F8F8F8] dark:bg-[#1A1A2E] text-[#18181B] dark:text-[#FAFAFA]">
+      <main className="flex-1 flex flex-col h-full overflow-y-auto bg-[#F8F8F8] dark:bg-[#0A0A0B] text-[#18181B] dark:text-[#FAFAFA]">
         
         {/* HERO SECTION (Always visible, but smaller when in article/category view maybe? No, keep simple) */}
         {view === "home" && (
-          <div className="relative bg-gradient-to-b from-[#E4E4E7] to-[#F8F8F8] dark:from-[#1A1A2E] dark:to-[#1A1A2E] pt-[60px] pb-12 px-12 text-center border-b border-[#E4E4E7] dark:border-[#1F1F23]">
+          <div className="relative bg-gradient-to-b from-[#E4E4E7] to-[#F8F8F8] dark:from-[#111113] dark:to-[#0A0A0B] pt-[60px] pb-12 px-12 text-center border-b border-[#E4E4E7] dark:border-[#1F1F23]">
             {/* Decorative background elements could go here */}
             <div className="max-w-2xl mx-auto relative z-10">
               <h1 className="text-4xl font-bold text-[#18181B] dark:text-[#FAFAFA] tracking-tight mb-3">

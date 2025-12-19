@@ -373,7 +373,7 @@ export default function MyCreations() {
     switch (type) {
       case "image": return { icon: Wand2, color: "#7C3AED", label: "IMAGE" };
       case "mockup": return { icon: ShoppingBag, color: "#4F46E5", label: "MOCKUP" };
-      case "bg-removed": return { icon: Scissors, color: "#E91E63", label: "BG REMOVED" };
+      case "bg-removed": return { icon: Scissors, color: "#EC4899", label: "BG REMOVED" };
       default: return { icon: Star, color: "#71717A", label: "UNKNOWN" };
     }
   };
@@ -382,7 +382,7 @@ export default function MyCreations() {
     <div className="h-screen bg-background flex font-sans text-foreground overflow-hidden">
       <Sidebar className="hidden md:flex border-r border-border/50" />
       
-      <main className="flex-1 flex flex-col relative h-full overflow-hidden bg-[#F8F8F8] dark:bg-[#1A1A2E] text-foreground">
+      <main className="flex-1 flex flex-col relative h-full overflow-hidden bg-[#F8F8F8] dark:bg-[#0A0A0B] text-foreground">
         <div className="flex flex-col h-full p-8 md:px-10 md:py-8 overflow-y-auto pb-24 md:pb-8">
           
           {/* PAGE HEADER & CONTROLS - COMPACT MOBILE */}
@@ -611,7 +611,7 @@ export default function MyCreations() {
               </div>
             ) : viewMode === "list" ? (
                /* LIST VIEW */
-              <div className="bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl overflow-hidden">
+              <div className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl overflow-hidden">
                 {/* Header */}
                 <div className="grid grid-cols-[40px_80px_2fr_1fr_1fr_1fr_100px] gap-4 px-6 py-3.5 bg-[#F9FAFB] dark:bg-[#1A1A1F] border-b border-[#E4E4E7] dark:border-[#1F1F23] text-[11px] font-bold text-[#52525B] dark:text-[#A1A1AA] uppercase tracking-wider items-center">
                   <div>{selectMode && <div className="w-5" />}</div>
@@ -648,7 +648,7 @@ export default function MyCreations() {
                     </div>
 
                     {/* Preview */}
-                    <div className="h-14 w-14 rounded-lg bg-[#1A1A2E] overflow-hidden">
+                    <div className="h-14 w-14 rounded-lg bg-[#0A0A0B] overflow-hidden">
                       <img src={item.src} className="w-full h-full object-cover" alt="" />
                     </div>
 
@@ -663,7 +663,7 @@ export default function MyCreations() {
                       <Badge variant="outline" className={cn("bg-transparent font-medium text-[10px] uppercase", 
                         item.type === "image" && "text-[#7C3AED] border-[#7C3AED]/30",
                         item.type === "mockup" && "text-[#4F46E5] border-[#4F46E5]/30",
-                        item.type === "bg-removed" && "text-[#E91E63] border-[#E91E63]/30"
+                        item.type === "bg-removed" && "text-[#EC4899] border-[#EC4899]/30"
                       )}>
                         {item.type.replace("-", " ")}
                       </Badge>

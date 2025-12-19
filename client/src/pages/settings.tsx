@@ -176,10 +176,10 @@ export default function Settings() {
       {/* Main Sidebar */}
       <Sidebar className="hidden md:flex border-r border-border/50" />
       
-      <main className="flex-1 flex h-full overflow-hidden bg-[#F8F8F8] dark:bg-[#1A1A2E] text-[#18181B] dark:text-[#FAFAFA] relative">
+      <main className="flex-1 flex h-full overflow-hidden bg-[#F8F8F8] dark:bg-[#0A0A0B] text-[#18181B] dark:text-[#FAFAFA] relative">
         {/* Settings Navigation Panel */}
         <div className={cn(
-          "w-full md:w-[260px] flex-shrink-0 border-r border-[#E4E4E7] dark:border-[#1F1F23] bg-[#F8F8F8] dark:bg-[#1A1A2E] h-full overflow-y-auto py-8 transition-all absolute md:relative z-20",
+          "w-full md:w-[260px] flex-shrink-0 border-r border-[#E4E4E7] dark:border-[#1F1F23] bg-[#F8F8F8] dark:bg-[#0A0A0B] h-full overflow-y-auto py-8 transition-all absolute md:relative z-20",
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}>
           <div className="px-6 mb-8">
@@ -189,7 +189,7 @@ export default function Settings() {
               <input 
                 type="text" 
                 placeholder="Search settings..." 
-                className="w-full bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-[10px] py-2.5 pl-10 pr-3 text-sm text-[#18181B] dark:text-[#FAFAFA] placeholder:text-[#71717A] dark:placeholder:text-[#52525B] focus:outline-none focus:border-[#7C3AED] transition-colors"
+                className="w-full bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-[10px] py-2.5 pl-10 pr-3 text-sm text-[#18181B] dark:text-[#FAFAFA] placeholder:text-[#71717A] dark:placeholder:text-[#52525B] focus:outline-none focus:border-[#7C3AED] transition-colors"
               />
             </div>
           </div>
@@ -208,8 +208,8 @@ export default function Settings() {
                       className={cn(
                         "w-full flex items-center gap-3 px-6 py-2.5 text-sm transition-all border-l-2 border-transparent",
                         activeTab === item.name 
-                          ? "bg-white dark:bg-[#1A1A2E] text-[#18181B] dark:text-[#FAFAFA] border-l-[#7C3AED] font-medium shadow-sm dark:shadow-none" 
-                          : "text-[#71717A] dark:text-[#A1A1AA] hover:bg-white dark:hover:bg-[#1A1A2E] hover:text-[#18181B] dark:hover:text-[#FAFAFA]",
+                          ? "bg-white dark:bg-[#111113] text-[#18181B] dark:text-[#FAFAFA] border-l-[#7C3AED] font-medium shadow-sm dark:shadow-none" 
+                          : "text-[#71717A] dark:text-[#A1A1AA] hover:bg-white dark:hover:bg-[#111113] hover:text-[#18181B] dark:hover:text-[#FAFAFA]",
                         item.danger && "text-[#DC2626] hover:text-[#DC2626] dark:text-[#DC2626] dark:hover:text-[#DC2626]"
                       )}
                     >
@@ -225,7 +225,7 @@ export default function Settings() {
 
         {/* Settings Content Panel */}
         <div className={cn(
-          "flex-1 h-full overflow-y-auto bg-white dark:bg-[#1A1A2E] p-6 md:p-12 w-full absolute md:relative transition-all",
+          "flex-1 h-full overflow-y-auto bg-white dark:bg-[#09090B] p-6 md:p-12 w-full absolute md:relative transition-all",
           mobileMenuOpen ? "translate-x-full md:translate-x-0" : "translate-x-0"
         )}>
           <div className="max-w-[720px] mx-auto pb-20">
@@ -359,7 +359,7 @@ function ProfileSettings() {
       </div>
 
       {/* Profile Photo */}
-      <div className="bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 mb-6">
+      <div className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 mb-6">
         <h3 className="text-[15px] font-semibold text-[#18181B] dark:text-[#FAFAFA] mb-4">Profile Photo</h3>
         <div className="flex items-center gap-5">
           <div className="w-20 h-20 rounded-full bg-[#F4F4F5] dark:bg-[#1F1F25] flex items-center justify-center overflow-hidden border border-[#E4E4E7] dark:border-[#2A2A30]">
@@ -408,7 +408,7 @@ function ProfileSettings() {
       </div>
 
       {/* Basic Information */}
-      <div className="bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 mb-6">
+      <div className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 mb-6">
         <h3 className="text-[15px] font-semibold text-[#18181B] dark:text-[#FAFAFA] mb-5">Basic Information</h3>
         <div className="flex flex-col gap-5">
           <div className="grid grid-cols-2 gap-4">
@@ -477,7 +477,7 @@ function ProfileSettings() {
       </div>
 
       {/* Social Links */}
-      <div className="bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 mb-6">
+      <div className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 mb-6">
         <div className="flex items-center gap-3 mb-5">
           <h3 className="text-[15px] font-semibold text-[#18181B] dark:text-[#FAFAFA]">Social Links</h3>
           <span className="px-2 py-1 rounded-full bg-[#F4F4F5] dark:bg-[#1F1F25] text-[11px] text-[#71717A] dark:text-[#52525B]">Optional</span>
@@ -530,7 +530,7 @@ function SecuritySettings() {
       </div>
 
       {/* Password */}
-      <div className="bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 mb-6">
+      <div className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 mb-6">
         <div className="flex justify-between items-start mb-4">
           <h3 className="text-[15px] font-semibold text-[#18181B] dark:text-[#FAFAFA]">Password</h3>
           <span className="text-xs text-[#71717A] dark:text-[#52525B]">Last changed 3 months ago</span>
@@ -545,7 +545,7 @@ function SecuritySettings() {
       </div>
 
       {/* 2FA */}
-      <div className="bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 mb-6">
+      <div className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 mb-6">
         <div className="flex items-center gap-2.5 mb-4">
           <Shield className="h-5 w-5 text-[#16A34A]" />
           <h3 className="text-[15px] font-semibold text-[#18181B] dark:text-[#FAFAFA]">Two-Factor Authentication</h3>
@@ -572,7 +572,7 @@ function SecuritySettings() {
       </div>
 
       {/* Active Sessions - Compact Mobile */}
-      <div className="bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-5 mb-6">
+      <div className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-5 mb-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-[15px] font-semibold text-[#18181B] dark:text-[#FAFAFA]">Active Sessions</h3>
           <button className="text-xs font-medium text-[#DC2626] hover:underline bg-red-50 dark:bg-red-900/10 px-2 py-1 rounded-md">Sign out all</button>
@@ -610,7 +610,7 @@ function SecuritySettings() {
       </div>
 
       {/* Login History - Compact List for Mobile */}
-      <div className="bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-5">
+      <div className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-5">
         <h3 className="text-[15px] font-semibold text-[#18181B] dark:text-[#FAFAFA] mb-4">Recent Login Activity</h3>
         
         {/* Mobile List View */}
@@ -653,7 +653,7 @@ function NotificationsSettings() {
       </div>
 
       {/* Email Notifications */}
-      <div className="bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 mb-6">
+      <div className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 mb-6">
         <div className="flex items-center gap-2.5 mb-4">
           <Mail className="h-5 w-5 text-[#18181B] dark:text-[#FAFAFA]" />
           <h3 className="text-[15px] font-semibold text-[#18181B] dark:text-[#FAFAFA]">Email Notifications</h3>
@@ -679,7 +679,7 @@ function NotificationsSettings() {
       </div>
 
       {/* Push Notifications */}
-      <div className="bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 mb-6">
+      <div className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 mb-6">
         <div className="flex items-center gap-2.5 mb-4">
           <Bell className="h-5 w-5 text-[#18181B] dark:text-[#FAFAFA]" />
           <h3 className="text-[15px] font-semibold text-[#18181B] dark:text-[#FAFAFA]">Push Notifications</h3>
@@ -707,7 +707,7 @@ function NotificationsSettings() {
       </div>
 
       {/* Quiet Hours */}
-      <div className="bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6">
+      <div className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6">
         <div className="flex items-center gap-2.5 mb-4">
           <Clock className="h-5 w-5 text-[#18181B] dark:text-[#FAFAFA]" />
           <h3 className="text-[15px] font-semibold text-[#18181B] dark:text-[#FAFAFA]">Quiet Hours</h3>
@@ -742,7 +742,7 @@ function PrivacySettings() {
       </div>
 
       {/* Profile Visibility */}
-      <div className="bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 mb-6">
+      <div className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 mb-6">
         <div className="flex items-center gap-2.5 mb-4">
           <Eye className="h-5 w-5 text-[#18181B] dark:text-[#FAFAFA]" />
           <h3 className="text-[15px] font-semibold text-[#18181B] dark:text-[#FAFAFA]">Profile Visibility</h3>
@@ -773,7 +773,7 @@ function PrivacySettings() {
       </div>
 
       {/* Data Collection */}
-      <div className="bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 mb-6">
+      <div className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 mb-6">
         <div className="flex items-center gap-2.5 mb-4">
           <Database className="h-5 w-5 text-[#18181B] dark:text-[#FAFAFA]" />
           <h3 className="text-[15px] font-semibold text-[#18181B] dark:text-[#FAFAFA]">Data Collection</h3>
@@ -797,7 +797,7 @@ function PrivacySettings() {
       </div>
 
       {/* Content Visibility */}
-      <div className="bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6">
+      <div className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6">
         <div className="flex items-center gap-2.5 mb-4">
           <ImageIcon className="h-5 w-5 text-[#18181B] dark:text-[#FAFAFA]" />
           <h3 className="text-[15px] font-semibold text-[#18181B] dark:text-[#FAFAFA]">Content Visibility</h3>
@@ -830,7 +830,7 @@ function AppearanceSettings() {
         <p className="text-sm text-[#71717A] mt-1">Customize the look and feel of your interface</p>
       </div>
 
-      <div className="bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 mb-6">
+      <div className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 mb-6">
         <h3 className="text-[15px] font-semibold text-[#18181B] dark:text-[#FAFAFA] mb-5">Theme</h3>
         <div className="grid grid-cols-3 gap-4">
           {[
@@ -855,7 +855,7 @@ function AppearanceSettings() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 mb-6">
+      <div className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
            <div>
              <h3 className="text-[15px] font-semibold text-[#18181B] dark:text-[#FAFAFA]">Reduced Motion</h3>
@@ -887,7 +887,7 @@ function GenerationDefaultsSettings() {
         <p className="text-sm text-[#71717A] mt-1">Set your preferred settings for new creations</p>
       </div>
 
-      <div className="bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 mb-6 space-y-6">
+      <div className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 mb-6 space-y-6">
         <div className="space-y-3">
           <label className="text-[13px] font-medium text-[#71717A] dark:text-[#A1A1AA]">Default Model</label>
           <Select defaultValue="v5.2">
@@ -931,7 +931,7 @@ function GenerationDefaultsSettings() {
         </div>
       </div>
 
-       <div className="bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6">
+       <div className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6">
         <div className="flex items-center justify-between">
            <div>
              <h3 className="text-[15px] font-semibold text-[#18181B] dark:text-[#FAFAFA]">Private Mode</h3>
@@ -966,7 +966,7 @@ function KeyboardShortcutsSettings() {
         <p className="text-sm text-[#71717A] mt-1">Speed up your workflow with these hotkeys</p>
       </div>
 
-      <div className="bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl overflow-hidden">
+      <div className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl overflow-hidden">
         {shortcuts.map((shortcut, i) => (
           <div key={i} className="flex items-center justify-between px-6 py-4 border-b border-[#F4F4F5] dark:border-[#1F1F23] last:border-0">
             <span className="text-sm text-[#18181B] dark:text-[#FAFAFA]">{shortcut.action}</span>
@@ -1073,7 +1073,7 @@ function ConnectedAppsSettings() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {apps.map((app, i) => (
-          <div key={i} className="bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 flex flex-col items-center text-center relative overflow-hidden group">
+          <div key={i} className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 flex flex-col items-center text-center relative overflow-hidden group">
             <div className="absolute top-3 right-3">
               <ExternalLink className="h-4 w-4 text-[#71717A] opacity-0 group-hover:opacity-50 transition-opacity" />
             </div>
@@ -1108,7 +1108,7 @@ function StorageSettings() {
         <p className="text-sm text-[#71717A] mt-1">Manage your cloud storage and local cache</p>
       </div>
 
-      <div className="bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 mb-6">
+      <div className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-[15px] font-semibold text-[#18181B] dark:text-[#FAFAFA]">Cloud Storage</h3>
           <span className="text-xs font-medium text-[#7C3AED]">Upgrade Plan</span>
@@ -1132,7 +1132,7 @@ function StorageSettings() {
           </div>
           <div className="p-4 rounded-xl bg-[#F4F4F5] dark:bg-[#1A1A1F] border border-[#E4E4E7] dark:border-[#2A2A30]">
             <div className="flex items-center gap-2 mb-2">
-              <FolderArchive className="h-4 w-4 text-[#E91E63]" />
+              <FolderArchive className="h-4 w-4 text-[#EC4899]" />
               <span className="text-sm font-medium text-[#18181B] dark:text-[#FAFAFA]">Archives</span>
             </div>
             <span className="text-xl font-bold text-[#18181B] dark:text-[#FAFAFA]">4.3 GB</span>
@@ -1140,7 +1140,7 @@ function StorageSettings() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6">
+      <div className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6">
          <h3 className="text-[15px] font-semibold text-[#18181B] dark:text-[#FAFAFA] mb-2">Local Cache</h3>
          <p className="text-sm text-[#71717A] mb-4">Clear temporary files to free up space on your device.</p>
          <Button variant="outline" className="text-[#DC2626] hover:text-[#DC2626] border-[#DC2626]/20 hover:bg-[#DC2626]/5">
@@ -1163,7 +1163,7 @@ function ExportDataSettings() {
         <p className="text-sm text-[#71717A] mt-1">Download a copy of your data</p>
       </div>
 
-      <div className="bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 mb-6">
+      <div className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl p-6 mb-6">
         <div className="flex items-center gap-4 mb-6">
           <div className="h-12 w-12 bg-[#F4F4F5] dark:bg-[#1F1F25] rounded-full flex items-center justify-center">
             <Download className="h-6 w-6 text-[#18181B] dark:text-[#FAFAFA]" />

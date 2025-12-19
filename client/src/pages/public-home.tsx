@@ -154,8 +154,8 @@ function JustifiedGalleryCard({ item, rowHeight, index, onLike, isLoggedIn }: { 
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className={cn(
-        "group w-full h-full bg-white dark:bg-[#1A1A2E] rounded-lg overflow-hidden cursor-pointer hover:shadow-[0_10px_40px_rgba(233,30,99,0.2)] transition-all duration-300",
-        item.isGenerated && "ring-2 ring-[#9C27B0] ring-offset-2 ring-offset-[#1A1A2E]"
+        "group w-full h-full bg-white dark:bg-[#111113] rounded-lg overflow-hidden cursor-pointer hover:shadow-[0_10px_40px_rgba(233,30,99,0.2)] transition-all duration-300",
+        item.isGenerated && "ring-2 ring-[#9C27B0] ring-offset-2 ring-offset-[#0A0A0B]"
       )}>
         <div className="relative w-full h-full overflow-hidden">
           {isVisible ? (
@@ -440,7 +440,7 @@ function BrandingHeader({ isLoggedIn }: { isLoggedIn: boolean }) {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="shrink-0 bg-[#1A1A2E] border-b border-white/10 px-6"
+        className="shrink-0 bg-[#0A0A0B] border-b border-white/10 px-6"
       >
         <div className="flex items-center justify-center gap-3">
           <img src={ugliLogo} alt="UGLI" className="h-14 object-contain" data-testid="img-ugli-logo" />
@@ -456,7 +456,7 @@ function BrandingHeader({ isLoggedIn }: { isLoggedIn: boolean }) {
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="shrink-0 bg-[#1A1A2E] border-b border-white/10 px-6 py-6"
+      className="shrink-0 bg-[#0A0A0B] border-b border-white/10 px-6 py-6"
     >
       <div className="max-w-4xl mx-auto text-center">
         <div className="flex items-center justify-center gap-3 mb-3">
@@ -618,7 +618,7 @@ export default function PublicHome() {
       <GoogleAutoSignIn />
       <Sidebar className="hidden md:flex border-r border-border/50" />
       
-      <main className="flex-1 flex flex-col h-full overflow-hidden bg-[#1A1A2E]">
+      <main className="flex-1 flex flex-col h-full overflow-hidden bg-[#0A0A0B]">
         <BrandingHeader isLoggedIn={!!user} />
         <div className="flex-1 relative overflow-hidden">
           {isGalleryReady ? (

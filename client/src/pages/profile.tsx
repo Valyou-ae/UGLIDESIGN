@@ -185,7 +185,7 @@ export default function Profile() {
     <div className="h-screen bg-background flex font-sans text-foreground overflow-hidden">
       <Sidebar className="hidden md:flex border-r border-border/50" />
       
-      <main className="flex-1 flex flex-col relative h-full overflow-y-auto bg-[#FAFAFA] dark:bg-[#1A1A2E]">
+      <main className="flex-1 flex flex-col relative h-full overflow-y-auto bg-[#FAFAFA] dark:bg-[#09090B]">
         {/* Cover Image */}
         <div className="h-32 md:h-40 w-full relative overflow-hidden flex-shrink-0">
           <div className="absolute inset-0 bg-gradient-to-r from-[#E91E63] via-[#9C27B0] to-[#1A1A2E] opacity-90" />

@@ -105,7 +105,7 @@
 /* LIGHT MODE - Vibrant Bold Theme */
 :root {
   /* Background: #FDF2F8 (light pink) */
-  --background: 330 100% 97%;
+  --background: 327 73% 97%;
   /* Foreground: #1A1A2E (dark) */
   --foreground: 240 29% 14%;
 
@@ -121,56 +121,56 @@
   --primary-foreground: 0 0% 100%;
 
   /* Secondary: #9C27B0 (Purple) */
-  --secondary: 291 76% 42%;
+  --secondary: 291 64% 42%;
   --secondary-foreground: 0 0% 100%;
 
   /* Muted: light pink tinted */
-  --muted: 330 50% 94%;
-  --muted-foreground: 240 20% 45%;
+  --muted: 327 30% 94%;
+  --muted-foreground: 240 29% 40%;
 
   /* Accent: #3F51B5 (Indigo) */
   --accent: 231 48% 48%;
   --accent-foreground: 0 0% 100%;
 
-  /* Destructive: #FF5722 (Orange - Accent 2) */
+  /* Destructive: #FF5722 (Deep Orange) */
   --destructive: 14 100% 57%;
   --destructive-foreground: 0 0% 100%;
 
   /* Border */
-  --border: 330 30% 88%;
-  --input: 330 30% 88%;
+  --border: 327 20% 88%;
+  --input: 327 20% 88%;
   --ring: 340 82% 52%;
 
   --radius: 0.75rem; /* 12px default radius */
 
   /* Sidebar */
   --sidebar: 0 0% 100%;
-  --sidebar-foreground: 240 20% 35%;
+  --sidebar-foreground: 240 29% 26%;
   --sidebar-primary: 340 82% 52%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 330 50% 94%;
+  --sidebar-accent: 327 30% 94%;
   --sidebar-accent-foreground: 340 82% 52%;
-  --sidebar-border: 330 30% 88%;
+  --sidebar-border: 327 20% 88%;
   --sidebar-ring: 340 82% 52%;
   
   /* Chart Colors - Vibrant Bold */
-  --chart-1: 340 82% 52%;  /* Pink #E91E63 */
-  --chart-2: 291 76% 42%;  /* Purple #9C27B0 */
-  --chart-3: 231 48% 48%;  /* Indigo #3F51B5 */
-  --chart-4: 14 100% 57%;  /* Orange #FF5722 */
-  --chart-5: 240 29% 14%;  /* Dark #1A1A2E */
+  --chart-1: 340 82% 52%;  /* Pink */
+  --chart-2: 291 64% 42%;  /* Purple */
+  --chart-3: 231 48% 48%;  /* Indigo */
+  --chart-4: 14 100% 57%;  /* Deep Orange */
+  --chart-5: 240 29% 14%;  /* Dark */
 }
 
 .dark {
-  /* Background: #0D0D15 (deep dark navy) */
-  --background: 240 29% 7%;
+  /* Background: #1A1A2E (dark) */
+  --background: 240 29% 14%;
   --foreground: 0 0% 98%;
 
   /* Card: slightly lighter dark */
-  --card: 240 25% 10%;
+  --card: 240 25% 18%;
   --card-foreground: 0 0% 98%;
 
-  --popover: 240 25% 10%;
+  --popover: 240 25% 18%;
   --popover-foreground: 0 0% 98%;
 
   /* Primary: #E91E63 (Pink) */
@@ -178,34 +178,34 @@
   --primary-foreground: 0 0% 100%;
 
   /* Secondary: #9C27B0 (Purple) */
-  --secondary: 291 76% 42%;
+  --secondary: 291 64% 42%;
   --secondary-foreground: 0 0% 100%;
 
   /* Muted */
-  --muted: 240 25% 12%;
+  --muted: 240 20% 22%;
   --muted-foreground: 240 10% 65%;
 
   /* Accent: #3F51B5 (Indigo) */
   --accent: 231 48% 48%;
   --accent-foreground: 0 0% 100%;
 
-  /* Destructive: #FF5722 (Orange) */
-  --destructive: 14 100% 57%;
+  /* Destructive: #FF5722 */
+  --destructive: 14 100% 50%;
   --destructive-foreground: 0 0% 100%;
 
   /* Border */
-  --border: 240 25% 15%;
-  --input: 240 25% 15%;
+  --border: 240 20% 22%;
+  --input: 240 20% 22%;
   --ring: 340 82% 52%;
 
   /* Sidebar */
-  --sidebar: 240 25% 8%;
+  --sidebar: 240 25% 18%;
   --sidebar-foreground: 240 10% 65%;
   --sidebar-primary: 340 82% 52%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 240 25% 12%;
+  --sidebar-accent: 240 20% 22%;
   --sidebar-accent-foreground: 0 0% 98%;
-  --sidebar-border: 240 25% 15%;
+  --sidebar-border: 240 20% 22%;
   --sidebar-ring: 340 82% 52%;
 }
 

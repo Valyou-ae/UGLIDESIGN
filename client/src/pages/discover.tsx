@@ -8,16 +8,8 @@ import {
   Loader2,
   Copy,
   Check,
-  Clock,
-  Share2,
-  Search,
-  X
+  Clock
 } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Sidebar } from "@/components/sidebar";
@@ -171,7 +163,7 @@ function LazyMasonryCard({ item, index, onLike, onUse, onCopy }: { item: Inspira
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="group bg-white dark:bg-[#1A1A2E] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-[20px] overflow-hidden cursor-pointer hover:border-[#E91E63]/50 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(233,30,99,0.15)] transition-all duration-300">
+      <div className="group bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-[20px] overflow-hidden cursor-pointer hover:border-[#E91E63]/50 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(233,30,99,0.15)] transition-all duration-300">
         <div className={cn("relative overflow-hidden", aspectClasses[item.aspectRatio])}>
           {isVisible ? (
             <>
@@ -270,85 +262,13 @@ function LazyMasonryCard({ item, index, onLike, onUse, onCopy }: { item: Inspira
                 <span>{formatCount(useCount)}</span>
               </button>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleCopyPrompt}
-                className="flex items-center gap-1 text-xs text-[#71717A] dark:text-[#52525B] hover:text-[#E91E63] transition-colors"
-                data-testid={`button-copy-${item.id}`}
-              >
-                {copied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
-              </button>
-              {item.isGalleryImage && (
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button
-                      className="flex items-center gap-1 text-xs text-[#71717A] dark:text-[#52525B] hover:text-[#E91E63] transition-colors"
-                      data-testid={`button-share-${item.id}`}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Share2 className="h-3.5 w-3.5" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-56 p-2 z-[200]" align="end" sideOffset={5}>
-                    <div className="grid gap-1">
-                      <button
-                        className="flex items-center gap-3 w-full px-3 py-2 text-sm rounded-md hover:bg-muted transition-colors"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const shareUrl = `${window.location.origin}/share/${item.id}`;
-                          const text = `Check out this AI-generated image!`;
-                          window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
-                        }}
-                      >
-                        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                        </svg>
-                        Share on X
-                      </button>
-                      <button
-                        className="flex items-center gap-3 w-full px-3 py-2 text-sm rounded-md hover:bg-muted transition-colors"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const shareUrl = `${window.location.origin}/share/${item.id}`;
-                          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
-                        }}
-                      >
-                        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                        </svg>
-                        Share on Facebook
-                      </button>
-                      <button
-                        className="flex items-center gap-3 w-full px-3 py-2 text-sm rounded-md hover:bg-muted transition-colors"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const shareUrl = `${window.location.origin}/share/${item.id}`;
-                          const text = `Check out this AI-generated image!`;
-                          window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + shareUrl)}`, '_blank');
-                        }}
-                      >
-                        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                        </svg>
-                        Share on WhatsApp
-                      </button>
-                      <button
-                        className="flex items-center gap-3 w-full px-3 py-2 text-sm rounded-md hover:bg-muted transition-colors"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const shareUrl = `${window.location.origin}/share/${item.id}`;
-                          navigator.clipboard.writeText(shareUrl);
-                          toast({ title: "Link Copied!", description: "Share link copied to clipboard" });
-                        }}
-                      >
-                        <Copy className="h-4 w-4" />
-                        Copy Link
-                      </button>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              )}
-            </div>
+            <button
+              onClick={handleCopyPrompt}
+              className="flex items-center gap-1 text-xs text-[#71717A] dark:text-[#52525B] hover:text-[#E91E63] transition-colors"
+              data-testid={`button-copy-${item.id}`}
+            >
+              {copied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+            </button>
           </div>
         </div>
       </div>
@@ -1975,8 +1895,6 @@ export default function Discover() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingCommunity, setIsLoadingCommunity] = useState(true);
   const [page, setPage] = useState(0);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isSearching, setIsSearching] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const ITEMS_PER_LOAD = 12;
 
@@ -2013,27 +1931,14 @@ export default function Discover() {
   }, []);
 
   const allContent = useMemo(() => [...communityImages, ...allInspirations], [communityImages]);
-  
-  const filteredContent = useMemo(() => {
-    if (!searchQuery.trim()) return allContent;
-    const query = searchQuery.toLowerCase().trim();
-    return allContent.filter(item => 
-      item.title.toLowerCase().includes(query) ||
-      item.prompt.toLowerCase().includes(query) ||
-      item.creator.toLowerCase().includes(query) ||
-      item.category.toLowerCase().includes(query) ||
-      item.tags.some(tag => tag.toLowerCase().includes(query))
-    );
-  }, [allContent, searchQuery]);
-  
-  const totalItems = filteredContent.length;
+  const totalItems = allContent.length;
 
   useEffect(() => {
     if (!isLoadingCommunity) {
-      setDisplayedItems(filteredContent.slice(0, ITEMS_PER_LOAD));
+      setDisplayedItems(allContent.slice(0, ITEMS_PER_LOAD));
       setPage(1);
     }
-  }, [isLoadingCommunity, filteredContent]);
+  }, [isLoadingCommunity, allContent]);
 
   const loadMore = useCallback(() => {
     if (isLoading) return;
@@ -2048,12 +1953,12 @@ export default function Discover() {
     setIsLoading(true);
     
     setTimeout(() => {
-      const nextItems = filteredContent.slice(startIndex, endIndex);
+      const nextItems = allContent.slice(startIndex, endIndex);
       setDisplayedItems(prev => [...prev, ...nextItems]);
       setPage(prev => prev + 1);
       setIsLoading(false);
     }, 300);
-  }, [page, isLoading, totalItems, filteredContent]);
+  }, [page, isLoading, totalItems, allContent]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -2076,48 +1981,18 @@ export default function Discover() {
     <div className="h-screen bg-background flex font-sans text-foreground overflow-hidden">
       <Sidebar className="hidden md:flex border-r border-border/50" />
       
-      <main className="flex-1 flex flex-col relative h-full overflow-y-auto bg-[#F8F8F8] dark:bg-[#1A1A2E] text-[#18181B] dark:text-[#FAFAFA] pb-20 md:pb-0">
+      <main className="flex-1 flex flex-col relative h-full overflow-y-auto bg-[#F8F8F8] dark:bg-[#0A0A0B] text-[#18181B] dark:text-[#FAFAFA] pb-20 md:pb-0">
         
         <div className="px-4 md:px-8 lg:px-12 py-6 max-w-[1600px] mx-auto w-full">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
-            <div className="flex items-center gap-3">
-              <TrendingUp className="h-5 w-5 text-[#E91E63]" />
-              <h2 className="text-xl font-semibold text-[#18181B] dark:text-[#FAFAFA]">Discover</h2>
-              <div className="flex items-center gap-2 px-2.5 py-1 bg-[#16A34A]/10 rounded-full ml-1">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#16A34A] opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#16A34A]"></span>
-                </span>
-                <span className="text-xs font-medium text-[#16A34A]">Live</span>
-              </div>
-            </div>
-            
-            <div className="flex-1 max-w-md ml-auto">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#71717A]" />
-                <input
-                  type="text"
-                  placeholder="Search by title, prompt, creator, or tags..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full h-10 pl-10 pr-10 rounded-xl border border-[#E4E4E7] dark:border-[#1A1A2E] bg-white dark:bg-[#1A1A2E] text-sm text-[#18181B] dark:text-[#FAFAFA] placeholder:text-[#71717A] focus:outline-none focus:ring-2 focus:ring-[#E91E63]/50 focus:border-[#E91E63] transition-all"
-                  data-testid="input-search-discover"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#71717A] hover:text-[#18181B] dark:hover:text-[#FAFAFA] transition-colors"
-                    data-testid="button-clear-search"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
-              {searchQuery && (
-                <p className="text-xs text-[#71717A] mt-2">
-                  Found {totalItems} {totalItems === 1 ? 'result' : 'results'} for "{searchQuery}"
-                </p>
-              )}
+          <div className="flex items-center gap-3 mb-6">
+            <TrendingUp className="h-5 w-5 text-[#E91E63]" />
+            <h2 className="text-xl font-semibold text-[#18181B] dark:text-[#FAFAFA]">Discover</h2>
+            <div className="flex items-center gap-2 px-2.5 py-1 bg-[#16A34A]/10 rounded-full ml-1">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#16A34A] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#16A34A]"></span>
+              </span>
+              <span className="text-xs font-medium text-[#16A34A]">Live</span>
             </div>
           </div>
 
@@ -2125,19 +2000,6 @@ export default function Discover() {
             <div className="flex flex-col items-center justify-center py-20">
               <Loader2 className="h-8 w-8 animate-spin text-[#E91E63] mb-4" />
               <span className="text-sm text-[#71717A]">Loading community creations...</span>
-            </div>
-          ) : displayedItems.length === 0 && searchQuery ? (
-            <div className="flex flex-col items-center justify-center py-20">
-              <Search className="h-12 w-12 text-[#71717A] mb-4" />
-              <h3 className="text-lg font-medium text-[#18181B] dark:text-[#FAFAFA] mb-2">No results found</h3>
-              <p className="text-sm text-[#71717A] mb-4">Try searching with different keywords</p>
-              <button
-                onClick={() => setSearchQuery("")}
-                className="px-4 py-2 text-sm bg-[#E91E63] text-white rounded-lg hover:bg-[#C2185B] transition-colors"
-                data-testid="button-clear-search-empty"
-              >
-                Clear search
-              </button>
             </div>
           ) : (
             <>

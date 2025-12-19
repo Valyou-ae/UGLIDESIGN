@@ -588,7 +588,7 @@ const PRODUCT_SILHOUETTES: Record<string, { svg: string; designArea: { top: stri
 
 const PRODUCT_COLOR_MAP: Record<string, string> = {
   "White": "#FFFFFF",
-  "Black": "#1A1A2E",
+  "Black": "#1a1a1a",
   "Sport Grey": "#9E9E9E",
   "Dark Heather": "#545454",
   "Charcoal": "#424242",

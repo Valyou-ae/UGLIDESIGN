@@ -90,7 +90,7 @@ export default function ResetPassword() {
     <div className="min-h-screen w-full flex bg-background text-foreground overflow-hidden">
       {/* Left Side - Visual */}
       <div className="hidden lg:flex w-1/2 relative bg-black items-center justify-center overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full bg-[#1A1A2E]">
+        <div className="absolute top-0 left-0 w-full h-full bg-[#0A0A0B]">
           <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-[#E91E63]/20 rounded-full blur-[120px]" />
           <div className="absolute bottom-[-20%] right-[-10%] w-[70%] h-[70%] bg-[#9C27B0]/20 rounded-full blur-[120px]" />
         </div>

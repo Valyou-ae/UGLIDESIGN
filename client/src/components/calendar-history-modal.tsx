@@ -46,7 +46,7 @@ const getTypeConfig = (type: string) => {
   switch (type) {
     case "image": return { icon: Wand2, color: "#7C3AED", label: "Image" };
     case "mockup": return { icon: ShoppingBag, color: "#4F46E5", label: "Mockup" };
-    case "bg-removed": return { icon: Scissors, color: "#E91E63", label: "BG Removed" };
+    case "bg-removed": return { icon: Scissors, color: "#EC4899", label: "BG Removed" };
     default: return { icon: Star, color: "#71717A", label: "Unknown" };
   }
 };
