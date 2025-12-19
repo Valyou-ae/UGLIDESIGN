@@ -91,19 +91,19 @@ const FEATURES = [
     icon: Sparkles,
     title: "AI Image Generation",
     description: "Create stunning visuals from text descriptions with our advanced AI models.",
-    gradient: "from-[#B94E30] to-[#8B3A24]",
+    gradient: "from-[#E91E63] to-[#C2185B]",
   },
   {
     icon: Shirt,
     title: "Product Mockups",
     description: "Generate professional mockups for 50+ products. Perfect for e-commerce.",
-    gradient: "from-[#664D3F] to-[#4A3830]",
+    gradient: "from-[#1A1A2E] to-[#4A3830]",
   },
   {
     icon: Scissors,
     title: "Background Removal",
     description: "Remove backgrounds instantly with AI precision. Get transparent results.",
-    gradient: "from-[#E3B436] to-[#C99C2A]",
+    gradient: "from-[#9C27B0] to-[#7B1FA2]",
   },
 ];
 
@@ -185,7 +185,7 @@ function Header() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-[#B94E30] to-[#E3B436] flex items-center justify-center shadow-lg shadow-[#B94E30]/20">
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-[#E91E63] to-[#9C27B0] flex items-center justify-center shadow-lg shadow-[#E91E63]/20">
               <div className="h-4 w-4 bg-white/20 rounded-md backdrop-blur-sm" />
             </div>
             <span className="font-bold text-xl text-foreground">UGLI</span>
@@ -275,9 +275,9 @@ function Hero({ prompt, setPrompt, isGenerating, hasUsedFreeGeneration, error, o
 
   return (
     <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-[#B94E30]/5 via-transparent to-[#E3B436]/5" />
-      <div className="absolute top-20 left-1/4 w-96 h-96 bg-[#B94E30]/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-[#E3B436]/10 rounded-full blur-3xl" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[#E91E63]/5 via-transparent to-[#9C27B0]/5" />
+      <div className="absolute top-20 left-1/4 w-96 h-96 bg-[#E91E63]/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-[#9C27B0]/10 rounded-full blur-3xl" />
       
       <div className="relative max-w-4xl mx-auto text-center">
         <motion.div
@@ -292,7 +292,7 @@ function Hero({ prompt, setPrompt, isGenerating, hasUsedFreeGeneration, error, o
           
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-6">
             Create Stunning Visuals with{" "}
-            <span className="text-gradient-brand bg-gradient-to-r from-[#B94E30] to-[#E3B436] bg-clip-text text-transparent">
+            <span className="text-gradient-brand bg-gradient-to-r from-[#E91E63] to-[#9C27B0] bg-clip-text text-transparent">
               AI-Powered
             </span>{" "}
             Tools
@@ -731,7 +731,7 @@ function Testimonials() {
             >
               <div className="flex gap-1 mb-4">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-4 w-4 fill-[#E3B436] text-[#E3B436]" />
+                  <Star key={i} className="h-4 w-4 fill-[#9C27B0] text-[#9C27B0]" />
                 ))}
               </div>
               <p className="text-foreground mb-4">"{testimonial.content}"</p>
@@ -815,7 +815,7 @@ function CTA() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="bg-gradient-to-br from-[#B94E30] to-[#8B3A24] rounded-3xl p-10 sm:p-16"
+          className="bg-gradient-to-br from-[#E91E63] to-[#C2185B] rounded-3xl p-10 sm:p-16"
         >
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
             Ready to Start Creating?
@@ -824,7 +824,7 @@ function CTA() {
             Join thousands of creators using UGLI to bring their ideas to life.
           </p>
           <Link href="/signup">
-            <Button size="lg" className="bg-white text-[#B94E30] hover:bg-white/90 h-12 px-8" data-testid="button-cta-final">
+            <Button size="lg" className="bg-white text-[#E91E63] hover:bg-white/90 h-12 px-8" data-testid="button-cta-final">
               Get Started Free
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
@@ -841,7 +841,7 @@ function Footer() {
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#B94E30] to-[#E3B436] flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#E91E63] to-[#9C27B0] flex items-center justify-center">
               <div className="h-3 w-3 bg-white/20 rounded-sm" />
             </div>
             <span className="font-bold text-foreground">UGLI</span>

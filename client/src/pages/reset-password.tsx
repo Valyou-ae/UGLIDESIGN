@@ -91,8 +91,8 @@ export default function ResetPassword() {
       {/* Left Side - Visual */}
       <div className="hidden lg:flex w-1/2 relative bg-black items-center justify-center overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full bg-[#0A0A0B]">
-          <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-[#B94E30]/20 rounded-full blur-[120px]" />
-          <div className="absolute bottom-[-20%] right-[-10%] w-[70%] h-[70%] bg-[#E3B436]/20 rounded-full blur-[120px]" />
+          <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-[#E91E63]/20 rounded-full blur-[120px]" />
+          <div className="absolute bottom-[-20%] right-[-10%] w-[70%] h-[70%] bg-[#9C27B0]/20 rounded-full blur-[120px]" />
         </div>
         
         <div className="relative z-10 max-w-[500px] p-12 flex flex-col gap-8">
@@ -105,7 +105,7 @@ export default function ResetPassword() {
             
             <h1 className="text-5xl font-bold text-white mb-6 leading-tight">
               Create a new <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#B94E30] to-[#E3B436]">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#E91E63] to-[#9C27B0]">
                 secure password
               </span>
             </h1>
@@ -117,8 +117,8 @@ export default function ResetPassword() {
         </div>
 
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/4 right-1/4 w-24 h-24 bg-gradient-to-br from-[#E3B436] to-[#C99C2A] rounded-2xl opacity-20 blur-2xl animate-float" />
-          <div className="absolute bottom-1/3 left-1/4 w-32 h-32 bg-gradient-to-br from-[#B94E30] to-[#8B3A24] rounded-full opacity-20 blur-3xl animate-float-delayed" />
+          <div className="absolute top-1/4 right-1/4 w-24 h-24 bg-gradient-to-br from-[#9C27B0] to-[#7B1FA2] rounded-2xl opacity-20 blur-2xl animate-float" />
+          <div className="absolute bottom-1/3 left-1/4 w-32 h-32 bg-gradient-to-br from-[#E91E63] to-[#C2185B] rounded-full opacity-20 blur-3xl animate-float-delayed" />
         </div>
       </div>
 
@@ -177,7 +177,7 @@ export default function ResetPassword() {
               </div>
 
               <Button 
-                className="w-full h-11 rounded-xl bg-gradient-to-r from-[#B94E30] to-[#8B3A24] hover:brightness-110 text-white font-bold"
+                className="w-full h-11 rounded-xl bg-gradient-to-r from-[#E91E63] to-[#C2185B] hover:brightness-110 text-white font-bold"
                 onClick={() => setLocation("/")}
                 data-testid="button-go-to-home"
               >
@@ -234,7 +234,7 @@ export default function ResetPassword() {
                 <Button 
                   type="submit" 
                   disabled={isLoading || !token || !email} 
-                  className="h-11 rounded-xl bg-gradient-to-r from-[#B94E30] to-[#8B3A24] hover:brightness-110 text-white font-bold shadow-lg shadow-[#B94E30]/20 transition-all hover:-translate-y-[1px]"
+                  className="h-11 rounded-xl bg-gradient-to-r from-[#E91E63] to-[#C2185B] hover:brightness-110 text-white font-bold shadow-lg shadow-[#E91E63]/20 transition-all hover:-translate-y-[1px]"
                   data-testid="button-reset-password"
                 >
                   {isLoading ? (

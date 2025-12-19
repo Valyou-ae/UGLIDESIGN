@@ -153,8 +153,8 @@ function JustifiedGalleryCard({ item, rowHeight, index, onLike }: { item: Inspir
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className={cn(
-        "group w-full h-full bg-white dark:bg-[#111113] rounded-lg overflow-hidden cursor-pointer hover:shadow-[0_10px_40px_rgba(185,78,48,0.2)] transition-all duration-300",
-        item.isGenerated && "ring-2 ring-[#E3B436] ring-offset-2 ring-offset-[#0A0A0B]"
+        "group w-full h-full bg-white dark:bg-[#111113] rounded-lg overflow-hidden cursor-pointer hover:shadow-[0_10px_40px_rgba(233,30,99,0.2)] transition-all duration-300",
+        item.isGenerated && "ring-2 ring-[#9C27B0] ring-offset-2 ring-offset-[#0A0A0B]"
       )}>
         <div className="relative w-full h-full overflow-hidden">
           {isVisible ? (
@@ -170,7 +170,7 @@ function JustifiedGalleryCard({ item, rowHeight, index, onLike }: { item: Inspir
                 )}
               />
               {!imageLoaded && (
-                <div className="absolute inset-0 bg-gradient-to-br from-[#B94E30]/20 to-[#664D3F]/20 animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-br from-[#E91E63]/20 to-[#1A1A2E]/20 animate-pulse" />
               )}
             </>
           ) : (
@@ -178,7 +178,7 @@ function JustifiedGalleryCard({ item, rowHeight, index, onLike }: { item: Inspir
           )}
           
           {item.isGenerated && (
-            <div className="absolute top-2 right-2 bg-gradient-to-r from-[#B94E30] to-[#E3B436] px-2 py-1 rounded-full flex items-center gap-1 z-10">
+            <div className="absolute top-2 right-2 bg-gradient-to-r from-[#E91E63] to-[#9C27B0] px-2 py-1 rounded-full flex items-center gap-1 z-10">
               <Sparkles className="h-3 w-3 text-white" />
               <span className="text-[10px] font-medium text-white">NEW</span>
             </div>
@@ -186,7 +186,7 @@ function JustifiedGalleryCard({ item, rowHeight, index, onLike }: { item: Inspir
           
           {!item.isGenerated && item.createdAt && (
             <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 z-10">
-              <Clock className="h-3 w-3 text-[#E3B436]" />
+              <Clock className="h-3 w-3 text-[#9C27B0]" />
               <span className="text-[10px] font-medium text-white">{formatTimeAgo(new Date(item.createdAt))}</span>
             </div>
           )}
@@ -204,7 +204,7 @@ function JustifiedGalleryCard({ item, rowHeight, index, onLike }: { item: Inspir
                 data-testid={`button-like-${item.id}`}
                 className={cn(
                   "flex items-center gap-1 text-xs transition-all duration-200 hover:scale-110",
-                  item.isLiked ? "text-[#B94E30]" : "text-white/80 hover:text-[#B94E30]"
+                  item.isLiked ? "text-[#E91E63]" : "text-white/80 hover:text-[#E91E63]"
                 )}
               >
                 <Heart className={cn("h-3 w-3", item.isLiked && "fill-current")} />
@@ -227,7 +227,7 @@ function JustifiedGalleryCard({ item, rowHeight, index, onLike }: { item: Inspir
                 >
                   <div className="bg-black/40 backdrop-blur-md rounded-lg p-2">
                     <p className="text-[10px] text-white/90 leading-relaxed line-clamp-2">
-                      <span className="text-[#E3B436] font-medium">Prompt: </span>
+                      <span className="text-[#9C27B0] font-medium">Prompt: </span>
                       {item.prompt}
                     </p>
                   </div>
@@ -439,7 +439,7 @@ function BrandingHeader({ isLoggedIn }: { isLoggedIn: boolean }) {
         className="shrink-0 bg-[#0A0A0B] border-b border-white/10 px-6 py-4"
       >
         <div className="flex items-center justify-center gap-3">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#B94E30] to-[#E3B436] flex items-center justify-center shadow-md shadow-[#B94E30]/20">
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#E91E63] to-[#9C27B0] flex items-center justify-center shadow-md shadow-[#E91E63]/20">
             <div className="h-3 w-3 bg-white/20 rounded-sm backdrop-blur-sm" />
           </div>
           <span className="font-bold text-xl text-white" data-testid="text-ugli-logo">UGLI</span>
@@ -459,7 +459,7 @@ function BrandingHeader({ isLoggedIn }: { isLoggedIn: boolean }) {
     >
       <div className="max-w-4xl mx-auto text-center">
         <div className="flex items-center justify-center gap-3 mb-3">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#B94E30] to-[#E3B436] flex items-center justify-center shadow-lg shadow-[#B94E30]/30">
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#E91E63] to-[#9C27B0] flex items-center justify-center shadow-lg shadow-[#E91E63]/30">
             <div className="h-4 w-4 bg-white/20 rounded-md backdrop-blur-sm" />
           </div>
           <span className="font-bold text-3xl text-white" data-testid="text-ugli-logo">UGLI</span>
@@ -474,7 +474,7 @@ function BrandingHeader({ isLoggedIn }: { isLoggedIn: boolean }) {
         
         <Button 
           onClick={() => openLoginPopup()}
-          className="bg-gradient-to-r from-[#B94E30] to-[#E3B436] hover:from-[#A3442A] hover:to-[#CDA130] text-white font-medium px-6 py-2 rounded-full shadow-lg shadow-[#B94E30]/30 transition-all hover:scale-105"
+          className="bg-gradient-to-r from-[#E91E63] to-[#9C27B0] hover:from-[#C2185B] hover:to-[#7B1FA2] text-white font-medium px-6 py-2 rounded-full shadow-lg shadow-[#E91E63]/30 transition-all hover:scale-105"
           data-testid="button-get-started-hero"
         >
           Get Started Free
@@ -632,7 +632,7 @@ export default function PublicHome() {
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <div className="flex flex-col items-center gap-4">
-                <div className="w-12 h-12 border-4 border-[#B94E30] border-t-transparent rounded-full animate-spin" />
+                <div className="w-12 h-12 border-4 border-[#E91E63] border-t-transparent rounded-full animate-spin" />
                 <p className="text-gray-400 text-sm">Loading gallery...</p>
               </div>
             </div>

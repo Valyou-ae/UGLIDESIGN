@@ -27,8 +27,8 @@ const EMPTY_STATE_CONFIGS = {
     description: "Start your creative journey by generating your first image, mockup, or removing a background.",
     actionLabel: "Create Something",
     actionHref: "/image-gen",
-    gradient: "from-[#B94E30]/10 to-[#E3B436]/10",
-    iconBg: "bg-[#B94E30]/10 text-[#B94E30]",
+    gradient: "from-[#E91E63]/10 to-[#9C27B0]/10",
+    iconBg: "bg-[#E91E63]/10 text-[#E91E63]",
   },
   mockups: {
     icon: Shirt,
@@ -36,8 +36,8 @@ const EMPTY_STATE_CONFIGS = {
     description: "Upload your design and create stunning product mockups for your store or portfolio.",
     actionLabel: "Create Mockup",
     actionHref: "/mockup",
-    gradient: "from-[#664D3F]/10 to-[#4A3830]/10",
-    iconBg: "bg-[#664D3F]/10 text-[#664D3F]",
+    gradient: "from-[#1A1A2E]/10 to-[#4A3830]/10",
+    iconBg: "bg-[#1A1A2E]/10 text-[#1A1A2E]",
   },
   backgrounds: {
     icon: Scissors,
@@ -45,8 +45,8 @@ const EMPTY_STATE_CONFIGS = {
     description: "Upload an image to instantly remove its background and get clean, transparent results.",
     actionLabel: "Remove Background",
     actionHref: "/bg-remover",
-    gradient: "from-[#E3B436]/10 to-[#C99C2A]/10",
-    iconBg: "bg-[#E3B436]/10 text-[#B99A2C]",
+    gradient: "from-[#9C27B0]/10 to-[#7B1FA2]/10",
+    iconBg: "bg-[#9C27B0]/10 text-[#B99A2C]",
   },
   generic: {
     icon: Sparkles,
@@ -152,10 +152,10 @@ export function QuickStartCard({
         <div className="relative z-10">
           <div className={cn(
             "h-12 w-12 rounded-xl flex items-center justify-center mb-4",
-            gradient.includes("B94E30") ? "bg-[#B94E30]/10 text-[#B94E30]" :
-            gradient.includes("E3B436") ? "bg-[#E3B436]/10 text-[#B99A2C]" :
-            gradient.includes("664D3F") ? "bg-[#664D3F]/10 text-[#664D3F]" :
-            "bg-[#B94E30]/10 text-[#B94E30]"
+            gradient.includes("B94E30") ? "bg-[#E91E63]/10 text-[#E91E63]" :
+            gradient.includes("E3B436") ? "bg-[#9C27B0]/10 text-[#B99A2C]" :
+            gradient.includes("664D3F") ? "bg-[#1A1A2E]/10 text-[#1A1A2E]" :
+            "bg-[#E91E63]/10 text-[#E91E63]"
           )}>
             <Icon className="h-6 w-6" />
           </div>
