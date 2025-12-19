@@ -133,7 +133,7 @@ export function Sidebar({ className }: SidebarProps) {
   ];
 
   const privateNavigation: NavItem[] = [
-    { name: "Mood Boards", shortName: "Boards", icon: Layers, href: "/mood-boards" },
+    { name: "Projects", shortName: "Projects", icon: Folder, href: "/mood-boards" },
     { name: "My Creations", shortName: "Creations", icon: Folder, href: "/my-creations", count: totalCreations > 0 ? totalCreations.toString() : undefined, dataTutorial: "my-creations-link" },
   ];
 
