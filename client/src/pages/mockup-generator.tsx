@@ -1581,7 +1581,7 @@ export default function MockupGenerator() {
                                 {selectedStyle && <Badge variant="secondary" className="text-[10px] ml-auto">{BRAND_STYLES.find(s => s.id === selectedStyle)?.name}</Badge>}
                               </div>
                               
-                              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                              <div className="flex justify-between gap-1 sm:gap-2">
                                 {BRAND_STYLES.map((style) => {
                                   const isSelected = selectedStyle === style.id;
                                   return (
@@ -1592,9 +1592,9 @@ export default function MockupGenerator() {
                                             onClick={() => setSelectedStyle(style.id)}
                                             data-testid={`style-card-${style.id}`}
                                             className={cn(
-                                              "relative flex-shrink-0 h-12 w-12 rounded-full overflow-hidden border-2 transition-all duration-200 hover:scale-110 active:scale-95",
+                                              "relative flex-1 aspect-square max-w-[72px] rounded-full overflow-hidden border-2 transition-all duration-200 hover:scale-105 active:scale-95",
                                               isSelected 
-                                                ? "border-primary ring-2 ring-primary/30 scale-110" 
+                                                ? "border-primary ring-2 ring-primary/30" 
                                                 : "border-border hover:border-primary/50"
                                             )}
                                           >
