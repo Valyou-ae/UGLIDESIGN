@@ -822,6 +822,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteMoodBoard(userId: string, boardId: string): Promise<void> {
+    // First unlink any chat sessions referencing this board
+    await db.update(chatSessions).set({ projectId: null }).where(eq(chatSessions.projectId, boardId));
     await db.delete(moodBoardItems).where(eq(moodBoardItems.boardId, boardId));
     await db.delete(moodBoards).where(and(eq(moodBoards.id, boardId), eq(moodBoards.userId, userId)));
   }

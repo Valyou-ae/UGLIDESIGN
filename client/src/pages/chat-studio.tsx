@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-auth";
+import { Link } from "wouter";
 import { 
   Send, 
   ArrowLeft, 
@@ -19,7 +22,8 @@ import {
   X,
   Download,
   Sparkles,
-  MessageCircle
+  MessageCircle,
+  FolderOpen
 } from "lucide-react";
 
 interface OptionChip {
@@ -239,6 +243,8 @@ function TypingIndicator() {
 }
 
 export default function ChatStudio() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -246,10 +252,86 @@ export default function ChatStudio() {
   const [selectedSubject, setSelectedSubject] = useState('');
   const [selectedStyle, setSelectedStyle] = useState('');
   const [selectedMood, setSelectedMood] = useState('');
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [projectId, setProjectId] = useState<string | null>(null);
+  const [projectName, setProjectName] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  const createSessionMutation = useMutation({
+    mutationFn: async (name: string) => {
+      const res = await apiRequest("POST", "/api/chat/sessions", { name, createProject: true });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      setSessionId(data.session.id);
+      if (data.projectId) {
+        setProjectId(data.projectId);
+        setProjectName(data.session.name);
+      }
+    }
+  });
+
+  const saveMessageMutation = useMutation({
+    mutationFn: async ({ role, content, options, imageId, enhancedPrompt }: { 
+      role: string; 
+      content: string; 
+      options?: OptionChip[];
+      imageId?: string;
+      enhancedPrompt?: string;
+    }) => {
+      if (!sessionId) return;
+      const res = await apiRequest("POST", `/api/chat/sessions/${sessionId}/messages`, {
+        role, content, options, imageId, enhancedPrompt
+      });
+      return res.json();
+    }
+  });
+
+  const generateImageMutation = useMutation({
+    mutationFn: async (prompt: string) => {
+      // First generate the image
+      const genRes = await apiRequest("POST", "/api/generate/single", {
+        prompt,
+        stylePreset: selectedStyle || "cinematic",
+        aspectRatio: "1:1",
+        isPublic: false
+      });
+      const genData = await genRes.json();
+      
+      if (!genData.success || !genData.image) {
+        throw new Error("Generation failed");
+      }
+      
+      // Convert base64 to data URL
+      const imageUrl = `data:${genData.image.mimeType};base64,${genData.image.data}`;
+      
+      // Save the image to the database
+      const saveRes = await apiRequest("POST", "/api/images", {
+        imageUrl,
+        prompt,
+        style: selectedStyle || "cinematic",
+        aspectRatio: "1:1",
+        generationType: "image",
+        isFavorite: false,
+        isPublic: false
+      });
+      const savedData = await saveRes.json();
+      
+      return {
+        imageUrl,
+        imageId: savedData.image?.id,
+        enhancedPrompt: genData.enhancedPrompt
+      };
+    }
+  });
+
   useEffect(() => {
+    if (user && !sessionId) {
+      const chatName = `Creative Session ${new Date().toLocaleDateString()}`;
+      createSessionMutation.mutate(chatName);
+    }
+    
     const greeting: ChatMessageType = {
       id: '1',
       role: 'assistant',
@@ -258,7 +340,7 @@ export default function ChatStudio() {
       timestamp: new Date()
     };
     setMessages([greeting]);
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -272,10 +354,11 @@ export default function ChatStudio() {
       timestamp: new Date()
     };
     setMessages(prev => [...prev, userMessage]);
+    saveMessageMutation.mutate({ role: 'user', content });
     return userMessage;
   };
 
-  const addAgentMessage = (content: string, options?: OptionChip[], imageUrl?: string, enhancedPrompt?: string) => {
+  const addAgentMessage = (content: string, options?: OptionChip[], imageUrl?: string, enhancedPrompt?: string, imageId?: string) => {
     const agentMessage: ChatMessageType = {
       id: (Date.now() + 1).toString(),
       role: 'assistant',
@@ -286,6 +369,7 @@ export default function ChatStudio() {
       timestamp: new Date()
     };
     setMessages(prev => [...prev, agentMessage]);
+    saveMessageMutation.mutate({ role: 'assistant', content, options, imageId, enhancedPrompt });
     return agentMessage;
   };
 
@@ -316,23 +400,30 @@ export default function ChatStudio() {
         `Perfect! I'm now generating your ${selectedSubject} in ${selectedStyle} style with a ${content} mood. This will take a moment...`
       );
       
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
       const enhancedPrompt = `A ${content} ${selectedSubject}, ${selectedStyle} style, professional photography, 8k resolution, highly detailed, volumetric lighting, cinematic composition`;
       
-      setStage('post-generation');
-      addAgentMessage(
-        "Here's your generated image! What would you like to do next?",
-        [
-          { label: 'Create Variation', icon: '🔄', value: 'variation', type: 'quick' },
-          { label: 'Different Style', icon: '🎨', value: 'new-style', type: 'quick' },
-          { label: 'New Subject', icon: '➕', value: 'new', type: 'quick' },
-          { label: 'Refine This', icon: '✏️', value: 'refine', type: 'quick' },
-          { label: "I'm Done", icon: '✓', value: 'done', type: 'quick' }
-        ],
-        'https://picsum.photos/512/512?random=' + Date.now(),
-        enhancedPrompt
-      );
+      try {
+        const result = await generateImageMutation.mutateAsync(enhancedPrompt);
+        
+        setStage('post-generation');
+        addAgentMessage(
+          "Here's your generated image! What would you like to do next?",
+          [
+            { label: 'Create Variation', icon: '🔄', value: 'variation', type: 'quick' },
+            { label: 'Different Style', icon: '🎨', value: 'new-style', type: 'quick' },
+            { label: 'New Subject', icon: '➕', value: 'new', type: 'quick' },
+            { label: 'Refine This', icon: '✏️', value: 'refine', type: 'quick' },
+            { label: "I'm Done", icon: '✓', value: 'done', type: 'quick' }
+          ],
+          result.imageUrl,
+          result.enhancedPrompt || enhancedPrompt,
+          result.imageId
+        );
+        queryClient.invalidateQueries({ queryKey: ["/api/images"] });
+      } catch (error) {
+        addAgentMessage("I had trouble generating the image. Let's try again with different settings.", INITIAL_OPTIONS);
+        setStage('initial');
+      }
     } else if (stage === 'post-generation') {
       if (content === 'done') {
         addAgentMessage("Great session! Your images have been saved to your creations. Come back anytime to create more!");
@@ -349,17 +440,28 @@ export default function ChatStudio() {
         addAgentMessage(
           "I'll work on that for you. Generating a variation...",
         );
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        addAgentMessage(
-          "Here's a new variation! What do you think?",
-          [
-            { label: 'Keep This', icon: '👍', value: 'keep', type: 'quick' },
-            { label: 'Try Again', icon: '🔄', value: 'variation', type: 'quick' },
-            { label: 'New Subject', icon: '➕', value: 'new', type: 'quick' },
-            { label: "I'm Done", icon: '✓', value: 'done', type: 'quick' }
-          ],
-          'https://picsum.photos/512/512?random=' + (Date.now() + 1)
-        );
+        
+        const variationPrompt = `A variation of ${selectedMood} ${selectedSubject}, ${selectedStyle} style, professional photography, 8k resolution, highly detailed, volumetric lighting, cinematic composition`;
+        
+        try {
+          const result = await generateImageMutation.mutateAsync(variationPrompt);
+          addAgentMessage(
+            "Here's a new variation! What do you think?",
+            [
+              { label: 'Keep This', icon: '👍', value: 'keep', type: 'quick' },
+              { label: 'Try Again', icon: '🔄', value: 'variation', type: 'quick' },
+              { label: 'New Subject', icon: '➕', value: 'new', type: 'quick' },
+              { label: "I'm Done", icon: '✓', value: 'done', type: 'quick' }
+            ],
+            result.imageUrl,
+            result.enhancedPrompt || variationPrompt,
+            result.imageId
+          );
+          queryClient.invalidateQueries({ queryKey: ["/api/images"] });
+        } catch (error) {
+          addAgentMessage("I had trouble generating the variation. Let's try something different.", INITIAL_OPTIONS);
+          setStage('initial');
+        }
       }
     }
 
@@ -395,10 +497,45 @@ export default function ChatStudio() {
               <p className="text-xs text-muted-foreground">AI-powered creative assistant</p>
             </div>
           </div>
-          <Button variant="outline" size="sm" className="gap-2" data-testid="button-new-chat">
-            <Plus className="h-4 w-4" />
-            New Chat
-          </Button>
+          <div className="flex items-center gap-3">
+            {projectId && (
+              <Link href={`/projects/${projectId}`}>
+                <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground" data-testid="button-view-project">
+                  <FolderOpen className="h-4 w-4" />
+                  <span className="hidden sm:inline">{projectName || "View Project"}</span>
+                </Button>
+              </Link>
+            )}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2" 
+              data-testid="button-new-chat"
+              onClick={() => {
+                setMessages([]);
+                setSessionId(null);
+                setProjectId(null);
+                setProjectName(null);
+                setStage('initial');
+                setSelectedSubject('');
+                setSelectedStyle('');
+                setSelectedMood('');
+                const chatName = `Creative Session ${new Date().toLocaleDateString()}`;
+                createSessionMutation.mutate(chatName);
+                const greeting: ChatMessageType = {
+                  id: '1',
+                  role: 'assistant',
+                  content: "Hi! I'm your AI creative assistant. What would you like to create today?",
+                  options: INITIAL_OPTIONS,
+                  timestamp: new Date()
+                };
+                setMessages([greeting]);
+              }}
+            >
+              <Plus className="h-4 w-4" />
+              New Chat
+            </Button>
+          </div>
         </header>
 
         <ScrollArea className="flex-1 px-6 py-4">
