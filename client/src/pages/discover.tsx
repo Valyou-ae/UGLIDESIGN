@@ -9,7 +9,9 @@ import {
   Copy,
   Check,
   Clock,
-  Share2
+  Share2,
+  Search,
+  X
 } from "lucide-react";
 import {
   Popover,
@@ -1973,6 +1975,8 @@ export default function Discover() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingCommunity, setIsLoadingCommunity] = useState(true);
   const [page, setPage] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const ITEMS_PER_LOAD = 12;
 
@@ -2009,14 +2013,27 @@ export default function Discover() {
   }, []);
 
   const allContent = useMemo(() => [...communityImages, ...allInspirations], [communityImages]);
-  const totalItems = allContent.length;
+  
+  const filteredContent = useMemo(() => {
+    if (!searchQuery.trim()) return allContent;
+    const query = searchQuery.toLowerCase().trim();
+    return allContent.filter(item => 
+      item.title.toLowerCase().includes(query) ||
+      item.prompt.toLowerCase().includes(query) ||
+      item.creator.toLowerCase().includes(query) ||
+      item.category.toLowerCase().includes(query) ||
+      item.tags.some(tag => tag.toLowerCase().includes(query))
+    );
+  }, [allContent, searchQuery]);
+  
+  const totalItems = filteredContent.length;
 
   useEffect(() => {
     if (!isLoadingCommunity) {
-      setDisplayedItems(allContent.slice(0, ITEMS_PER_LOAD));
+      setDisplayedItems(filteredContent.slice(0, ITEMS_PER_LOAD));
       setPage(1);
     }
-  }, [isLoadingCommunity, allContent]);
+  }, [isLoadingCommunity, filteredContent]);
 
   const loadMore = useCallback(() => {
     if (isLoading) return;
@@ -2031,12 +2048,12 @@ export default function Discover() {
     setIsLoading(true);
     
     setTimeout(() => {
-      const nextItems = allContent.slice(startIndex, endIndex);
+      const nextItems = filteredContent.slice(startIndex, endIndex);
       setDisplayedItems(prev => [...prev, ...nextItems]);
       setPage(prev => prev + 1);
       setIsLoading(false);
     }, 300);
-  }, [page, isLoading, totalItems, allContent]);
+  }, [page, isLoading, totalItems, filteredContent]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -2062,15 +2079,45 @@ export default function Discover() {
       <main className="flex-1 flex flex-col relative h-full overflow-y-auto bg-[#F8F8F8] dark:bg-[#374151] text-[#18181B] dark:text-[#FAFAFA] pb-20 md:pb-0">
         
         <div className="px-4 md:px-8 lg:px-12 py-6 max-w-[1600px] mx-auto w-full">
-          <div className="flex items-center gap-3 mb-6">
-            <TrendingUp className="h-5 w-5 text-[#EC4899]" />
-            <h2 className="text-xl font-semibold text-[#18181B] dark:text-[#FAFAFA]">Discover</h2>
-            <div className="flex items-center gap-2 px-2.5 py-1 bg-[#16A34A]/10 rounded-full ml-1">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#16A34A] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#16A34A]"></span>
-              </span>
-              <span className="text-xs font-medium text-[#16A34A]">Live</span>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
+            <div className="flex items-center gap-3">
+              <TrendingUp className="h-5 w-5 text-[#EC4899]" />
+              <h2 className="text-xl font-semibold text-[#18181B] dark:text-[#FAFAFA]">Discover</h2>
+              <div className="flex items-center gap-2 px-2.5 py-1 bg-[#16A34A]/10 rounded-full ml-1">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#16A34A] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#16A34A]"></span>
+                </span>
+                <span className="text-xs font-medium text-[#16A34A]">Live</span>
+              </div>
+            </div>
+            
+            <div className="flex-1 max-w-md ml-auto">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#71717A]" />
+                <input
+                  type="text"
+                  placeholder="Search by title, prompt, creator, or tags..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full h-10 pl-10 pr-10 rounded-xl border border-[#E4E4E7] dark:border-[#374151] bg-white dark:bg-[#1F2937] text-sm text-[#18181B] dark:text-[#FAFAFA] placeholder:text-[#71717A] focus:outline-none focus:ring-2 focus:ring-[#EC4899]/50 focus:border-[#EC4899] transition-all"
+                  data-testid="input-search-discover"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#71717A] hover:text-[#18181B] dark:hover:text-[#FAFAFA] transition-colors"
+                    data-testid="button-clear-search"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+              {searchQuery && (
+                <p className="text-xs text-[#71717A] mt-2">
+                  Found {totalItems} {totalItems === 1 ? 'result' : 'results'} for "{searchQuery}"
+                </p>
+              )}
             </div>
           </div>
 
@@ -2078,6 +2125,19 @@ export default function Discover() {
             <div className="flex flex-col items-center justify-center py-20">
               <Loader2 className="h-8 w-8 animate-spin text-[#EC4899] mb-4" />
               <span className="text-sm text-[#71717A]">Loading community creations...</span>
+            </div>
+          ) : displayedItems.length === 0 && searchQuery ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <Search className="h-12 w-12 text-[#71717A] mb-4" />
+              <h3 className="text-lg font-medium text-[#18181B] dark:text-[#FAFAFA] mb-2">No results found</h3>
+              <p className="text-sm text-[#71717A] mb-4">Try searching with different keywords</p>
+              <button
+                onClick={() => setSearchQuery("")}
+                className="px-4 py-2 text-sm bg-[#EC4899] text-white rounded-lg hover:bg-[#DB2777] transition-colors"
+                data-testid="button-clear-search-empty"
+              >
+                Clear search
+              </button>
             </div>
           ) : (
             <>
