@@ -36,8 +36,8 @@ const NOTIFICATIONS = [
     time: "1h ago",
     read: false,
     icon: Info,
-    color: "text-[#374151]",
-    bg: "bg-[#374151]/10",
+    color: "text-[#1A1A2E]",
+    bg: "bg-[#1A1A2E]/10",
   },
   {
     id: 3,
