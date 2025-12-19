@@ -3,7 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthGuard, AdminGuard } from "@/components/auth-guard";
+import { AuthGuard, AdminGuard, SuperAdminGuard } from "@/components/auth-guard";
 import { LoginPopupProvider } from "@/components/login-popup";
 import { ErrorBoundary } from "@/components/error-boundary";
 import PublicHome from "@/pages/public-home";
@@ -36,6 +36,7 @@ import AdminCRM from "@/pages/admin/crm";
 import AdminContacts from "@/pages/admin/contacts";
 import AdminDeals from "@/pages/admin/deals";
 import AdminAnalytics from "@/pages/admin/analytics";
+import SuperAdminDashboard from "@/pages/super-admin/index";
 import ShareImage from "@/pages/share-image";
 
 function Router() {
@@ -169,6 +170,13 @@ function Router() {
         <AdminGuard>
           <AdminAnalytics />
         </AdminGuard>
+      </Route>
+
+      {/* Super Admin routes (require super_admin role) */}
+      <Route path="/super-admin">
+        <SuperAdminGuard>
+          <SuperAdminDashboard />
+        </SuperAdminGuard>
       </Route>
 
       {/* 404 fallback */}

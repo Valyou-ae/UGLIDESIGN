@@ -167,6 +167,18 @@ export interface IStorage {
   getUserPreferences(userId: string): Promise<UserPreferences | undefined>;
   upsertUserPreferences(userId: string, data: Partial<InsertUserPreferences>): Promise<UserPreferences>;
   updateUserPreferences(userId: string, data: Partial<InsertUserPreferences>): Promise<UserPreferences | undefined>;
+  
+  // Super Admin Analytics
+  getSuperAdminOverview(): Promise<{
+    totalUsers: number;
+    totalGenerations: number;
+    activeUsersLast30Days: number;
+    totalCommissions: number;
+  }>;
+  getUserGrowthByDay(days: number): Promise<{ date: string; count: number }[]>;
+  getGenerationsByDay(days: number): Promise<{ date: string; count: number }[]>;
+  getTopCreators(limit: number): Promise<{ userId: string; username: string | null; displayName: string | null; imageCount: number }[]>;
+  getUsersByRole(): Promise<{ role: string; count: number }[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1305,6 +1317,104 @@ export class DatabaseStorage implements IStorage {
       .where(eq(userPreferences.userId, userId))
       .returning();
     return prefs || undefined;
+  }
+
+  // Super Admin Analytics
+  async getSuperAdminOverview(): Promise<{
+    totalUsers: number;
+    totalGenerations: number;
+    activeUsersLast30Days: number;
+    totalCommissions: number;
+  }> {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const [userCount] = await db.select({ count: count() }).from(users);
+    const [genCount] = await db.select({ count: count() }).from(generatedImages);
+    
+    const activeUsersResult = await db
+      .selectDistinct({ userId: generatedImages.userId })
+      .from(generatedImages)
+      .where(gte(generatedImages.createdAt, thirtyDaysAgo));
+    
+    const [commissionsResult] = await db
+      .select({ total: sql<number>`COALESCE(SUM(amount), 0)` })
+      .from(affiliateCommissions);
+
+    return {
+      totalUsers: userCount?.count || 0,
+      totalGenerations: genCount?.count || 0,
+      activeUsersLast30Days: activeUsersResult.length,
+      totalCommissions: Number(commissionsResult?.total) || 0,
+    };
+  }
+
+  async getUserGrowthByDay(days: number): Promise<{ date: string; count: number }[]> {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    
+    const result = await db
+      .select({
+        date: sql<string>`DATE(${users.createdAt})`,
+        count: count(),
+      })
+      .from(users)
+      .where(gte(users.createdAt, startDate))
+      .groupBy(sql`DATE(${users.createdAt})`)
+      .orderBy(sql`DATE(${users.createdAt})`);
+
+    return result.map(r => ({ date: r.date, count: r.count }));
+  }
+
+  async getGenerationsByDay(days: number): Promise<{ date: string; count: number }[]> {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    
+    const result = await db
+      .select({
+        date: sql<string>`DATE(${generatedImages.createdAt})`,
+        count: count(),
+      })
+      .from(generatedImages)
+      .where(gte(generatedImages.createdAt, startDate))
+      .groupBy(sql`DATE(${generatedImages.createdAt})`)
+      .orderBy(sql`DATE(${generatedImages.createdAt})`);
+
+    return result.map(r => ({ date: r.date, count: r.count }));
+  }
+
+  async getTopCreators(limit: number): Promise<{ userId: string; username: string | null; displayName: string | null; imageCount: number }[]> {
+    const result = await db
+      .select({
+        userId: generatedImages.userId,
+        username: users.username,
+        displayName: users.displayName,
+        imageCount: count(),
+      })
+      .from(generatedImages)
+      .leftJoin(users, eq(generatedImages.userId, users.id))
+      .groupBy(generatedImages.userId, users.username, users.displayName)
+      .orderBy(sql`COUNT(*) DESC`)
+      .limit(limit);
+
+    return result.map(r => ({
+      userId: r.userId,
+      username: r.username,
+      displayName: r.displayName,
+      imageCount: r.imageCount,
+    }));
+  }
+
+  async getUsersByRole(): Promise<{ role: string; count: number }[]> {
+    const result = await db
+      .select({
+        role: users.role,
+        count: count(),
+      })
+      .from(users)
+      .groupBy(users.role);
+
+    return result.map(r => ({ role: r.role, count: r.count }));
   }
 }
 
