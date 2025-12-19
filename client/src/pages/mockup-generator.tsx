@@ -112,6 +112,19 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from "@/components/ui/command";
 
 // Import sample mood images
 import moodMinimal from "@assets/generated_images/mood_image_for_minimalist_luxury_style.png";
@@ -785,6 +798,8 @@ export default function MockupGenerator() {
   const [personaHeadshot, setPersonaHeadshot] = useState<string | null>(null);
   const [outputQuality, setOutputQuality] = useState<OutputQuality>("high");
   const [advancedOptionsOpen, setAdvancedOptionsOpen] = useState<boolean>(false);
+  const [productPickerOpen, setProductPickerOpen] = useState(false);
+  const [showAllColors, setShowAllColors] = useState(false);
   // AOP-specific state
   const [isAlreadySeamless, setIsAlreadySeamless] = useState<boolean>(false);
   // Seamless Pattern State
@@ -1603,81 +1618,82 @@ export default function MockupGenerator() {
 
                           {/* Main Content - Scrollable */}
                           <div className="flex-1 overflow-y-auto space-y-4 sm:space-y-8 pb-6">
-                            {/* Row 1: Category + Product Selection */}
-                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
-                              {/* Categories - Horizontal scrollable on mobile */}
-                              <div className="lg:col-span-3">
-                                <label className="text-sm font-bold text-foreground mb-2 sm:mb-3 block">Category</label>
-                                <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 -mx-2 px-2 lg:mx-0 lg:px-0 scrollbar-hide">
-                                  {productCategories.map((cat) => {
-                                    const isActive = effectiveActiveCategory === cat.name;
-                                    return (
-                                      <button 
-                                        key={cat.name}
-                                        onClick={() => {
-                                          setActiveCategory(cat.name);
-                                          if (isNonWearableCategory(cat.name)) {
-                                            setUseModel(false);
-                                          } else {
-                                            setUseModel(true);
-                                            const autoGender = getGenderFromCategory(cat.name);
-                                            if (autoGender) {
-                                              setModelDetails(prev => ({...prev, sex: autoGender}));
-                                              setGenderAutoSelected(true);
-                                            }
-                                          }
-                                        }}
-                                        className={cn(
-                                          "flex items-center gap-2 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap min-h-[44px] flex-shrink-0",
-                                          isActive 
-                                            ? "bg-primary text-white shadow-md" 
-                                            : "bg-card border border-border hover:border-[#E91E63]/50 text-muted-foreground hover:text-foreground"
-                                        )}
-                                        data-testid={`category-${cat.name.replace(/\s+/g, '-').toLowerCase()}`}
-                                      >
-                                        <cat.icon className={cn("h-4 w-4 flex-shrink-0", isActive ? "text-white" : "text-muted-foreground")} />
-                                        <span className="hidden sm:inline lg:inline">{cat.name}</span>
-                                        <span className="sm:hidden lg:hidden">{cat.name.split(' ')[0]}</span>
-                                      </button>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-
-                              {/* Products Grid - 2 cols on mobile, 3 on sm, 4 on md, 5 on lg */}
-                              <div className="lg:col-span-9">
-                                <label className="text-sm font-bold text-foreground mb-2 sm:mb-3 block">Product</label>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
-                                  {effectiveItems.map((item) => {
-                                    const isSelected = selectedProductType === item.name;
-                                    return (
-                                      <div 
-                                        key={item.name} 
-                                        onClick={() => setSelectedProductType(item.name)}
-                                        data-testid={`card-product-${item.name.replace(/\s+/g, '-').toLowerCase()}`}
-                                        className={cn(
-                                          "group relative border rounded-xl p-3 sm:p-4 cursor-pointer transition-all flex flex-col items-center text-center gap-1.5 sm:gap-2 min-h-[90px] active:scale-[0.98]",
-                                          isSelected 
-                                            ? "border-primary bg-[#E91E63]/10 dark:bg-[#E91E63]/20 shadow-sm" 
-                                            : "border-border hover:border-[#E91E63]/50 bg-card"
-                                        )}
-                                      >
-                                        <ProductThumbnail 
-                                          productName={item.name} 
-                                          isSelected={isSelected}
-                                          color={isSelected ? undefined : (PRODUCT_COLOR_MAP[selectedColors[0]] || "#FFFFFF")}
-                                        />
-                                        <p className={cn("font-medium text-[10px] sm:text-xs leading-tight line-clamp-2", isSelected ? "text-[#E91E63]" : "text-foreground")}>{item.name}</p>
-                                        {isSelected && (
-                                          <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-primary text-white flex items-center justify-center">
-                                            <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                            {/* Row 1: Compact Product Picker */}
+                            <div className="bg-card rounded-xl border border-border p-4 sm:p-5">
+                              <label className="text-sm font-bold text-foreground mb-3 block">Select Product</label>
+                              <Popover open={productPickerOpen} onOpenChange={setProductPickerOpen}>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    aria-expanded={productPickerOpen}
+                                    className="w-full justify-between h-12 text-left font-normal"
+                                    data-testid="button-product-picker"
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      {selectedProductType ? (
+                                        <>
+                                          <ProductThumbnail 
+                                            productName={selectedProductType} 
+                                            isSelected={true}
+                                            color={PRODUCT_COLOR_MAP[selectedColors[0]] || "#FFFFFF"}
+                                          />
+                                          <div className="flex flex-col items-start">
+                                            <span className="text-sm font-medium">{selectedProductType}</span>
+                                            <span className="text-xs text-muted-foreground">{effectiveActiveCategory}</span>
                                           </div>
-                                        )}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
+                                        </>
+                                      ) : (
+                                        <span className="text-muted-foreground">Search or browse products...</span>
+                                      )}
+                                    </div>
+                                    <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[340px] sm:w-[400px] p-0" align="start">
+                                  <Command>
+                                    <CommandInput placeholder="Search products..." />
+                                    <CommandList className="max-h-[300px]">
+                                      <CommandEmpty>No products found.</CommandEmpty>
+                                      {productCategories.map((cat) => (
+                                        <CommandGroup key={cat.name} heading={cat.name}>
+                                          {cat.items.map((item) => (
+                                            <CommandItem
+                                              key={`${cat.name}-${item.name}`}
+                                              value={`${cat.name} ${item.name}`}
+                                              onSelect={() => {
+                                                setActiveCategory(cat.name);
+                                                setSelectedProductType(item.name);
+                                                setProductPickerOpen(false);
+                                                if (isNonWearableCategory(cat.name)) {
+                                                  setUseModel(false);
+                                                } else {
+                                                  setUseModel(true);
+                                                  const autoGender = getGenderFromCategory(cat.name);
+                                                  if (autoGender) {
+                                                    setModelDetails(prev => ({...prev, sex: autoGender}));
+                                                    setGenderAutoSelected(true);
+                                                  }
+                                                }
+                                              }}
+                                              className="cursor-pointer"
+                                              data-testid={`product-option-${item.name.replace(/\s+/g, '-').toLowerCase()}`}
+                                            >
+                                              <div className="flex items-center gap-3 w-full">
+                                                <item.icon className="h-4 w-4 text-muted-foreground" />
+                                                <span>{item.name}</span>
+                                                {selectedProductType === item.name && effectiveActiveCategory === cat.name && (
+                                                  <Check className="h-4 w-4 ml-auto text-primary" />
+                                                )}
+                                              </div>
+                                            </CommandItem>
+                                          ))}
+                                        </CommandGroup>
+                                      ))}
+                                    </CommandList>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
                             </div>
 
                             {/* Row 2: Sizes + Colors */}
@@ -1732,53 +1748,83 @@ export default function MockupGenerator() {
                                     <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
                                   </div>
                                 ) : (
-                                  <div className="flex flex-wrap gap-2 sm:gap-2">
-                                    {[
-                                      { name: "White", class: "bg-white border-gray-300" },
-                                      { name: "Black", class: "bg-black border-black" },
-                                      { name: "Sport Grey", class: "bg-[#9E9E9E]" },
-                                      { name: "Dark Heather", class: "bg-[#545454]" },
-                                      { name: "Charcoal", class: "bg-[#424242]" },
-                                      { name: "Navy", class: "bg-[#1A237E]" },
-                                      { name: "Royal", class: "bg-[#0D47A1]" },
-                                      { name: "Light Blue", class: "bg-[#ADD8E6]" },
-                                      { name: "Red", class: "bg-[#D32F2F]" },
-                                      { name: "Cardinal", class: "bg-[#880E4F]" },
-                                      { name: "Maroon", class: "bg-[#4A148C]" },
-                                      { name: "Orange", class: "bg-[#F57C00]" },
-                                      { name: "Gold", class: "bg-[#FBC02D]" },
-                                      { name: "Irish Green", class: "bg-[#388E3C]" },
-                                      { name: "Forest", class: "bg-[#1B5E20]" },
-                                      { name: "Purple", class: "bg-[#7B1FA2]" },
-                                      { name: "Light Pink", class: "bg-[#F8BBD0]" },
-                                      { name: "Sand", class: "bg-[#F5F5DC] border-gray-200" },
-                                    ].map((color) => {
-                                      const isSelected = selectedColors.includes(color.name);
+                                  <div className="space-y-3">
+                                    {(() => {
+                                      const allColors = [
+                                        { name: "White", class: "bg-white border-gray-300" },
+                                        { name: "Black", class: "bg-black border-black" },
+                                        { name: "Navy", class: "bg-[#1A237E]" },
+                                        { name: "Sport Grey", class: "bg-[#9E9E9E]" },
+                                        { name: "Red", class: "bg-[#D32F2F]" },
+                                        { name: "Forest", class: "bg-[#1B5E20]" },
+                                        { name: "Dark Heather", class: "bg-[#545454]" },
+                                        { name: "Charcoal", class: "bg-[#424242]" },
+                                        { name: "Royal", class: "bg-[#0D47A1]" },
+                                        { name: "Light Blue", class: "bg-[#ADD8E6]" },
+                                        { name: "Cardinal", class: "bg-[#880E4F]" },
+                                        { name: "Maroon", class: "bg-[#4A148C]" },
+                                        { name: "Orange", class: "bg-[#F57C00]" },
+                                        { name: "Gold", class: "bg-[#FBC02D]" },
+                                        { name: "Irish Green", class: "bg-[#388E3C]" },
+                                        { name: "Purple", class: "bg-[#7B1FA2]" },
+                                        { name: "Light Pink", class: "bg-[#F8BBD0]" },
+                                        { name: "Sand", class: "bg-[#F5F5DC] border-gray-200" },
+                                      ];
+                                      const displayColors = showAllColors ? allColors : allColors.slice(0, 6);
                                       return (
-                                        <TooltipProvider key={color.name}>
-                                          <Tooltip delayDuration={0}>
-                                            <TooltipTrigger asChild>
-                                              <button 
-                                                onClick={() => {
-                                                  if (isSelected) {
-                                                    setSelectedColors(selectedColors.filter(c => c !== color.name));
-                                                  } else {
-                                                    setSelectedColors([...selectedColors, color.name]);
-                                                  }
-                                                }}
-                                                className={cn(
-                                                  "h-9 w-9 sm:h-8 sm:w-8 rounded-full border-2 transition-all hover:scale-110 active:scale-95",
-                                                  color.class,
-                                                  isSelected ? "ring-2 ring-primary ring-offset-2" : "border-transparent"
-                                                )}
-                                                data-testid={`color-${color.name.replace(/\s+/g, '-').toLowerCase()}`}
-                                              />
-                                            </TooltipTrigger>
-                                            <TooltipContent side="bottom" className="text-xs">{color.name}</TooltipContent>
-                                          </Tooltip>
-                                        </TooltipProvider>
+                                        <>
+                                          <div className="flex flex-wrap gap-2">
+                                            {displayColors.map((color) => {
+                                              const isSelected = selectedColors.includes(color.name);
+                                              return (
+                                                <TooltipProvider key={color.name}>
+                                                  <Tooltip delayDuration={0}>
+                                                    <TooltipTrigger asChild>
+                                                      <button 
+                                                        onClick={() => {
+                                                          if (isSelected) {
+                                                            setSelectedColors(selectedColors.filter(c => c !== color.name));
+                                                          } else {
+                                                            setSelectedColors([...selectedColors, color.name]);
+                                                          }
+                                                        }}
+                                                        className={cn(
+                                                          "h-9 w-9 sm:h-8 sm:w-8 rounded-full border-2 transition-all hover:scale-110 active:scale-95",
+                                                          color.class,
+                                                          isSelected ? "ring-2 ring-primary ring-offset-2" : "border-transparent"
+                                                        )}
+                                                        data-testid={`color-${color.name.replace(/\s+/g, '-').toLowerCase()}`}
+                                                      />
+                                                    </TooltipTrigger>
+                                                    <TooltipContent side="bottom" className="text-xs">{color.name}</TooltipContent>
+                                                  </Tooltip>
+                                                </TooltipProvider>
+                                              );
+                                            })}
+                                            <button
+                                              onClick={() => setShowAllColors(!showAllColors)}
+                                              className="h-9 w-9 sm:h-8 sm:w-8 rounded-full border-2 border-dashed border-border bg-muted/50 flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-all"
+                                              data-testid="button-toggle-colors"
+                                            >
+                                              {showAllColors ? (
+                                                <ChevronUp className="h-4 w-4" />
+                                              ) : (
+                                                <Plus className="h-4 w-4" />
+                                              )}
+                                            </button>
+                                          </div>
+                                          {!showAllColors && (
+                                            <button
+                                              onClick={() => setShowAllColors(true)}
+                                              className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                                              data-testid="button-show-all-colors"
+                                            >
+                                              +{allColors.length - 6} more colors
+                                            </button>
+                                          )}
+                                        </>
                                       );
-                                    })}
+                                    })()}
                                   </div>
                                 )}
                               </div>
@@ -1787,13 +1833,13 @@ export default function MockupGenerator() {
                             {/* Row 3: Model Options (only for wearable products) */}
                             {!isNonWearableCategory(effectiveActiveCategory) && (
                               <div className="bg-card rounded-xl border border-border p-4 sm:p-5">
-                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3 sm:mb-4">
-                                  <label className="text-sm font-bold text-foreground">Model Options</label>
+                                <div className="flex items-center justify-between mb-3">
+                                  <label className="text-sm font-bold text-foreground">Model Display</label>
                                   <div className="flex gap-2">
                                     <button
                                       onClick={() => setUseModel(true)}
                                       className={cn(
-                                        "flex items-center gap-2 px-3 sm:px-4 py-2.5 sm:py-2 rounded-lg text-sm font-medium transition-all min-h-[44px] flex-1 sm:flex-none justify-center",
+                                        "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all min-h-[40px]",
                                         useModel ? "bg-primary text-white" : "bg-muted text-muted-foreground hover:text-foreground"
                                       )}
                                       data-testid="button-on-model"
@@ -1804,7 +1850,7 @@ export default function MockupGenerator() {
                                     <button
                                       onClick={() => setUseModel(false)}
                                       className={cn(
-                                        "flex items-center gap-2 px-3 sm:px-4 py-2.5 sm:py-2 rounded-lg text-sm font-medium transition-all min-h-[44px] flex-1 sm:flex-none justify-center",
+                                        "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all min-h-[40px]",
                                         !useModel ? "bg-primary text-white" : "bg-muted text-muted-foreground hover:text-foreground"
                                       )}
                                       data-testid="button-flat-lay"
@@ -1816,96 +1862,106 @@ export default function MockupGenerator() {
                                 </div>
 
                                 {useModel && (
-                                  <>
-                                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 pt-2">
-                                    <div>
-                                      <label className="text-xs text-muted-foreground mb-2 block">Sex</label>
-                                      <div className="flex gap-2">
-                                        {(["MALE", "FEMALE"] as Sex[]).map((sex) => (
-                                          <button
-                                            key={sex}
-                                            onClick={() => {
-                                              setModelDetails({...modelDetails, sex});
-                                              setGenderAutoSelected(false);
-                                            }}
-                                            className={cn(
-                                              "flex-1 py-2.5 min-h-[44px] rounded-lg text-sm font-medium border-2 transition-all active:scale-95",
-                                              modelDetails.sex === sex
-                                                ? "border-primary bg-[#E91E63]/10 text-[#E91E63]"
-                                                : "border-border hover:border-[#E91E63]/50"
-                                            )}
-                                            data-testid={`sex-${sex.toLowerCase()}`}
-                                          >
-                                            {sex === "MALE" ? "Male" : "Female"}
-                                          </button>
-                                        ))}
+                                  <Collapsible open={advancedOptionsOpen} onOpenChange={setAdvancedOptionsOpen}>
+                                    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border">
+                                      <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-1.5">
+                                          <span className="text-xs text-muted-foreground">Model:</span>
+                                          <span className="text-sm font-medium">
+                                            {modelDetails.sex === "MALE" ? "Male" : "Female"}, {modelDetails.age === "TEEN" ? "Teen" : modelDetails.age === "YOUNG_ADULT" ? "Young Adult" : "Adult"}
+                                          </span>
+                                        </div>
+                                        {genderAutoSelected && (
+                                          <Badge variant="secondary" className="text-[10px]">
+                                            <Sparkles className="h-2.5 w-2.5 mr-1" />
+                                            Smart default
+                                          </Badge>
+                                        )}
                                       </div>
+                                      <CollapsibleTrigger asChild>
+                                        <Button variant="ghost" size="sm" className="h-8 text-xs" data-testid="button-customize-model">
+                                          {advancedOptionsOpen ? "Hide" : "Customize"}
+                                          {advancedOptionsOpen ? <ChevronUp className="h-3.5 w-3.5 ml-1" /> : <ChevronDown className="h-3.5 w-3.5 ml-1" />}
+                                        </Button>
+                                      </CollapsibleTrigger>
                                     </div>
-                                    <div>
-                                      <label className="text-xs text-muted-foreground mb-2 block">Age Group</label>
-                                      <Select value={modelDetails.age} onValueChange={(value: AgeGroup) => setModelDetails({...modelDetails, age: value})}>
-                                        <SelectTrigger className="h-11 min-h-[44px]"><SelectValue /></SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="TEEN">Teen (13-17)</SelectItem>
-                                          <SelectItem value="YOUNG_ADULT">Young Adult (18-25)</SelectItem>
-                                          <SelectItem value="ADULT">Adult (26-45)</SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-                                    <div>
-                                      <label className="text-xs text-muted-foreground mb-2 block">Ethnicity</label>
-                                      <Select value={modelDetails.ethnicity} onValueChange={(value: Ethnicity) => setModelDetails({...modelDetails, ethnicity: value})}>
-                                        <SelectTrigger className="h-11 min-h-[44px]"><SelectValue /></SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="CAUCASIAN">Caucasian</SelectItem>
-                                          <SelectItem value="AFRICAN">African</SelectItem>
-                                          <SelectItem value="ASIAN">Asian</SelectItem>
-                                          <SelectItem value="SOUTHEAST_ASIAN">Southeast Asian</SelectItem>
-                                          <SelectItem value="HISPANIC">Hispanic</SelectItem>
-                                          <SelectItem value="SOUTH_ASIAN">South Asian</SelectItem>
-                                          <SelectItem value="MIDDLE_EASTERN">Middle Eastern</SelectItem>
-                                          <SelectItem value="INDIGENOUS">Indigenous</SelectItem>
-                                          <SelectItem value="MIXED">Mixed</SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-                                    <div>
-                                      <label className="text-xs text-muted-foreground mb-2 block">Body Size</label>
-                                      <div className="flex gap-1">
-                                        {(["S", "M", "L", "XL"] as ModelSize[]).map((size) => (
-                                          <button
-                                            key={size}
-                                            onClick={() => setModelDetails({...modelDetails, modelSize: size})}
-                                            className={cn(
-                                              "flex-1 py-2.5 min-h-[44px] rounded-lg text-sm font-medium border-2 transition-all active:scale-95",
-                                              modelDetails.modelSize === size
-                                                ? "border-primary bg-primary text-white"
-                                                : "border-border hover:border-[#E91E63]/50"
-                                            )}
-                                            data-testid={`body-size-${size}`}
-                                          >
-                                            {size}
-                                          </button>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  </div>
-                                  
-                                  <Collapsible open={advancedOptionsOpen} onOpenChange={setAdvancedOptionsOpen} className="mt-4">
-                                    <CollapsibleTrigger asChild>
-                                      <button 
-                                        className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                                        data-testid="button-toggle-advanced-options"
-                                      >
-                                        {advancedOptionsOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                                        Advanced Model Options
-                                        <Badge variant="outline" className="ml-1 text-[10px] px-1.5 py-0.5">Optional</Badge>
-                                      </button>
-                                    </CollapsibleTrigger>
                                     <CollapsibleContent className="pt-4">
-                                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 p-4 bg-muted/30 rounded-xl border border-border">
+                                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                         <div>
-                                          <label className="text-xs text-muted-foreground mb-2 block">Hair Style</label>
+                                          <label className="text-xs text-muted-foreground mb-2 block">Sex</label>
+                                          <div className="flex gap-1.5">
+                                            {(["MALE", "FEMALE"] as Sex[]).map((sex) => (
+                                              <button
+                                                key={sex}
+                                                onClick={() => {
+                                                  setModelDetails({...modelDetails, sex});
+                                                  setGenderAutoSelected(false);
+                                                }}
+                                                className={cn(
+                                                  "flex-1 py-2 rounded-lg text-sm font-medium border transition-all",
+                                                  modelDetails.sex === sex
+                                                    ? "border-primary bg-[#E91E63]/10 text-[#E91E63]"
+                                                    : "border-border hover:border-[#E91E63]/50"
+                                                )}
+                                                data-testid={`sex-${sex.toLowerCase()}`}
+                                              >
+                                                {sex === "MALE" ? "Male" : "Female"}
+                                              </button>
+                                            ))}
+                                          </div>
+                                        </div>
+                                        <div>
+                                          <label className="text-xs text-muted-foreground mb-2 block">Age</label>
+                                          <Select value={modelDetails.age} onValueChange={(value: AgeGroup) => setModelDetails({...modelDetails, age: value})}>
+                                            <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                                            <SelectContent>
+                                              <SelectItem value="TEEN">Teen</SelectItem>
+                                              <SelectItem value="YOUNG_ADULT">Young Adult</SelectItem>
+                                              <SelectItem value="ADULT">Adult</SelectItem>
+                                            </SelectContent>
+                                          </Select>
+                                        </div>
+                                        <div>
+                                          <label className="text-xs text-muted-foreground mb-2 block">Ethnicity</label>
+                                          <Select value={modelDetails.ethnicity} onValueChange={(value: Ethnicity) => setModelDetails({...modelDetails, ethnicity: value})}>
+                                            <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                                            <SelectContent>
+                                              <SelectItem value="CAUCASIAN">Caucasian</SelectItem>
+                                              <SelectItem value="AFRICAN">African</SelectItem>
+                                              <SelectItem value="ASIAN">Asian</SelectItem>
+                                              <SelectItem value="SOUTHEAST_ASIAN">SE Asian</SelectItem>
+                                              <SelectItem value="HISPANIC">Hispanic</SelectItem>
+                                              <SelectItem value="SOUTH_ASIAN">South Asian</SelectItem>
+                                              <SelectItem value="MIDDLE_EASTERN">Middle Eastern</SelectItem>
+                                              <SelectItem value="INDIGENOUS">Indigenous</SelectItem>
+                                              <SelectItem value="MIXED">Mixed</SelectItem>
+                                            </SelectContent>
+                                          </Select>
+                                        </div>
+                                        <div>
+                                          <label className="text-xs text-muted-foreground mb-2 block">Size</label>
+                                          <div className="flex gap-1">
+                                            {(["S", "M", "L", "XL"] as ModelSize[]).map((size) => (
+                                              <button
+                                                key={size}
+                                                onClick={() => setModelDetails({...modelDetails, modelSize: size})}
+                                                className={cn(
+                                                  "flex-1 py-2 rounded-lg text-xs font-medium border transition-all",
+                                                  modelDetails.modelSize === size
+                                                    ? "border-primary bg-primary text-white"
+                                                    : "border-border hover:border-[#E91E63]/50"
+                                                )}
+                                                data-testid={`body-size-${size}`}
+                                              >
+                                                {size}
+                                              </button>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div className="grid grid-cols-3 gap-3 mt-3 pt-3 border-t border-border">
+                                        <div>
+                                          <label className="text-xs text-muted-foreground mb-2 block">Hair</label>
                                           <Select 
                                             value={modelDetails.customization?.hairStyle || ""} 
                                             onValueChange={(value: HairStyle) => setModelDetails({
@@ -1913,7 +1969,7 @@ export default function MockupGenerator() {
                                               customization: { ...modelDetails.customization, hairStyle: value }
                                             })}
                                           >
-                                            <SelectTrigger className="h-10" data-testid="select-hair-style">
+                                            <SelectTrigger className="h-9" data-testid="select-hair-style">
                                               <SelectValue placeholder="Any" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -1933,7 +1989,7 @@ export default function MockupGenerator() {
                                               customization: { ...modelDetails.customization, expression: value }
                                             })}
                                           >
-                                            <SelectTrigger className="h-10" data-testid="select-expression">
+                                            <SelectTrigger className="h-9" data-testid="select-expression">
                                               <SelectValue placeholder="Any" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -1945,7 +2001,7 @@ export default function MockupGenerator() {
                                           </Select>
                                         </div>
                                         <div>
-                                          <label className="text-xs text-muted-foreground mb-2 block">Pose Suggestion</label>
+                                          <label className="text-xs text-muted-foreground mb-2 block">Pose</label>
                                           <Select 
                                             value={modelDetails.customization?.poseSuggestion || ""} 
                                             onValueChange={(value: PoseSuggestion) => setModelDetails({
@@ -1953,7 +2009,7 @@ export default function MockupGenerator() {
                                               customization: { ...modelDetails.customization, poseSuggestion: value }
                                             })}
                                           >
-                                            <SelectTrigger className="h-10" data-testid="select-pose">
+                                            <SelectTrigger className="h-9" data-testid="select-pose">
                                               <SelectValue placeholder="Any" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -1965,12 +2021,8 @@ export default function MockupGenerator() {
                                           </Select>
                                         </div>
                                       </div>
-                                      <p className="text-[11px] text-muted-foreground mt-2">
-                                        These optional settings help personalize your model. Leave as "Any" for AI-selected defaults.
-                                      </p>
                                     </CollapsibleContent>
                                   </Collapsible>
-                                  </>
                                 )}
                               </div>
                             )}
@@ -2278,23 +2330,30 @@ export default function MockupGenerator() {
                             <div className="mb-4 shrink-0">
                                <div className="flex items-center justify-between mb-2">
                                  <div className="flex items-center gap-2">
-                                   <PersonStanding className="h-4 w-4 text-primary" />
-                                   <h2 className="text-sm font-bold text-foreground">Choose Camera Angles</h2>
+                                   <Camera className="h-4 w-4 text-primary" />
+                                   <h2 className="text-sm font-bold text-foreground">Camera Angles</h2>
                                  </div>
                                  
                                  <div className="flex gap-2">
                                    <button 
+                                     onClick={() => setSelectedAngles(MOCKUP_ANGLES.filter(a => a.recommended).map(a => a.id))}
+                                     className="text-[10px] font-medium text-green-600 dark:text-green-400 hover:underline"
+                                   >
+                                     Recommended
+                                   </button>
+                                   <span className="text-border text-[10px]">|</span>
+                                   <button 
                                      onClick={() => setSelectedAngles(MOCKUP_ANGLES.map(a => a.id))}
                                      disabled={selectedAngles.length === MOCKUP_ANGLES.length}
-                                     className="text-[10px] font-medium text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                                     className="text-[10px] font-medium text-primary disabled:opacity-50 disabled:cursor-not-allowed hover:underline"
                                    >
-                                     Select All
+                                     All
                                    </button>
                                    <span className="text-border text-[10px]">|</span>
                                    <button 
                                      onClick={() => setSelectedAngles([])}
                                      disabled={selectedAngles.length === 0}
-                                     className="text-[10px] font-medium text-muted-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                                     className="text-[10px] font-medium text-muted-foreground disabled:opacity-50 disabled:cursor-not-allowed hover:underline"
                                    >
                                      Clear
                                    </button>
@@ -2302,98 +2361,100 @@ export default function MockupGenerator() {
                                </div>
                             </div>
 
-                            {/* Grid */}
+                            {/* Compact Icon Buttons */}
                             <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar pb-4">
-                              <div className="grid grid-cols-2 gap-2 sm:gap-3 pb-4">
-                                {MOCKUP_ANGLES.map((angle) => {
-                                  const isSelected = selectedAngles.includes(angle.id);
-                                  return (
-                                    <div
-                                      key={angle.id}
-                                      onClick={() => {
-                                        if (isSelected) {
-                                          setSelectedAngles(selectedAngles.filter(id => id !== angle.id));
-                                        } else {
-                                          setSelectedAngles([...selectedAngles, angle.id]);
-                                        }
-                                      }}
-                                      className={cn(
-                                        "relative p-3 rounded-xl border-2 text-left transition-all duration-200 flex flex-col justify-between cursor-pointer min-h-[90px] sm:min-h-[100px] active:scale-[0.98]",
-                                        isSelected 
-                                          ? "border-primary bg-[#E91E63]/10 dark:bg-[#E91E63]/10 shadow-sm" 
-                                          : "border-border bg-card hover:border-[#E91E63]/50 dark:hover:border-[#E91E63]/70"
-                                      )}
-                                      data-testid={`angle-${angle.id}`}
-                                    >
-                                      {/* Top Section */}
-                                      <div>
-                                        <div className="flex items-center gap-2 mb-2">
-                                          <div className={cn(
-                                            "p-1.5 rounded-lg transition-colors",
-                                            isSelected ? "bg-[#E91E63]/20 dark:bg-[#E91E63]/40" : "bg-muted"
-                                          )}>
-                                            <angle.icon className={cn(
-                                              "h-4 w-4",
-                                              isSelected ? "text-primary dark:text-[#CD8B67]" : "text-muted-foreground"
-                                            )} />
-                                          </div>
+                              <TooltipProvider delayDuration={200}>
+                                <div className="flex flex-wrap gap-2 justify-center">
+                                  {MOCKUP_ANGLES.map((angle) => {
+                                    const isSelected = selectedAngles.includes(angle.id);
+                                    return (
+                                      <Tooltip key={angle.id}>
+                                        <TooltipTrigger asChild>
+                                          <button
+                                            onClick={() => {
+                                              if (isSelected) {
+                                                setSelectedAngles(selectedAngles.filter(id => id !== angle.id));
+                                              } else {
+                                                setSelectedAngles([...selectedAngles, angle.id]);
+                                              }
+                                            }}
+                                            className={cn(
+                                              "relative flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all duration-200 cursor-pointer active:scale-[0.95] min-w-[72px]",
+                                              isSelected 
+                                                ? "border-primary bg-[#E91E63]/10 dark:bg-[#E91E63]/15 shadow-sm" 
+                                                : "border-border bg-card hover:border-[#E91E63]/50 dark:hover:border-[#E91E63]/70"
+                                            )}
+                                            data-testid={`angle-${angle.id}`}
+                                          >
+                                            <div className={cn(
+                                              "p-2 rounded-lg transition-colors",
+                                              isSelected ? "bg-[#E91E63]/20 dark:bg-[#E91E63]/40" : "bg-muted"
+                                            )}>
+                                              <angle.icon className={cn(
+                                                "h-5 w-5",
+                                                isSelected ? "text-primary dark:text-[#CD8B67]" : "text-muted-foreground"
+                                              )} />
+                                            </div>
+                                            <span className={cn(
+                                              "text-[10px] font-medium transition-colors",
+                                              isSelected ? "text-primary dark:text-[#E8C9B0]" : "text-muted-foreground"
+                                            )}>
+                                              {angle.name.split(' ')[0]}
+                                            </span>
+                                            {angle.recommended && (
+                                              <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-green-500 flex items-center justify-center">
+                                                <Star className="h-2 w-2 text-white fill-white" />
+                                              </div>
+                                            )}
+                                            {isSelected && (
+                                              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-4 w-4 rounded-full bg-primary flex items-center justify-center">
+                                                <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />
+                                              </div>
+                                            )}
+                                          </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="bottom" className="max-w-[200px]">
+                                          <p className="font-semibold text-xs">{angle.name}</p>
+                                          <p className="text-[10px] text-muted-foreground">{angle.description}</p>
                                           {angle.recommended && (
-                                            <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-[9px] font-bold uppercase border-0 px-1.5 h-5">
-                                              Rec
-                                            </Badge>
+                                            <p className="text-[10px] text-green-500 mt-1 font-medium">★ Recommended</p>
                                           )}
-                                        </div>
-                                        
-                                        <h3 className={cn(
-                                          "text-xs font-bold mb-0.5 transition-colors",
-                                          isSelected ? "text-[#E91E63] dark:text-[#E8C9B0]" : "text-foreground"
-                                        )}>
-                                          {angle.name}
-                                        </h3>
-                                        <p className={cn(
-                                          "text-[10px] leading-tight transition-colors line-clamp-2",
-                                          isSelected ? "text-[#E91E63] dark:text-[#D4A987]" : "text-muted-foreground"
-                                        )}>
-                                          {angle.description}
-                                        </p>
-                                      </div>
-
-                                      {/* Bottom Section */}
-                                      <div className="absolute top-2 right-2">
-                                        <div className={cn(
-                                          "h-4 w-4 rounded-full border-2 flex items-center justify-center transition-all",
-                                          isSelected 
-                                            ? "border-primary bg-primary" 
-                                            : "border-muted-foreground/20 bg-transparent"
-                                        )}>
-                                          {isSelected && <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                            
-                            {/* Bottom Controls */}
-                            <div className="pt-3 border-t border-border flex flex-col gap-3 mt-auto shrink-0">
-                              <div className="flex gap-2 w-full">
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    );
+                                  })}
+                                </div>
+                              </TooltipProvider>
+                              
+                              {/* Quick Select Presets */}
+                              <div className="flex gap-2 justify-center mt-4">
                                 <button
                                   onClick={() => setSelectedAngles(['front', 'three-quarter'])}
-                                  className="flex-1 px-3 py-2 text-[10px] md:text-xs font-bold bg-[#E91E63]/10 dark:bg-[#E91E63]/20 text-[#E91E63] dark:text-[#D4A987] rounded-lg hover:bg-[#E91E63]/20 dark:hover:bg-[#E91E63]/30 transition-colors border border-[#E91E63]/10 dark:border-[#E91E63]/50"
+                                  className={cn(
+                                    "px-3 py-1.5 text-[10px] font-semibold rounded-full transition-colors border",
+                                    selectedAngles.length === 2 && selectedAngles.includes('front') && selectedAngles.includes('three-quarter')
+                                      ? "bg-[#E91E63]/20 text-[#E91E63] dark:text-[#D4A987] border-[#E91E63]/50"
+                                      : "bg-muted text-muted-foreground border-border hover:border-[#E91E63]/30"
+                                  )}
                                 >
-                                  Standard Pack (2)
+                                  Standard (2)
                                 </button>
                                 <button
                                   onClick={() => setSelectedAngles(MOCKUP_ANGLES.map(a => a.id))}
-                                  className="flex-1 px-3 py-2 text-[10px] md:text-xs font-bold bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 transition-colors border border-border"
+                                  className={cn(
+                                    "px-3 py-1.5 text-[10px] font-semibold rounded-full transition-colors border",
+                                    selectedAngles.length === MOCKUP_ANGLES.length
+                                      ? "bg-[#E91E63]/20 text-[#E91E63] dark:text-[#D4A987] border-[#E91E63]/50"
+                                      : "bg-muted text-muted-foreground border-border hover:border-[#E91E63]/30"
+                                  )}
                                 >
-                                  Full Collection ({MOCKUP_ANGLES.length})
+                                  Full Set ({MOCKUP_ANGLES.length})
                                 </button>
                               </div>
                               
+                              {/* Output Summary */}
                               {selectedAngles.length > 0 && (
-                                <div className="bg-slate-900 dark:bg-slate-950 text-white rounded-lg px-3 py-2 text-[10px] md:text-xs font-medium w-full text-center shadow-sm flex justify-between items-center">
+                                <div className="mt-4 bg-slate-900 dark:bg-slate-950 text-white rounded-lg px-3 py-2 text-[10px] md:text-xs font-medium text-center shadow-sm flex justify-between items-center">
                                   <span>Total Output:</span>
                                   <span>
                                     <span className="font-bold text-[#D4A987]">{selectedAngles.length}</span> Angles × <span className="font-bold text-[#D4A987]">{selectedColors.length}</span> Colors = <span className="font-bold text-green-400">{selectedAngles.length * selectedColors.length}</span> Mockups
@@ -2744,43 +2805,42 @@ export default function MockupGenerator() {
                               </div>
 
                               <div className="bg-muted/30 rounded-xl sm:rounded-2xl p-4 sm:p-6 w-full mb-4 sm:mb-6 border border-border">
-                                <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                                  <Maximize2 className="h-4 w-4 text-primary" />
-                                  <span className="text-sm font-bold text-foreground">Output Quality</span>
-                                </div>
-                                <div className="grid grid-cols-1 gap-2 sm:gap-3">
-                                  {OUTPUT_QUALITY_OPTIONS.map((quality) => (
-                                    <button
-                                      key={quality.id}
-                                      onClick={() => setOutputQuality(quality.id)}
-                                      className={cn(
-                                        "relative flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 p-3 sm:p-4 rounded-xl border-2 transition-all text-left min-h-[60px] active:scale-[0.99]",
-                                        outputQuality === quality.id
-                                          ? "border-primary bg-[#E91E63]/10 dark:bg-[#E91E63]/20"
-                                          : "border-border hover:border-[#E91E63]/50"
-                                      )}
-                                      data-testid={`quality-option-${quality.id}`}
-                                    >
-                                      {outputQuality === quality.id && (
-                                        <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
-                                          <CheckCircle2 className="h-5 w-5 text-primary" />
-                                        </div>
-                                      )}
-                                      <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-0.5 sm:mb-1">
-                                          <span className="text-sm font-bold text-foreground">{quality.name}</span>
-                                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                                            {quality.resolution}
-                                          </Badge>
-                                        </div>
-                                        <p className="text-xs text-muted-foreground">{quality.bestFor}</p>
-                                      </div>
-                                      <div className="flex items-center gap-1">
-                                        <Sparkles className="h-3 w-3 text-purple-500" />
-                                        <span className="text-xs font-medium text-purple-600">{quality.credits} {quality.credits === 1 ? 'credit' : 'credits'}/image</span>
-                                      </div>
-                                    </button>
-                                  ))}
+                                <div className="flex items-center justify-between gap-4">
+                                  <div className="flex items-center gap-2">
+                                    <Maximize2 className="h-4 w-4 text-primary" />
+                                    <span className="text-sm font-bold text-foreground">Output Quality</span>
+                                  </div>
+                                  <Select value={outputQuality} onValueChange={(value: OutputQuality) => setOutputQuality(value)}>
+                                    <SelectTrigger className="w-[180px] h-9" data-testid="quality-select">
+                                      <SelectValue>
+                                        {(() => {
+                                          const selected = OUTPUT_QUALITY_OPTIONS.find(q => q.id === outputQuality);
+                                          return selected ? (
+                                            <span className="flex items-center gap-2">
+                                              <span className="font-medium">{selected.name}</span>
+                                              <span className="text-muted-foreground text-xs">({selected.resolution})</span>
+                                            </span>
+                                          ) : "Select quality";
+                                        })()}
+                                      </SelectValue>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {OUTPUT_QUALITY_OPTIONS.map((quality) => (
+                                        <SelectItem key={quality.id} value={quality.id} data-testid={`quality-option-${quality.id}`}>
+                                          <div className="flex flex-col gap-0.5">
+                                            <div className="flex items-center gap-2">
+                                              <span className="font-medium">{quality.name}</span>
+                                              <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">
+                                                {quality.resolution}
+                                              </Badge>
+                                              <span className="text-purple-600 text-[10px] font-medium ml-auto">{quality.credits} cr</span>
+                                            </div>
+                                            <span className="text-[10px] text-muted-foreground">{quality.bestFor}</span>
+                                          </div>
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
                                 </div>
                                 <p className="text-[11px] text-muted-foreground mt-3 text-center">
                                   Estimated total: {Math.max(1, selectedAngles.length * (journey === "AOP" ? 1 : selectedColors.length)) * (OUTPUT_QUALITY_OPTIONS.find(q => q.id === outputQuality)?.credits || 2)} credits for this batch
