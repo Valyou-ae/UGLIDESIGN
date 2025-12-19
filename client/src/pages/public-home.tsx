@@ -440,7 +440,7 @@ function BrandingHeader({ isLoggedIn }: { isLoggedIn: boolean }) {
         className="shrink-0 bg-[#0A0A0B] border-b border-white/10 px-6"
       >
         <div className="flex items-center justify-center gap-3">
-          <img src={ugliLogo} alt="UGLI" className="h-12 object-contain" data-testid="img-ugli-logo" />
+          <img src={ugliLogo} alt="UGLI" className="h-14 object-contain" data-testid="img-ugli-logo" />
           <span className="text-white/40 mx-2">|</span>
           <span className="text-sm text-white/60" data-testid="text-tagline">AI-Powered Creative Studio</span>
         </div>
