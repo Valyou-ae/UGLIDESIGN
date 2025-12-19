@@ -102,7 +102,7 @@ function calculateJustifiedRows(items: InspirationItem[], containerWidth: number
   return rows;
 }
 
-function JustifiedGalleryCard({ item, rowHeight, index, onLike }: { item: InspirationItem; rowHeight: number; index: number; onLike?: (id: string) => void }) {
+function JustifiedGalleryCard({ item, rowHeight, index, onLike, isLoggedIn }: { item: InspirationItem; rowHeight: number; index: number; onLike?: (id: string) => void; isLoggedIn?: boolean }) {
   const [isVisible, setIsVisible] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -167,7 +167,8 @@ function JustifiedGalleryCard({ item, rowHeight, index, onLike }: { item: Inspir
                 onLoad={() => setImageLoaded(true)}
                 className={cn(
                   "w-full h-full object-cover transition-all duration-500 group-hover:scale-105",
-                  imageLoaded ? "opacity-100" : "opacity-0"
+                  imageLoaded ? "opacity-100" : "opacity-0",
+                  !isLoggedIn && !item.isGenerated && "grayscale group-hover:grayscale-0"
                 )}
               />
               {!imageLoaded && (
@@ -246,9 +247,10 @@ interface JustifiedGalleryProps {
   items: InspirationItem[];
   generatedImage?: { imageData: string; mimeType: string; aspectRatio: string } | null;
   onLike?: (id: string) => void;
+  isLoggedIn?: boolean;
 }
 
-function JustifiedGallery({ items, generatedImage, onLike }: JustifiedGalleryProps) {
+function JustifiedGallery({ items, generatedImage, onLike, isLoggedIn }: JustifiedGalleryProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(1200);
@@ -348,6 +350,7 @@ function JustifiedGallery({ items, generatedImage, onLike }: JustifiedGalleryPro
               rowHeight={row.height}
               index={currentIndex}
               onLike={onLike}
+              isLoggedIn={isLoggedIn}
             />
           );
         })}
@@ -622,7 +625,8 @@ export default function PublicHome() {
             <JustifiedGallery 
               items={galleryImages} 
               generatedImage={generatedImage} 
-              onLike={handleLike} 
+              onLike={handleLike}
+              isLoggedIn={!!user}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
