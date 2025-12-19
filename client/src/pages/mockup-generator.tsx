@@ -1022,12 +1022,12 @@ export default function MockupGenerator() {
     }
   }, [uploadedImage, isGeneratingPatterns, toast]);
   
-  // Trigger pattern generation when entering seamless step
+  // Trigger pattern generation when entering design step with AOP journey
   useEffect(() => {
-    if (currentStep === "seamless" && seamlessPhase === 'analyzing' && !isGeneratingPatterns && seamlessVariations.length === 0) {
+    if (currentStep === "design" && journey === "AOP" && !isAlreadySeamless && seamlessPhase === 'analyzing' && !isGeneratingPatterns && seamlessVariations.length === 0) {
       generatePatternVariations();
     }
-  }, [currentStep, seamlessPhase, isGeneratingPatterns, seamlessVariations.length, generatePatternVariations]);
+  }, [currentStep, journey, isAlreadySeamless, seamlessPhase, isGeneratingPatterns, seamlessVariations.length, generatePatternVariations]);
 
   // Generate AI-enhanced pattern via API
   const generateAIEnhancedPattern = useCallback(async () => {
@@ -1498,120 +1498,253 @@ export default function MockupGenerator() {
                       transition={{ duration: 0.2 }}
                       className="h-full"
                     >
-                      {/* STEP CONTENT SWITCHER */}
-                      {currentStep === "upload" && (
+                      {/* STEP CONTENT SWITCHER - CONSOLIDATED 3 STEPS */}
+                      
+                      {/* ========== STEP 1: DESIGN (Upload + Style + Seamless for AOP) ========== */}
+                      {currentStep === "design" && (
                         <div className="flex flex-col h-full">
-                          <div className="flex flex-col items-center justify-center h-full max-w-[600px] mx-auto text-center flex-1 px-2 sm:px-0">
-                          {!uploadedImage ? (
-                            <div 
-                              className="w-full border-2 border-dashed border-border rounded-[16px] sm:rounded-[20px] p-6 sm:p-8 md:p-16 hover:border-[#E91E63] hover:bg-[#E91E63]/10 dark:hover:bg-[#E91E63]/10 transition-all cursor-pointer group active:scale-[0.99]"
-                              onClick={() => fileInputRef.current?.click()}
-                              data-testid="dropzone-upload"
-                            >
-                              <input 
-                                type="file" 
-                                ref={fileInputRef} 
-                                className="hidden" 
-                                accept="image/*"
-                                onChange={handleFileUpload}
-                              />
-                              <div className="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 bg-[#E91E63]/10 dark:bg-[#E91E63]/20 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:scale-110 transition-transform">
-                                <Cloud className="h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10 text-primary" />
-                              </div>
-                              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mb-2">Drag & drop your design</h2>
-                              <p className="text-sm text-muted-foreground mb-3 sm:mb-4">or tap to browse</p>
-                              <Badge variant="outline" className="text-xs text-muted-foreground">PNG recommended • Max 20MB</Badge>
-                            </div>
-                          ) : (
-                            <div className="flex flex-col items-center gap-4 w-full">
-                              <div className="relative w-full aspect-square max-w-[320px] sm:max-w-[400px] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbC1vcGFjaXR5PSIwLjEiPjxyZWN0IHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iIzAwMCIvPjxyZWN0IHg9IjEwIiB5PSIxMCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjMDAwIi8+PC9zdmc+')] bg-repeat rounded-xl border border-border overflow-hidden">
-                                <img src={uploadedImage} alt="Uploaded" className="w-full h-full object-contain" />
-                                <div className="absolute inset-x-0 bottom-0 bg-black/60 backdrop-blur-sm p-3 flex justify-between items-center">
-                                  <span className="text-xs text-white truncate">design_v1.png</span>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    onClick={() => setUploadedImage(null)}
-                                    className="text-white hover:text-white hover:bg-white/20 h-8 min-h-[44px] px-3 text-xs"
-                                    data-testid="button-change-image"
-                                  >
-                                    Change
-                                  </Button>
-                                </div>
+                          <div className="flex-1 overflow-y-auto space-y-6 pb-4">
+                            {/* Section 1: Upload Design */}
+                            <div className="bg-card rounded-xl border border-border p-4 sm:p-6">
+                              <div className="flex items-center gap-2 mb-4">
+                                <Cloud className="h-4 w-4 text-primary" />
+                                <h3 className="text-sm font-bold text-foreground">Upload Design</h3>
+                                {uploadedImage && <Badge variant="secondary" className="text-[10px] ml-auto">Ready</Badge>}
                               </div>
                               
-                              {journey === "AOP" && (
-                                <label className="flex items-center gap-3 p-4 rounded-xl border border-border bg-card hover:bg-muted/50 cursor-pointer transition-colors max-w-[400px] w-full min-h-[60px]">
+                              {!uploadedImage ? (
+                                <div 
+                                  className="w-full border-2 border-dashed border-border rounded-xl p-6 sm:p-10 hover:border-primary hover:bg-primary/5 transition-all cursor-pointer group active:scale-[0.99] text-center"
+                                  onClick={() => fileInputRef.current?.click()}
+                                  data-testid="dropzone-upload"
+                                >
                                   <input 
-                                    type="checkbox"
-                                    checked={isAlreadySeamless}
-                                    onChange={(e) => setIsAlreadySeamless(e.target.checked)}
-                                    className="h-5 w-5 min-w-[20px] rounded border-border text-primary focus:ring-primary"
+                                    type="file" 
+                                    ref={fileInputRef} 
+                                    className="hidden" 
+                                    accept="image/*"
+                                    onChange={handleFileUpload}
                                   />
-                                  <div className="flex-1">
-                                    <p className="font-medium text-sm text-foreground">This design is already a seamless pattern</p>
-                                    <p className="text-xs text-muted-foreground mt-0.5">Check this if your design is already tileable and ready for all-over printing</p>
+                                  <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                                    <Cloud className="h-6 w-6 text-primary" />
                                   </div>
-                                </label>
+                                  <h4 className="text-base font-bold text-foreground mb-1">Drag & drop your design</h4>
+                                  <p className="text-xs text-muted-foreground mb-2">or tap to browse</p>
+                                  <Badge variant="outline" className="text-[10px] text-muted-foreground">PNG recommended</Badge>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-4">
+                                  <div className="relative w-24 h-24 sm:w-32 sm:h-32 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbC1vcGFjaXR5PSIwLjEiPjxyZWN0IHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iIzAwMCIvPjxyZWN0IHg9IjEwIiB5PSIxMCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjMDAwIi8+PC9zdmc+')] bg-repeat rounded-lg border border-border overflow-hidden flex-shrink-0">
+                                    <img src={uploadedImage} alt="Uploaded" className="w-full h-full object-contain" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium text-foreground truncate">design_v1.png</p>
+                                    <p className="text-xs text-muted-foreground mb-2">Ready for mockup</p>
+                                    <Button 
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => fileInputRef.current?.click()}
+                                      className="h-8 text-xs"
+                                      data-testid="button-change-image"
+                                    >
+                                      Change Image
+                                    </Button>
+                                    <input 
+                                      type="file" 
+                                      ref={fileInputRef} 
+                                      className="hidden" 
+                                      accept="image/*"
+                                      onChange={handleFileUpload}
+                                    />
+                                  </div>
+                                  
+                                  {journey === "AOP" && (
+                                    <label className="flex items-center gap-2 p-3 rounded-lg border border-border bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors">
+                                      <input 
+                                        type="checkbox"
+                                        checked={isAlreadySeamless}
+                                        onChange={(e) => setIsAlreadySeamless(e.target.checked)}
+                                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                                      />
+                                      <span className="text-xs text-muted-foreground">Already seamless</span>
+                                    </label>
+                                  )}
+                                </div>
                               )}
                             </div>
-                          )}
+
+                            {/* Section 2: Brand Style */}
+                            <div className="bg-card rounded-xl border border-border p-4 sm:p-6">
+                              <div className="flex items-center gap-2 mb-4">
+                                <Sparkles className="h-4 w-4 text-primary" />
+                                <h3 className="text-sm font-bold text-foreground">Brand Style</h3>
+                                {selectedStyle && <Badge variant="secondary" className="text-[10px] ml-auto">{BRAND_STYLES.find(s => s.id === selectedStyle)?.name}</Badge>}
+                              </div>
+                              
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                {BRAND_STYLES.map((style) => {
+                                  const isSelected = selectedStyle === style.id;
+                                  return (
+                                    <div 
+                                      key={style.id} 
+                                      onClick={() => setSelectedStyle(style.id)}
+                                      data-testid={`style-card-${style.id}`}
+                                      className={cn(
+                                        "group relative bg-muted/30 rounded-lg overflow-hidden cursor-pointer border-2 transition-all duration-200 hover:shadow-md active:scale-[0.98]",
+                                        isSelected 
+                                          ? "border-primary ring-2 ring-primary/20" 
+                                          : "border-transparent hover:border-primary/30"
+                                      )}
+                                    >
+                                      <div className="aspect-[4/3] relative overflow-hidden">
+                                        <img 
+                                          src={style.img} 
+                                          alt={style.name} 
+                                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                                        />
+                                        {isSelected && (
+                                          <div className="absolute top-1.5 right-1.5 bg-primary rounded-full p-1">
+                                            <Check className="h-3 w-3 text-white" />
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="p-2">
+                                        <h4 className="font-medium text-foreground text-xs truncate">{style.name}</h4>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+
+                            {/* Section 3: Seamless Pattern (AOP only, when not already seamless) */}
+                            {journey === "AOP" && uploadedImage && !isAlreadySeamless && (
+                              <div className="bg-card rounded-xl border border-border p-4 sm:p-6">
+                                <div className="flex items-center gap-2 mb-4">
+                                  <Layers className="h-4 w-4 text-secondary" />
+                                  <h3 className="text-sm font-bold text-foreground">Pattern Lab</h3>
+                                  {selectedVariationId && <Badge variant="secondary" className="text-[10px] ml-auto bg-secondary/20 text-secondary">Pattern Selected</Badge>}
+                                </div>
+
+                                {(seamlessPhase === 'analyzing' || seamlessPhase === 'generating') && (
+                                  <div className="flex items-center justify-center py-8">
+                                    <Loader2 className="h-8 w-8 text-primary animate-spin" />
+                                    <p className="ml-3 text-sm text-muted-foreground">
+                                      {seamlessPhase === 'analyzing' ? "Analyzing design..." : "Generating patterns..."}
+                                    </p>
+                                  </div>
+                                )}
+
+                                {seamlessPhase === 'selecting' && (
+                                  <div className="space-y-4">
+                                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                                      {seamlessVariations.map((variation) => {
+                                        const isSelected = selectedVariationId === variation.id;
+                                        const isAi = variation.id === 'ai_enhanced';
+                                        
+                                        if (isAi && (!variation.url || variation.url.length === 0)) {
+                                          return (
+                                            <div 
+                                              key={variation.id}
+                                              className="relative aspect-square rounded-lg border-2 border-dashed border-secondary/30 bg-secondary/5 flex flex-col items-center justify-center text-center p-2 cursor-pointer hover:border-secondary/50 transition-all"
+                                            >
+                                              <Sparkles className="h-5 w-5 text-secondary mb-1" />
+                                              <span className="text-[10px] font-medium text-foreground">AI</span>
+                                              <Button 
+                                                size="sm" 
+                                                onClick={(e) => { e.stopPropagation(); generateAIEnhancedPattern(); }}
+                                                disabled={isGeneratingAIPattern}
+                                                className="h-6 text-[9px] mt-1 bg-secondary hover:bg-secondary/80"
+                                              >
+                                                {isGeneratingAIPattern ? <Loader2 className="h-3 w-3 animate-spin" /> : "Generate"}
+                                              </Button>
+                                            </div>
+                                          );
+                                        }
+
+                                        return (
+                                          <div
+                                            key={variation.id}
+                                            onClick={() => setSelectedVariationId(variation.id)}
+                                            className={cn(
+                                              "relative aspect-square rounded-lg overflow-hidden border-2 transition-all cursor-pointer",
+                                              isSelected 
+                                                ? "border-primary shadow-lg scale-105 z-10" 
+                                                : "border-transparent hover:border-primary/30"
+                                            )}
+                                          >
+                                            <div 
+                                              className="w-full h-full bg-muted"
+                                              style={{
+                                                backgroundImage: `url(${variation.url})`,
+                                                backgroundSize: '33.33%',
+                                                backgroundRepeat: 'repeat'
+                                              }}
+                                            />
+                                            {variation.isRecommended && (
+                                              <div className="absolute top-1 right-1 bg-yellow-400 text-yellow-900 text-[8px] font-bold px-1 py-0.5 rounded flex items-center gap-0.5">
+                                                <Star className="h-2 w-2 fill-current" />
+                                              </div>
+                                            )}
+                                            {isSelected && (
+                                              <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                                                <CheckCircle2 className="h-6 w-6 text-white drop-shadow" />
+                                              </div>
+                                            )}
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+
+                                    {selectedVariationId && (
+                                      <div className="flex items-center gap-4 p-3 bg-muted/30 rounded-lg">
+                                        <div className="flex items-center gap-2 flex-1">
+                                          <Layers className="h-4 w-4 text-muted-foreground" />
+                                          <span className="text-xs font-medium">Scale</span>
+                                          <Slider 
+                                            value={[patternScale]}
+                                            onValueChange={(val) => setPatternScale(val[0])}
+                                            min={10}
+                                            max={100}
+                                            step={1}
+                                            className="flex-1 max-w-[200px]"
+                                          />
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
 
                           {/* Footer Navigation */}
-                          <div className="mt-auto pt-4 md:pt-6 border-t border-border flex flex-col gap-2 shrink-0">
-                            <div className="flex items-center justify-between gap-3">
-                                <Button
-                                    variant="ghost"
-                                    onClick={handleBack}
-                                    className="gap-2 pl-2 pr-4 text-muted-foreground hover:text-foreground min-h-[44px] h-11 sm:h-10"
-                                    data-testid="button-back"
-                                >
-                                    <ChevronLeft className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Back</span>
-                                </Button>
-                                <Button
-                                    onClick={handleNext}
-                                    disabled={!uploadedImage}
-                                    className={cn(
-                                        "gap-2 px-4 sm:px-6 transition-all min-h-[44px] h-11 sm:h-10 flex-1 sm:flex-none max-w-[200px] sm:max-w-none",
-                                        uploadedImage
-                                            ? "bg-primary hover:bg-[#C2185B] text-white shadow-sm hover:shadow-[#E91E63]/20 hover:-translate-y-0.5" 
-                                            : "bg-muted text-muted-foreground opacity-50 cursor-not-allowed"
-                                    )}
-                                    data-testid="button-next"
-                                >
-                                    Next Step
-                                    <ChevronRight className="h-4 w-4" />
-                                </Button>
-                            </div>
-                            
-                            <div className="hidden sm:flex justify-center gap-2 text-xs text-muted-foreground opacity-60">
-                                <span className="flex items-center gap-1">
-                                    <kbd className="bg-muted px-1.5 py-0.5 rounded border border-border font-mono text-[10px]">Enter</kbd> 
-                                    Next
-                                </span>
-                                <span className="mx-1">•</span>
-                                <span className="flex items-center gap-1">
-                                    <kbd className="bg-muted px-1.5 py-0.5 rounded border border-border font-mono text-[10px]">Esc</kbd> 
-                                    Back
-                                </span>
-                            </div>
+                          <div className="mt-auto pt-4 border-t border-border flex items-center justify-between gap-3 shrink-0">
+                            <Button variant="ghost" onClick={handleBack} className="gap-2 min-h-[44px]" data-testid="button-back">
+                              <ChevronLeft className="h-4 w-4" /> <span className="hidden sm:inline">Back</span>
+                            </Button>
+                            <Button
+                              onClick={handleNext}
+                              disabled={!uploadedImage || !selectedStyle || (journey === "AOP" && !isAlreadySeamless && !selectedVariationId)}
+                              className={cn(
+                                "gap-2 px-6 min-h-[44px] flex-1 sm:flex-none max-w-[200px]",
+                                (uploadedImage && selectedStyle && (journey !== "AOP" || isAlreadySeamless || selectedVariationId))
+                                  ? "bg-primary hover:bg-[#C2185B] text-white" 
+                                  : "bg-muted text-muted-foreground opacity-50 cursor-not-allowed"
+                              )}
+                              data-testid="button-next"
+                            >
+                              Next Step <ChevronRight className="h-4 w-4" />
+                            </Button>
                           </div>
                         </div>
                       )}
 
+                      {/* ========== STEP 2: PRODUCT (Product picker + Colors + Sizes + Model + Scene) ========== */}
                       {currentStep === "product" && (
                         <div className="flex flex-col h-full animate-fade-in">
-                          {/* Header */}
-                          <div className="text-center mb-4 sm:mb-8">
-                            <h2 className="text-xl sm:text-2xl font-bold mb-1 sm:mb-2">Configure Your Product</h2>
-                            <p className="text-sm text-muted-foreground">Select product, sizes, colors, and model preferences</p>
-                          </div>
-
-                          {/* Main Content - Scrollable */}
-                          <div className="flex-1 overflow-y-auto space-y-4 sm:space-y-8 pb-6">
-                            {/* Row 1: Compact Product Picker */}
+                          <div className="flex-1 overflow-y-auto space-y-4 sm:space-y-6 pb-4">
+                            {/* Product Picker */}
                             <div className="bg-card rounded-xl border border-border p-4 sm:p-5">
                               <label className="text-sm font-bold text-foreground mb-3 block">Select Product</label>
                               <Popover open={productPickerOpen} onOpenChange={setProductPickerOpen}>
@@ -1689,12 +1822,12 @@ export default function MockupGenerator() {
                               </Popover>
                             </div>
 
-                            {/* Row 2: Sizes + Colors */}
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                            {/* Sizes + Colors */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                               {/* Sizes */}
                               <div className="bg-card rounded-xl border border-border p-4 sm:p-5">
-                                <div className="flex items-center justify-between mb-3 sm:mb-4">
-                                  <label className="text-sm font-bold text-foreground">Product Sizes</label>
+                                <div className="flex items-center justify-between mb-3">
+                                  <label className="text-sm font-bold text-foreground">Sizes</label>
                                   <Badge variant="secondary" className="text-xs">{selectedSizes.length} selected</Badge>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
@@ -1711,10 +1844,10 @@ export default function MockupGenerator() {
                                           }
                                         }}
                                         className={cn(
-                                          "h-11 min-h-[44px] min-w-[44px] px-3 rounded-lg text-sm font-medium border-2 transition-all active:scale-95",
+                                          "h-10 min-w-[40px] px-3 rounded-lg text-sm font-medium border-2 transition-all active:scale-95",
                                           isSelected 
                                             ? "bg-primary border-primary text-white" 
-                                            : "bg-background border-border text-muted-foreground hover:border-[#E91E63]/50"
+                                            : "bg-background border-border text-muted-foreground hover:border-primary/50"
                                         )}
                                         data-testid={`size-${size}`}
                                       >
@@ -1727,103 +1860,68 @@ export default function MockupGenerator() {
 
                               {/* Colors */}
                               <div className="bg-card rounded-xl border border-border p-4 sm:p-5">
-                                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                                <div className="flex items-center justify-between mb-3">
                                   <label className="text-sm font-bold text-foreground">Colors</label>
                                   {journey !== "AOP" && <Badge variant="secondary" className="text-xs">{selectedColors.length} selected</Badge>}
                                 </div>
                                 {journey === "AOP" ? (
-                                  <div className="flex items-center gap-3 p-3 rounded-lg bg-[#E91E63]/10 dark:bg-[#E91E63]/20 min-h-[60px]">
-                                    <Palette className="h-5 w-5 text-primary flex-shrink-0" />
-                                    <div className="flex-1 min-w-0">
-                                      <p className="font-medium text-sm">Pattern-Derived Colors</p>
-                                      <p className="text-xs text-muted-foreground">Colors extracted from your seamless pattern</p>
+                                  <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/10">
+                                    <Palette className="h-5 w-5 text-primary" />
+                                    <div className="flex-1">
+                                      <p className="font-medium text-sm">Pattern-Derived</p>
+                                      <p className="text-xs text-muted-foreground">Colors from your pattern</p>
                                     </div>
-                                    <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
+                                    <CheckCircle2 className="h-5 w-5 text-primary" />
                                   </div>
                                 ) : (
-                                  <div className="space-y-3">
-                                    {(() => {
-                                      const allColors = [
-                                        { name: "White", class: "bg-white border-gray-300" },
-                                        { name: "Black", class: "bg-black border-black" },
-                                        { name: "Navy", class: "bg-[#1A237E]" },
-                                        { name: "Sport Grey", class: "bg-[#9E9E9E]" },
-                                        { name: "Red", class: "bg-[#D32F2F]" },
-                                        { name: "Forest", class: "bg-[#1B5E20]" },
-                                        { name: "Dark Heather", class: "bg-[#545454]" },
-                                        { name: "Charcoal", class: "bg-[#424242]" },
-                                        { name: "Royal", class: "bg-[#0D47A1]" },
-                                        { name: "Light Blue", class: "bg-[#ADD8E6]" },
-                                        { name: "Cardinal", class: "bg-[#880E4F]" },
-                                        { name: "Maroon", class: "bg-[#4A148C]" },
-                                        { name: "Orange", class: "bg-[#F57C00]" },
-                                        { name: "Gold", class: "bg-[#FBC02D]" },
-                                        { name: "Irish Green", class: "bg-[#388E3C]" },
-                                        { name: "Purple", class: "bg-[#7B1FA2]" },
-                                        { name: "Light Pink", class: "bg-[#F8BBD0]" },
-                                        { name: "Sand", class: "bg-[#F5F5DC] border-gray-200" },
-                                      ];
-                                      const displayColors = showAllColors ? allColors : allColors.slice(0, 6);
+                                  <div className="flex flex-wrap gap-2">
+                                    {[
+                                      { name: "White", class: "bg-white border-gray-300" },
+                                      { name: "Black", class: "bg-black border-black" },
+                                      { name: "Navy", class: "bg-[#1A237E]" },
+                                      { name: "Sport Grey", class: "bg-[#9E9E9E]" },
+                                      { name: "Red", class: "bg-[#D32F2F]" },
+                                      { name: "Forest", class: "bg-[#1B5E20]" },
+                                    ].map((color) => {
+                                      const isSelected = selectedColors.includes(color.name);
                                       return (
-                                        <>
-                                          <div className="flex flex-wrap gap-2">
-                                            {displayColors.map((color) => {
-                                              const isSelected = selectedColors.includes(color.name);
-                                              return (
-                                                <TooltipProvider key={color.name}>
-                                                  <Tooltip delayDuration={0}>
-                                                    <TooltipTrigger asChild>
-                                                      <button 
-                                                        onClick={() => {
-                                                          if (isSelected) {
-                                                            setSelectedColors(selectedColors.filter(c => c !== color.name));
-                                                          } else {
-                                                            setSelectedColors([...selectedColors, color.name]);
-                                                          }
-                                                        }}
-                                                        className={cn(
-                                                          "h-9 w-9 sm:h-8 sm:w-8 rounded-full border-2 transition-all hover:scale-110 active:scale-95",
-                                                          color.class,
-                                                          isSelected ? "ring-2 ring-primary ring-offset-2" : "border-transparent"
-                                                        )}
-                                                        data-testid={`color-${color.name.replace(/\s+/g, '-').toLowerCase()}`}
-                                                      />
-                                                    </TooltipTrigger>
-                                                    <TooltipContent side="bottom" className="text-xs">{color.name}</TooltipContent>
-                                                  </Tooltip>
-                                                </TooltipProvider>
-                                              );
-                                            })}
-                                            <button
-                                              onClick={() => setShowAllColors(!showAllColors)}
-                                              className="h-9 w-9 sm:h-8 sm:w-8 rounded-full border-2 border-dashed border-border bg-muted/50 flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-all"
-                                              data-testid="button-toggle-colors"
-                                            >
-                                              {showAllColors ? (
-                                                <ChevronUp className="h-4 w-4" />
-                                              ) : (
-                                                <Plus className="h-4 w-4" />
-                                              )}
-                                            </button>
-                                          </div>
-                                          {!showAllColors && (
-                                            <button
-                                              onClick={() => setShowAllColors(true)}
-                                              className="text-xs text-muted-foreground hover:text-primary transition-colors"
-                                              data-testid="button-show-all-colors"
-                                            >
-                                              +{allColors.length - 6} more colors
-                                            </button>
-                                          )}
-                                        </>
+                                        <TooltipProvider key={color.name}>
+                                          <Tooltip delayDuration={0}>
+                                            <TooltipTrigger asChild>
+                                              <button 
+                                                onClick={() => {
+                                                  if (isSelected) {
+                                                    setSelectedColors(selectedColors.filter(c => c !== color.name));
+                                                  } else {
+                                                    setSelectedColors([...selectedColors, color.name]);
+                                                  }
+                                                }}
+                                                className={cn(
+                                                  "h-8 w-8 rounded-full border-2 transition-all hover:scale-110 active:scale-95",
+                                                  color.class,
+                                                  isSelected ? "ring-2 ring-primary ring-offset-2" : "border-transparent"
+                                                )}
+                                                data-testid={`color-${color.name.replace(/\s+/g, '-').toLowerCase()}`}
+                                              />
+                                            </TooltipTrigger>
+                                            <TooltipContent side="bottom" className="text-xs">{color.name}</TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
                                       );
-                                    })()}
+                                    })}
+                                    <button
+                                      onClick={() => setShowAllColors(!showAllColors)}
+                                      className="h-8 w-8 rounded-full border-2 border-dashed border-border bg-muted/50 flex items-center justify-center text-muted-foreground hover:border-primary transition-all"
+                                      data-testid="button-toggle-colors"
+                                    >
+                                      <Plus className="h-4 w-4" />
+                                    </button>
                                   </div>
                                 )}
                               </div>
                             </div>
 
-                            {/* Row 3: Model Options (only for wearable products) */}
+                            {/* Model Options (wearable products only) */}
                             {!isNonWearableCategory(effectiveActiveCategory) && (
                               <div className="bg-card rounded-xl border border-border p-4 sm:p-5">
                                 <div className="flex items-center justify-between mb-3">
@@ -1832,206 +1930,118 @@ export default function MockupGenerator() {
                                     <button
                                       onClick={() => setUseModel(true)}
                                       className={cn(
-                                        "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all min-h-[40px]",
-                                        useModel ? "bg-primary text-white" : "bg-muted text-muted-foreground hover:text-foreground"
+                                        "px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
+                                        useModel ? "bg-primary text-white" : "bg-muted text-muted-foreground hover:bg-muted/80"
                                       )}
-                                      data-testid="button-on-model"
                                     >
-                                      <User className="h-4 w-4" />
-                                      On Model
+                                      With Model
                                     </button>
                                     <button
                                       onClick={() => setUseModel(false)}
                                       className={cn(
-                                        "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all min-h-[40px]",
-                                        !useModel ? "bg-primary text-white" : "bg-muted text-muted-foreground hover:text-foreground"
+                                        "px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
+                                        !useModel ? "bg-primary text-white" : "bg-muted text-muted-foreground hover:bg-muted/80"
                                       )}
-                                      data-testid="button-flat-lay"
                                     >
-                                      <Shirt className="h-4 w-4" />
                                       Flat Lay
                                     </button>
                                   </div>
                                 </div>
-
+                                
                                 {useModel && (
-                                  <Collapsible open={advancedOptionsOpen} onOpenChange={setAdvancedOptionsOpen}>
-                                    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border">
-                                      <div className="flex items-center gap-3">
-                                        <div className="flex items-center gap-1.5">
-                                          <span className="text-xs text-muted-foreground">Model:</span>
-                                          <span className="text-sm font-medium">
-                                            {modelDetails.sex === "MALE" ? "Male" : "Female"}, {modelDetails.age === "TEEN" ? "Teen" : modelDetails.age === "YOUNG_ADULT" ? "Young Adult" : "Adult"}
-                                          </span>
-                                        </div>
-                                        {genderAutoSelected && (
-                                          <Badge variant="secondary" className="text-[10px]">
-                                            <Sparkles className="h-2.5 w-2.5 mr-1" />
-                                            Smart default
-                                          </Badge>
-                                        )}
-                                      </div>
-                                      <CollapsibleTrigger asChild>
-                                        <Button variant="ghost" size="sm" className="h-8 text-xs" data-testid="button-customize-model">
-                                          {advancedOptionsOpen ? "Hide" : "Customize"}
-                                          {advancedOptionsOpen ? <ChevronUp className="h-3.5 w-3.5 ml-1" /> : <ChevronDown className="h-3.5 w-3.5 ml-1" />}
-                                        </Button>
-                                      </CollapsibleTrigger>
-                                    </div>
-                                    <CollapsibleContent className="pt-4">
-                                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                        <div>
-                                          <label className="text-xs text-muted-foreground mb-2 block">Sex</label>
-                                          <div className="flex gap-1.5">
-                                            {(["MALE", "FEMALE"] as Sex[]).map((sex) => (
-                                              <button
-                                                key={sex}
-                                                onClick={() => {
-                                                  setModelDetails({...modelDetails, sex});
-                                                  setGenderAutoSelected(false);
-                                                }}
-                                                className={cn(
-                                                  "flex-1 py-2 rounded-lg text-sm font-medium border transition-all",
-                                                  modelDetails.sex === sex
-                                                    ? "border-primary bg-[#E91E63]/10 text-[#E91E63]"
-                                                    : "border-border hover:border-[#E91E63]/50"
-                                                )}
-                                                data-testid={`sex-${sex.toLowerCase()}`}
-                                              >
-                                                {sex === "MALE" ? "Male" : "Female"}
-                                              </button>
-                                            ))}
-                                          </div>
-                                        </div>
-                                        <div>
-                                          <label className="text-xs text-muted-foreground mb-2 block">Age</label>
-                                          <Select value={modelDetails.age} onValueChange={(value: AgeGroup) => setModelDetails({...modelDetails, age: value})}>
-                                            <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                                            <SelectContent>
-                                              <SelectItem value="TEEN">Teen</SelectItem>
-                                              <SelectItem value="YOUNG_ADULT">Young Adult</SelectItem>
-                                              <SelectItem value="ADULT">Adult</SelectItem>
-                                            </SelectContent>
-                                          </Select>
-                                        </div>
-                                        <div>
-                                          <label className="text-xs text-muted-foreground mb-2 block">Ethnicity</label>
-                                          <Select value={modelDetails.ethnicity} onValueChange={(value: Ethnicity) => setModelDetails({...modelDetails, ethnicity: value})}>
-                                            <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                                            <SelectContent>
-                                              <SelectItem value="CAUCASIAN">Caucasian</SelectItem>
-                                              <SelectItem value="AFRICAN">African</SelectItem>
-                                              <SelectItem value="ASIAN">Asian</SelectItem>
-                                              <SelectItem value="SOUTHEAST_ASIAN">SE Asian</SelectItem>
-                                              <SelectItem value="HISPANIC">Hispanic</SelectItem>
-                                              <SelectItem value="SOUTH_ASIAN">South Asian</SelectItem>
-                                              <SelectItem value="MIDDLE_EASTERN">Middle Eastern</SelectItem>
-                                              <SelectItem value="INDIGENOUS">Indigenous</SelectItem>
-                                              <SelectItem value="MIXED">Mixed</SelectItem>
-                                            </SelectContent>
-                                          </Select>
-                                        </div>
-                                        <div>
-                                          <label className="text-xs text-muted-foreground mb-2 block">Size</label>
-                                          <div className="flex gap-1">
-                                            {(["S", "M", "L", "XL"] as ModelSize[]).map((size) => (
-                                              <button
-                                                key={size}
-                                                onClick={() => setModelDetails({...modelDetails, modelSize: size})}
-                                                className={cn(
-                                                  "flex-1 py-2 rounded-lg text-xs font-medium border transition-all",
-                                                  modelDetails.modelSize === size
-                                                    ? "border-primary bg-primary text-white"
-                                                    : "border-border hover:border-[#E91E63]/50"
-                                                )}
-                                                data-testid={`body-size-${size}`}
-                                              >
-                                                {size}
-                                              </button>
-                                            ))}
-                                          </div>
-                                        </div>
-                                      </div>
-                                      <div className="grid grid-cols-3 gap-3 mt-3 pt-3 border-t border-border">
-                                        <div>
-                                          <label className="text-xs text-muted-foreground mb-2 block">Hair</label>
-                                          <Select 
-                                            value={modelDetails.customization?.hairStyle || ""} 
-                                            onValueChange={(value: HairStyle) => setModelDetails({
-                                              ...modelDetails, 
-                                              customization: { ...modelDetails.customization, hairStyle: value }
-                                            })}
-                                          >
-                                            <SelectTrigger className="h-9" data-testid="select-hair-style">
-                                              <SelectValue placeholder="Any" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              <SelectItem value="Short">Short</SelectItem>
-                                              <SelectItem value="Medium">Medium</SelectItem>
-                                              <SelectItem value="Long">Long</SelectItem>
-                                              <SelectItem value="Bald">Bald</SelectItem>
-                                            </SelectContent>
-                                          </Select>
-                                        </div>
-                                        <div>
-                                          <label className="text-xs text-muted-foreground mb-2 block">Expression</label>
-                                          <Select 
-                                            value={modelDetails.customization?.expression || ""} 
-                                            onValueChange={(value: Expression) => setModelDetails({
-                                              ...modelDetails, 
-                                              customization: { ...modelDetails.customization, expression: value }
-                                            })}
-                                          >
-                                            <SelectTrigger className="h-9" data-testid="select-expression">
-                                              <SelectValue placeholder="Any" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              <SelectItem value="Neutral">Neutral</SelectItem>
-                                              <SelectItem value="Smiling">Smiling</SelectItem>
-                                              <SelectItem value="Serious">Serious</SelectItem>
-                                              <SelectItem value="Candid">Candid</SelectItem>
-                                            </SelectContent>
-                                          </Select>
-                                        </div>
-                                        <div>
-                                          <label className="text-xs text-muted-foreground mb-2 block">Pose</label>
-                                          <Select 
-                                            value={modelDetails.customization?.poseSuggestion || ""} 
-                                            onValueChange={(value: PoseSuggestion) => setModelDetails({
-                                              ...modelDetails, 
-                                              customization: { ...modelDetails.customization, poseSuggestion: value }
-                                            })}
-                                          >
-                                            <SelectTrigger className="h-9" data-testid="select-pose">
-                                              <SelectValue placeholder="Any" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              <SelectItem value="Casual">Casual</SelectItem>
-                                              <SelectItem value="Athletic">Athletic</SelectItem>
-                                              <SelectItem value="Professional">Professional</SelectItem>
-                                              <SelectItem value="Lifestyle">Lifestyle</SelectItem>
-                                            </SelectContent>
-                                          </Select>
-                                        </div>
-                                      </div>
-                                    </CollapsibleContent>
-                                  </Collapsible>
+                                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
+                                    <Select value={modelDetails.sex} onValueChange={(v) => setModelDetails({...modelDetails, sex: v as "MALE" | "FEMALE"})}>
+                                      <SelectTrigger className="h-10"><SelectValue placeholder="Gender" /></SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="MALE">Male</SelectItem>
+                                        <SelectItem value="FEMALE">Female</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <Select value={modelDetails.ethnicity} onValueChange={(v) => setModelDetails({...modelDetails, ethnicity: v as any})}>
+                                      <SelectTrigger className="h-10"><SelectValue placeholder="Ethnicity" /></SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="WHITE">White</SelectItem>
+                                        <SelectItem value="BLACK">Black</SelectItem>
+                                        <SelectItem value="ASIAN">Asian</SelectItem>
+                                        <SelectItem value="LATINO">Latino</SelectItem>
+                                        <SelectItem value="MIDDLE_EASTERN">Middle Eastern</SelectItem>
+                                        <SelectItem value="MIXED">Mixed</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <Select value={modelDetails.age} onValueChange={(v) => setModelDetails({...modelDetails, age: v as any})}>
+                                      <SelectTrigger className="h-10"><SelectValue placeholder="Age" /></SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="YOUNG_ADULT">Young Adult</SelectItem>
+                                        <SelectItem value="ADULT">Adult</SelectItem>
+                                        <SelectItem value="MIDDLE_AGED">Middle Aged</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <Select value={modelDetails.modelSize} onValueChange={(v) => setModelDetails({...modelDetails, modelSize: v as any})}>
+                                      <SelectTrigger className="h-10"><SelectValue placeholder="Body" /></SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="slim">Slim</SelectItem>
+                                        <SelectItem value="athletic">Athletic</SelectItem>
+                                        <SelectItem value="average">Average</SelectItem>
+                                        <SelectItem value="plus">Plus</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
                                 )}
                               </div>
                             )}
+
+                            {/* Scene / Environment */}
+                            <div className="bg-card rounded-xl border border-border p-4 sm:p-5">
+                              <div className="flex items-center gap-2 mb-3">
+                                <Camera className="h-4 w-4 text-primary" />
+                                <label className="text-sm font-bold text-foreground">Scene</label>
+                              </div>
+                              
+                              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-3">
+                                {[
+                                  { icon: Building, label: "Urban", prompt: "A vibrant urban street scene with graffiti walls, neon lights, and natural sunlight" },
+                                  { icon: Camera, label: "Studio", prompt: "A minimalist gray or white photography studio with professional soft lighting" },
+                                  { icon: Trees, label: "Nature", prompt: "A beautiful outdoor park setting with lush greenery and golden hour lighting" },
+                                  { icon: Coffee, label: "Cafe", prompt: "A cozy coffee shop interior with warm lighting, wood accents, and modern decor" },
+                                  { icon: Dumbbell, label: "Gym", prompt: "A modern fitness gym with motivational atmosphere and athletic equipment" },
+                                  { icon: Sun, label: "Beach", prompt: "A sunny beach setting with sand, ocean waves, and bright summery daylight" },
+                                ].map((template, i) => (
+                                  <button
+                                    key={i}
+                                    onClick={() => setEnvironmentPrompt(template.prompt)}
+                                    className={cn(
+                                      "flex flex-col items-center justify-center gap-1 p-2 rounded-lg border transition-all h-[60px]",
+                                      environmentPrompt === template.prompt
+                                        ? "bg-primary/10 border-primary"
+                                        : "bg-muted/30 border-border hover:border-primary/30"
+                                    )}
+                                  >
+                                    <template.icon className={cn("h-4 w-4", environmentPrompt === template.prompt ? "text-primary" : "text-muted-foreground")} />
+                                    <span className={cn("text-[10px] font-medium", environmentPrompt === template.prompt ? "text-primary" : "text-muted-foreground")}>{template.label}</span>
+                                  </button>
+                                ))}
+                              </div>
+                              
+                              <Textarea
+                                value={environmentPrompt}
+                                onChange={(e) => setEnvironmentPrompt(e.target.value)}
+                                placeholder="Or describe a custom scene..."
+                                className="h-20 text-sm resize-none"
+                              />
+                            </div>
                           </div>
 
                           {/* Footer Navigation */}
-                          <div className="pt-4 sm:pt-6 border-t border-border flex items-center justify-between gap-3 shrink-0">
-                            <Button variant="ghost" onClick={handleBack} className="gap-2 min-h-[44px] h-11 sm:h-10" data-testid="button-back">
+                          <div className="pt-4 border-t border-border flex items-center justify-between gap-3 shrink-0">
+                            <Button variant="ghost" onClick={handleBack} className="gap-2 min-h-[44px]" data-testid="button-back">
                               <ChevronLeft className="h-4 w-4" /> <span className="hidden sm:inline">Back</span>
                             </Button>
                             <Button
                               onClick={handleNext}
-                              disabled={!selectedProductType || selectedSizes.length === 0 || (journey !== "AOP" && selectedColors.length === 0)}
+                              disabled={!selectedProductType || selectedSizes.length === 0 || (journey !== "AOP" && selectedColors.length === 0) || environmentPrompt.length <= 5}
                               className={cn(
-                                "gap-2 px-4 sm:px-6 min-h-[44px] h-11 sm:h-10 flex-1 sm:flex-none max-w-[200px] sm:max-w-none",
-                                (selectedProductType && selectedSizes.length > 0 && (journey === "AOP" || selectedColors.length > 0))
+                                "gap-2 px-6 min-h-[44px] flex-1 sm:flex-none max-w-[200px]",
+                                (selectedProductType && selectedSizes.length > 0 && (journey === "AOP" || selectedColors.length > 0) && environmentPrompt.length > 5)
                                   ? "bg-primary hover:bg-[#C2185B] text-white" 
                                   : "bg-muted text-muted-foreground opacity-50 cursor-not-allowed"
                               )}
@@ -2043,1106 +2053,172 @@ export default function MockupGenerator() {
                         </div>
                       )}
 
-                      {currentStep === "seamless" && (
-                        <div className="h-full flex flex-col overflow-hidden animate-fade-in">
-                          {/* Phase 1 & 2: Loading States */}
-                          {(seamlessPhase === 'analyzing' || seamlessPhase === 'generating') && (
-                            <div className="flex flex-col items-center justify-center h-full text-center p-8">
-                              <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
-                              <h2 className="text-lg font-medium text-foreground mb-1">
-                                {seamlessPhase === 'analyzing' ? "Analyzing your image..." : "Running pattern lab..."}
-                              </h2>
-                              <p className="text-sm text-muted-foreground">
-                                {seamlessPhase === 'analyzing' ? "Recommending the best methods." : "Generating deterministic variations."}
-                              </p>
-                            </div>
-                          )}
-
-                          {/* Phase 3: Selecting Variation */}
-                          {seamlessPhase === 'selecting' && (
-                            <div className="flex-1 flex flex-col overflow-hidden">
-                              {/* Info Banner */}
-                              <div className="bg-[#E91E63]/10 dark:bg-[#E91E63]/10 border border-[#E91E63]/20 dark:border-[#E91E63]/30 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6 shrink-0">
-                                <div className="flex items-start gap-2 sm:gap-3">
-                                  <Info className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 flex-shrink-0" />
-                                  <div>
-                                    <h3 className="text-sm sm:text-base font-bold text-[#E91E63] dark:text-[#E8C9B0] mb-0.5 sm:mb-1">Pattern Lab</h3>
-                                    <p className="text-[11px] sm:text-xs text-[#E91E63] dark:text-[#D4A987] leading-relaxed">
-                                      We analyzed your image and generated several options. The best methods are marked with a <span className="inline-flex items-center"><Star className="h-2.5 w-2.5 mx-0.5 fill-current" /></span>. Select your favorite pattern to continue.
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                                {/* Variations Grid */}
-                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-6">
-                                  {seamlessVariations.map((variation) => {
-                                    const isSelected = selectedVariationId === variation.id;
-                                    const isAi = variation.id === 'ai_enhanced';
-                                    
-                                    if (isAi) {
-                                      const hasAIPattern = variation.url && variation.url.length > 0;
-                                      
-                                      // If AI pattern has been generated, show it like the other patterns
-                                      if (hasAIPattern) {
-                                        return (
-                                          <div
-                                            key={variation.id}
-                                            onClick={() => setSelectedVariationId(variation.id)}
-                                            className={cn(
-                                              "relative aspect-square rounded-xl overflow-hidden border-4 transition-all duration-200 cursor-pointer group",
-                                              isSelected 
-                                                ? "border-secondary shadow-lg shadow-[#9C27B0]/25 scale-105 z-10" 
-                                                : "border-transparent hover:border-[#9C27B0]/20 dark:hover:border-[#9C27B0]/80 hover:shadow-lg"
-                                            )}
-                                          >
-                                            <div 
-                                              className="w-full h-full bg-muted"
-                                              style={{
-                                                backgroundImage: `url(${variation.url})`,
-                                                backgroundSize: '33.33%',
-                                                backgroundRepeat: 'repeat'
-                                              }}
-                                            />
-                                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 pt-4">
-                                              <span className="text-xs font-bold text-white block truncate">{variation.name}</span>
-                                            </div>
-                                            <div className="absolute top-2 right-2 bg-secondary text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 shadow-sm">
-                                              <Sparkles className="h-3 w-3 fill-current" />
-                                              AI
-                                            </div>
-                                            {isSelected && (
-                                              <div className="absolute inset-0 bg-[#9C27B0]/30 flex items-center justify-center backdrop-blur-[1px]">
-                                                <CheckCircle2 className="h-12 w-12 text-white drop-shadow-md" />
-                                              </div>
-                                            )}
-                                          </div>
-                                        );
-                                      }
-                                      
-                                      // Show generate button for AI Enhanced
-                                      return (
-                                        <div 
-                                          key={variation.id}
-                                          className="relative aspect-square rounded-xl border-4 border-dashed border-[#9C27B0]/30 dark:border-[#9C27B0]/70 bg-gradient-to-br from-[#9C27B0]/10 to-[#E91E63]/10 dark:from-[#9C27B0]/20 dark:to-[#E91E63]/20 flex flex-col items-center justify-center text-center p-4 group cursor-pointer hover:border-[#9C27B0]/40 dark:hover:border-secondary transition-all"
-                                        >
-                                          <Sparkles className="h-8 w-8 text-secondary mb-2" />
-                                          <span className="text-xs font-bold text-[#1A1A2E] dark:text-[#E8C9B0] mb-1">{variation.name}</span>
-                                          <p className="text-[10px] text-secondary dark:text-[#7B1FA2] mb-3">{variation.description}</p>
-                                          <Button 
-                                            size="sm" 
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              generateAIEnhancedPattern();
-                                            }}
-                                            disabled={isGeneratingAIPattern}
-                                            className="h-7 text-[10px] bg-secondary hover:bg-[#7B1FA2] text-white gap-1.5"
-                                          >
-                                            {isGeneratingAIPattern ? (
-                                              <>
-                                                <Loader2 className="h-3 w-3 animate-spin" />
-                                                Generating...
-                                              </>
-                                            ) : (
-                                              <>
-                                                <Sparkles className="h-3 w-3" />
-                                                Generate
-                                              </>
-                                            )}
-                                          </Button>
-                                        </div>
-                                      );
-                                    }
-
-                                    return (
-                                      <div
-                                        key={variation.id}
-                                        onClick={() => setSelectedVariationId(variation.id)}
-                                        className={cn(
-                                          "relative aspect-square rounded-xl overflow-hidden border-4 transition-all duration-200 cursor-pointer group",
-                                          isSelected 
-                                            ? "border-primary shadow-lg shadow-[#E91E63]/25 scale-105 z-10" 
-                                            : "border-transparent hover:border-[#E91E63]/20 dark:hover:border-[#E91E63]/80 hover:shadow-lg"
-                                        )}
-                                      >
-                                        {/* Pattern Preview */}
-                                        <div 
-                                          className="w-full h-full bg-muted"
-                                          style={{
-                                            backgroundImage: `url(${variation.url})`,
-                                            backgroundSize: '33.33%',
-                                            backgroundRepeat: 'repeat'
-                                          }}
-                                        />
-                                        
-                                        {/* Name Label */}
-                                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 pt-4">
-                                          <span className="text-xs font-bold text-white block truncate">{variation.name}</span>
-                                        </div>
-
-                                        {/* Recommended Badge */}
-                                        {variation.isRecommended && (
-                                          <div className="absolute top-2 right-2 bg-yellow-400 text-yellow-900 text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 shadow-sm">
-                                            <Star className="h-3 w-3 fill-current" />
-                                            Best
-                                          </div>
-                                        )}
-
-                                        {/* Selection Overlay */}
-                                        {isSelected && (
-                                          <div className="absolute inset-0 bg-primary/30 flex items-center justify-center backdrop-blur-[1px]">
-                                            <CheckCircle2 className="h-12 w-12 text-white drop-shadow-md" />
-                                          </div>
-                                        )}
-
-                                        {/* Download Button (Hover) */}
-                                        {!isSelected && (
-                                          <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button className="p-1.5 bg-white/80 dark:bg-black/80 hover:bg-white dark:hover:bg-black rounded-full shadow-sm backdrop-blur-sm text-foreground transition-colors">
-                                              <Download className="h-4 w-4" />
-                                            </button>
-                                          </div>
-                                        )}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-
-                                {/* Live Preview & Scale */}
-                                {selectedVariationId && (
-                                  <div className="bg-card border-2 border-border rounded-xl p-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                    <div className="flex justify-between items-center mb-3">
-                                      <h3 className="text-sm font-bold text-foreground">Live Preview & Scale</h3>
-                                      <button 
-                                        onClick={() => {
-                                          const selectedPattern = seamlessVariations.find(v => v.id === selectedVariationId);
-                                          if (selectedPattern?.url) {
-                                            downloadTexture(
-                                              selectedPattern.url, 
-                                              patternScale, 
-                                              `seamless-${selectedVariationId}-scale${patternScale}.png`
-                                            );
-                                          }
-                                        }}
-                                        className="flex items-center gap-2 text-xs font-bold text-primary hover:text-[#E91E63] dark:text-[#CD8B67] dark:hover:text-[#D4A987] transition-colors"
-                                      >
-                                        <Download className="h-4 w-4" />
-                                        Download Texture
-                                      </button>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                      {/* Left: Preview */}
-                                      <div 
-                                        className="aspect-square rounded-lg border-2 border-border shadow-inner bg-muted w-full"
-                                        style={{
-                                          backgroundImage: `url(${seamlessVariations.find(v => v.id === selectedVariationId)?.url})`,
-                                          backgroundSize: `${101 - patternScale}%`,
-                                          backgroundRepeat: 'repeat'
-                                        }}
-                                      />
-
-                                      {/* Right: Controls */}
-                                      <div className="flex flex-col gap-3">
-                                        <div className="bg-background border border-border rounded-lg p-4">
-                                          <div className="flex items-center gap-2 mb-3">
-                                            <Layers className="h-4 w-4 text-muted-foreground" />
-                                            <span className="text-xs font-bold text-foreground">Pattern Scale</span>
-                                          </div>
-                                          
-                                          <Slider 
-                                            value={[patternScale]}
-                                            onValueChange={(val) => setPatternScale(val[0])}
-                                            min={10}
-                                            max={100}
-                                            step={1}
-                                            className="py-2"
-                                          />
-                                          
-                                          <div className="flex justify-between text-[10px] text-muted-foreground mt-2 font-medium">
-                                            <span>Small</span>
-                                            <span>Large</span>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Footer Navigation */}
-                              <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-border flex flex-col gap-2 shrink-0">
-                                <div className="flex items-center justify-between gap-3">
-                                    <Button
-                                        variant="ghost"
-                                        onClick={handleBack}
-                                        className="gap-2 pl-2 pr-4 text-muted-foreground hover:text-foreground min-h-[44px] h-11 sm:h-10"
-                                        data-testid="button-back"
-                                    >
-                                        <ChevronLeft className="h-4 w-4" />
-                                        <span className="hidden sm:inline">Back</span>
-                                    </Button>
-                                    <Button
-                                        onClick={handleNext}
-                                        disabled={!selectedVariationId}
-                                        className={cn(
-                                            "gap-2 px-4 sm:px-6 transition-all min-h-[44px] h-11 sm:h-10 flex-1 sm:flex-none max-w-[200px] sm:max-w-none",
-                                            selectedVariationId
-                                                ? "bg-primary hover:bg-[#C2185B] text-white shadow-sm hover:shadow-[#E91E63]/20 hover:-translate-y-0.5" 
-                                                : "bg-muted text-muted-foreground opacity-50 cursor-not-allowed"
-                                        )}
-                                        data-testid="button-next"
-                                    >
-                                        Next Step
-                                        <ChevronRight className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                                
-                                <div className="hidden sm:flex justify-center gap-2 text-xs text-muted-foreground opacity-60">
-                                    <span className="flex items-center gap-1">
-                                        <kbd className="bg-muted px-1.5 py-0.5 rounded border border-border font-mono text-[10px]">Enter</kbd> 
-                                        Next
-                                    </span>
-                                    <span className="mx-1">•</span>
-                                    <span className="flex items-center gap-1">
-                                        <kbd className="bg-muted px-1.5 py-0.5 rounded border border-border font-mono text-[10px]">Esc</kbd> 
-                                        Back
-                                    </span>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {currentStep === "angles" && (
-                        <div className="flex flex-col h-full overflow-hidden animate-fade-in max-w-[640px] mx-auto w-full">
-                          <div className="flex-1 flex flex-col overflow-hidden">
-                            {/* Header */}
-                            <div className="mb-4 shrink-0">
-                               <div className="flex items-center justify-between mb-2">
-                                 <div className="flex items-center gap-2">
-                                   <Camera className="h-4 w-4 text-primary" />
-                                   <h2 className="text-sm font-bold text-foreground">Camera Angles</h2>
-                                 </div>
-                                 
-                                 <div className="flex gap-2">
-                                   <button 
-                                     onClick={() => setSelectedAngles(MOCKUP_ANGLES.filter(a => a.recommended).map(a => a.id))}
-                                     className="text-[10px] font-medium text-green-600 dark:text-green-400 hover:underline"
-                                   >
-                                     Recommended
-                                   </button>
-                                   <span className="text-border text-[10px]">|</span>
-                                   <button 
-                                     onClick={() => setSelectedAngles(MOCKUP_ANGLES.map(a => a.id))}
-                                     disabled={selectedAngles.length === MOCKUP_ANGLES.length}
-                                     className="text-[10px] font-medium text-primary disabled:opacity-50 disabled:cursor-not-allowed hover:underline"
-                                   >
-                                     All
-                                   </button>
-                                   <span className="text-border text-[10px]">|</span>
-                                   <button 
-                                     onClick={() => setSelectedAngles([])}
-                                     disabled={selectedAngles.length === 0}
-                                     className="text-[10px] font-medium text-muted-foreground disabled:opacity-50 disabled:cursor-not-allowed hover:underline"
-                                   >
-                                     Clear
-                                   </button>
-                                 </div>
-                               </div>
-                            </div>
-
-                            {/* Compact Icon Buttons */}
-                            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar pb-4">
-                              <TooltipProvider delayDuration={200}>
-                                <div className="flex flex-wrap gap-2 justify-center">
-                                  {MOCKUP_ANGLES.map((angle) => {
-                                    const isSelected = selectedAngles.includes(angle.id);
-                                    return (
-                                      <Tooltip key={angle.id}>
-                                        <TooltipTrigger asChild>
-                                          <button
-                                            onClick={() => {
-                                              if (isSelected) {
-                                                setSelectedAngles(selectedAngles.filter(id => id !== angle.id));
-                                              } else {
-                                                setSelectedAngles([...selectedAngles, angle.id]);
-                                              }
-                                            }}
-                                            className={cn(
-                                              "relative flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all duration-200 cursor-pointer active:scale-[0.95] min-w-[72px]",
-                                              isSelected 
-                                                ? "border-primary bg-[#E91E63]/10 dark:bg-[#E91E63]/15 shadow-sm" 
-                                                : "border-border bg-card hover:border-[#E91E63]/50 dark:hover:border-[#E91E63]/70"
-                                            )}
-                                            data-testid={`angle-${angle.id}`}
-                                          >
-                                            <div className={cn(
-                                              "p-2 rounded-lg transition-colors",
-                                              isSelected ? "bg-[#E91E63]/20 dark:bg-[#E91E63]/40" : "bg-muted"
-                                            )}>
-                                              <angle.icon className={cn(
-                                                "h-5 w-5",
-                                                isSelected ? "text-primary dark:text-[#CD8B67]" : "text-muted-foreground"
-                                              )} />
-                                            </div>
-                                            <span className={cn(
-                                              "text-[10px] font-medium transition-colors",
-                                              isSelected ? "text-primary dark:text-[#E8C9B0]" : "text-muted-foreground"
-                                            )}>
-                                              {angle.name.split(' ')[0]}
-                                            </span>
-                                            {angle.recommended && (
-                                              <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-green-500 flex items-center justify-center">
-                                                <Star className="h-2 w-2 text-white fill-white" />
-                                              </div>
-                                            )}
-                                            {isSelected && (
-                                              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-4 w-4 rounded-full bg-primary flex items-center justify-center">
-                                                <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />
-                                              </div>
-                                            )}
-                                          </button>
-                                        </TooltipTrigger>
-                                        <TooltipContent side="bottom" className="max-w-[200px]">
-                                          <p className="font-semibold text-xs">{angle.name}</p>
-                                          <p className="text-[10px] text-muted-foreground">{angle.description}</p>
-                                          {angle.recommended && (
-                                            <p className="text-[10px] text-green-500 mt-1 font-medium">★ Recommended</p>
-                                          )}
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    );
-                                  })}
-                                </div>
-                              </TooltipProvider>
-                              
-                              {/* Quick Select Presets */}
-                              <div className="flex gap-2 justify-center mt-4">
-                                <button
-                                  onClick={() => setSelectedAngles(['front', 'three-quarter'])}
-                                  className={cn(
-                                    "px-3 py-1.5 text-[10px] font-semibold rounded-full transition-colors border",
-                                    selectedAngles.length === 2 && selectedAngles.includes('front') && selectedAngles.includes('three-quarter')
-                                      ? "bg-[#E91E63]/20 text-[#E91E63] dark:text-[#D4A987] border-[#E91E63]/50"
-                                      : "bg-muted text-muted-foreground border-border hover:border-[#E91E63]/30"
-                                  )}
-                                >
-                                  Standard (2)
-                                </button>
-                                <button
-                                  onClick={() => setSelectedAngles(MOCKUP_ANGLES.map(a => a.id))}
-                                  className={cn(
-                                    "px-3 py-1.5 text-[10px] font-semibold rounded-full transition-colors border",
-                                    selectedAngles.length === MOCKUP_ANGLES.length
-                                      ? "bg-[#E91E63]/20 text-[#E91E63] dark:text-[#D4A987] border-[#E91E63]/50"
-                                      : "bg-muted text-muted-foreground border-border hover:border-[#E91E63]/30"
-                                  )}
-                                >
-                                  Full Set ({MOCKUP_ANGLES.length})
-                                </button>
-                              </div>
-                              
-                              {/* Output Summary */}
-                              {selectedAngles.length > 0 && (
-                                <div className="mt-4 bg-slate-900 dark:bg-slate-950 text-white rounded-lg px-3 py-2 text-[10px] md:text-xs font-medium text-center shadow-sm flex justify-between items-center">
-                                  <span>Total Output:</span>
-                                  <span>
-                                    <span className="font-bold text-[#D4A987]">{selectedAngles.length}</span> Angles × <span className="font-bold text-[#D4A987]">{selectedColors.length}</span> Colors = <span className="font-bold text-green-400">{selectedAngles.length * selectedColors.length}</span> Mockups
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Footer Navigation */}
-                          <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-border flex flex-col gap-2 shrink-0">
-                            <div className="flex items-center justify-between gap-3">
-                                <Button
-                                    variant="ghost"
-                                    onClick={handleBack}
-                                    className="gap-2 pl-2 pr-4 text-muted-foreground hover:text-foreground min-h-[44px] h-11 sm:h-10"
-                                    data-testid="button-back"
-                                >
-                                    <ChevronLeft className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Back</span>
-                                </Button>
-                                <Button
-                                    onClick={handleNext}
-                                    disabled={selectedAngles.length === 0}
-                                    className={cn(
-                                        "gap-2 px-4 sm:px-6 transition-all min-h-[44px] h-11 sm:h-10 flex-1 sm:flex-none max-w-[200px] sm:max-w-none",
-                                        selectedAngles.length > 0
-                                            ? "bg-primary hover:bg-[#C2185B] text-white shadow-sm hover:shadow-[#E91E63]/20 hover:-translate-y-0.5" 
-                                            : "bg-muted text-muted-foreground opacity-50 cursor-not-allowed"
-                                    )}
-                                    data-testid="button-next"
-                                >
-                                    Next Step
-                                    <ChevronRight className="h-4 w-4" />
-                                </Button>
-                            </div>
-                            
-                            <div className="hidden sm:flex justify-center gap-2 text-xs text-muted-foreground opacity-60">
-                                <span className="flex items-center gap-1">
-                                    <kbd className="bg-muted px-1.5 py-0.5 rounded border border-border font-mono text-[10px]">Enter</kbd> 
-                                    Next
-                                </span>
-                                <span className="mx-1">•</span>
-                                <span className="flex items-center gap-1">
-                                    <kbd className="bg-muted px-1.5 py-0.5 rounded border border-border font-mono text-[10px]">Esc</kbd> 
-                                    Back
-                                </span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {currentStep === "scene" && (
-                        <div className="flex flex-col h-full max-w-[640px] mx-auto w-full animate-fade-in">
-                          {/* Section 1: Quick Templates */}
-                          <div className="mb-4 md:mb-6 shrink-0">
-                            <h3 className="text-sm font-bold text-foreground/80 mb-3 flex items-center gap-2">
-                              <Sparkles className="h-4 w-4 text-primary" />
-                              Quick Templates
-                            </h3>
-                            <div className="grid grid-cols-3 gap-2">
-                              {[
-                                { icon: Building, label: "Urban", prompt: "A vibrant urban street scene with graffiti walls, neon lights, and natural sunlight" },
-                                { icon: Camera, label: "Studio", prompt: "A minimalist gray or white photography studio with professional soft lighting" },
-                                { icon: Trees, label: "Nature", prompt: "A beautiful outdoor park setting with lush greenery and golden hour lighting" },
-                                { icon: Coffee, label: "Cafe", prompt: "A cozy coffee shop interior with warm lighting, wood accents, and modern decor" },
-                                { icon: Dumbbell, label: "Gym", prompt: "A modern fitness gym with motivational atmosphere and athletic equipment in the background" },
-                                { icon: Sun, label: "Beach", prompt: "A sunny beach setting with sand, ocean waves, and bright summery daylight" },
-                              ].map((template, i) => (
-                                <button
-                                  key={i}
-                                  onClick={() => setEnvironmentPrompt(template.prompt)}
-                                  className={cn(
-                                    "flex flex-col items-center justify-center gap-2 p-2 md:p-3 text-center rounded-xl border transition-all duration-150 h-[80px] md:h-[100px]",
-                                    environmentPrompt === template.prompt
-                                      ? "bg-[#E91E63]/10 border-primary dark:bg-[#E91E63]/20 dark:border-[#E91E63] shadow-sm"
-                                      : "bg-card border-border hover:bg-accent dark:hover:bg-accent/50 text-muted-foreground hover:text-foreground hover:border-[#E91E63]/50"
-                                  )}
-                                >
-                                  <div className={cn(
-                                    "h-8 w-8 md:h-10 md:w-10 rounded-full flex items-center justify-center transition-colors",
-                                    environmentPrompt === template.prompt ? "bg-[#E91E63]/20 text-primary dark:bg-[#E91E63]/40 dark:text-[#D4A987]" : "bg-muted text-muted-foreground"
-                                  )}>
-                                    <template.icon className="h-4 w-4 md:h-5 md:w-5" />
-                                  </div>
-                                  <span className={cn(
-                                    "text-[10px] md:text-sm font-medium",
-                                    environmentPrompt === template.prompt ? "text-[#E91E63] dark:text-[#E8C9B0]" : "text-current"
-                                  )}>
-                                    {template.label}
-                                  </span>
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Section 2: Custom Scene Textarea */}
-                          <div className="flex-1 flex flex-col min-h-0">
-                            <h3 className="text-sm font-bold text-foreground/80 mb-3 flex items-center gap-2">
-                              <Wand2 className="h-4 w-4 text-primary" />
-                              Custom Scene
-                            </h3>
-                            <div className="relative flex-1 max-h-[200px] mb-2 group">
-                              <div className="absolute -inset-0.5 bg-gradient-to-r from-[#E91E63] to-[#9C27B0] rounded-xl opacity-20 group-hover:opacity-40 transition duration-500 blur"></div>
-                              <Textarea
-                                value={environmentPrompt}
-                                onChange={(e) => setEnvironmentPrompt(e.target.value)}
-                                placeholder="Describe your perfect scene (e.g., Walking down a busy Tokyo street at night...)"
-                                className={cn(
-                                  "relative w-full h-full min-h-[120px] p-4 rounded-xl border-2 resize-none transition-colors text-sm md:text-base bg-background/95 backdrop-blur-sm",
-                                  "focus-visible:ring-0 focus-visible:border-primary placeholder:text-muted-foreground/50"
-                                )}
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter" && !e.shiftKey) {
-                                        e.preventDefault();
-                                        if (environmentPrompt.length > 5) handleNext();
-                                    }
-                                    if (e.key === "Escape") handleBack();
-                                }}
-                              />
-                              <div className="absolute bottom-3 right-3 text-[10px] text-muted-foreground bg-background/80 px-2 py-0.5 rounded-full border border-border">
-                                {environmentPrompt.length} chars
-                              </div>
-                            </div>
-                            <p className="text-[10px] md:text-xs text-center text-muted-foreground">
-                              AI will interpret this scene within your chosen Brand Style.
-                            </p>
-                          </div>
-
-                          {/* Footer Navigation */}
-                          <div className="mt-auto pt-4 sm:pt-6 border-t border-border flex flex-col gap-2">
-                            <div className="flex items-center justify-between gap-3">
-                                <Button
-                                    variant="ghost"
-                                    onClick={handleBack}
-                                    className="gap-2 pl-2 pr-4 text-muted-foreground hover:text-foreground min-h-[44px] h-11 sm:h-10"
-                                    data-testid="button-back"
-                                >
-                                    <ChevronLeft className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Back</span>
-                                </Button>
-                                <Button
-                                    onClick={handleNext}
-                                    disabled={environmentPrompt.length <= 5}
-                                    className={cn(
-                                        "gap-2 px-4 sm:px-6 transition-all min-h-[44px] h-11 sm:h-10 flex-1 sm:flex-none max-w-[200px] sm:max-w-none",
-                                        environmentPrompt.length > 5 
-                                            ? "bg-primary hover:bg-[#C2185B] text-white shadow-sm hover:shadow-[#E91E63]/20 hover:-translate-y-0.5" 
-                                            : "bg-muted text-muted-foreground opacity-50 cursor-not-allowed"
-                                    )}
-                                    data-testid="button-next"
-                                >
-                                    Next Step
-                                    <ChevronRight className="h-4 w-4" />
-                                </Button>
-                            </div>
-                            
-                            <div className="hidden sm:flex justify-center gap-2 text-xs text-muted-foreground opacity-60">
-                                <span className="flex items-center gap-1">
-                                    <kbd className="bg-muted px-1.5 py-0.5 rounded border border-border font-mono text-[10px]">Enter</kbd> 
-                                    Next
-                                </span>
-                                <span className="mx-1">•</span>
-                                <span className="flex items-center gap-1">
-                                    <kbd className="bg-muted px-1.5 py-0.5 rounded border border-border font-mono text-[10px]">Esc</kbd> 
-                                    Back
-                                </span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {currentStep === "style" && (
-                        <div>
-                          <div className="mb-4 sm:mb-8 text-center">
-                            <h2 className="text-xl sm:text-2xl font-bold mb-1 sm:mb-2">Choose Brand Archetype</h2>
-                            <p className="text-sm text-muted-foreground">Define the mood and aesthetic of your photoshoot</p>
-                          </div>
-                          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                            {BRAND_STYLES.map((style) => {
-                              const isSelected = selectedStyle === style.id;
-                              return (
-                                <div 
-                                  key={style.id} 
-                                  onClick={() => setSelectedStyle(style.id)}
-                                  data-testid={`style-card-${style.id}`}
-                                  className={cn(
-                                    "group relative bg-card rounded-xl overflow-hidden cursor-pointer border-2 transition-all duration-200 hover:shadow-lg active:scale-[0.98]",
-                                    isSelected 
-                                      ? "border-primary ring-2 sm:ring-4 ring-[#E91E63]/20 shadow-lg" 
-                                      : "border-border hover:border-[#E91E63]/50"
-                                  )}
-                                >
-                                  <div className="p-3 sm:p-4 flex flex-col">
-                                    <div className="relative w-full h-[80px] sm:h-[120px] rounded-lg overflow-hidden mb-2 sm:mb-4 bg-muted">
-                                      <img 
-                                        src={style.img} 
-                                        alt={style.name} 
-                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                                      />
-                                      {isSelected && (
-                                        <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 bg-primary rounded-full p-1 sm:p-1.5 shadow-lg">
-                                          <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white" />
-                                        </div>
-                                      )}
-                                    </div>
-                                    
-                                    <div className="space-y-1 sm:space-y-2">
-                                      <h3 className="font-bold text-foreground text-xs sm:text-sm">{style.name}</h3>
-                                      <p className="text-muted-foreground text-[10px] sm:text-xs line-clamp-2">{style.tagline}</p>
-                                      
-                                      <div className="flex flex-wrap gap-1 pt-1 hidden sm:flex">
-                                        {style.keywords.map((keyword, idx) => (
-                                          <Badge 
-                                            key={idx}
-                                            variant="secondary"
-                                            className="text-[10px] px-1.5 py-0.5 font-normal bg-muted hover:bg-muted text-muted-foreground"
-                                          >
-                                            {keyword}
-                                          </Badge>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-
-                          {/* Footer Navigation */}
-                          <div className="mt-4 sm:mt-8 pt-4 sm:pt-6 border-t border-border flex flex-col gap-2 shrink-0">
-                            <div className="flex items-center justify-between gap-3">
-                                <Button
-                                    variant="ghost"
-                                    onClick={handleBack}
-                                    className="gap-2 pl-2 pr-4 text-muted-foreground hover:text-foreground min-h-[44px] h-11 sm:h-10"
-                                    data-testid="button-back"
-                                >
-                                    <ChevronLeft className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Back</span>
-                                </Button>
-                                <Button
-                                    onClick={handleNext}
-                                    disabled={!selectedStyle}
-                                    className={cn(
-                                        "gap-2 px-4 sm:px-6 transition-all min-h-[44px] h-11 sm:h-10 flex-1 sm:flex-none max-w-[200px] sm:max-w-none",
-                                        selectedStyle
-                                            ? "bg-primary hover:bg-[#C2185B] text-white shadow-sm hover:shadow-[#E91E63]/20 hover:-translate-y-0.5" 
-                                            : "bg-muted text-muted-foreground opacity-50 cursor-not-allowed"
-                                    )}
-                                    data-testid="button-next"
-                                >
-                                    Next Step
-                                    <ChevronRight className="h-4 w-4" />
-                                </Button>
-                            </div>
-                            
-                            <div className="hidden sm:flex justify-center gap-2 text-xs text-muted-foreground opacity-60">
-                                <span className="flex items-center gap-1">
-                                    <kbd className="bg-muted px-1.5 py-0.5 rounded border border-border font-mono text-[10px]">Enter</kbd> 
-                                    Next
-                                </span>
-                                <span className="mx-1">•</span>
-                                <span className="flex items-center gap-1">
-                                    <kbd className="bg-muted px-1.5 py-0.5 rounded border border-border font-mono text-[10px]">Esc</kbd> 
-                                    Back
-                                </span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {currentStep === "generate" && (
+                      {/* ========== STEP 3: OUTPUT (Angles + Quality + Generate) ========== */}
+                      {currentStep === "output" && (
                         <div className="h-full flex flex-col">
                           {!generatedMockups.length && !isGenerating ? (
-                            <div className="flex-1 flex flex-col items-center justify-center text-center max-w-[700px] mx-auto px-2 sm:px-0">
-                              <h2 className="text-xl sm:text-3xl font-bold mb-2">Ready to Generate Photoshoot</h2>
-                              <p className="text-sm text-muted-foreground mb-4 sm:mb-6">Review your batch configuration before generating</p>
-                              
-                              <div className="bg-gradient-to-br from-[#E91E63]/10 to-[#9C27B0]/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 w-full mb-4 sm:mb-6 border border-[#E91E63]/20 dark:border-[#E91E63]/80" data-testid="batch-summary-card">
-                                <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 mb-2 sm:mb-4">
-                                  <div className="flex items-center gap-1.5 sm:gap-2 bg-card rounded-lg px-2.5 sm:px-4 py-1.5 sm:py-2 border border-border">
-                                    <Palette className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
-                                    <span className="text-lg sm:text-2xl font-bold text-primary">{journey === "AOP" ? 1 : selectedColors.length}</span>
-                                    <span className="text-xs sm:text-sm text-muted-foreground">Colors</span>
-                                  </div>
-                                  <span className="text-lg sm:text-2xl font-bold text-muted-foreground">×</span>
-                                  <div className="flex items-center gap-1.5 sm:gap-2 bg-card rounded-lg px-2.5 sm:px-4 py-1.5 sm:py-2 border border-border">
-                                    <Camera className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-secondary" />
-                                    <span className="text-lg sm:text-2xl font-bold text-secondary">{selectedAngles.length || 1}</span>
-                                    <span className="text-xs sm:text-sm text-muted-foreground">Angles</span>
-                                  </div>
-                                  <span className="text-lg sm:text-2xl font-bold text-muted-foreground">=</span>
-                                  <div className="flex items-center gap-1.5 sm:gap-2 bg-gradient-to-r from-[#E91E63] to-[#9C27B0] rounded-lg px-2.5 sm:px-4 py-1.5 sm:py-2 text-white">
-                                    <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                                    <span className="text-lg sm:text-2xl font-bold">{Math.max(1, selectedAngles.length * (journey === "AOP" ? 1 : selectedColors.length))}</span>
-                                    <span className="text-xs sm:text-sm">Mockups</span>
-                                  </div>
-                                </div>
-                              </div>
-                              
-                              <div className="bg-muted/30 rounded-xl sm:rounded-2xl p-4 sm:p-6 w-full mb-4 sm:mb-6 border border-border">
-                                <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-3 sm:mb-4">
-                                  <div className="text-left">
-                                    <span className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Product</span>
-                                    <p className="font-bold text-foreground text-sm sm:text-base truncate">{selectedProductType || "T-Shirt"}</p>
-                                  </div>
-                                  <div className="text-left">
-                                    <span className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Model</span>
-                                    <p className="font-bold text-foreground text-sm sm:text-base truncate">{useModel ? `${modelDetails.sex === "MALE" ? "Male" : "Female"} - ${modelDetails.ethnicity.charAt(0) + modelDetails.ethnicity.slice(1).toLowerCase().replace("_", " ")}` : "Flat Lay"}</p>
-                                  </div>
-                                  <div className="text-left">
-                                    <span className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Style</span>
-                                    <p className="font-bold text-foreground text-sm sm:text-base truncate">{BRAND_STYLES.find(s => s.id === selectedStyle)?.name || "Minimal"}</p>
-                                  </div>
-                                  <div className="text-left">
-                                    <span className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Scene</span>
-                                    <p className="font-bold text-foreground text-sm sm:text-base truncate">{environmentPrompt?.slice(0, 20) || "Studio"}...</p>
-                                  </div>
-                                </div>
-                                
-                                <div className="border-t border-border pt-4">
-                                  <div className="mb-3">
-                                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Colors ({journey === "AOP" ? 1 : selectedColors.length})</span>
-                                    <div className="flex flex-wrap gap-2 mt-2">
-                                      {(journey === "AOP" ? ["Pattern"] : selectedColors).map((color) => (
-                                        <Badge key={color} variant="outline" className="gap-1.5">
-                                          <div 
-                                            className="h-3 w-3 rounded-full border border-border/50" 
-                                            style={{ backgroundColor: PRODUCT_COLOR_MAP[color] || "#CCCCCC" }}
-                                          />
-                                          {color}
-                                        </Badge>
-                                      ))}
+                            <div className="flex-1 flex flex-col">
+                              <div className="flex-1 overflow-y-auto space-y-4 pb-4">
+                                {/* Angles Selection */}
+                                <div className="bg-card rounded-xl border border-border p-4 sm:p-5">
+                                  <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center gap-2">
+                                      <Camera className="h-4 w-4 text-primary" />
+                                      <h3 className="text-sm font-bold text-foreground">Camera Angles</h3>
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <button 
+                                        onClick={() => setSelectedAngles(MOCKUP_ANGLES.filter(a => a.recommended).map(a => a.id))}
+                                        className="text-[10px] font-medium text-green-600 hover:underline"
+                                      >
+                                        Recommended
+                                      </button>
+                                      <span className="text-border text-[10px]">|</span>
+                                      <button 
+                                        onClick={() => setSelectedAngles(MOCKUP_ANGLES.map(a => a.id))}
+                                        className="text-[10px] font-medium text-primary hover:underline"
+                                      >
+                                        All
+                                      </button>
+                                      <span className="text-border text-[10px]">|</span>
+                                      <button 
+                                        onClick={() => setSelectedAngles([])}
+                                        className="text-[10px] font-medium text-muted-foreground hover:underline"
+                                      >
+                                        Clear
+                                      </button>
                                     </div>
                                   </div>
-                                  <div>
-                                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Angles ({selectedAngles.length})</span>
-                                    <div className="flex flex-wrap gap-2 mt-2">
-                                      {selectedAngles.map((angle) => (
-                                        <Badge key={angle} variant="outline" className="capitalize">
-                                          {angle.replace('-', ' ')}
-                                        </Badge>
-                                      ))}
+                                  
+                                  <TooltipProvider delayDuration={200}>
+                                    <div className="flex flex-wrap gap-2">
+                                      {MOCKUP_ANGLES.map((angle) => {
+                                        const isSelected = selectedAngles.includes(angle.id);
+                                        return (
+                                          <Tooltip key={angle.id}>
+                                            <TooltipTrigger asChild>
+                                              <button
+                                                onClick={() => {
+                                                  if (isSelected) {
+                                                    setSelectedAngles(selectedAngles.filter(id => id !== angle.id));
+                                                  } else {
+                                                    setSelectedAngles([...selectedAngles, angle.id]);
+                                                  }
+                                                }}
+                                                className={cn(
+                                                  "relative h-12 w-12 rounded-lg border-2 flex items-center justify-center transition-all",
+                                                  isSelected 
+                                                    ? "bg-primary/10 border-primary text-primary" 
+                                                    : "bg-muted/30 border-border text-muted-foreground hover:border-primary/30"
+                                                )}
+                                                data-testid={`angle-${angle.id}`}
+                                              >
+                                                <angle.icon className="h-5 w-5" />
+                                                {angle.recommended && !isSelected && (
+                                                  <div className="absolute -top-1 -right-1 h-2 w-2 bg-green-500 rounded-full" />
+                                                )}
+                                                {isSelected && (
+                                                  <div className="absolute -top-1 -right-1 bg-primary rounded-full p-0.5">
+                                                    <Check className="h-2 w-2 text-white" />
+                                                  </div>
+                                                )}
+                                              </button>
+                                            </TooltipTrigger>
+                                            <TooltipContent side="bottom" className="text-xs">{angle.name}</TooltipContent>
+                                          </Tooltip>
+                                        );
+                                      })}
                                     </div>
-                                  </div>
+                                  </TooltipProvider>
                                 </div>
-                              </div>
 
-                              <div className="bg-muted/30 rounded-xl sm:rounded-2xl p-4 sm:p-6 w-full mb-4 sm:mb-6 border border-border">
-                                <div className="flex items-center justify-between gap-4 flex-wrap">
-                                  <div className="flex items-center gap-2">
-                                    <Maximize2 className="h-4 w-4 text-primary" />
-                                    <span className="text-sm font-bold text-foreground">Output Quality</span>
-                                  </div>
-                                  <div className="flex items-center gap-3">
+                                {/* Quality + Summary */}
+                                <div className="bg-card rounded-xl border border-border p-4 sm:p-5">
+                                  <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-2">
+                                      <Maximize2 className="h-4 w-4 text-primary" />
+                                      <span className="text-sm font-bold text-foreground">Output Quality</span>
+                                    </div>
                                     <Select value={outputQuality} onValueChange={(value: OutputQuality) => setOutputQuality(value)}>
-                                      <SelectTrigger className="w-[160px] h-9" data-testid="quality-select">
-                                        <SelectValue>
-                                          {(() => {
-                                            const selected = OUTPUT_QUALITY_OPTIONS.find(q => q.id === outputQuality);
-                                            return selected ? (
-                                              <span className="flex items-center gap-2">
-                                                <span className="font-medium">{selected.name}</span>
-                                                <span className="text-muted-foreground text-xs">({selected.resolution})</span>
-                                              </span>
-                                            ) : "Select quality";
-                                          })()}
-                                        </SelectValue>
+                                      <SelectTrigger className="w-[140px] h-9" data-testid="quality-select">
+                                        <SelectValue />
                                       </SelectTrigger>
                                       <SelectContent>
-                                        {OUTPUT_QUALITY_OPTIONS.map((quality) => (
-                                          <SelectItem key={quality.id} value={quality.id} data-testid={`quality-option-${quality.id}`}>
-                                            <div className="flex flex-col gap-0.5">
-                                              <div className="flex items-center gap-2">
-                                                <span className="font-medium">{quality.name}</span>
-                                                <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">
-                                                  {quality.resolution}
-                                                </Badge>
-                                                <span className="text-purple-600 text-[10px] font-medium ml-auto">{quality.credits} cr</span>
-                                              </div>
-                                              <span className="text-[10px] text-muted-foreground">{quality.bestFor}</span>
-                                            </div>
-                                          </SelectItem>
+                                        {OUTPUT_QUALITY_OPTIONS.map((q) => (
+                                          <SelectItem key={q.id} value={q.id}>{q.label} ({q.resolution})</SelectItem>
                                         ))}
                                       </SelectContent>
                                     </Select>
-                                    <div className="flex items-center gap-1 text-purple-600 dark:text-purple-400">
-                                      <Sparkles className="h-3 w-3" />
-                                      <span className="text-xs font-medium">{OUTPUT_QUALITY_OPTIONS.find(q => q.id === outputQuality)?.credits || 2} cr/img</span>
+                                  </div>
+                                </div>
+
+                                {/* Batch Summary */}
+                                <div className="bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl p-4 sm:p-6 border border-primary/20">
+                                  <div className="flex flex-wrap items-center justify-center gap-3 mb-4">
+                                    <div className="flex items-center gap-2 bg-card rounded-lg px-3 py-2 border">
+                                      <Palette className="h-4 w-4 text-primary" />
+                                      <span className="text-lg font-bold text-primary">{journey === "AOP" ? 1 : selectedColors.length}</span>
+                                      <span className="text-xs text-muted-foreground">Colors</span>
+                                    </div>
+                                    <span className="text-lg font-bold text-muted-foreground">×</span>
+                                    <div className="flex items-center gap-2 bg-card rounded-lg px-3 py-2 border">
+                                      <Camera className="h-4 w-4 text-secondary" />
+                                      <span className="text-lg font-bold text-secondary">{selectedAngles.length || 1}</span>
+                                      <span className="text-xs text-muted-foreground">Angles</span>
+                                    </div>
+                                    <span className="text-lg font-bold text-muted-foreground">=</span>
+                                    <div className="flex items-center gap-2 bg-gradient-to-r from-primary to-secondary rounded-lg px-3 py-2 text-white">
+                                      <Sparkles className="h-4 w-4" />
+                                      <span className="text-lg font-bold">{Math.max(1, selectedAngles.length * (journey === "AOP" ? 1 : selectedColors.length))}</span>
+                                      <span className="text-xs">Mockups</span>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                                    <div className="bg-card/80 rounded-lg p-2 border">
+                                      <span className="text-muted-foreground">Product:</span>
+                                      <p className="font-medium truncate">{selectedProductType || "T-Shirt"}</p>
+                                    </div>
+                                    <div className="bg-card/80 rounded-lg p-2 border">
+                                      <span className="text-muted-foreground">Style:</span>
+                                      <p className="font-medium truncate">{BRAND_STYLES.find(s => s.id === selectedStyle)?.name || "Minimal"}</p>
+                                    </div>
+                                    <div className="bg-card/80 rounded-lg p-2 border">
+                                      <span className="text-muted-foreground">Model:</span>
+                                      <p className="font-medium truncate">{useModel ? `${modelDetails.sex === "MALE" ? "Male" : "Female"}` : "Flat Lay"}</p>
+                                    </div>
+                                    <div className="bg-card/80 rounded-lg p-2 border">
+                                      <span className="text-muted-foreground">Scene:</span>
+                                      <p className="font-medium truncate">{environmentPrompt?.slice(0, 15) || "Studio"}...</p>
                                     </div>
                                   </div>
                                 </div>
-                                <p className="text-[11px] text-muted-foreground mt-3 text-center">
-                                  Estimated total: {Math.max(1, selectedAngles.length * (journey === "AOP" ? 1 : selectedColors.length)) * (OUTPUT_QUALITY_OPTIONS.find(q => q.id === outputQuality)?.credits || 2)} credits for this batch
-                                </p>
                               </div>
 
-                              <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
-                                <Button 
-                                  variant="outline"
-                                  size="lg" 
-                                  onClick={handleBack}
-                                  className="flex-1 min-h-[48px] h-12 sm:h-auto"
-                                  data-testid="button-back"
-                                >
-                                  <ChevronLeft className="mr-2 h-4 w-4" />
-                                  Back
+                              {/* Generate Button */}
+                              <div className="pt-4 border-t border-border flex items-center justify-between gap-3 shrink-0">
+                                <Button variant="ghost" onClick={handleBack} className="gap-2 min-h-[44px]" data-testid="button-back">
+                                  <ChevronLeft className="h-4 w-4" /> <span className="hidden sm:inline">Back</span>
                                 </Button>
-                                <Button 
-                                  size="lg" 
+                                <Button
                                   onClick={handleGenerate}
-                                  className="flex-[2] h-12 sm:h-14 text-base sm:text-lg rounded-[12px] bg-gradient-to-r from-[#E91E63] to-[#C2185B] hover:brightness-110 shadow-lg shadow-[#E91E63]/20 transition-all hover:-translate-y-[1px] min-h-[48px]"
-                                  data-testid="button-generate-all"
+                                  disabled={selectedAngles.length === 0}
+                                  className={cn(
+                                    "gap-2 px-6 min-h-[44px] flex-1 sm:flex-none",
+                                    selectedAngles.length > 0
+                                      ? "bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white" 
+                                      : "bg-muted text-muted-foreground opacity-50 cursor-not-allowed"
+                                  )}
+                                  data-testid="button-generate"
                                 >
-                                  <Wand2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                                  Generate All ({Math.max(1, selectedAngles.length * (journey === "AOP" ? 1 : selectedColors.length))} Mockups)
+                                  <Sparkles className="h-4 w-4" />
+                                  Generate Mockups
                                 </Button>
                               </div>
-                            </div>
-                          ) : isGenerating && generatedMockups.length === 0 ? (
-                            <div className="flex-1 flex flex-col items-center justify-center text-center max-w-[400px] mx-auto">
-                              <div className="relative mb-8 w-full">
-                                <div className="absolute inset-0 bg-[#E91E63]/20 blur-2xl rounded-full animate-pulse" />
-                                <RefreshCw className="h-16 w-16 text-primary animate-spin relative z-10 mx-auto" />
-                              </div>
-                              
-                              <h2 className="text-2xl font-bold mb-2">Generating Photoshoot...</h2>
-                              <p className="text-primary font-medium mb-4">{generationStage}</p>
-                              
-                              <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden mb-2">
-                                <motion.div 
-                                  className="bg-primary h-full rounded-full"
-                                  initial={{ width: 0 }}
-                                  animate={{ width: `${generationProgress}%` }}
-                                />
-                              </div>
-                              <p className="text-xs text-muted-foreground mb-4">{generationProgress}% complete</p>
-                              
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => {
-                                  setIsGenerating(false);
-                                  setGenerationProgress(0);
-                                  setGenerationStage("");
-                                  toast({
-                                    title: "Generation Cancelled",
-                                    description: "You can restart the generation anytime.",
-                                  });
-                                }}
-                                className="text-muted-foreground hover:text-foreground"
-                              >
-                                Cancel Generation
-                              </Button>
                             </div>
                           ) : (
-                            <div className="flex-1 flex flex-col h-full overflow-hidden">
-                              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 shrink-0">
-                                <div>
-                                  <div className="flex items-center gap-3">
-                                    <h2 className="text-2xl md:text-3xl font-bold leading-tight">
-                                      {isGenerating 
-                                        ? `${generatedMockups.length} of ${expectedMockupsCount} Generating...`
-                                        : `${generatedMockups.length} ${generatedMockups.length === 1 ? "Mockup" : "Mockups"} Ready`
-                                      }
-                                    </h2>
-                                    {isGenerating && (
-                                      <RefreshCw className="h-5 w-5 text-primary animate-spin" />
-                                    )}
-                                  </div>
-                                  <p className="text-sm text-muted-foreground">{selectedProductType || "T-Shirt"} - {BRAND_STYLES.find(s => s.id === selectedStyle)?.name || "Minimal"}</p>
-                                </div>
-                                <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3">
-                                  <Button variant="outline" onClick={() => setJourney(null)} className="flex-1 sm:flex-none" disabled={isGenerating}>Start Over</Button>
-                                  <Button 
-                                    variant="outline"
-                                    onClick={() => {
-                                      setGeneratedMockups([]);
-                                      handleGenerate();
-                                    }}
-                                    className="flex-1 sm:flex-none"
-                                    data-testid="button-regenerate"
-                                    disabled={isGenerating}
-                                  >
-                                    <RefreshCw className="mr-2 h-4 w-4" />
-                                    Regenerate
-                                  </Button>
-                                  <Button 
-                                    className="bg-primary hover:bg-[#C2185B] text-white flex-1 sm:flex-none"
-                                    onClick={downloadAllAsZip}
-                                    disabled={isGenerating || generatedMockups.length === 0 || isDownloadingZip}
-                                    data-testid="button-download-zip"
-                                  >
-                                    {isDownloadingZip ? (
-                                      <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Creating ZIP...
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Archive className="mr-2 h-4 w-4" />
-                                        Download All as ZIP
-                                      </>
-                                    )}
-                                  </Button>
-                                </div>
-                              </div>
-
-                              {/* Batch Progress Tracker */}
-                              {batchJobs.length > 0 && (
-                                <div className="bg-muted/30 border border-border rounded-xl p-4 mb-4 shrink-0" data-testid="batch-progress-tracker">
-                                  <div className="flex items-center justify-between mb-3">
-                                    <div className="flex items-center gap-2">
-                                      <Package className="h-4 w-4 text-primary" />
-                                      <span className="text-sm font-medium text-foreground">Batch Progress</span>
-                                    </div>
-                                    <div className="flex items-center gap-3 text-xs">
-                                      <span className="flex items-center gap-1.5">
-                                        <div className="h-2 w-2 rounded-full bg-green-500" />
-                                        <span className="text-muted-foreground">{completedJobs} completed</span>
-                                      </span>
-                                      {failedJobsCount > 0 && (
-                                        <span className="flex items-center gap-1.5">
-                                          <div className="h-2 w-2 rounded-full bg-red-500" />
-                                          <span className="text-red-600">{failedJobsCount} failed</span>
-                                        </span>
-                                      )}
-                                      {pendingJobs > 0 && isGenerating && (
-                                        <span className="flex items-center gap-1.5">
-                                          <div className="h-2 w-2 rounded-full bg-yellow-500 animate-pulse" />
-                                          <span className="text-muted-foreground">{pendingJobs} pending</span>
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                                    {batchJobs.map((job) => (
-                                      <div
-                                        key={job.id}
-                                        className={cn(
-                                          "relative rounded-lg border p-2 text-center text-xs transition-all",
-                                          job.status === 'completed' && "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800",
-                                          job.status === 'processing' && "bg-[#E91E63]/10 dark:bg-[#E91E63]/20 border-[#E91E63]/30 dark:border-[#E91E63]/70 animate-pulse",
-                                          job.status === 'pending' && "bg-muted/50 border-border",
-                                          job.status === 'failed' && "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
-                                        )}
-                                        data-testid={`batch-job-${job.id}`}
-                                      >
-                                        <div className="flex items-center justify-center gap-1.5 mb-1">
-                                          {job.status === 'completed' && <CheckCircle2 className="h-3 w-3 text-green-600" />}
-                                          {job.status === 'processing' && <Loader2 className="h-3 w-3 text-primary animate-spin" />}
-                                          {job.status === 'pending' && <div className="h-3 w-3 rounded-full border-2 border-muted-foreground/30" />}
-                                          {job.status === 'failed' && <AlertCircle className="h-3 w-3 text-red-600" />}
-                                        </div>
-                                        <p className="font-medium truncate">{job.color}</p>
-                                        <p className="text-muted-foreground text-[10px] truncate capitalize">{job.angle.replace('-', ' ')}</p>
-                                        {job.status === 'failed' && (
-                                          <button
-                                            onClick={() => retryFailedJob(job.id)}
-                                            className="mt-1 text-[10px] text-primary hover:underline flex items-center justify-center gap-0.5"
-                                            data-testid={`retry-job-${job.id}`}
-                                          >
-                                            <RotateCw className="h-2.5 w-2.5" />
-                                            Retry
-                                          </button>
-                                        )}
-                                      </div>
-                                    ))}
-                                  </div>
-
-                                  {failedJobsCount > 0 && !isGenerating && (
-                                    <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
-                                      <p className="text-xs text-red-600">
-                                        {failedJobsCount} generation{failedJobsCount > 1 ? 's' : ''} failed
-                                      </p>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={retryAllFailed}
-                                        className="h-7 text-xs gap-1.5"
-                                        data-testid="button-retry-all-failed"
-                                      >
-                                        <RotateCw className="h-3 w-3" />
-                                        Retry All Failed
-                                      </Button>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-
-                              {/* Collapsible Summary Panel */}
-                              <Collapsible
-                                open={summaryOpen}
-                                onOpenChange={setSummaryOpen}
-                                className="mb-4 shrink-0"
-                                data-testid="collapsible-summary"
-                              >
-                                <div className="bg-muted/30 border border-border rounded-xl overflow-hidden">
-                                  <CollapsibleTrigger asChild>
-                                    <button className="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-muted/50 transition-colors" data-testid="button-toggle-summary">
-                                      <div className="flex items-center gap-2">
-                                        <Info className="h-4 w-4 text-primary" />
-                                        <span className="text-sm font-medium text-foreground">Generation Summary</span>
-                                      </div>
-                                      <ChevronDown className={cn(
-                                        "h-4 w-4 text-muted-foreground transition-transform duration-200",
-                                        summaryOpen && "rotate-180"
-                                      )} />
-                                    </button>
-                                  </CollapsibleTrigger>
-                                  <CollapsibleContent>
-                                    <div className="px-4 pb-4 pt-0">
-                                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                                        {/* Product */}
-                                        <div className="bg-card rounded-lg p-3 border border-border" data-testid="summary-product">
-                                          <div className="flex items-center gap-1.5 mb-1">
-                                            <Shirt className="h-3 w-3 text-primary" />
-                                            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Product</span>
-                                          </div>
-                                          <p className="text-xs font-medium text-foreground truncate">{selectedProductType || "T-Shirt"}</p>
-                                        </div>
-
-                                        {/* Colors */}
-                                        <div className="bg-card rounded-lg p-3 border border-border" data-testid="summary-colors">
-                                          <div className="flex items-center gap-1.5 mb-1">
-                                            <Palette className="h-3 w-3 text-primary" />
-                                            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Colors</span>
-                                          </div>
-                                          <p className="text-xs font-medium text-foreground truncate">
-                                            {selectedColors.length > 0 
-                                              ? selectedColors.slice(0, 3).join(", ") + (selectedColors.length > 3 ? ` +${selectedColors.length - 3}` : "") 
-                                              : "White"}
-                                          </p>
-                                        </div>
-
-                                        {/* Sizes */}
-                                        <div className="bg-card rounded-lg p-3 border border-border" data-testid="summary-sizes">
-                                          <div className="flex items-center gap-1.5 mb-1">
-                                            <Ruler className="h-3 w-3 text-primary" />
-                                            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Sizes</span>
-                                          </div>
-                                          <p className="text-xs font-medium text-foreground truncate">
-                                            {selectedSizes.length > 0 ? selectedSizes.join(", ") : "L"}
-                                          </p>
-                                        </div>
-
-                                        {/* Model */}
-                                        <div className="bg-card rounded-lg p-3 border border-border" data-testid="summary-model">
-                                          <div className="flex items-center gap-1.5 mb-1">
-                                            <User className="h-3 w-3 text-primary" />
-                                            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Model</span>
-                                          </div>
-                                          <p className="text-xs font-medium text-foreground truncate">
-                                            {useModel 
-                                              ? `${modelDetails.sex === "MALE" ? "M" : "F"}, ${modelDetails.age === "ADULT" ? "Adult" : modelDetails.age === "YOUNG_ADULT" ? "Young" : "Teen"}, ${modelDetails.ethnicity.charAt(0) + modelDetails.ethnicity.slice(1).toLowerCase().replace("_", " ")}, ${modelDetails.modelSize}`
-                                              : "Flat Lay"}
-                                          </p>
-                                        </div>
-
-                                        {/* Brand Style */}
-                                        <div className="bg-card rounded-lg p-3 border border-border" data-testid="summary-brand-style">
-                                          <div className="flex items-center gap-1.5 mb-1">
-                                            <Sparkles className="h-3 w-3 text-primary" />
-                                            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Style</span>
-                                          </div>
-                                          <p className="text-xs font-medium text-foreground truncate">
-                                            {BRAND_STYLES.find(s => s.id === selectedStyle)?.name || "Minimal"}
-                                          </p>
-                                        </div>
-
-                                        {/* Angles */}
-                                        <div className="bg-card rounded-lg p-3 border border-border" data-testid="summary-angles">
-                                          <div className="flex items-center gap-1.5 mb-1">
-                                            <Camera className="h-3 w-3 text-primary" />
-                                            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Angles</span>
-                                          </div>
-                                          <p className="text-xs font-medium text-foreground truncate">
-                                            {selectedAngles.length > 0 
-                                              ? selectedAngles.map(a => 
-                                                  a === 'front' ? 'Front' : 
-                                                  a === 'three-quarter' ? '3/4' : 
-                                                  a === 'side' ? 'Side' : 
-                                                  a === 'closeup' ? 'Close' : a
-                                                ).join(", ")
-                                              : "Front"}
-                                          </p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </CollapsibleContent>
-                                </div>
-                              </Collapsible>
-
+                            <div className="flex-1 flex flex-col overflow-hidden">
+                              {/* Progress Bar */}
                               {isGenerating && (
                                 <div className="mb-4 shrink-0">
                                   <div className="flex items-center justify-between mb-2">
@@ -3156,147 +2232,80 @@ export default function MockupGenerator() {
                                       animate={{ width: `${generationProgress}%` }}
                                     />
                                   </div>
-                                  <Button 
-                                    variant="link" 
-                                    size="sm"
-                                    onClick={() => {
-                                      setIsGenerating(false);
-                                      setGenerationProgress(0);
-                                      setGenerationStage("");
-                                      toast({
-                                        title: "Generation Cancelled",
-                                        description: "You can restart the generation anytime.",
-                                      });
-                                    }}
-                                    className="text-muted-foreground hover:text-foreground p-0 h-auto mt-2"
-                                  >
-                                    Cancel Generation
-                                  </Button>
                                 </div>
                               )}
 
-                              <div className="flex-1 overflow-y-auto min-h-0 -mx-2 px-2 sm:-mx-4 sm:px-4 md:mx-0 md:px-0">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 pb-24 sm:pb-20">
-                                  {generatedMockups.map((mockup, i) => {
-                                    const angleName = mockup.angle === 'front' ? 'Front View' : 
-                                                     mockup.angle === 'three-quarter' ? 'Three-Quarter View' :
-                                                     mockup.angle === 'side' ? 'Side View' :
-                                                     mockup.angle === 'closeup' ? 'Close-up View' : mockup.angle;
-                                    return (
-                                      <motion.div
-                                        key={`mockup-${i}`}
-                                        initial={{ opacity: 0, scale: 0.95 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        transition={{ duration: 0.3 }}
-                                        className="group relative aspect-[3/4] rounded-xl overflow-hidden border border-border cursor-pointer active:scale-[0.98]"
-                                        data-testid={`mockup-card-${i}`}
-                                      >
-                                        <img src={mockup.src} alt={`Mockup ${i + 1}`} className="w-full h-full object-cover" />
-                                        
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-3 sm:p-4">
-                                          <div className="flex items-center justify-between sm:justify-end gap-2">
-                                            <Button 
-                                              size="icon" 
-                                              className="h-10 w-10 sm:h-8 sm:w-8 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg min-h-[44px] sm:min-h-0"
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                const styleName = BRAND_STYLES.find(s => s.id === selectedStyle)?.name || "Minimal";
-                                                setSelectedMockupDetails({
-                                                  src: mockup.src,
-                                                  angle: angleName,
-                                                  color: mockup.color,
-                                                  size: mockup.size,
-                                                  brandStyle: styleName,
-                                                  index: i
-                                                });
-                                              }}
-                                              data-testid={`button-expand-mockup-${i}`}
-                                            >
-                                              <Maximize className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                                            </Button>
-                                            <Button 
-                                              size="sm" 
-                                              className="h-10 sm:h-8 px-3 sm:px-3 text-xs bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg min-h-[44px] sm:min-h-0"
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                downloadImage(mockup.src, `mockup_${mockup.size}_${mockup.color.replace(/\s+/g, '-')}_${mockup.angle}_${Date.now()}_${i}.png`);
-                                              }}
-                                              data-testid={`button-download-mockup-${i}`}
-                                            >
-                                              <Download className="h-4 w-4 sm:h-3.5 sm:w-3.5 mr-1.5" />
-                                              Download
-                                            </Button>
-                                          </div>
-                                        </div>
-
-                                        <Badge className="absolute top-2 left-2 bg-black/50 backdrop-blur-md text-[10px] border-0 text-white font-normal px-2 py-0.5">
-                                          {angleName}
-                                        </Badge>
-                                        <div className="absolute top-2 right-2 flex flex-col gap-1">
-                                          <Badge className="bg-primary/80 backdrop-blur-md text-[10px] border-0 text-white font-semibold px-2 py-0.5">
-                                            {mockup.size}
-                                          </Badge>
-                                          <Badge className="bg-emerald-600/80 backdrop-blur-md text-[10px] border-0 text-white font-normal px-2 py-0.5">
-                                            {mockup.color}
-                                          </Badge>
-                                        </div>
-                                      </motion.div>
-                                    );
-                                  })}
+                              {/* Generated Mockups Grid */}
+                              <div className="flex-1 overflow-y-auto">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                                  {generatedMockups.map((mockup, index) => (
+                                    <motion.div
+                                      key={index}
+                                      initial={{ opacity: 0, scale: 0.9 }}
+                                      animate={{ opacity: 1, scale: 1 }}
+                                      className="relative aspect-square rounded-xl overflow-hidden border border-border bg-muted/30 group cursor-pointer"
+                                      onClick={() => setSelectedMockupDetails({ ...mockup, index })}
+                                      data-testid={`mockup-${index}`}
+                                    >
+                                      <img src={mockup.src} alt={`Mockup ${index + 1}`} className="w-full h-full object-cover" />
+                                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                                        <Button 
+                                          size="sm" 
+                                          className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                          onClick={(e) => { e.stopPropagation(); downloadImage(mockup.src, `mockup_${index + 1}.png`); }}
+                                        >
+                                          <Download className="h-4 w-4 mr-1" /> Download
+                                        </Button>
+                                      </div>
+                                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
+                                        <p className="text-[10px] text-white truncate">{mockup.color} • {mockup.angle}</p>
+                                      </div>
+                                    </motion.div>
+                                  ))}
                                   
+                                  {/* Placeholder for generating */}
                                   {isGenerating && Array.from({ length: Math.max(0, expectedMockupsCount - generatedMockups.length) }).map((_, i) => (
                                     <motion.div
                                       key={`placeholder-${i}`}
                                       initial={{ opacity: 0 }}
                                       animate={{ opacity: 1 }}
-                                      transition={{ duration: 0.2 }}
-                                      className="relative aspect-[3/4] rounded-xl overflow-hidden border border-border bg-muted/30"
+                                      className="relative aspect-square rounded-xl border-2 border-dashed border-border bg-muted/20 flex items-center justify-center"
                                     >
-                                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-                                        <div className="relative">
-                                          <div className="absolute inset-0 bg-[#E91E63]/20 blur-xl rounded-full animate-pulse" />
-                                          <Loader2 className="h-8 w-8 text-primary animate-spin relative z-10" />
-                                        </div>
-                                        <p className="text-xs text-muted-foreground">Generating...</p>
-                                      </div>
-                                      <div className="absolute inset-0 bg-gradient-to-t from-muted/50 to-transparent" />
+                                      <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
                                     </motion.div>
                                   ))}
                                 </div>
                               </div>
-                              
-                              {/* Sticky Bottom Action Bar - Mobile Only */}
-                              <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border p-3 z-40 safe-area-pb">
-                                <div className="flex gap-2">
-                                  <Button 
-                                    variant="outline"
-                                    onClick={() => setJourney(null)}
-                                    disabled={isGenerating}
-                                    className="flex-1 h-12 min-h-[48px]"
-                                    data-testid="button-start-over-mobile"
-                                  >
+
+                              {/* Action Bar */}
+                              {!isGenerating && generatedMockups.length > 0 && (
+                                <div className="pt-4 border-t border-border flex items-center justify-between gap-3 shrink-0">
+                                  <Button variant="outline" onClick={() => setJourney(null)} data-testid="button-start-over">
                                     Start Over
                                   </Button>
-                                  <Button 
-                                    className="flex-[2] h-12 min-h-[48px] bg-primary hover:bg-[#C2185B] text-white"
-                                    onClick={downloadAllAsZip}
-                                    disabled={isGenerating || generatedMockups.length === 0 || isDownloadingZip}
-                                    data-testid="button-download-all-mobile"
-                                  >
-                                    {isDownloadingZip ? (
-                                      <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Creating ZIP...
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Archive className="mr-2 h-4 w-4" />
-                                        Download All ({generatedMockups.length})
-                                      </>
-                                    )}
-                                  </Button>
+                                  <div className="flex gap-2">
+                                    <Button
+                                      variant="outline"
+                                      onClick={handleGenerate}
+                                      data-testid="button-regenerate"
+                                    >
+                                      <RotateCw className="h-4 w-4 mr-1" /> Regenerate
+                                    </Button>
+                                    <Button
+                                      onClick={downloadAllAsZip}
+                                      disabled={isDownloadingZip}
+                                      className="bg-primary hover:bg-primary/90 text-white"
+                                      data-testid="button-download-all"
+                                    >
+                                      {isDownloadingZip ? (
+                                        <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Creating ZIP...</>
+                                      ) : (
+                                        <><Archive className="h-4 w-4 mr-1" /> Download All ({generatedMockups.length})</>
+                                      )}
+                                    </Button>
+                                  </div>
                                 </div>
-                              </div>
+                              )}
                             </div>
                           )}
                         </div>
@@ -3304,169 +2313,11 @@ export default function MockupGenerator() {
                     </motion.div>
                   </AnimatePresence>
                 </div>
-
-
               </div>
             </div>
           </div>
         )}
-        
-        {journey && currentStep !== "generate" && (
-          <AnimatePresence>
-            <ProductPreview
-              uploadedImage={uploadedImage}
-              selectedProduct={selectedProductType}
-              selectedColor={selectedColors[0] || "White"}
-              isMinimized={previewMinimized}
-              onToggle={() => setPreviewMinimized(!previewMinimized)}
-              journey={journey}
-            />
-          </AnimatePresence>
-        )}
       </main>
-
-      {/* Lightbox Modal */}
-      <AnimatePresence>
-        {selectedMockupDetails && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-md flex items-center justify-center p-2 sm:p-6"
-            onClick={() => setSelectedMockupDetails(null)}
-            data-testid="modal-mockup-details"
-          >
-            <div 
-              className="w-full max-w-7xl h-[95vh] sm:h-[90vh] md:h-[85vh] bg-card rounded-xl sm:rounded-2xl overflow-hidden flex flex-col md:flex-row border border-border shadow-2xl"
-              onClick={e => e.stopPropagation()}
-            >
-              {/* Left: Image */}
-              <div className="w-full h-[35vh] sm:h-[40vh] md:h-auto md:flex-1 bg-muted/20 flex items-center justify-center p-2 sm:p-4 md:p-8 relative group bg-checkerboard">
-                <img 
-                  src={selectedMockupDetails.src} 
-                  alt={`Mockup ${selectedMockupDetails.index + 1}`} 
-                  className="max-w-full max-h-full object-contain shadow-2xl rounded-lg" 
-                  data-testid="img-mockup-fullsize"
-                />
-                <div className="absolute top-2 sm:top-4 right-2 sm:right-4 flex gap-2">
-                   <Button 
-                     size="icon" 
-                     className="rounded-full bg-black/50 text-white border-0 hover:bg-black/70 h-10 w-10 sm:h-9 sm:w-9 min-h-[44px] sm:min-h-0"
-                     onClick={() => setSelectedMockupDetails(null)}
-                     data-testid="button-close-modal-image"
-                   >
-                     <X className="h-5 w-5 sm:h-4 sm:w-4" />
-                   </Button>
-                </div>
-              </div>
-
-              {/* Right: Details */}
-              <div className="w-full md:w-[400px] bg-card border-t md:border-t-0 md:border-l border-border flex flex-col flex-1 md:flex-initial md:h-auto">
-                <div className="p-3 sm:p-4 md:p-6 border-b border-border flex justify-between items-center shrink-0">
-                  <h3 className="font-bold text-foreground text-sm sm:text-base">Mockup Details</h3>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={() => setSelectedMockupDetails(null)} 
-                    className="text-muted-foreground hover:text-foreground h-10 w-10 sm:h-9 sm:w-9 min-h-[44px] sm:min-h-0"
-                    data-testid="button-close-modal"
-                  >
-                    <X className="h-5 w-5" />
-                  </Button>
-                </div>
-
-                <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 md:space-y-8">
-                  {/* Actions */}
-                  <div className="grid grid-cols-3 gap-2">
-                    <Button 
-                      variant="ghost" 
-                      className="flex flex-col h-14 sm:h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border min-h-[52px] active:scale-[0.98]"
-                      onClick={() => downloadImage(selectedMockupDetails.src, `mockup_${selectedMockupDetails.index + 1}_${selectedMockupDetails.color}_${selectedMockupDetails.angle.replace(/\s+/g, '_')}.png`)}
-                      data-testid="button-download-mockup"
-                    >
-                      <Download className="h-5 w-5" />
-                      <span className="text-[10px]">Download</span>
-                    </Button>
-                    
-                    <Button 
-                      variant="ghost" 
-                      className="flex flex-col h-14 sm:h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border min-h-[52px] active:scale-[0.98]"
-                      onClick={() => toast({ title: "Copied to clipboard" })}
-                    >
-                      <Copy className="h-5 w-5" />
-                      <span className="text-[10px]">Copy</span>
-                    </Button>
-
-                    <Button 
-                      variant="ghost" 
-                      className="flex flex-col h-14 sm:h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border min-h-[52px] active:scale-[0.98]"
-                    >
-                      <Star className="h-5 w-5" />
-                      <span className="text-[10px]">Like</span>
-                    </Button>
-                  </div>
-
-                  {/* Mockup Info */}
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Mockup Info</label>
-                    <div className="bg-muted/30 rounded-xl p-4 border border-border space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-muted-foreground flex items-center gap-2">
-                          <Camera className="h-3.5 w-3.5" />
-                          View Angle
-                        </span>
-                        <span className="text-sm font-medium text-foreground" data-testid="text-view-angle">{selectedMockupDetails.angle}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-muted-foreground flex items-center gap-2">
-                          <Palette className="h-3.5 w-3.5" />
-                          Product Color
-                        </span>
-                        <span className="text-sm font-medium text-foreground" data-testid="text-product-color">{selectedMockupDetails.color}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-muted-foreground flex items-center gap-2">
-                          <Sparkles className="h-3.5 w-3.5" />
-                          Brand Style
-                        </span>
-                        <span className="text-sm font-medium text-foreground" data-testid="text-brand-style">{selectedMockupDetails.brandStyle}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Technical Details */}
-                  <div className="space-y-4">
-                    <div className="flex justify-between py-2 border-b border-border">
-                      <span className="text-xs text-muted-foreground">Type</span>
-                      <Badge variant="outline" className="uppercase">MOCKUP</Badge>
-                    </div>
-                    <div className="flex justify-between py-2 border-b border-border">
-                      <span className="text-xs text-muted-foreground">Dimensions</span>
-                      <span className="text-xs font-medium text-foreground">2048 x 2048</span>
-                    </div>
-                    <div className="flex justify-between py-2 border-b border-border">
-                      <span className="text-xs text-muted-foreground">Date Created</span>
-                      <span className="text-xs font-medium text-foreground">Just now</span>
-                    </div>
-                  </div>
-
-                  {/* Tags */}
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Tags</label>
-                    <div className="flex flex-wrap gap-2">
-                      {[selectedMockupDetails.angle, selectedMockupDetails.color, selectedMockupDetails.brandStyle].map(tag => (
-                        <span key={tag} className="px-2.5 py-1 rounded-md bg-muted/50 border border-border text-xs text-muted-foreground">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
