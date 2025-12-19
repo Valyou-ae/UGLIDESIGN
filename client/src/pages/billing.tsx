@@ -228,7 +228,7 @@ export default function Billing() {
     <div className="h-screen bg-background flex font-sans text-foreground overflow-hidden">
       <Sidebar className="hidden md:flex border-r border-border/50" />
       
-      <main className="flex-1 flex flex-col relative h-full overflow-y-auto bg-[#FAFAFA] dark:bg-[#374151] text-[#18181B] dark:text-[#FAFAFA]">
+      <main className="flex-1 flex flex-col relative h-full overflow-y-auto bg-[#FAFAFA] dark:bg-[#1A1A2E] text-[#18181B] dark:text-[#FAFAFA]">
         <div className="flex justify-center w-full min-h-full">
           <div className="w-full max-w-[680px] px-10 py-12">
             
@@ -248,7 +248,7 @@ export default function Billing() {
                 Plan
               </h2>
               
-              <div className="flex justify-between items-start pb-6 border-b border-[#F0F0F0] dark:border-[#374151]">
+              <div className="flex justify-between items-start pb-6 border-b border-[#F0F0F0] dark:border-[#1A1A2E]">
                 <div>
                   <div className="flex items-center gap-2.5 mb-1">
                     <span className="text-2xl font-semibold text-[#18181B] dark:text-[#FAFAFA]">
@@ -310,7 +310,7 @@ export default function Billing() {
                 Credits
               </h2>
               
-              <div className="pb-6 border-b border-[#F0F0F0] dark:border-[#374151]">
+              <div className="pb-6 border-b border-[#F0F0F0] dark:border-[#1A1A2E]">
                 <div className="flex justify-between items-baseline mb-4">
                   <div>
                     <span className="text-[32px] font-semibold text-[#18181B] dark:text-[#FAFAFA]">
@@ -329,7 +329,7 @@ export default function Billing() {
                   </button>
                 </div>
 
-                <div className="h-1 w-full bg-[#E5E5E5] dark:bg-[#374151] rounded-full overflow-hidden">
+                <div className="h-1 w-full bg-[#E5E5E5] dark:bg-[#1A1A2E] rounded-full overflow-hidden">
                   <div 
                     className="h-full bg-primary rounded-full transition-all duration-500 ease-out" 
                     style={{ width: `${Math.min((creditUsage.used / creditUsage.total) * 100, 100)}%` }}
@@ -356,7 +356,7 @@ export default function Billing() {
                 Payment method
               </h2>
               
-              <div className="flex justify-between items-center pb-6 border-b border-[#F0F0F0] dark:border-[#374151]">
+              <div className="flex justify-between items-center pb-6 border-b border-[#F0F0F0] dark:border-[#1A1A2E]">
                 {hasSubscription ? (
                   <>
                     <div>
@@ -421,7 +421,7 @@ export default function Billing() {
 
             {/* SECTION 5: DANGER ZONE */}
             {hasSubscription && (
-              <div className="mt-16 pt-6 border-t border-[#F0F0F0] dark:border-[#374151]">
+              <div className="mt-16 pt-6 border-t border-[#F0F0F0] dark:border-[#1A1A2E]">
                 <div className="flex justify-between items-center">
                   <span className="text-[14px] text-[#71717A]">
                     Cancel subscription
@@ -458,7 +458,7 @@ export default function Billing() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
                 className={cn(
-                  "relative w-full bg-white dark:bg-[#1F2937] border border-[#E5E5E5] dark:border-[#374151] rounded-xl p-8 shadow-2xl",
+                  "relative w-full bg-white dark:bg-[#1A1A2E] border border-[#E5E5E5] dark:border-[#1A1A2E] rounded-xl p-8 shadow-2xl",
                   activeModal === "plan" && "max-w-[440px]",
                   activeModal === "credits" && "max-w-[400px]",
                   activeModal === "payment" && "max-w-[380px]",
@@ -479,7 +479,7 @@ export default function Billing() {
                     ) : planList.length > 0 ? (
                       <>
                         <div className="flex justify-center mt-4">
-                          <div className="inline-flex items-center gap-1 p-1 bg-[#F4F4F5] dark:bg-[#374151] rounded-full">
+                          <div className="inline-flex items-center gap-1 p-1 bg-[#F4F4F5] dark:bg-[#1A1A2E] rounded-full">
                             <button
                               onClick={() => setBillingPeriod("month")}
                               className={cn(
@@ -520,8 +520,8 @@ export default function Billing() {
                                 key={plan.name}
                                 onClick={() => handlePlanSelect(plan.name, currentPrice.priceId)}
                                 className={cn(
-                                  "flex justify-between items-center py-4 border-b border-[#E5E5E5] dark:border-[#374151] cursor-pointer group transition-all",
-                                  selectedPlanName === plan.name && "bg-[#F9F9F9] dark:bg-[#374151] -mx-4 px-4 rounded-lg border-transparent"
+                                  "flex justify-between items-center py-4 border-b border-[#E5E5E5] dark:border-[#1A1A2E] cursor-pointer group transition-all",
+                                  selectedPlanName === plan.name && "bg-[#F9F9F9] dark:bg-[#1A1A2E] -mx-4 px-4 rounded-lg border-transparent"
                                 )}
                                 data-testid={`plan-option-${plan.name.toLowerCase().replace(/\s+/g, '-')}`}
                               >
@@ -617,7 +617,7 @@ export default function Billing() {
                           <div 
                             key={product.price_id}
                             onClick={() => setSelectedPriceId(product.price_id)}
-                            className="flex justify-between items-center py-3.5 border-b border-[#E5E5E5] dark:border-[#374151] cursor-pointer group"
+                            className="flex justify-between items-center py-3.5 border-b border-[#E5E5E5] dark:border-[#1A1A2E] cursor-pointer group"
                           >
                             <div className="flex items-center gap-3">
                               <span className={cn(

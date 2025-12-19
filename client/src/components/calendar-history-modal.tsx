@@ -31,7 +31,7 @@ interface CalendarHistoryModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const UGLI_RUST = "#EC4899";
+const UGLI_RUST = "#E91E63";
 
 const getActivityColor = (count: number, maxCount: number): string => {
   if (count === 0) return "transparent";
@@ -46,7 +46,7 @@ const getTypeConfig = (type: string) => {
   switch (type) {
     case "image": return { icon: Wand2, color: "#7C3AED", label: "Image" };
     case "mockup": return { icon: ShoppingBag, color: "#4F46E5", label: "Mockup" };
-    case "bg-removed": return { icon: Scissors, color: "#EC4899", label: "BG Removed" };
+    case "bg-removed": return { icon: Scissors, color: "#E91E63", label: "BG Removed" };
     default: return { icon: Star, color: "#71717A", label: "Unknown" };
   }
 };
@@ -138,8 +138,8 @@ export function CalendarHistoryModal({ open, onOpenChange }: CalendarHistoryModa
             <DialogHeader className="p-6 pb-4 border-b border-[#E4E4E7] dark:border-[#27272A]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-[#EC4899]/10 rounded-lg">
-                    <CalendarIcon className="h-5 w-5 text-[#EC4899]" />
+                  <div className="p-2 bg-[#E91E63]/10 rounded-lg">
+                    <CalendarIcon className="h-5 w-5 text-[#E91E63]" />
                   </div>
                   <DialogTitle className="text-xl font-semibold text-[#18181B] dark:text-[#FAFAFA]">
                     Generation History
@@ -199,8 +199,8 @@ export function CalendarHistoryModal({ open, onOpenChange }: CalendarHistoryModa
                       data-testid={`button-day-${dateKey}`}
                       className={cn(
                         "aspect-square rounded-lg flex flex-col items-center justify-center relative transition-all",
-                        "hover:ring-2 hover:ring-[#EC4899]/50",
-                        isSelected && "ring-2 ring-[#EC4899]",
+                        "hover:ring-2 hover:ring-[#E91E63]/50",
+                        isSelected && "ring-2 ring-[#E91E63]",
                         isTodayDate && "font-bold",
                         count > 0 && "cursor-pointer"
                       )}

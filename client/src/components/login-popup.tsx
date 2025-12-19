@@ -186,7 +186,7 @@ function LoginPopupDialog({ isOpen, onClose, returnTo }: LoginPopupDialogProps) 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent 
-        className="sm:max-w-[420px] p-0 bg-gradient-to-b from-[#374151] to-[#1F2937] border border-[#333]/50 overflow-hidden rounded-2xl shadow-2xl"
+        className="sm:max-w-[420px] p-0 bg-gradient-to-b from-[#1A1A2E] to-[#1A1A2E] border border-[#333]/50 overflow-hidden rounded-2xl shadow-2xl"
         data-testid="login-popup"
         aria-describedby="login-dialog-description"
       >
@@ -213,8 +213,8 @@ function LoginPopupDialog({ isOpen, onClose, returnTo }: LoginPopupDialogProps) 
 
           {emailSent ? (
             <div className="text-center space-y-4">
-              <div className="w-16 h-16 bg-[#EC4899]/20 rounded-full flex items-center justify-center mx-auto">
-                <Mail className="h-8 w-8 text-[#EC4899]" />
+              <div className="w-16 h-16 bg-[#E91E63]/20 rounded-full flex items-center justify-center mx-auto">
+                <Mail className="h-8 w-8 text-[#E91E63]" />
               </div>
               <h3 className="text-lg font-semibold text-white">Check your email</h3>
               <p className="text-gray-400 text-sm">
@@ -223,7 +223,7 @@ function LoginPopupDialog({ isOpen, onClose, returnTo }: LoginPopupDialogProps) 
               <Button
                 variant="ghost"
                 onClick={() => setEmailSent(false)}
-                className="text-[#EC4899] hover:text-[#EC4899]/80 hover:bg-[#EC4899]/10"
+                className="text-[#E91E63] hover:text-[#E91E63]/80 hover:bg-[#E91E63]/10"
               >
                 Use a different email
               </Button>
@@ -292,7 +292,7 @@ function LoginPopupDialog({ isOpen, onClose, returnTo }: LoginPopupDialogProps) 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={isEmailLoading}
-                    className="pl-12 h-12 bg-[#374151] border-[#333] text-white placeholder:text-gray-500 rounded-xl focus:border-[#EC4899] focus:ring-1 focus:ring-[#EC4899] transition-all"
+                    className="pl-12 h-12 bg-[#1A1A2E] border-[#333] text-white placeholder:text-gray-500 rounded-xl focus:border-[#E91E63] focus:ring-1 focus:ring-[#E91E63] transition-all"
                     data-testid="input-email"
                   />
                 </div>
@@ -300,7 +300,7 @@ function LoginPopupDialog({ isOpen, onClose, returnTo }: LoginPopupDialogProps) 
                 <Button
                   type="submit"
                   disabled={isEmailLoading || !email.trim()}
-                  className="w-full h-12 bg-gradient-to-r from-[#EC4899] to-[#D4623A] hover:from-[#A84529] hover:to-[#C4522A] text-white font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[#EC4899]/20"
+                  className="w-full h-12 bg-gradient-to-r from-[#E91E63] to-[#D4623A] hover:from-[#A84529] hover:to-[#C4522A] text-white font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[#E91E63]/20"
                   data-testid="button-email-continue"
                 >
                   {isEmailLoading ? (
@@ -320,11 +320,11 @@ function LoginPopupDialog({ isOpen, onClose, returnTo }: LoginPopupDialogProps) 
               {/* Terms */}
               <p className="text-xs text-center text-gray-500 pt-2">
                 By continuing, you agree to our{" "}
-                <a href="/help" className="text-[#EC4899] hover:underline">
+                <a href="/help" className="text-[#E91E63] hover:underline">
                   Terms
                 </a>{" "}
                 and{" "}
-                <a href="/help" className="text-[#EC4899] hover:underline">
+                <a href="/help" className="text-[#E91E63] hover:underline">
                   Privacy Policy
                 </a>
               </p>
