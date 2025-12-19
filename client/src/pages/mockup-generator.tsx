@@ -2805,42 +2805,48 @@ export default function MockupGenerator() {
                               </div>
 
                               <div className="bg-muted/30 rounded-xl sm:rounded-2xl p-4 sm:p-6 w-full mb-4 sm:mb-6 border border-border">
-                                <div className="flex items-center justify-between gap-4">
+                                <div className="flex items-center justify-between gap-4 flex-wrap">
                                   <div className="flex items-center gap-2">
                                     <Maximize2 className="h-4 w-4 text-primary" />
                                     <span className="text-sm font-bold text-foreground">Output Quality</span>
                                   </div>
-                                  <Select value={outputQuality} onValueChange={(value: OutputQuality) => setOutputQuality(value)}>
-                                    <SelectTrigger className="w-[180px] h-9" data-testid="quality-select">
-                                      <SelectValue>
-                                        {(() => {
-                                          const selected = OUTPUT_QUALITY_OPTIONS.find(q => q.id === outputQuality);
-                                          return selected ? (
-                                            <span className="flex items-center gap-2">
-                                              <span className="font-medium">{selected.name}</span>
-                                              <span className="text-muted-foreground text-xs">({selected.resolution})</span>
-                                            </span>
-                                          ) : "Select quality";
-                                        })()}
-                                      </SelectValue>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {OUTPUT_QUALITY_OPTIONS.map((quality) => (
-                                        <SelectItem key={quality.id} value={quality.id} data-testid={`quality-option-${quality.id}`}>
-                                          <div className="flex flex-col gap-0.5">
-                                            <div className="flex items-center gap-2">
-                                              <span className="font-medium">{quality.name}</span>
-                                              <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">
-                                                {quality.resolution}
-                                              </Badge>
-                                              <span className="text-purple-600 text-[10px] font-medium ml-auto">{quality.credits} cr</span>
+                                  <div className="flex items-center gap-3">
+                                    <Select value={outputQuality} onValueChange={(value: OutputQuality) => setOutputQuality(value)}>
+                                      <SelectTrigger className="w-[160px] h-9" data-testid="quality-select">
+                                        <SelectValue>
+                                          {(() => {
+                                            const selected = OUTPUT_QUALITY_OPTIONS.find(q => q.id === outputQuality);
+                                            return selected ? (
+                                              <span className="flex items-center gap-2">
+                                                <span className="font-medium">{selected.name}</span>
+                                                <span className="text-muted-foreground text-xs">({selected.resolution})</span>
+                                              </span>
+                                            ) : "Select quality";
+                                          })()}
+                                        </SelectValue>
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {OUTPUT_QUALITY_OPTIONS.map((quality) => (
+                                          <SelectItem key={quality.id} value={quality.id} data-testid={`quality-option-${quality.id}`}>
+                                            <div className="flex flex-col gap-0.5">
+                                              <div className="flex items-center gap-2">
+                                                <span className="font-medium">{quality.name}</span>
+                                                <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">
+                                                  {quality.resolution}
+                                                </Badge>
+                                                <span className="text-purple-600 text-[10px] font-medium ml-auto">{quality.credits} cr</span>
+                                              </div>
+                                              <span className="text-[10px] text-muted-foreground">{quality.bestFor}</span>
                                             </div>
-                                            <span className="text-[10px] text-muted-foreground">{quality.bestFor}</span>
-                                          </div>
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <div className="flex items-center gap-1 text-purple-600 dark:text-purple-400">
+                                      <Sparkles className="h-3 w-3" />
+                                      <span className="text-xs font-medium">{OUTPUT_QUALITY_OPTIONS.find(q => q.id === outputQuality)?.credits || 2} cr/img</span>
+                                    </div>
+                                  </div>
                                 </div>
                                 <p className="text-[11px] text-muted-foreground mt-3 text-center">
                                   Estimated total: {Math.max(1, selectedAngles.length * (journey === "AOP" ? 1 : selectedColors.length)) * (OUTPUT_QUALITY_OPTIONS.find(q => q.id === outputQuality)?.credits || 2)} credits for this batch
