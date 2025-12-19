@@ -330,7 +330,7 @@ export default function ChatStudio() {
           { label: 'Refine This', icon: '✏️', value: 'refine', type: 'quick' },
           { label: "I'm Done", icon: '✓', value: 'done', type: 'quick' }
         ],
-        '/api/placeholder/512/512',
+        'https://picsum.photos/512/512?random=' + Date.now(),
         enhancedPrompt
       );
     } else if (stage === 'post-generation') {
@@ -358,7 +358,7 @@ export default function ChatStudio() {
             { label: 'New Subject', icon: '➕', value: 'new', type: 'quick' },
             { label: "I'm Done", icon: '✓', value: 'done', type: 'quick' }
           ],
-          '/api/placeholder/512/512'
+          'https://picsum.photos/512/512?random=' + (Date.now() + 1)
         );
       }
     }
