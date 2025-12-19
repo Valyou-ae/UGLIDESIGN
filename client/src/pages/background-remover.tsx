@@ -774,18 +774,18 @@ export default function BackgroundRemover() {
           </p>
         </div>
 
-        <div className="mt-4 md:mt-8 grid grid-cols-2 gap-3 md:gap-4">
+        <div className="mt-4 md:mt-8 flex justify-center">
           <Dialog open={isUrlDialogOpen} onOpenChange={setIsUrlDialogOpen}>
             <DialogTrigger asChild>
               <button 
-                className="flex flex-col items-start p-3 md:p-5 rounded-xl md:rounded-2xl bg-muted/30 border border-transparent hover:border-primary/30 hover:bg-card transition-all hover:-translate-y-0.5 w-full"
+                className="flex flex-col items-center p-3 md:p-5 rounded-xl md:rounded-2xl bg-muted/30 border border-transparent hover:border-primary/30 hover:bg-card transition-all hover:-translate-y-0.5 w-full max-w-xs"
                 data-testid="import-url-button"
               >
                 <div className="p-1.5 md:p-2 rounded-lg bg-[#9C27B0]/20 dark:bg-[#9C27B0]/10 text-[#9C27B0] mb-2 md:mb-3">
                   <LinkIcon className="h-4 w-4 md:h-6 md:w-6" />
                 </div>
-                <span className="text-xs md:text-sm font-semibold mb-0.5 md:mb-1 text-left">Import URL</span>
-                <span className="text-[10px] md:text-xs text-muted-foreground text-left">Paste image link</span>
+                <span className="text-xs md:text-sm font-semibold mb-0.5 md:mb-1">Import URL</span>
+                <span className="text-[10px] md:text-xs text-muted-foreground">Paste image link</span>
               </button>
             </DialogTrigger>
             <DialogContent>
@@ -805,20 +805,6 @@ export default function BackgroundRemover() {
               </div>
             </DialogContent>
           </Dialog>
-
-          <button 
-            className="flex flex-col items-start p-3 md:p-5 rounded-xl md:rounded-2xl bg-muted/30 border border-transparent hover:border-primary/30 hover:bg-card transition-all hover:-translate-y-0.5 w-full"
-            onClick={() => mode === "single" ? fileInputRef.current?.click() : batchFileInputRef.current?.click()}
-            data-testid="browse-files-button"
-          >
-             <div className="p-1.5 md:p-2 rounded-lg bg-[#1A1A2E]/20 dark:bg-[#1A1A2E]/10 text-[#1A1A2E] mb-2 md:mb-3">
-              <ImageIcon className="h-4 w-4 md:h-6 md:w-6" />
-            </div>
-            <span className="text-xs md:text-sm font-semibold mb-0.5 md:mb-1 text-left">Browse Files</span>
-            <span className="text-[10px] md:text-xs text-muted-foreground text-left">
-              {mode === "single" ? "Select from device" : "Select multiple files"}
-            </span>
-          </button>
         </div>
 
         <div className="mt-6 md:mt-10">
