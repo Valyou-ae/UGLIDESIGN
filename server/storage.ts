@@ -15,6 +15,7 @@ import {
   dailyInspirations,
   chatSessions,
   chatMessages,
+  userPreferences,
   type User, 
   type InsertUser, 
   type UpdateProfile, 
@@ -41,7 +42,9 @@ import {
   type ChatSession,
   type InsertChatSession,
   type ChatMessage,
-  type InsertChatMessage
+  type InsertChatMessage,
+  type UserPreferences,
+  type InsertUserPreferences
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, gte, lte, sql } from "drizzle-orm";
@@ -160,6 +163,10 @@ export interface IStorage {
   
   addChatMessage(sessionId: string, message: Omit<InsertChatMessage, 'sessionId'>): Promise<ChatMessage>;
   getChatMessages(sessionId: string): Promise<ChatMessage[]>;
+  
+  getUserPreferences(userId: string): Promise<UserPreferences | undefined>;
+  upsertUserPreferences(userId: string, data: Partial<InsertUserPreferences>): Promise<UserPreferences>;
+  updateUserPreferences(userId: string, data: Partial<InsertUserPreferences>): Promise<UserPreferences | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1264,6 +1271,40 @@ export class DatabaseStorage implements IStorage {
       .from(chatMessages)
       .where(eq(chatMessages.sessionId, sessionId))
       .orderBy(chatMessages.createdAt);
+  }
+
+  async getUserPreferences(userId: string): Promise<UserPreferences | undefined> {
+    const [prefs] = await db
+      .select()
+      .from(userPreferences)
+      .where(eq(userPreferences.userId, userId));
+    return prefs || undefined;
+  }
+
+  async upsertUserPreferences(userId: string, data: Partial<InsertUserPreferences>): Promise<UserPreferences> {
+    const existing = await this.getUserPreferences(userId);
+    if (existing) {
+      const [updated] = await db
+        .update(userPreferences)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(userPreferences.userId, userId))
+        .returning();
+      return updated;
+    }
+    const [created] = await db
+      .insert(userPreferences)
+      .values({ userId, ...data })
+      .returning();
+    return created;
+  }
+
+  async updateUserPreferences(userId: string, data: Partial<InsertUserPreferences>): Promise<UserPreferences | undefined> {
+    const [prefs] = await db
+      .update(userPreferences)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(userPreferences.userId, userId))
+      .returning();
+    return prefs || undefined;
   }
 }
 

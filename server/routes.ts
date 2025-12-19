@@ -3556,13 +3556,33 @@ export async function registerRoutes(
   
   app.post("/api/chat/sessions/:id/chat", requireAuth, async (req: any, res) => {
     try {
+      const userId = getUserId(req);
       const { messages, context, attachedImage } = req.body;
       
       if (!messages || !Array.isArray(messages)) {
         return res.status(400).json({ message: "Messages array is required" });
       }
       
-      const response = await chatWithCreativeAgent(messages, context || {}, attachedImage || null);
+      let userProfile = null;
+      try {
+        const { getOrCreateUserProfile } = await import("./services/profileAnalyzer");
+        userProfile = await getOrCreateUserProfile(userId);
+      } catch (e) {
+        console.error("Failed to load user profile:", e);
+      }
+      
+      const enrichedContext = {
+        ...context,
+        userProfile: userProfile ? {
+          preferredStyles: userProfile.preferredStyles,
+          preferredSubjects: userProfile.preferredSubjects,
+          preferredMoods: userProfile.preferredMoods,
+          recentPrompts: userProfile.recentContextJson?.recentPrompts || [],
+          creativePatternsDescription: userProfile.creativePatternsJson?.frequentPromptPatterns?.join(', ') || ''
+        } : null
+      };
+      
+      const response = await chatWithCreativeAgent(messages, enrichedContext, attachedImage || null);
       res.json(response);
     } catch (error) {
       console.error("Chat session error:", error);
@@ -3625,6 +3645,62 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Add chat message error:", error);
       res.status(500).json({ message: "Failed to add chat message" });
+    }
+  });
+
+  // User Preferences API
+  app.get("/api/user/preferences", requireAuth, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const preferences = await storage.getUserPreferences(userId);
+      res.json({ preferences: preferences || null });
+    } catch (error) {
+      console.error("Get user preferences error:", error);
+      res.status(500).json({ message: "Failed to get user preferences" });
+    }
+  });
+
+  app.put("/api/user/preferences", requireAuth, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const { updateUserPreferencesSchema } = await import("@shared/schema");
+      const parseResult = updateUserPreferencesSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({ message: "Invalid request data", errors: parseResult.error.errors });
+      }
+      const preferences = await storage.upsertUserPreferences(userId, parseResult.data);
+      res.json({ preferences });
+    } catch (error) {
+      console.error("Update user preferences error:", error);
+      res.status(500).json({ message: "Failed to update user preferences" });
+    }
+  });
+
+  app.patch("/api/user/preferences", requireAuth, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const { updateUserPreferencesSchema } = await import("@shared/schema");
+      const parseResult = updateUserPreferencesSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({ message: "Invalid request data", errors: parseResult.error.errors });
+      }
+      const preferences = await storage.upsertUserPreferences(userId, parseResult.data);
+      res.json({ preferences });
+    } catch (error) {
+      console.error("Patch user preferences error:", error);
+      res.status(500).json({ message: "Failed to update user preferences" });
+    }
+  });
+
+  app.post("/api/user/preferences/analyze", requireAuth, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const { getOrCreateUserProfile } = await import("./services/profileAnalyzer");
+      const preferences = await getOrCreateUserProfile(userId);
+      res.json({ preferences });
+    } catch (error) {
+      console.error("Analyze user preferences error:", error);
+      res.status(500).json({ message: "Failed to analyze user preferences" });
     }
   });
 

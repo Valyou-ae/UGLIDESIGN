@@ -268,6 +268,48 @@ export const chatMessages = pgTable("chat_messages", {
   index("idx_chat_messages_created_at").on(table.createdAt),
 ]);
 
+export const userPreferences = pgTable("user_preferences", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull().unique(),
+  industry: text("industry"),
+  role: text("user_role"),
+  preferredStyles: text("preferred_styles").array().default([]),
+  preferredSubjects: text("preferred_subjects").array().default([]),
+  preferredMoods: text("preferred_moods").array().default([]),
+  colorPreferences: text("color_preferences").array().default([]),
+  brandKeywords: text("brand_keywords").array().default([]),
+  creativePatternsJson: jsonb("creative_patterns").$type<{
+    frequentPromptPatterns: string[];
+    averagePromptLength: number;
+    preferredAspectRatios: Record<string, number>;
+    styleFrequency: Record<string, number>;
+    generationTimePreference: string;
+  }>().default({
+    frequentPromptPatterns: [],
+    averagePromptLength: 0,
+    preferredAspectRatios: {},
+    styleFrequency: {},
+    generationTimePreference: 'any'
+  }),
+  recentContextJson: jsonb("recent_context").$type<{
+    lastProjectId: string | null;
+    lastSessionId: string | null;
+    recentPrompts: string[];
+    recentStyles: string[];
+  }>().default({
+    lastProjectId: null,
+    lastSessionId: null,
+    recentPrompts: [],
+    recentStyles: []
+  }),
+  profileCompleteness: integer("profile_completeness").default(0),
+  lastAnalyzedAt: timestamp("last_analyzed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_user_preferences_user_id").on(table.userId),
+]);
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   email: true,
@@ -378,6 +420,18 @@ export type GalleryImageLike = typeof galleryImageLikes.$inferSelect;
 export type DailyInspiration = typeof dailyInspirations.$inferSelect;
 export type ChatSession = typeof chatSessions.$inferSelect;
 export type ChatMessage = typeof chatMessages.$inferSelect;
+export type UserPreferences = typeof userPreferences.$inferSelect;
+
+export const insertUserPreferencesSchema = createInsertSchema(userPreferences).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateUserPreferencesSchema = insertUserPreferencesSchema.partial();
+
+export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
+export type UpdateUserPreferences = z.infer<typeof updateUserPreferencesSchema>;
 
 export const insertChatSessionSchema = createInsertSchema(chatSessions).omit({
   id: true,

@@ -984,6 +984,13 @@ export async function chatWithCreativeAgent(
     style?: string; 
     mood?: string;
     lastImage?: { url: string; prompt: string; enhancedPrompt?: string } | null;
+    userProfile?: {
+      preferredStyles?: string[];
+      preferredSubjects?: string[];
+      preferredMoods?: string[];
+      recentPrompts?: string[];
+      creativePatternsDescription?: string;
+    } | null;
   },
   attachedImage?: string | null
 ): Promise<ChatResponse> {
@@ -1004,6 +1011,19 @@ When the user says "this image", "the image", "it", or similar references, they 
 3. DO NOT immediately generate a new image - ask questions first to understand their intent`
       : '';
     
+    const userProfileContext = currentContext.userProfile 
+      ? `\n\nUser Creative Profile (use this to personalize suggestions):
+- Preferred styles: ${currentContext.userProfile.preferredStyles?.join(', ') || 'Not yet known'}
+- Preferred subjects: ${currentContext.userProfile.preferredSubjects?.join(', ') || 'Not yet known'}
+- Preferred moods: ${currentContext.userProfile.preferredMoods?.join(', ') || 'Not yet known'}
+- Creative patterns: ${currentContext.userProfile.creativePatternsDescription || 'Not yet known'}
+- Recent prompts: ${currentContext.userProfile.recentPrompts?.slice(0, 3).join(' | ') || 'None'}
+Use this profile to:
+- Suggest styles and subjects the user has historically preferred
+- Reference their creative patterns when making suggestions
+- Make personalized recommendations based on their history`
+      : '';
+    
     const systemPrompt = `You are a friendly AI creative assistant helping users create images. Your job is to:
 1. Understand what the user wants to create
 2. Help them refine their vision with style and mood preferences
@@ -1012,7 +1032,7 @@ When the user says "this image", "the image", "it", or similar references, they 
 Current context:
 - Subject: ${currentContext.subject || 'Not yet specified'}
 - Style: ${currentContext.style || 'Not yet specified'}
-- Mood: ${currentContext.mood || 'Not yet specified'}${lastImageContext}
+- Mood: ${currentContext.mood || 'Not yet specified'}${lastImageContext}${userProfileContext}
 
 CRITICAL RULES - PREVENT HALLUCINATION:
 - NEVER assume the user wants to generate a new image unless they explicitly say so
