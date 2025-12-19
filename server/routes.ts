@@ -3296,6 +3296,69 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/super-admin/feature-usage", requireSuperAdmin, async (_req: any, res) => {
+    try {
+      const usage = await storage.getFeatureUsageBreakdown();
+      res.json({ usage });
+    } catch (error) {
+      console.error("Super admin feature usage error:", error);
+      res.status(500).json({ message: "Failed to fetch feature usage" });
+    }
+  });
+
+  app.get("/api/super-admin/subscriptions", requireSuperAdmin, async (_req: any, res) => {
+    try {
+      const stats = await storage.getSubscriptionStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Super admin subscriptions error:", error);
+      res.status(500).json({ message: "Failed to fetch subscription stats" });
+    }
+  });
+
+  app.get("/api/super-admin/affiliates", requireSuperAdmin, async (req: any, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 10;
+      const affiliates = await storage.getAffiliatePerformance(limit);
+      res.json({ affiliates });
+    } catch (error) {
+      console.error("Super admin affiliates error:", error);
+      res.status(500).json({ message: "Failed to fetch affiliate performance" });
+    }
+  });
+
+  app.get("/api/super-admin/revenue", requireSuperAdmin, async (req: any, res) => {
+    try {
+      const days = parseInt(req.query.days as string) || 30;
+      const revenue = await storage.getRevenueByDay(days);
+      res.json({ revenue });
+    } catch (error) {
+      console.error("Super admin revenue error:", error);
+      res.status(500).json({ message: "Failed to fetch revenue data" });
+    }
+  });
+
+  app.get("/api/super-admin/daily-active-users", requireSuperAdmin, async (req: any, res) => {
+    try {
+      const days = parseInt(req.query.days as string) || 30;
+      const dau = await storage.getDailyActiveUsers(days);
+      res.json({ dau });
+    } catch (error) {
+      console.error("Super admin DAU error:", error);
+      res.status(500).json({ message: "Failed to fetch daily active users" });
+    }
+  });
+
+  app.get("/api/super-admin/retention", requireSuperAdmin, async (_req: any, res) => {
+    try {
+      const retention = await storage.getRetentionRate();
+      res.json(retention);
+    } catch (error) {
+      console.error("Super admin retention error:", error);
+      res.status(500).json({ message: "Failed to fetch retention rate" });
+    }
+  });
+
   // ============== PROMPT FAVORITES ROUTES ==============
 
   app.post("/api/prompts/favorites", requireAuth, async (req: any, res) => {

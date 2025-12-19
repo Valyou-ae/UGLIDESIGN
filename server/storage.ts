@@ -179,6 +179,14 @@ export interface IStorage {
   getGenerationsByDay(days: number): Promise<{ date: string; count: number }[]>;
   getTopCreators(limit: number): Promise<{ userId: string; username: string | null; displayName: string | null; imageCount: number }[]>;
   getUsersByRole(): Promise<{ role: string; count: number }[]>;
+  
+  // Enhanced Super Admin Analytics
+  getFeatureUsageBreakdown(): Promise<{ type: string; count: number }[]>;
+  getSubscriptionStats(): Promise<{ activeSubscriptions: number; totalSubscribers: number }>;
+  getAffiliatePerformance(limit: number): Promise<{ userId: string; username: string | null; referralCount: number; totalEarnings: number }[]>;
+  getRevenueByDay(days: number): Promise<{ date: string; amount: number }[]>;
+  getDailyActiveUsers(days: number): Promise<{ date: string; count: number }[]>;
+  getRetentionRate(): Promise<{ weeklyRetention: number; monthlyRetention: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1415,6 +1423,119 @@ export class DatabaseStorage implements IStorage {
       .groupBy(users.role);
 
     return result.map(r => ({ role: r.role, count: r.count }));
+  }
+
+  async getFeatureUsageBreakdown(): Promise<{ type: string; count: number }[]> {
+    const result = await db
+      .select({
+        type: generatedImages.generationType,
+        count: count(),
+      })
+      .from(generatedImages)
+      .groupBy(generatedImages.generationType);
+
+    return result.map(r => ({ 
+      type: r.type || 'image', 
+      count: r.count 
+    }));
+  }
+
+  async getSubscriptionStats(): Promise<{ activeSubscriptions: number; totalSubscribers: number }> {
+    const [activeResult] = await db
+      .select({ count: count() })
+      .from(users)
+      .where(sql`${users.stripeSubscriptionId} IS NOT NULL`);
+    
+    const [totalResult] = await db
+      .select({ count: count() })
+      .from(users)
+      .where(sql`${users.stripeCustomerId} IS NOT NULL`);
+
+    return {
+      activeSubscriptions: activeResult?.count || 0,
+      totalSubscribers: totalResult?.count || 0,
+    };
+  }
+
+  async getAffiliatePerformance(limit: number): Promise<{ userId: string; username: string | null; referralCount: number; totalEarnings: number }[]> {
+    const result = await db
+      .select({
+        userId: affiliateCommissions.affiliateUserId,
+        username: users.username,
+        referralCount: count(),
+        totalEarnings: sql<number>`COALESCE(SUM(${affiliateCommissions.amount}), 0)`,
+      })
+      .from(affiliateCommissions)
+      .leftJoin(users, eq(affiliateCommissions.affiliateUserId, users.id))
+      .groupBy(affiliateCommissions.affiliateUserId, users.username)
+      .orderBy(sql`SUM(${affiliateCommissions.amount}) DESC`)
+      .limit(limit);
+
+    return result.map(r => ({
+      userId: r.userId,
+      username: r.username,
+      referralCount: r.referralCount,
+      totalEarnings: Number(r.totalEarnings) || 0,
+    }));
+  }
+
+  async getRevenueByDay(days: number): Promise<{ date: string; amount: number }[]> {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    
+    const result = await db
+      .select({
+        date: sql<string>`DATE(${affiliateCommissions.createdAt})`,
+        amount: sql<number>`COALESCE(SUM(${affiliateCommissions.amount}), 0)`,
+      })
+      .from(affiliateCommissions)
+      .where(gte(affiliateCommissions.createdAt, startDate))
+      .groupBy(sql`DATE(${affiliateCommissions.createdAt})`)
+      .orderBy(sql`DATE(${affiliateCommissions.createdAt})`);
+
+    return result.map(r => ({ date: r.date, amount: Number(r.amount) || 0 }));
+  }
+
+  async getDailyActiveUsers(days: number): Promise<{ date: string; count: number }[]> {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    
+    const result = await db
+      .select({
+        date: sql<string>`DATE(${generatedImages.createdAt})`,
+        count: sql<number>`COUNT(DISTINCT ${generatedImages.userId})`,
+      })
+      .from(generatedImages)
+      .where(gte(generatedImages.createdAt, startDate))
+      .groupBy(sql`DATE(${generatedImages.createdAt})`)
+      .orderBy(sql`DATE(${generatedImages.createdAt})`);
+
+    return result.map(r => ({ date: r.date, count: Number(r.count) || 0 }));
+  }
+
+  async getRetentionRate(): Promise<{ weeklyRetention: number; monthlyRetention: number }> {
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setDate(oneMonthAgo.getDate() - 30);
+
+    const [weeklyResult] = await db
+      .select({ count: sql<number>`COUNT(DISTINCT ${generatedImages.userId})` })
+      .from(generatedImages)
+      .where(gte(generatedImages.createdAt, oneWeekAgo));
+
+    const [monthlyResult] = await db
+      .select({ count: sql<number>`COUNT(DISTINCT ${generatedImages.userId})` })
+      .from(generatedImages)
+      .where(gte(generatedImages.createdAt, oneMonthAgo));
+
+    const [totalUsers] = await db.select({ count: count() }).from(users);
+    const total = totalUsers?.count || 1;
+
+    return {
+      weeklyRetention: Math.round((Number(weeklyResult?.count) || 0) / total * 100),
+      monthlyRetention: Math.round((Number(monthlyResult?.count) || 0) / total * 100),
+    };
   }
 }
 
