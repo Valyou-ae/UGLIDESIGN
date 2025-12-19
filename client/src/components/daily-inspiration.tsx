@@ -21,7 +21,7 @@ const categoryColors: Record<string, { bg: string; text: string; border: string 
   architecture: { bg: "bg-slate-500/20", text: "text-slate-300", border: "border-slate-500/30" },
   nature: { bg: "bg-emerald-500/20", text: "text-emerald-300", border: "border-emerald-500/30" },
   scifi: { bg: "bg-cyan-500/20", text: "text-cyan-300", border: "border-cyan-500/30" },
-  default: { bg: "bg-[#E91E63]/20", text: "text-[#E91E63]", border: "border-[#E91E63]/30" },
+  default: { bg: "bg-[#EC4899]/20", text: "text-[#EC4899]", border: "border-[#EC4899]/30" },
 };
 
 const difficultyConfig: Record<string, { label: string; color: string }> = {
@@ -66,8 +66,8 @@ function InspirationCard({
       className={cn(
         "relative rounded-2xl overflow-hidden border backdrop-blur-sm",
         colorScheme.border,
-        "bg-gradient-to-br from-[#1a1a1a]/90 to-[#0f0f0f]/90",
-        isActive && "ring-2 ring-[#E91E63]/50"
+        "bg-gradient-to-br from-[#374151]/90 to-[#1F2937]/90",
+        isActive && "ring-2 ring-[#EC4899]/50"
       )}
       data-testid={`inspiration-card-${inspiration.id}`}
     >
@@ -78,7 +78,7 @@ function InspirationCard({
             alt={inspiration.title}
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#1F2937] via-transparent to-transparent" />
         </div>
       )}
 
@@ -87,7 +87,7 @@ function InspirationCard({
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               {inspiration.featured && (
-                <Badge variant="outline" className="bg-[#9C27B0]/20 text-[#9C27B0] border-[#9C27B0]/30 text-xs">
+                <Badge variant="outline" className="bg-[#A855F7]/20 text-[#A855F7] border-[#A855F7]/30 text-xs">
                   <Sparkles className="w-3 h-3 mr-1" />
                   Featured
                 </Badge>
@@ -107,7 +107,7 @@ function InspirationCard({
           </span>
         </div>
 
-        <div className="relative bg-[#1a1a1a] rounded-lg p-3 border border-white/5">
+        <div className="relative bg-[#374151] rounded-lg p-3 border border-white/5">
           <p className="text-sm text-white/80 line-clamp-3 pr-8">
             {inspiration.prompt}
           </p>
@@ -142,7 +142,7 @@ function InspirationCard({
         {onTryPrompt && (
           <Button
             onClick={handleTryPrompt}
-            className="w-full bg-[#E91E63] hover:bg-[#C2185B] text-white"
+            className="w-full bg-[#EC4899] hover:bg-[#DB2777] text-white"
             data-testid={`try-prompt-${inspiration.id}`}
           >
             <Lightbulb className="w-4 h-4 mr-2" />
@@ -191,7 +191,7 @@ export function DailyInspirationFeed({ onTryPrompt }: DailyInspirationProps) {
     <div className="space-y-4" data-testid="daily-inspiration-feed">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Lightbulb className="w-5 h-5 text-[#9C27B0]" />
+          <Lightbulb className="w-5 h-5 text-[#A855F7]" />
           <h2 className="text-lg font-semibold text-white">Daily Inspiration</h2>
         </div>
         {hasMultiple && (
@@ -241,7 +241,7 @@ export function DailyInspirationFeed({ onTryPrompt }: DailyInspirationProps) {
               className={cn(
                 "w-2 h-2 rounded-full transition-all",
                 index === currentIndex 
-                  ? "bg-[#E91E63] w-6" 
+                  ? "bg-[#EC4899] w-6" 
                   : "bg-white/20 hover:bg-white/40"
               )}
               data-testid={`inspiration-dot-${index}`}
@@ -276,7 +276,7 @@ export function TodaysInspiration({ onTryPrompt }: DailyInspirationProps) {
   return (
     <div className="space-y-4" data-testid="todays-inspiration">
       <div className="flex items-center gap-2">
-        <Sparkles className="w-5 h-5 text-[#9C27B0]" />
+        <Sparkles className="w-5 h-5 text-[#A855F7]" />
         <h2 className="text-lg font-semibold text-white">Today's Inspiration</h2>
       </div>
       <InspirationCard inspiration={inspiration} onTryPrompt={onTryPrompt} isActive />
@@ -310,7 +310,7 @@ export function InspirationGrid({ onTryPrompt, limit = 6 }: DailyInspirationProp
   return (
     <div className="space-y-4" data-testid="inspiration-grid">
       <div className="flex items-center gap-2">
-        <Lightbulb className="w-5 h-5 text-[#9C27B0]" />
+        <Lightbulb className="w-5 h-5 text-[#A855F7]" />
         <h2 className="text-lg font-semibold text-white">Prompt Ideas</h2>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

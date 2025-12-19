@@ -154,8 +154,8 @@ function JustifiedGalleryCard({ item, rowHeight, index, onLike, isLoggedIn }: { 
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className={cn(
-        "group w-full h-full bg-white dark:bg-[#111113] rounded-lg overflow-hidden cursor-pointer hover:shadow-[0_10px_40px_rgba(233,30,99,0.2)] transition-all duration-300",
-        item.isGenerated && "ring-2 ring-[#9C27B0] ring-offset-2 ring-offset-[#0A0A0B]"
+        "group w-full h-full bg-white dark:bg-[#1F2937] rounded-lg overflow-hidden cursor-pointer hover:shadow-[0_10px_40px_rgba(233,30,99,0.2)] transition-all duration-300",
+        item.isGenerated && "ring-2 ring-[#A855F7] ring-offset-2 ring-offset-[#374151]"
       )}>
         <div className="relative w-full h-full overflow-hidden">
           {isVisible ? (
@@ -172,7 +172,7 @@ function JustifiedGalleryCard({ item, rowHeight, index, onLike, isLoggedIn }: { 
                 )}
               />
               {!imageLoaded && (
-                <div className="absolute inset-0 bg-gradient-to-br from-[#E91E63]/20 to-[#1A1A2E]/20 animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-br from-[#EC4899]/20 to-[#374151]/20 animate-pulse" />
               )}
             </>
           ) : (
@@ -180,7 +180,7 @@ function JustifiedGalleryCard({ item, rowHeight, index, onLike, isLoggedIn }: { 
           )}
           
           {item.isGenerated && (
-            <div className="absolute top-2 right-2 bg-gradient-to-r from-[#E91E63] to-[#9C27B0] px-2 py-1 rounded-full flex items-center gap-1 z-10">
+            <div className="absolute top-2 right-2 bg-gradient-to-r from-[#EC4899] to-[#A855F7] px-2 py-1 rounded-full flex items-center gap-1 z-10">
               <Sparkles className="h-3 w-3 text-white" />
               <span className="text-[10px] font-medium text-white">NEW</span>
             </div>
@@ -188,7 +188,7 @@ function JustifiedGalleryCard({ item, rowHeight, index, onLike, isLoggedIn }: { 
           
           {!item.isGenerated && item.createdAt && (
             <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 z-10">
-              <Clock className="h-3 w-3 text-[#9C27B0]" />
+              <Clock className="h-3 w-3 text-[#A855F7]" />
               <span className="text-[10px] font-medium text-white">{formatTimeAgo(new Date(item.createdAt))}</span>
             </div>
           )}
@@ -206,7 +206,7 @@ function JustifiedGalleryCard({ item, rowHeight, index, onLike, isLoggedIn }: { 
                 data-testid={`button-like-${item.id}`}
                 className={cn(
                   "flex items-center gap-1 text-xs transition-all duration-200 hover:scale-110",
-                  item.isLiked ? "text-[#E91E63]" : "text-white/80 hover:text-[#E91E63]"
+                  item.isLiked ? "text-[#EC4899]" : "text-white/80 hover:text-[#EC4899]"
                 )}
               >
                 <Heart className={cn("h-3 w-3", item.isLiked && "fill-current")} />
@@ -229,7 +229,7 @@ function JustifiedGalleryCard({ item, rowHeight, index, onLike, isLoggedIn }: { 
                 >
                   <div className="bg-black/40 backdrop-blur-md rounded-lg p-2">
                     <p className="text-[10px] text-white/90 leading-relaxed line-clamp-2">
-                      <span className="text-[#9C27B0] font-medium">Prompt: </span>
+                      <span className="text-[#A855F7] font-medium">Prompt: </span>
                       {item.prompt}
                     </p>
                   </div>
@@ -440,7 +440,7 @@ function BrandingHeader({ isLoggedIn }: { isLoggedIn: boolean }) {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="shrink-0 bg-[#0A0A0B] border-b border-white/10 px-6"
+        className="shrink-0 bg-[#374151] border-b border-white/10 px-6"
       >
         <div className="flex items-center justify-center gap-3">
           <img src={ugliLogo} alt="UGLI" className="h-14 object-contain" data-testid="img-ugli-logo" />
@@ -456,7 +456,7 @@ function BrandingHeader({ isLoggedIn }: { isLoggedIn: boolean }) {
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="shrink-0 bg-[#0A0A0B] border-b border-white/10 px-6 py-6"
+      className="shrink-0 bg-[#374151] border-b border-white/10 px-6 py-6"
     >
       <div className="max-w-4xl mx-auto text-center">
         <div className="flex items-center justify-center gap-3 mb-3">
@@ -472,7 +472,7 @@ function BrandingHeader({ isLoggedIn }: { isLoggedIn: boolean }) {
         
         <Button 
           onClick={() => openLoginPopup()}
-          className="bg-gradient-to-r from-[#E91E63] to-[#9C27B0] hover:from-[#C2185B] hover:to-[#7B1FA2] text-white font-medium px-6 py-2 rounded-full shadow-lg shadow-[#E91E63]/30 transition-all hover:scale-105"
+          className="bg-gradient-to-r from-[#EC4899] to-[#A855F7] hover:from-[#DB2777] hover:to-[#9333EA] text-white font-medium px-6 py-2 rounded-full shadow-lg shadow-[#EC4899]/30 transition-all hover:scale-105"
           data-testid="button-get-started-hero"
         >
           Get Started Free
@@ -618,7 +618,7 @@ export default function PublicHome() {
       <GoogleAutoSignIn />
       <Sidebar className="hidden md:flex border-r border-border/50" />
       
-      <main className="flex-1 flex flex-col h-full overflow-hidden bg-[#0A0A0B]">
+      <main className="flex-1 flex flex-col h-full overflow-hidden bg-[#374151]">
         <BrandingHeader isLoggedIn={!!user} />
         <div className="flex-1 relative overflow-hidden">
           {isGalleryReady ? (
@@ -631,7 +631,7 @@ export default function PublicHome() {
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <div className="flex flex-col items-center gap-4">
-                <div className="w-12 h-12 border-4 border-[#E91E63] border-t-transparent rounded-full animate-spin" />
+                <div className="w-12 h-12 border-4 border-[#EC4899] border-t-transparent rounded-full animate-spin" />
                 <p className="text-gray-400 text-sm">Loading gallery...</p>
               </div>
             </div>

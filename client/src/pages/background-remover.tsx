@@ -119,14 +119,14 @@ const OUTPUT_TYPES: Array<{
     name: 'Custom Color', 
     description: 'Any solid color',
     icon: Palette,
-    preview: 'bg-gradient-to-br from-[#E91E63] to-[#C2185B]'
+    preview: 'bg-gradient-to-br from-[#EC4899] to-[#DB2777]'
   },
   { 
     id: 'blur', 
     name: 'Blur', 
     description: 'Bokeh depth effect',
     icon: Blend,
-    preview: 'bg-gradient-to-br from-[#9C27B0] to-[#7B1FA2] blur-sm'
+    preview: 'bg-gradient-to-br from-[#A855F7] to-[#9333EA] blur-sm'
   }
 ];
 
@@ -160,7 +160,7 @@ const QUALITY_LEVELS: Array<{
 ];
 
 const PRESET_COLORS = [
-  '#FFFFFF', '#000000', '#F8F8F8', '#1A1A1A',
+  '#FFFFFF', '#000000', '#F8F8F8', '#374151',
   '#EC4899', '#8B5CF6', '#3B82F6', '#10B981',
   '#F59E0B', '#EF4444', '#6366F1', '#14B8A6'
 ];
@@ -752,9 +752,9 @@ export default function BackgroundRemover() {
               )}
               <div className="absolute -right-2 -bottom-1 md:-right-4 md:-bottom-2 bg-white dark:bg-black rounded-full p-1 md:p-1.5 shadow-lg border border-border">
                 {mode === "single" ? (
-                  <Layers className="h-4 w-4 md:h-6 md:w-6 text-[#1A1A2E]" />
+                  <Layers className="h-4 w-4 md:h-6 md:w-6 text-[#374151]" />
                 ) : (
-                  <Grid3X3 className="h-4 w-4 md:h-6 md:w-6 text-[#1A1A2E]" />
+                  <Grid3X3 className="h-4 w-4 md:h-6 md:w-6 text-[#374151]" />
                 )}
               </div>
             </div>
@@ -781,7 +781,7 @@ export default function BackgroundRemover() {
                 className="flex flex-col items-start p-3 md:p-5 rounded-xl md:rounded-2xl bg-muted/30 border border-transparent hover:border-primary/30 hover:bg-card transition-all hover:-translate-y-0.5 w-full"
                 data-testid="import-url-button"
               >
-                <div className="p-1.5 md:p-2 rounded-lg bg-[#9C27B0]/20 dark:bg-[#9C27B0]/10 text-[#9C27B0] mb-2 md:mb-3">
+                <div className="p-1.5 md:p-2 rounded-lg bg-[#A855F7]/20 dark:bg-[#A855F7]/10 text-[#A855F7] mb-2 md:mb-3">
                   <LinkIcon className="h-4 w-4 md:h-6 md:w-6" />
                 </div>
                 <span className="text-xs md:text-sm font-semibold mb-0.5 md:mb-1 text-left">Import URL</span>
@@ -811,7 +811,7 @@ export default function BackgroundRemover() {
             onClick={() => mode === "single" ? fileInputRef.current?.click() : batchFileInputRef.current?.click()}
             data-testid="browse-files-button"
           >
-             <div className="p-1.5 md:p-2 rounded-lg bg-[#1A1A2E]/20 dark:bg-[#1A1A2E]/10 text-[#1A1A2E] mb-2 md:mb-3">
+             <div className="p-1.5 md:p-2 rounded-lg bg-[#374151]/20 dark:bg-[#374151]/10 text-[#374151] mb-2 md:mb-3">
               <ImageIcon className="h-4 w-4 md:h-6 md:w-6" />
             </div>
             <span className="text-xs md:text-sm font-semibold mb-0.5 md:mb-1 text-left">Browse Files</span>
@@ -1127,12 +1127,12 @@ export default function BackgroundRemover() {
             <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-16 mb-1">
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2">
-                  <h1 className="text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-[#E91E63] to-[#C2185B] bg-clip-text text-transparent">
+                  <h1 className="text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-[#EC4899] to-[#DB2777] bg-clip-text text-transparent">
                     Background Remover
                   </h1>
                   <Scissors className="h-5 w-5 md:h-6 md:w-6 text-primary" />
                 </div>
-                <Badge className="bg-primary hover:bg-[#C2185B] text-white rounded-full px-2 py-0.5 text-[11px]">
+                <Badge className="bg-primary hover:bg-[#DB2777] text-white rounded-full px-2 py-0.5 text-[11px]">
                   AI-Powered
                 </Badge>
               </div>
@@ -1228,7 +1228,7 @@ export default function BackgroundRemover() {
                   <Button 
                     onClick={processImage}
                     disabled={state === "processing"}
-                    className="h-12 px-8 rounded-[12px] bg-gradient-to-r from-[#E91E63] to-[#C2185B] hover:from-[#C2185B] hover:to-[#6A2D1C] text-white font-bold transition-all hover:-translate-y-[1px] hover:shadow-lg hover:shadow-primary/25"
+                    className="h-12 px-8 rounded-[12px] bg-gradient-to-r from-[#EC4899] to-[#DB2777] hover:from-[#DB2777] hover:to-[#6A2D1C] text-white font-bold transition-all hover:-translate-y-[1px] hover:shadow-lg hover:shadow-primary/25"
                     data-testid="process-button"
                   >
                     {state === "processing" ? (
@@ -1296,7 +1296,7 @@ export default function BackgroundRemover() {
                   <Button 
                     onClick={processBatch}
                     disabled={state === "processing" || batchImages.length === 0}
-                    className="h-12 px-8 rounded-[12px] bg-gradient-to-r from-[#E91E63] to-[#C2185B] hover:from-[#C2185B] hover:to-[#6A2D1C] text-white font-bold transition-all hover:-translate-y-[1px] hover:shadow-lg hover:shadow-primary/25"
+                    className="h-12 px-8 rounded-[12px] bg-gradient-to-r from-[#EC4899] to-[#DB2777] hover:from-[#DB2777] hover:to-[#6A2D1C] text-white font-bold transition-all hover:-translate-y-[1px] hover:shadow-lg hover:shadow-primary/25"
                     data-testid="process-batch-button"
                   >
                     {state === "processing" ? (
@@ -1439,7 +1439,7 @@ export default function BackgroundRemover() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button 
-                        className="h-12 px-6 rounded-[12px] bg-gradient-to-r from-[#E91E63] to-[#C2185B] hover:from-[#C2185B] hover:to-[#6A2D1C] text-white font-bold"
+                        className="h-12 px-6 rounded-[12px] bg-gradient-to-r from-[#EC4899] to-[#DB2777] hover:from-[#DB2777] hover:to-[#6A2D1C] text-white font-bold"
                         data-testid="download-button"
                       >
                         <Download className="h-5 w-5 mr-2" />
@@ -1512,7 +1512,7 @@ export default function BackgroundRemover() {
                   <Button 
                     onClick={downloadAllAsZip}
                     disabled={batchResults.successful === 0}
-                    className="h-12 px-6 rounded-[12px] bg-gradient-to-r from-[#E91E63] to-[#C2185B] hover:from-[#C2185B] hover:to-[#6A2D1C] text-white font-bold"
+                    className="h-12 px-6 rounded-[12px] bg-gradient-to-r from-[#EC4899] to-[#DB2777] hover:from-[#DB2777] hover:to-[#6A2D1C] text-white font-bold"
                     data-testid="download-all-zip"
                   >
                     <Package className="h-5 w-5 mr-2" />
@@ -1545,7 +1545,7 @@ export default function BackgroundRemover() {
             >
               <div className="absolute top-0 left-0 w-full h-1 bg-muted overflow-hidden">
                 <motion.div 
-                  className="h-full bg-gradient-to-r from-[#E91E63] to-[#C2185B]"
+                  className="h-full bg-gradient-to-r from-[#EC4899] to-[#DB2777]"
                   initial={{ width: "0%" }}
                   animate={{ width: "100%" }}
                   transition={{ duration: 30, ease: "linear" }}

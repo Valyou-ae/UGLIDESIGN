@@ -382,7 +382,7 @@ export default function MyCreations() {
     <div className="h-screen bg-background flex font-sans text-foreground overflow-hidden">
       <Sidebar className="hidden md:flex border-r border-border/50" />
       
-      <main className="flex-1 flex flex-col relative h-full overflow-hidden bg-[#F8F8F8] dark:bg-[#0A0A0B] text-foreground">
+      <main className="flex-1 flex flex-col relative h-full overflow-hidden bg-[#F8F8F8] dark:bg-[#374151] text-foreground">
         <div className="flex flex-col h-full p-8 md:px-10 md:py-8 overflow-y-auto pb-24 md:pb-8">
           
           {/* PAGE HEADER & CONTROLS - COMPACT MOBILE */}
@@ -470,7 +470,7 @@ export default function MyCreations() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setCalendarOpen(true)}
-                className="h-10 w-10 bg-white dark:bg-[#1F1F25] border border-[#E4E4E7] dark:border-[#2A2A30] rounded-lg hover:bg-[#F4F4F5] dark:hover:bg-[#2A2A30] text-[#71717A] hover:text-[#E91E63]"
+                className="h-10 w-10 bg-white dark:bg-[#1F1F25] border border-[#E4E4E7] dark:border-[#2A2A30] rounded-lg hover:bg-[#F4F4F5] dark:hover:bg-[#2A2A30] text-[#71717A] hover:text-[#EC4899]"
                 data-testid="button-calendar-history"
               >
                 <Calendar className="h-4 w-4" />
@@ -611,7 +611,7 @@ export default function MyCreations() {
               </div>
             ) : viewMode === "list" ? (
                /* LIST VIEW */
-              <div className="bg-white dark:bg-[#111113] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl overflow-hidden">
+              <div className="bg-white dark:bg-[#1F2937] border border-[#E4E4E7] dark:border-[#1F1F23] rounded-2xl overflow-hidden">
                 {/* Header */}
                 <div className="grid grid-cols-[40px_80px_2fr_1fr_1fr_1fr_100px] gap-4 px-6 py-3.5 bg-[#F9FAFB] dark:bg-[#1A1A1F] border-b border-[#E4E4E7] dark:border-[#1F1F23] text-[11px] font-bold text-[#52525B] dark:text-[#A1A1AA] uppercase tracking-wider items-center">
                   <div>{selectMode && <div className="w-5" />}</div>
@@ -648,7 +648,7 @@ export default function MyCreations() {
                     </div>
 
                     {/* Preview */}
-                    <div className="h-14 w-14 rounded-lg bg-[#0A0A0B] overflow-hidden">
+                    <div className="h-14 w-14 rounded-lg bg-[#374151] overflow-hidden">
                       <img src={item.src} className="w-full h-full object-cover" alt="" />
                     </div>
 
@@ -888,7 +888,7 @@ export default function MyCreations() {
                 <Button
                   onClick={() => fetchNextPage()}
                   disabled={isFetchingNextPage}
-                  className="bg-[#E91E63] hover:bg-[#9A3E25] text-white px-8 py-2"
+                  className="bg-[#EC4899] hover:bg-[#9A3E25] text-white px-8 py-2"
                   data-testid="button-load-more"
                 >
                   {isFetchingNextPage ? (
@@ -1046,7 +1046,7 @@ export default function MyCreations() {
                           checked={selectedItem.isPublic}
                           onCheckedChange={() => toggleVisibility(selectedItem.id, selectedItem.isPublic)}
                           data-testid="switch-visibility-creations"
-                          className="data-[state=checked]:bg-[#E91E63] scale-75"
+                          className="data-[state=checked]:bg-[#EC4899] scale-75"
                         />
                       </div>
                     </div>

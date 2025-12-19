@@ -59,9 +59,9 @@ function shuffleArray<T>(array: T[]): T[] {
 
 // Optimized: Moved outside component to prevent recreation on every render
 const PROJECT_CARD_COLORS = {
-  image: "border-[#E91E63]/50 hover:shadow-[#E91E63]/20",
-  mockup: "border-[#1A1A2E]/50 hover:shadow-[#1A1A2E]/20",
-  bg: "border-[#9C27B0]/50 hover:shadow-[#9C27B0]/20",
+  image: "border-[#EC4899]/50 hover:shadow-[#EC4899]/20",
+  mockup: "border-[#374151]/50 hover:shadow-[#374151]/20",
+  bg: "border-[#A855F7]/50 hover:shadow-[#A855F7]/20",
 } as const;
 
 // Assets
@@ -260,11 +260,11 @@ export function BentoGrid() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="lg:col-span-3 relative overflow-hidden rounded-[24px] bg-gradient-to-br from-[#E91E63] via-[#C2185B] to-[#1A1A2E] p-8 md:p-10"
+        className="lg:col-span-3 relative overflow-hidden rounded-[24px] bg-gradient-to-br from-[#EC4899] via-[#DB2777] to-[#374151] p-8 md:p-10"
       >
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48ZyBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTAgMzhoNDB2MmgtNDB6Ii8+PHBhdGggZD0iTTAgMGg0MHYyaC00MHoiLz48cGF0aCBkPSJNMCAwdjQwaDJWMHoiLz48cGF0aCBkPSJNMzggMHY0MGgyVjB6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
-        <div className="absolute -top-40 -right-40 w-[400px] h-[400px] rounded-full bg-[#9C27B0]/20 blur-3xl" />
-        <div className="absolute -bottom-20 -left-20 w-[300px] h-[300px] rounded-full bg-[#E91E63]/30 blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-[400px] h-[400px] rounded-full bg-[#A855F7]/20 blur-3xl" />
+        <div className="absolute -bottom-20 -left-20 w-[300px] h-[300px] rounded-full bg-[#EC4899]/30 blur-3xl" />
         
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="max-w-xl">
@@ -282,7 +282,7 @@ export function BentoGrid() {
           
           <div className="flex flex-wrap gap-3">
             <Link href="/image-gen">
-              <Button data-testid="button-generate-image" className="h-12 px-6 bg-white text-[#E91E63] hover:bg-white/90 rounded-xl font-semibold shadow-lg shadow-black/20">
+              <Button data-testid="button-generate-image" className="h-12 px-6 bg-white text-[#EC4899] hover:bg-white/90 rounded-xl font-semibold shadow-lg shadow-black/20">
                 <Sparkles className="h-4 w-4 mr-2" />
                 Generate Image
               </Button>
@@ -303,8 +303,8 @@ export function BentoGrid() {
           title="Image Generator" 
           description="Create stunning visuals with AI"
           icon={Sparkles}
-          gradient="bg-gradient-to-br from-[#E91E63] to-[#C2185B]"
-          circleColor="#E91E63"
+          gradient="bg-gradient-to-br from-[#EC4899] to-[#DB2777]"
+          circleColor="#EC4899"
           badgeCount="5 AI Agents"
           delay={0.1}
           href="/image-gen"
@@ -313,8 +313,8 @@ export function BentoGrid() {
           title="Mockup Generator" 
           description="Professional product mockups"
           icon={Shirt}
-          gradient="bg-gradient-to-br from-[#1A1A2E] to-[#4A3830]"
-          circleColor="#1A1A2E"
+          gradient="bg-gradient-to-br from-[#374151] to-[#4A3830]"
+          circleColor="#374151"
           badge="50+ Products"
           delay={0.2}
           href="/mockup"
@@ -323,8 +323,8 @@ export function BentoGrid() {
           title="Background Remover" 
           description="Remove backgrounds in seconds"
           icon={Scissors}
-          gradient="bg-gradient-to-br from-[#9C27B0] to-[#7B1FA2]"
-          circleColor="#9C27B0"
+          gradient="bg-gradient-to-br from-[#A855F7] to-[#9333EA]"
+          circleColor="#A855F7"
           badge="Instant"
           delay={0.3}
           href="/bg-remover"
@@ -346,7 +346,7 @@ export function BentoGrid() {
             value={stats?.images ?? 0} 
             label="Images Created" 
             trend={stats?.images ? "↑ Active" : "—"} 
-            colorClass="bg-[#E91E63]/10 text-[#E91E63] dark:bg-[#E91E63]/20 dark:text-[#D4674A]"
+            colorClass="bg-[#EC4899]/10 text-[#EC4899] dark:bg-[#EC4899]/20 dark:text-[#D4674A]"
             delay={0.4}
           />
           <StatCard 
@@ -354,7 +354,7 @@ export function BentoGrid() {
             value={stats?.mockups ?? 0} 
             label="Mockups Gen" 
             trend={stats?.mockups ? "↑ Active" : "—"} 
-            colorClass="bg-[#1A1A2E]/10 text-[#1A1A2E] dark:bg-[#1A1A2E]/20 dark:text-[#8B6B5A]"
+            colorClass="bg-[#374151]/10 text-[#374151] dark:bg-[#374151]/20 dark:text-[#8B6B5A]"
             delay={0.5}
           />
           <StatCard 
@@ -362,7 +362,7 @@ export function BentoGrid() {
             value={stats?.bgRemoved ?? 0} 
             label="BG Removed" 
             trend={stats?.bgRemoved ? "↑ Active" : "—"} 
-            colorClass="bg-[#9C27B0]/10 text-[#B99A2C] dark:bg-[#9C27B0]/20 dark:text-[#9C27B0]"
+            colorClass="bg-[#A855F7]/10 text-[#B99A2C] dark:bg-[#A855F7]/20 dark:text-[#A855F7]"
             delay={0.6}
           />
           <StatCard 
