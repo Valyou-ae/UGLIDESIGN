@@ -1608,7 +1608,7 @@ export default function MockupGenerator() {
                                         )}
                                       </button>
                                       <span className={cn(
-                                        "text-[10px] mt-1 text-center truncate w-full",
+                                        "text-xs mt-1.5 text-center truncate w-full",
                                         isSelected ? "text-primary font-medium" : "text-muted-foreground"
                                       )}>
                                         {style.name}
