@@ -342,7 +342,7 @@ export function FloatingPromptBar({ onImageGenerated }: FloatingPromptBarProps =
   return (
     <div 
       ref={containerRef}
-      className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-3xl px-4"
+      className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-[55rem] px-4"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onBlur={handleBlur}
