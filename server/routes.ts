@@ -3547,15 +3547,6 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Chat session not found" });
       }
       
-      // Also update the linked project folder name to match
-      if (session.projectId) {
-        try {
-          await storage.updateMoodBoard(userId, session.projectId, { name: smartName });
-        } catch (e) {
-          console.error("Failed to update project name:", e);
-        }
-      }
-      
       res.json({ session, name: smartName });
     } catch (error) {
       console.error("Generate session name error:", error);
