@@ -437,7 +437,7 @@ function BrandingHeader({ isLoggedIn }: { isLoggedIn: boolean }) {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="shrink-0 bg-[#0A0A0B] border-b border-white/10 px-6 py-4"
+        className="shrink-0 bg-[#0A0A0B] border-b border-white/10 px-6"
       >
         <div className="flex items-center justify-center gap-3">
           <img src={ugliLogo} alt="UGLI" className="h-12 object-contain" data-testid="img-ugli-logo" />
