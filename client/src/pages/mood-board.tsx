@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { 
   Plus, 
-  Layers, 
+  FolderKanban, 
   ArrowLeft, 
   Trash2, 
   Edit2, 
@@ -139,10 +139,10 @@ function BoardsGrid({ onSelectBoard }: { onSelectBoard: (id: string) => void }) 
       setShowCreateModal(false);
       setNewBoardName("");
       setNewBoardDescription("");
-      toast({ title: "Mood board created!" });
+      toast({ title: "Project created!" });
     },
     onError: () => {
-      toast({ title: "Failed to create mood board", variant: "destructive" });
+      toast({ title: "Failed to create project", variant: "destructive" });
     },
   });
 
@@ -150,10 +150,10 @@ function BoardsGrid({ onSelectBoard }: { onSelectBoard: (id: string) => void }) 
     mutationFn: moodBoardApi.deleteBoard,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["mood-boards"] });
-      toast({ title: "Mood board deleted" });
+      toast({ title: "Project deleted" });
     },
     onError: () => {
-      toast({ title: "Failed to delete mood board", variant: "destructive" });
+      toast({ title: "Failed to delete project", variant: "destructive" });
     },
   });
 
@@ -170,8 +170,8 @@ function BoardsGrid({ onSelectBoard }: { onSelectBoard: (id: string) => void }) 
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Layers className="h-6 w-6 text-primary" />
-            Mood Boards
+            <FolderKanban className="h-6 w-6 text-primary" />
+            Projects
           </h1>
           <p className="text-muted-foreground mt-1">
             Organize your images into visual collections
@@ -183,7 +183,7 @@ function BoardsGrid({ onSelectBoard }: { onSelectBoard: (id: string) => void }) 
           data-testid="button-create-board"
         >
           <Plus className="h-4 w-4 mr-2" />
-          New Board
+          New Project
         </Button>
       </div>
 
@@ -196,10 +196,10 @@ function BoardsGrid({ onSelectBoard }: { onSelectBoard: (id: string) => void }) 
       ) : boards.length === 0 ? (
         <Card className="py-16 text-center">
           <CardContent>
-            <Layers className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">No mood boards yet</h3>
+            <FolderKanban className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-2">No projects yet</h3>
             <p className="text-muted-foreground mb-4">
-              Create your first mood board to start organizing your images
+              Create your first project to start organizing your images
             </p>
             <Button
               onClick={() => setShowCreateModal(true)}
@@ -207,7 +207,7 @@ function BoardsGrid({ onSelectBoard }: { onSelectBoard: (id: string) => void }) 
               data-testid="button-create-first-board"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Create Your First Board
+              Create Your First Project
             </Button>
           </CardContent>
         </Card>
@@ -246,7 +246,7 @@ function BoardsGrid({ onSelectBoard }: { onSelectBoard: (id: string) => void }) 
               </CardHeader>
               <CardContent>
                 <div className="h-28 bg-gradient-to-br from-muted to-muted/50 rounded-lg flex items-center justify-center">
-                  <Layers className="h-8 w-8 text-muted-foreground" />
+                  <FolderKanban className="h-8 w-8 text-muted-foreground" />
                 </div>
                 {board.description && (
                   <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
@@ -265,7 +265,7 @@ function BoardsGrid({ onSelectBoard }: { onSelectBoard: (id: string) => void }) 
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create New Mood Board</DialogTitle>
+            <DialogTitle>Create New Project</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -273,7 +273,7 @@ function BoardsGrid({ onSelectBoard }: { onSelectBoard: (id: string) => void }) 
               <Input
                 value={newBoardName}
                 onChange={(e) => setNewBoardName(e.target.value)}
-                placeholder="My Inspiration Board"
+                placeholder="My Inspiration Project"
                 className="mt-1"
                 data-testid="input-board-name"
               />
@@ -283,7 +283,7 @@ function BoardsGrid({ onSelectBoard }: { onSelectBoard: (id: string) => void }) 
               <Textarea
                 value={newBoardDescription}
                 onChange={(e) => setNewBoardDescription(e.target.value)}
-                placeholder="What's this board about?"
+                placeholder="What's this project about?"
                 className="mt-1"
                 data-testid="input-board-description"
               />
@@ -299,7 +299,7 @@ function BoardsGrid({ onSelectBoard }: { onSelectBoard: (id: string) => void }) 
               className="bg-gradient-to-r from-[#E91E63] to-[#9C27B0] text-white"
               data-testid="button-confirm-create"
             >
-              {createBoardMutation.isPending ? "Creating..." : "Create Board"}
+              {createBoardMutation.isPending ? "Creating..." : "Create Project"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -348,7 +348,7 @@ function BoardCanvas({ boardId, onBack }: { boardId: string; onBack: () => void 
     mutationFn: (itemId: string) => moodBoardApi.removeItem(boardId, itemId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["mood-board", boardId] });
-      toast({ title: "Image removed from board" });
+      toast({ title: "Image removed from project" });
     },
   });
 
@@ -409,7 +409,7 @@ function BoardCanvas({ boardId, onBack }: { boardId: string; onBack: () => void 
   if (!boardData) {
     return (
       <div className="text-center py-16">
-        <p className="text-muted-foreground">Board not found</p>
+        <p className="text-muted-foreground">Project not found</p>
         <Button variant="outline" onClick={onBack} className="mt-4">
           Go Back
         </Button>
@@ -478,9 +478,9 @@ function BoardCanvas({ boardId, onBack }: { boardId: string; onBack: () => void 
           {boardData.items.length === 0 && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="text-center">
-                <Layers className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
+                <FolderKanban className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
                 <p className="text-muted-foreground">
-                  Drag images here to add them to your board
+                  Drag images here to add them to your project
                 </p>
               </div>
             </div>
