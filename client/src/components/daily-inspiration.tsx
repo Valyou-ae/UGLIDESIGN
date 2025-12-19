@@ -17,11 +17,11 @@ const categoryColors: Record<string, { bg: string; text: string; border: string 
   portrait: { bg: "bg-blue-500/20", text: "text-blue-300", border: "border-blue-500/30" },
   landscape: { bg: "bg-green-500/20", text: "text-green-300", border: "border-green-500/30" },
   abstract: { bg: "bg-pink-500/20", text: "text-pink-300", border: "border-pink-500/30" },
-  product: { bg: "bg-amber-500/20", text: "text-amber-300", border: "border-amber-500/30" },
+  product: { bg: "bg-purple-500/20", text: "text-purple-300", border: "border-purple-500/30" },
   architecture: { bg: "bg-slate-500/20", text: "text-slate-300", border: "border-slate-500/30" },
   nature: { bg: "bg-emerald-500/20", text: "text-emerald-300", border: "border-emerald-500/30" },
   scifi: { bg: "bg-cyan-500/20", text: "text-cyan-300", border: "border-cyan-500/30" },
-  default: { bg: "bg-[#B94E30]/20", text: "text-[#B94E30]", border: "border-[#B94E30]/30" },
+  default: { bg: "bg-[#E91E63]/20", text: "text-[#E91E63]", border: "border-[#E91E63]/30" },
 };
 
 const difficultyConfig: Record<string, { label: string; color: string }> = {
@@ -67,7 +67,7 @@ function InspirationCard({
         "relative rounded-2xl overflow-hidden border backdrop-blur-sm",
         colorScheme.border,
         "bg-gradient-to-br from-[#1a1a1a]/90 to-[#0f0f0f]/90",
-        isActive && "ring-2 ring-[#B94E30]/50"
+        isActive && "ring-2 ring-[#E91E63]/50"
       )}
       data-testid={`inspiration-card-${inspiration.id}`}
     >
@@ -87,7 +87,7 @@ function InspirationCard({
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               {inspiration.featured && (
-                <Badge variant="outline" className="bg-[#E3B436]/20 text-[#E3B436] border-[#E3B436]/30 text-xs">
+                <Badge variant="outline" className="bg-[#9C27B0]/20 text-[#9C27B0] border-[#9C27B0]/30 text-xs">
                   <Sparkles className="w-3 h-3 mr-1" />
                   Featured
                 </Badge>
@@ -142,7 +142,7 @@ function InspirationCard({
         {onTryPrompt && (
           <Button
             onClick={handleTryPrompt}
-            className="w-full bg-[#B94E30] hover:bg-[#9a3f27] text-white"
+            className="w-full bg-[#E91E63] hover:bg-[#C2185B] text-white"
             data-testid={`try-prompt-${inspiration.id}`}
           >
             <Lightbulb className="w-4 h-4 mr-2" />
@@ -191,7 +191,7 @@ export function DailyInspirationFeed({ onTryPrompt }: DailyInspirationProps) {
     <div className="space-y-4" data-testid="daily-inspiration-feed">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Lightbulb className="w-5 h-5 text-[#E3B436]" />
+          <Lightbulb className="w-5 h-5 text-[#9C27B0]" />
           <h2 className="text-lg font-semibold text-white">Daily Inspiration</h2>
         </div>
         {hasMultiple && (
@@ -241,7 +241,7 @@ export function DailyInspirationFeed({ onTryPrompt }: DailyInspirationProps) {
               className={cn(
                 "w-2 h-2 rounded-full transition-all",
                 index === currentIndex 
-                  ? "bg-[#B94E30] w-6" 
+                  ? "bg-[#E91E63] w-6" 
                   : "bg-white/20 hover:bg-white/40"
               )}
               data-testid={`inspiration-dot-${index}`}
@@ -276,7 +276,7 @@ export function TodaysInspiration({ onTryPrompt }: DailyInspirationProps) {
   return (
     <div className="space-y-4" data-testid="todays-inspiration">
       <div className="flex items-center gap-2">
-        <Sparkles className="w-5 h-5 text-[#E3B436]" />
+        <Sparkles className="w-5 h-5 text-[#9C27B0]" />
         <h2 className="text-lg font-semibold text-white">Today's Inspiration</h2>
       </div>
       <InspirationCard inspiration={inspiration} onTryPrompt={onTryPrompt} isActive />
@@ -310,7 +310,7 @@ export function InspirationGrid({ onTryPrompt, limit = 6 }: DailyInspirationProp
   return (
     <div className="space-y-4" data-testid="inspiration-grid">
       <div className="flex items-center gap-2">
-        <Lightbulb className="w-5 h-5 text-[#E3B436]" />
+        <Lightbulb className="w-5 h-5 text-[#9C27B0]" />
         <h2 className="text-lg font-semibold text-white">Prompt Ideas</h2>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -161,7 +161,7 @@ function getRankIcon(rank: number) {
     case 2:
       return <Medal className="h-4 w-4 text-gray-400" />;
     case 3:
-      return <Award className="h-4 w-4 text-amber-600" />;
+      return <Award className="h-4 w-4 text-purple-600" />;
     default:
       return <span className="text-muted-foreground font-mono text-xs">#{rank}</span>;
   }
@@ -177,9 +177,9 @@ type Agent = {
 };
 
 const AGENTS: Agent[] = [
-  { id: 1, name: "Text Sentinel", status: "idle", message: "Analyzing prompt...", icon: Bot, activeColor: "#B94E30" },
-  { id: 2, name: "Style Architect", status: "idle", message: "Enhancing style...", icon: Sparkles, activeColor: "#E3B436" },
-  { id: 3, name: "Visual Synthesizer", status: "idle", message: "Generating image...", icon: Palette, activeColor: "#664D3F" },
+  { id: 1, name: "Text Sentinel", status: "idle", message: "Analyzing prompt...", icon: Bot, activeColor: "#E91E63" },
+  { id: 2, name: "Style Architect", status: "idle", message: "Enhancing style...", icon: Sparkles, activeColor: "#9C27B0" },
+  { id: 3, name: "Visual Synthesizer", status: "idle", message: "Generating image...", icon: Palette, activeColor: "#1A1A2E" },
 ];
 
 const STYLE_PRESETS = [
@@ -308,7 +308,7 @@ export default function ImageGenerator() {
     toast({ 
       title: "Tutorial Complete!", 
       description: "You're ready to create amazing AI-generated images.",
-      className: "bg-gradient-to-r from-[#B94E30]/10 to-[#E3B436]/10 border-[#B94E30]/30 text-foreground"
+      className: "bg-gradient-to-r from-[#E91E63]/10 to-[#9C27B0]/10 border-[#E91E63]/30 text-foreground"
     });
   };
 
@@ -362,7 +362,7 @@ export default function ImageGenerator() {
       toast({ 
         title: "Prompt Saved!", 
         description: `"${favoriteName}" has been saved to your favorites.`,
-        className: "bg-[#B94E30]/10 border-[#B94E30]/30 text-[#B94E30] dark:bg-[#B94E30]/20 dark:border-[#B94E30]/50 dark:text-[#E3B436]"
+        className: "bg-[#E91E63]/10 border-[#E91E63]/30 text-[#E91E63] dark:bg-[#E91E63]/20 dark:border-[#E91E63]/50 dark:text-[#9C27B0]"
       });
     } catch (error) {
       toast({ title: "Save Failed", description: error instanceof Error ? error.message : "Could not save prompt.", variant: "destructive" });
@@ -384,7 +384,7 @@ export default function ImageGenerator() {
     toast({ 
       title: "Prompt Loaded", 
       description: `Loaded "${favorite.name}" with all settings.`,
-      className: "bg-[#B94E30]/10 border-[#B94E30]/30 text-[#B94E30] dark:bg-[#B94E30]/20 dark:border-[#B94E30]/50 dark:text-[#E3B436]"
+      className: "bg-[#E91E63]/10 border-[#E91E63]/30 text-[#E91E63] dark:bg-[#E91E63]/20 dark:border-[#E91E63]/50 dark:text-[#9C27B0]"
     });
   };
 
@@ -513,7 +513,7 @@ export default function ImageGenerator() {
         setSelectedImage(prev => prev ? { ...prev, isFavorite: !prev.isFavorite } : null);
       }
       if (isUnsavedImage(id)) {
-        toast({ title: "Save First", description: "Save the image to persist your favorite.", className: "bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-900/20 dark:border-amber-900/50 dark:text-amber-400" });
+        toast({ title: "Save First", description: "Save the image to persist your favorite.", className: "bg-purple-50 border-purple-200 text-purple-800 dark:bg-purple-900/20 dark:border-purple-900/50 dark:text-purple-400" });
       }
       return;
     }
@@ -541,7 +541,7 @@ export default function ImageGenerator() {
     }
     
     if (id.startsWith("sample-") || isUnsavedImage(id)) {
-      toast({ title: "Save First", description: "Save the image before changing visibility.", className: "bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-900/20 dark:border-amber-900/50 dark:text-amber-400" });
+      toast({ title: "Save First", description: "Save the image before changing visibility.", className: "bg-purple-50 border-purple-200 text-purple-800 dark:bg-purple-900/20 dark:border-purple-900/50 dark:text-purple-400" });
       return;
     }
     
@@ -734,7 +734,7 @@ export default function ImageGenerator() {
     toast({
       title: "Listening...",
       description: "Speak now to add to your prompt.",
-      className: "bg-[#B94E30]/10 border-[#B94E30]/30 text-[#B94E30]"
+      className: "bg-[#E91E63]/10 border-[#E91E63]/30 text-[#E91E63]"
     });
 
     recognition.onresult = (event: any) => {
@@ -1005,7 +1005,7 @@ export default function ImageGenerator() {
               toast({
                 title: "Image Generated!",
                 description: `Created ${imageCount} image${imageCount > 1 ? "s" : ""}. Saving to your creations...`,
-                className: "bg-[#B94E30]/10 border-[#B94E30]/30 text-[#B94E30] dark:bg-[#B94E30]/20 dark:border-[#B94E30]/50 dark:text-[#E3B436]",
+                className: "bg-[#E91E63]/10 border-[#E91E63]/30 text-[#E91E63] dark:bg-[#E91E63]/20 dark:border-[#E91E63]/50 dark:text-[#9C27B0]",
               });
               
               let savedCount = 0;
@@ -1070,7 +1070,7 @@ export default function ImageGenerator() {
             toast({
               title: "Image Generated!",
               description: `Created ${imageCount} image${imageCount > 1 ? "s" : ""}. ${preSavedCount > 0 ? 'Saved!' : 'Sign in to save to your library.'}`,
-              className: "bg-[#B94E30]/10 border-[#B94E30]/30 text-[#B94E30] dark:bg-[#B94E30]/20 dark:border-[#B94E30]/50 dark:text-[#E3B436]",
+              className: "bg-[#E91E63]/10 border-[#E91E63]/30 text-[#E91E63] dark:bg-[#E91E63]/20 dark:border-[#E91E63]/50 dark:text-[#9C27B0]",
             });
             setTimeout(() => {
               setStatus("idle");
@@ -1160,7 +1160,7 @@ export default function ImageGenerator() {
     toast({
       title: "Image Generated!",
       description: "Your creation is ready.",
-      className: "bg-[#B94E30]/10 border-[#B94E30]/30 text-[#B94E30] dark:bg-[#B94E30]/20 dark:border-[#B94E30]/50 dark:text-[#E3B436]",
+      className: "bg-[#E91E63]/10 border-[#E91E63]/30 text-[#E91E63] dark:bg-[#E91E63]/20 dark:border-[#E91E63]/50 dark:text-[#9C27B0]",
     });
 
     // Reset agents after delay
@@ -1497,7 +1497,7 @@ export default function ImageGenerator() {
                           disabled={status === "generating"}
                           size="icon"
                           data-testid="button-generate"
-                          className="h-9 w-9 rounded-lg bg-gradient-to-r from-[#B94E30] to-[#8B3A24] hover:brightness-110 text-white shadow-sm transition-all"
+                          className="h-9 w-9 rounded-lg bg-gradient-to-r from-[#E91E63] to-[#C2185B] hover:brightness-110 text-white shadow-sm transition-all"
                         >
                           {status === "generating" ? (
                             <RefreshCw className="h-4 w-4 animate-spin" />
@@ -1541,12 +1541,12 @@ export default function ImageGenerator() {
                           data-testid="button-load-prompts"
                           className="h-9 w-9 rounded-lg transition-all"
                         >
-                          <BookmarkCheck className="h-5 w-5 text-[#B94E30]" />
+                          <BookmarkCheck className="h-5 w-5 text-[#E91E63]" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-[280px] max-h-[320px] overflow-y-auto">
                         <DropdownMenuLabel className="flex items-center gap-2 text-xs">
-                          <BookmarkCheck className="h-3.5 w-3.5 text-[#B94E30]" />
+                          <BookmarkCheck className="h-3.5 w-3.5 text-[#E91E63]" />
                           Saved Prompts ({savedPrompts.length})
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
@@ -1881,9 +1881,9 @@ export default function ImageGenerator() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="relative">
-                      <div className="h-10 w-10 rounded-full border-2 border-[#B94E30]/30 flex items-center justify-center backdrop-blur-sm bg-background/50">
+                      <div className="h-10 w-10 rounded-full border-2 border-[#E91E63]/30 flex items-center justify-center backdrop-blur-sm bg-background/50">
                         <motion.div
-                          className="absolute inset-0 rounded-full border-2 border-[#B94E30]"
+                          className="absolute inset-0 rounded-full border-2 border-[#E91E63]"
                           style={{ borderTopColor: 'transparent', borderLeftColor: 'transparent' }}
                           animate={{ rotate: 360 }}
                           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -1918,7 +1918,7 @@ export default function ImageGenerator() {
                       className={cn(
                         "relative rounded-xl overflow-hidden border transition-all",
                         pending.status === 'loading' 
-                          ? "bg-gradient-to-br from-[#B94E30]/5 to-[#E3B436]/5 border-[#B94E30]/20" 
+                          ? "bg-gradient-to-br from-[#E91E63]/5 to-[#9C27B0]/5 border-[#E91E63]/20" 
                           : "border-border bg-card"
                       )}
                       style={{ aspectRatio: settings.aspectRatio === "16:9" ? "16/9" : settings.aspectRatio === "9:16" ? "9/16" : settings.aspectRatio === "4:3" ? "4/3" : settings.aspectRatio === "3:4" ? "3/4" : "1/1" }}
@@ -1926,7 +1926,7 @@ export default function ImageGenerator() {
                       {pending.status === 'loading' ? (
                         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
                           <motion.div
-                            className="h-8 w-8 rounded-full border-2 border-[#B94E30] border-t-transparent"
+                            className="h-8 w-8 rounded-full border-2 border-[#E91E63] border-t-transparent"
                             animate={{ rotate: 360 }}
                             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                           />
@@ -2025,7 +2025,7 @@ export default function ImageGenerator() {
                         </div>
                       </div>
                       {gen.isNew && (
-                        <div className="absolute top-2 left-2 px-1.5 py-0.5 bg-[#B94E30] text-white text-[9px] font-bold rounded">NEW</div>
+                        <div className="absolute top-2 left-2 px-1.5 py-0.5 bg-[#E91E63] text-white text-[9px] font-bold rounded">NEW</div>
                       )}
                     </motion.div>
                   ))}
@@ -2039,7 +2039,7 @@ export default function ImageGenerator() {
             {/* Top Creators Leaderboard */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <Trophy className="h-4 w-4 text-[#E3B436]" />
+                <Trophy className="h-4 w-4 text-[#9C27B0]" />
                 <h3 className="text-sm font-semibold text-foreground">Top Creators</h3>
               </div>
               <div className="bg-muted/30 border border-border rounded-xl p-4">
@@ -2112,7 +2112,7 @@ export default function ImageGenerator() {
             {/* Empty State - Only when no generations at all */}
             {generations.length === 0 && status !== "generating" && (
               <div className="flex flex-col items-center justify-center text-center py-16">
-                <div className="w-32 h-32 bg-gradient-to-tr from-[#B94E30] to-[#E3B436] rounded-full blur-[60px] opacity-20 mb-6" />
+                <div className="w-32 h-32 bg-gradient-to-tr from-[#E91E63] to-[#9C27B0] rounded-full blur-[60px] opacity-20 mb-6" />
                 <h2 className="text-2xl font-bold mb-2 text-foreground">Ready to Create</h2>
                 <p className="text-muted-foreground mb-6 max-w-md">
                   Type a prompt above or pick one from the suggestions to generate your first image.
@@ -2285,7 +2285,7 @@ export default function ImageGenerator() {
                             checked={selectedImage.isPublic || false}
                             onCheckedChange={() => toggleVisibility(selectedImage.id, selectedImage.isPublic || false)}
                             data-testid="switch-visibility"
-                            className="data-[state=checked]:bg-[#B94E30] scale-75"
+                            className="data-[state=checked]:bg-[#E91E63] scale-75"
                           />
                         </div>
                       </div>
@@ -2409,7 +2409,7 @@ export default function ImageGenerator() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Bookmark className="h-5 w-5 text-[#B94E30]" />
+              <Bookmark className="h-5 w-5 text-[#E91E63]" />
               Save Prompt
             </DialogTitle>
           </DialogHeader>
@@ -2422,7 +2422,7 @@ export default function ImageGenerator() {
                 value={favoriteName}
                 onChange={(e) => setFavoriteName(e.target.value)}
                 data-testid="input-favorite-name"
-                className="focus-visible:ring-[#B94E30]"
+                className="focus-visible:ring-[#E91E63]"
               />
             </div>
             
@@ -2474,7 +2474,7 @@ export default function ImageGenerator() {
               onClick={handleSavePromptFavorite}
               disabled={isSavingFavorite || !favoriteName.trim()}
               data-testid="button-confirm-save-prompt"
-              className="bg-[#B94E30] hover:bg-[#8B3A24] text-white"
+              className="bg-[#E91E63] hover:bg-[#C2185B] text-white"
             >
               {isSavingFavorite ? (
                 <>

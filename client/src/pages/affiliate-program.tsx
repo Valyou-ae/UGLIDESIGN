@@ -210,7 +210,7 @@ export default function AffiliateProgram() {
           </div>
 
           {/* Hero Card */}
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#B94E30] to-[#8B3A24] p-6 md:p-12 text-white shadow-xl">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#E91E63] to-[#C2185B] p-6 md:p-12 text-white shadow-xl">
             <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
             <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
             
@@ -254,7 +254,7 @@ export default function AffiliateProgram() {
                       />
                       <Globe className="absolute right-3 top-3 h-4 w-4 text-white/80" />
                     </div>
-                    <Button onClick={handleCopy} size="icon" className="bg-white text-[#B94E30] hover:bg-white/90 shrink-0">
+                    <Button onClick={handleCopy} size="icon" className="bg-white text-[#E91E63] hover:bg-white/90 shrink-0">
                       {copied ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                     </Button>
                   </div>
@@ -346,7 +346,7 @@ export default function AffiliateProgram() {
                     </CardHeader>
                     <CardContent className="space-y-6">
                       <div className="flex gap-4">
-                        <div className="h-10 w-10 rounded-full bg-[#B94E30]/10 dark:bg-[#B94E30]/20 flex items-center justify-center shrink-0 text-[#B94E30] font-bold">1</div>
+                        <div className="h-10 w-10 rounded-full bg-[#E91E63]/10 dark:bg-[#E91E63]/20 flex items-center justify-center shrink-0 text-[#E91E63] font-bold">1</div>
                         <div>
                           <h3 className="font-semibold">Share your link</h3>
                           <p className="text-sm text-muted-foreground mt-1">
@@ -355,7 +355,7 @@ export default function AffiliateProgram() {
                         </div>
                       </div>
                       <div className="flex gap-4">
-                        <div className="h-10 w-10 rounded-full bg-[#E3B436]/10 dark:bg-[#E3B436]/20 flex items-center justify-center shrink-0 text-[#E3B436] font-bold">2</div>
+                        <div className="h-10 w-10 rounded-full bg-[#9C27B0]/10 dark:bg-[#9C27B0]/20 flex items-center justify-center shrink-0 text-[#9C27B0] font-bold">2</div>
                         <div>
                           <h3 className="font-semibold">They subscribe</h3>
                           <p className="text-sm text-muted-foreground mt-1">
@@ -425,8 +425,8 @@ export default function AffiliateProgram() {
                           {referredUsers.map((user: any, i: number) => (
                             <div key={user.id || i} className="flex items-center justify-between py-2 border-b last:border-0 border-border" data-testid={`row-referral-${i}`}>
                               <div className="flex items-center gap-3">
-                                <div className="h-8 w-8 rounded-full bg-[#B94E30]/10 flex items-center justify-center">
-                                  <Users className="h-4 w-4 text-[#B94E30]" />
+                                <div className="h-8 w-8 rounded-full bg-[#E91E63]/10 flex items-center justify-center">
+                                  <Users className="h-4 w-4 text-[#E91E63]" />
                                 </div>
                                 <div>
                                   <p className="text-sm font-medium">{user.email ? user.email.replace(/(.{3}).*(@.*)/, '$1***$2') : 'User'}</p>

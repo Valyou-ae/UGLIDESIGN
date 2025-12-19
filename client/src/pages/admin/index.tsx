@@ -187,7 +187,7 @@ export default function AdminDashboard() {
             description="Registered users"
             icon={Users}
             trend={analytics?.totalUsers ? "+12%" : undefined}
-            colorClass="text-[#B94E30]"
+            colorClass="text-[#E91E63]"
             isLoading={isLoading}
             testId="card-total-users"
           />
@@ -207,7 +207,7 @@ export default function AdminDashboard() {
             description="Total generations"
             icon={ImageIcon}
             trend={analytics?.totalImages ? "+23%" : undefined}
-            colorClass="text-[#E3B436]"
+            colorClass="text-[#9C27B0]"
             isLoading={isLoading}
             testId="card-total-images"
           />
@@ -217,7 +217,7 @@ export default function AdminDashboard() {
             description="Affiliate earnings"
             icon={DollarSign}
             trend={analytics?.totalCommissions ? "+18%" : undefined}
-            colorClass="text-[#664D3F]"
+            colorClass="text-[#1A1A2E]"
             isLoading={isLoading}
             testId="card-total-commissions"
           />
@@ -236,7 +236,7 @@ export default function AdminDashboard() {
                   description="Manage users, roles, and permissions"
                   icon={Users}
                   href="/admin/users"
-                  gradient="bg-gradient-to-br from-[#B94E30] to-[#8B3A24]"
+                  gradient="bg-gradient-to-br from-[#E91E63] to-[#C2185B]"
                   testId="link-admin-users"
                 />
                 <QuickActionCard
@@ -244,7 +244,7 @@ export default function AdminDashboard() {
                   description="Manage contacts, deals, and activities"
                   icon={Briefcase}
                   href="/admin/crm"
-                  gradient="bg-gradient-to-br from-[#664D3F] to-[#4A3830]"
+                  gradient="bg-gradient-to-br from-[#1A1A2E] to-[#4A3830]"
                   testId="link-admin-crm"
                 />
                 <QuickActionCard
@@ -252,7 +252,7 @@ export default function AdminDashboard() {
                   description="View detailed platform analytics"
                   icon={BarChart3}
                   href="/admin/analytics"
-                  gradient="bg-gradient-to-br from-[#E3B436] to-[#C99C2A]"
+                  gradient="bg-gradient-to-br from-[#9C27B0] to-[#7B1FA2]"
                   testId="link-admin-analytics"
                 />
               </div>

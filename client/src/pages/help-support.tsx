@@ -1006,7 +1006,7 @@ export default function HelpSupport() {
                 <Button 
                   onClick={handleStartTutorial}
                   data-testid="button-start-tutorial"
-                  className="bg-gradient-to-r from-[#B94E30] to-[#E3B436] hover:brightness-110 text-white rounded-xl px-6 py-3 h-auto text-sm font-semibold shadow-lg shadow-[#B94E30]/20 transition-all"
+                  className="bg-gradient-to-r from-[#E91E63] to-[#9C27B0] hover:brightness-110 text-white rounded-xl px-6 py-3 h-auto text-sm font-semibold shadow-lg shadow-[#E91E63]/20 transition-all"
                 >
                   <Sparkles className="h-4 w-4 mr-2" />
                   Start Interactive Tutorial
