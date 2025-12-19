@@ -3529,8 +3529,19 @@ export async function registerRoutes(
         return res.status(400).json({ message: "First message is required" });
       }
       
+      // Check if name is already locked
+      const existingSession = await storage.getChatSession(id, userId);
+      if (!existingSession) {
+        return res.status(404).json({ message: "Chat session not found" });
+      }
+      
+      if (existingSession.nameLocked) {
+        // Name already locked, return existing name
+        return res.json({ session: existingSession, name: existingSession.name });
+      }
+      
       const smartName = await generateChatSessionName(firstMessage);
-      const session = await storage.updateChatSession(id, userId, { name: smartName });
+      const session = await storage.updateChatSession(id, userId, { name: smartName, nameLocked: true });
       
       if (!session) {
         return res.status(404).json({ message: "Chat session not found" });

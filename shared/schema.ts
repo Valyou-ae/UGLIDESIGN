@@ -233,6 +233,7 @@ export const chatSessions = pgTable("chat_sessions", {
   userId: varchar("user_id").references(() => users.id).notNull(),
   projectId: varchar("project_id").references(() => moodBoards.id),
   name: text("name").notNull(),
+  nameLocked: boolean("name_locked").default(false),
   preferences: jsonb("preferences").$type<{
     preferredStyles: string[];
     preferredMood: string;

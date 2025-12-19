@@ -641,11 +641,7 @@ export default function ChatStudio() {
   });
 
   useEffect(() => {
-    if (user && !sessionId) {
-      const chatName = `Creative Session ${new Date().toLocaleDateString()}`;
-      createSessionMutation.mutate(chatName);
-    }
-    
+    // Don't auto-create sessions on page load - wait until first message
     const greeting: ChatMessageType = {
       id: '1',
       role: 'assistant',
@@ -689,22 +685,43 @@ export default function ChatStudio() {
   };
 
   const processUserInput = async (content: string, imageBase64?: string | null) => {
-    addUserMessage(content);
     setIsLoading(true);
-
-    if (!sessionId) {
-      addAgentMessage(
-        "Setting up your session... Please try again in a moment.",
-        INITIAL_OPTIONS
-      );
-      setIsLoading(false);
-      return;
+    
+    let currentSessionId = sessionId;
+    
+    // Create session on first message if it doesn't exist
+    if (!currentSessionId) {
+      try {
+        const res = await apiRequest("POST", "/api/chat/sessions", { 
+          name: `Creative Session ${new Date().toLocaleDateString()}`, 
+          createProject: true 
+        });
+        const data = await res.json();
+        currentSessionId = data.session.id;
+        setSessionId(data.session.id);
+        if (data.projectId) {
+          setProjectId(data.projectId);
+          setProjectName(data.session.name);
+        }
+        queryClient.invalidateQueries({ queryKey: ["/api/chat/sessions"] });
+      } catch (error) {
+        console.error("Failed to create session:", error);
+        addAgentMessage(
+          "I couldn't set up your session. Please try again.",
+          INITIAL_OPTIONS
+        );
+        setIsLoading(false);
+        return;
+      }
     }
+    
+    addUserMessage(content);
 
     const isFirstMessage = stage === 'initial' && !selectedSubject;
     
+    // Generate smart name only on first message and lock it
     if (isFirstMessage) {
-      apiRequest("POST", `/api/chat/sessions/${sessionId}/generate-name`, { firstMessage: content })
+      apiRequest("POST", `/api/chat/sessions/${currentSessionId}/generate-name`, { firstMessage: content })
         .then(res => res.json())
         .then(data => {
           if (data.name) {
@@ -721,7 +738,7 @@ export default function ChatStudio() {
         .map(m => ({ role: m.role, content: m.content }));
       chatMessages.push({ role: 'user' as const, content });
       
-      const res = await apiRequest("POST", `/api/chat/sessions/${sessionId}/chat`, {
+      const res = await apiRequest("POST", `/api/chat/sessions/${currentSessionId}/chat`, {
         messages: chatMessages,
         context: { 
           subject: selectedSubject, 
