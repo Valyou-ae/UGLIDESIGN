@@ -17,6 +17,7 @@ import { useLoginPopup } from "@/components/login-popup";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
+import ugliLogo from "@assets/Ugli_Logo_(1)_1766145410500.png";
 
 interface InspirationItem {
   id: string;
@@ -439,10 +440,7 @@ function BrandingHeader({ isLoggedIn }: { isLoggedIn: boolean }) {
         className="shrink-0 bg-[#0A0A0B] border-b border-white/10 px-6 py-4"
       >
         <div className="flex items-center justify-center gap-3">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#E91E63] to-[#9C27B0] flex items-center justify-center shadow-md shadow-[#E91E63]/20">
-            <div className="h-3 w-3 bg-white/20 rounded-sm backdrop-blur-sm" />
-          </div>
-          <span className="font-bold text-xl text-white" data-testid="text-ugli-logo">UGLI</span>
+          <img src={ugliLogo} alt="UGLI" className="h-10 object-contain" data-testid="img-ugli-logo" />
           <span className="text-white/40 mx-2">|</span>
           <span className="text-sm text-white/60" data-testid="text-tagline">AI-Powered Creative Studio</span>
         </div>
@@ -459,10 +457,7 @@ function BrandingHeader({ isLoggedIn }: { isLoggedIn: boolean }) {
     >
       <div className="max-w-4xl mx-auto text-center">
         <div className="flex items-center justify-center gap-3 mb-3">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#E91E63] to-[#9C27B0] flex items-center justify-center shadow-lg shadow-[#E91E63]/30">
-            <div className="h-4 w-4 bg-white/20 rounded-md backdrop-blur-sm" />
-          </div>
-          <span className="font-bold text-3xl text-white" data-testid="text-ugli-logo">UGLI</span>
+          <img src={ugliLogo} alt="UGLI" className="h-14 object-contain" data-testid="img-ugli-logo" />
         </div>
         
         <h1 className="text-lg md:text-xl font-medium text-white/90 mb-1" data-testid="text-tagline">
