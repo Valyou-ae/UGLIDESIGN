@@ -78,7 +78,9 @@ const DETAIL_LEVELS = [
 ];
 
 const countOptions = [
-  { id: "1", label: "1" },
+  { id: "1", label: "1", disabled: false },
+  { id: "2", label: "2", disabled: true },
+  { id: "4", label: "4", disabled: true },
 ];
 
 type DropdownType = "style" | "count" | "quality" | "speed" | "ratio" | "detail" | "styleExpanded" | "countExpanded" | null;
@@ -632,20 +634,30 @@ export function FloatingPromptBar({ onImageGenerated }: FloatingPromptBarProps =
 
                   <div className="flex items-center gap-0.5 p-1 bg-white/5 rounded-lg">
                     {countOptions.map((option) => (
-                      <button
-                        key={option.id}
-                        onClick={() => setSelectedCount(option.id)}
-                        className={cn(
-                          "w-7 h-7 flex items-center justify-center rounded text-xs font-semibold transition-all",
-                          selectedCount === option.id
-                            ? "bg-[#E91E63] text-white"
-                            : "text-white/50 hover:text-white hover:bg-white/10"
-                        )}
-                        data-testid={`count-${option.id}`}
-                        title={`Generate ${option.label} image${option.id !== "1" ? "s" : ""}`}
-                      >
-                        {option.label}
-                      </button>
+                      option.disabled ? (
+                        <span
+                          key={option.id}
+                          className="w-7 h-7 flex items-center justify-center rounded text-xs font-semibold text-white/30 cursor-not-allowed"
+                          data-testid={`count-${option.id}`}
+                        >
+                          {option.label}
+                        </span>
+                      ) : (
+                        <button
+                          key={option.id}
+                          onClick={() => setSelectedCount(option.id)}
+                          className={cn(
+                            "w-7 h-7 flex items-center justify-center rounded text-xs font-semibold transition-all",
+                            selectedCount === option.id
+                              ? "bg-[#E91E63] text-white"
+                              : "text-white/50 hover:text-white hover:bg-white/10"
+                          )}
+                          data-testid={`count-${option.id}`}
+                          title={`Generate ${option.label} image${option.id !== "1" ? "s" : ""}`}
+                        >
+                          {option.label}
+                        </button>
+                      )
                     ))}
                   </div>
                 </div>
