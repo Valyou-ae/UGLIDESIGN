@@ -202,14 +202,9 @@ const BRAND_STYLES = [
 // Types
 type JourneyType = "DTG" | "AOP" | null;
 type WizardStep = 
-  | "upload" 
-  | "seamless" 
-  | "product" 
-  | "model"
-  | "style" 
-  | "scene" 
-  | "angles" 
-  | "generate";
+  | "design"    // Upload + Style (+ Seamless for AOP)
+  | "product"   // Product picker + Colors + Scene
+  | "output";   // Angles + Quality + Generate
 
 type AgeGroup = "ADULT" | "YOUNG_ADULT" | "TEEN";
 type Sex = "MALE" | "FEMALE";
@@ -256,8 +251,8 @@ interface GeneratedMockupData {
   size: string;
 }
 
-const DTG_STEPS: WizardStep[] = ["upload", "product", "style", "scene", "angles", "generate"];
-const AOP_STEPS: WizardStep[] = ["upload", "seamless", "product", "style", "scene", "angles", "generate"];
+const DTG_STEPS: WizardStep[] = ["design", "product", "output"];
+const AOP_STEPS: WizardStep[] = ["design", "product", "output"];
 
 interface ProductItem {
   name: string;
@@ -958,10 +953,8 @@ export default function MockupGenerator() {
     });
   };
 
-  const aopStepsForJourney = isAlreadySeamless 
-    ? (["upload", "product", "style", "scene", "angles", "generate"] as WizardStep[])
-    : AOP_STEPS;
-  const steps = journey === "AOP" ? aopStepsForJourney : DTG_STEPS;
+  // Both DTG and AOP now use the same 3-step flow
+  const steps = DTG_STEPS;
   const currentStep = steps[currentStepIndex];
   
   const productCategories = journey === "AOP" ? AOP_PRODUCT_CATEGORIES : DTG_PRODUCT_CATEGORIES;
@@ -1455,15 +1448,15 @@ export default function MockupGenerator() {
                       const isCompleted = index < currentStepIndex;
                       const isCurrent = index === currentStepIndex;
                       
-                      const icons = {
-                        upload: Cloud,
-                        seamless: Repeat,
+                      const icons: Record<WizardStep, typeof Cloud> = {
+                        design: Palette,
                         product: ShoppingBag,
-                        model: User,
-                        style: Sparkles,
-                        scene: MapPin,
-                        angles: Camera,
-                        generate: Wand2
+                        output: Wand2
+                      };
+                      const stepLabels: Record<WizardStep, string> = {
+                        design: "Design",
+                        product: "Product",
+                        output: "Output"
                       };
                       const StepIcon = icons[step];
 
@@ -1478,10 +1471,10 @@ export default function MockupGenerator() {
                             <StepIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                           </div>
                           <span className={cn(
-                            "text-[7px] sm:text-[8px] md:text-[10px] font-bold uppercase tracking-wider transition-colors text-center hidden xs:block sm:block",
+                            "text-[9px] sm:text-[10px] md:text-xs font-bold uppercase tracking-wider transition-colors text-center",
                             isCurrent ? "text-primary" : "text-muted-foreground"
                           )}>
-                            {step}
+                            {stepLabels[step]}
                           </span>
                         </div>
                       );
