@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { Link } from "wouter";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Send, 
   ArrowLeft, 
@@ -25,7 +26,9 @@ import {
   MessageCircle,
   FolderOpen,
   History,
-  ChevronRight
+  ChevronRight,
+  CheckSquare,
+  Square
 } from "lucide-react";
 
 interface OptionChip {
@@ -256,19 +259,25 @@ function ChatHistorySidebar({
   currentSessionId, 
   onSelectSession,
   onRenameSession,
+  onDeleteSessions,
   isLoading
 }: { 
   sessions: ChatSession[];
   currentSessionId: string | null;
   onSelectSession: (sessionId: string) => void;
   onRenameSession: (sessionId: string, newName: string) => void;
+  onDeleteSessions: (sessionIds: string[]) => void;
   isLoading: boolean;
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleStartEdit = (e: React.MouseEvent, session: ChatSession) => {
     e.stopPropagation();
+    if (selectionMode) return;
     setEditingId(session.id);
     setEditName(session.name);
   };
@@ -290,13 +299,95 @@ function ChatHistorySidebar({
     }
   };
 
+  const toggleSelectionMode = () => {
+    setSelectionMode(!selectionMode);
+    setSelectedIds(new Set());
+  };
+
+  const toggleSelection = (sessionId: string) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(sessionId)) {
+      newSelected.delete(sessionId);
+    } else {
+      newSelected.add(sessionId);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const selectAll = () => {
+    if (selectedIds.size === sessions.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(sessions.map(s => s.id)));
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedIds.size === 0) return;
+    setIsDeleting(true);
+    try {
+      await onDeleteSessions(Array.from(selectedIds));
+      setSelectedIds(new Set());
+      setSelectionMode(false);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <aside className="w-72 border-l border-white/10 bg-background/50 flex flex-col h-full" data-testid="sidebar-chat-history">
       <div className="p-4 border-b border-white/10">
-        <div className="flex items-center gap-2">
-          <History className="h-5 w-5 text-muted-foreground" />
-          <h2 className="font-semibold text-sm">Chat History</h2>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <History className="h-5 w-5 text-muted-foreground" />
+            <h2 className="font-semibold text-sm">Chat History</h2>
+          </div>
+          {sessions.length > 0 && (
+            <button
+              onClick={toggleSelectionMode}
+              className={cn(
+                "p-1.5 rounded-md transition-colors text-xs font-medium",
+                selectionMode 
+                  ? "bg-primary/20 text-primary hover:bg-primary/30" 
+                  : "hover:bg-white/10 text-muted-foreground"
+              )}
+              data-testid="button-toggle-select"
+            >
+              {selectionMode ? "Cancel" : "Select"}
+            </button>
+          )}
         </div>
+        {selectionMode && sessions.length > 0 && (
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
+            <button
+              onClick={selectAll}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
+              data-testid="button-select-all"
+            >
+              {selectedIds.size === sessions.length ? (
+                <CheckSquare className="h-3.5 w-3.5" />
+              ) : (
+                <Square className="h-3.5 w-3.5" />
+              )}
+              {selectedIds.size === sessions.length ? "Deselect All" : "Select All"}
+            </button>
+            <Button
+              onClick={handleDeleteSelected}
+              disabled={selectedIds.size === 0 || isDeleting}
+              variant="destructive"
+              size="sm"
+              className="h-7 text-xs"
+              data-testid="button-delete-selected"
+            >
+              {isDeleting ? (
+                <Loader2 className="h-3 w-3 animate-spin mr-1" />
+              ) : (
+                <Trash2 className="h-3 w-3 mr-1" />
+              )}
+              Delete ({selectedIds.size})
+            </Button>
+          </div>
+        )}
       </div>
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-1">
@@ -312,42 +403,63 @@ function ChatHistorySidebar({
             sessions.map((session) => (
               <div
                 key={session.id}
-                onClick={() => editingId !== session.id && onSelectSession(session.id)}
+                onClick={() => {
+                  if (selectionMode) {
+                    toggleSelection(session.id);
+                  } else if (editingId !== session.id) {
+                    onSelectSession(session.id);
+                  }
+                }}
                 className={cn(
                   "w-full text-left p-3 rounded-lg transition-colors group cursor-pointer",
                   "hover:bg-white/5",
-                  currentSessionId === session.id && "bg-primary/10 border border-primary/20"
+                  currentSessionId === session.id && !selectionMode && "bg-primary/10 border border-primary/20",
+                  selectionMode && selectedIds.has(session.id) && "bg-destructive/10 border border-destructive/30"
                 )}
                 data-testid={`session-item-${session.id}`}
               >
-                {editingId === session.id ? (
-                  <input
-                    type="text"
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    onBlur={handleSaveEdit}
-                    autoFocus
-                    className="w-full px-2 py-1 text-sm bg-white/10 border border-primary/50 rounded focus:outline-none"
-                    data-testid={`input-rename-${session.id}`}
-                  />
-                ) : (
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-sm truncate flex-1">
-                      {session.name}
+                <div className="flex items-start gap-2">
+                  {selectionMode && (
+                    <Checkbox
+                      checked={selectedIds.has(session.id)}
+                      onCheckedChange={() => toggleSelection(session.id)}
+                      className="mt-0.5 data-[state=checked]:bg-destructive data-[state=checked]:border-destructive"
+                      data-testid={`checkbox-session-${session.id}`}
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    {editingId === session.id ? (
+                      <input
+                        type="text"
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        onBlur={handleSaveEdit}
+                        autoFocus
+                        className="w-full px-2 py-1 text-sm bg-white/10 border border-primary/50 rounded focus:outline-none"
+                        data-testid={`input-rename-${session.id}`}
+                      />
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-sm truncate flex-1">
+                          {session.name}
+                        </span>
+                        {!selectionMode && (
+                          <button
+                            onClick={(e) => handleStartEdit(e, session)}
+                            className="p-1 rounded hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                            data-testid={`button-rename-${session.id}`}
+                          >
+                            <Pencil className="h-3 w-3 text-muted-foreground" />
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(session.createdAt).toLocaleDateString()}
                     </span>
-                    <button
-                      onClick={(e) => handleStartEdit(e, session)}
-                      className="p-1 rounded hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
-                      data-testid={`button-rename-${session.id}`}
-                    >
-                      <Pencil className="h-3 w-3 text-muted-foreground" />
-                    </button>
                   </div>
-                )}
-                <span className="text-xs text-muted-foreground">
-                  {new Date(session.createdAt).toLocaleDateString()}
-                </span>
+                </div>
               </div>
             ))
           )}
@@ -773,6 +885,29 @@ export default function ChatStudio() {
               }
             } catch (err) {
               console.error("Failed to rename session:", err);
+            }
+          }}
+          onDeleteSessions={async (sessionIds) => {
+            try {
+              await Promise.all(
+                sessionIds.map(id => apiRequest("DELETE", `/api/chat/sessions/${id}`))
+              );
+              queryClient.invalidateQueries({ queryKey: ["/api/chat/sessions"] });
+              if (sessionId && sessionIds.includes(sessionId)) {
+                setSessionId(null);
+                setProjectId(null);
+                setProjectName(null);
+                setMessages([{
+                  id: '1',
+                  role: 'assistant',
+                  content: "Hi! I'm your AI creative assistant. What would you like to create today?",
+                  options: INITIAL_OPTIONS,
+                  timestamp: new Date()
+                }]);
+                setStage('initial');
+              }
+            } catch (err) {
+              console.error("Failed to delete sessions:", err);
             }
           }}
           isLoading={sessionsLoading}
