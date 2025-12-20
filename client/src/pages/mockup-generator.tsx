@@ -1807,7 +1807,7 @@ export default function MockupGenerator() {
                               </div>
 
                               {/* Product Grid */}
-                              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-2">
+                              <div className="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-1.5">
                                 {(() => {
                                   const searchLower = productSearchQuery.toLowerCase();
                                   const itemsToShow = productSearchQuery
@@ -1849,7 +1849,7 @@ export default function MockupGenerator() {
                                           }
                                         }}
                                         className={cn(
-                                          "relative flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all hover:scale-[1.02] active:scale-[0.98]",
+                                          "relative flex flex-col items-center gap-1 p-2 rounded-lg border transition-all hover:scale-[1.02] active:scale-[0.98]",
                                           isSelected
                                             ? "border-primary bg-primary/10 ring-2 ring-primary/20"
                                             : "border-border bg-background hover:border-primary/30 hover:bg-muted/50"
