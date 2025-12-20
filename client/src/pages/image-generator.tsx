@@ -1751,62 +1751,38 @@ export default function ImageGenerator() {
                       </div>
                     </div>
 
-                    {/* Style - Visual Thumbnail Grid */}
+                    {/* Style */}
                     <div className="space-y-1.5" data-tutorial="style-selector">
                       <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block px-0.5">Style</label>
-                      <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5">
-                        {STYLE_PRESETS.map(style => (
-                          <TooltipProvider key={style.id}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button
-                                  onClick={() => setSettings({...settings, style: style.id})}
-                                  className={cn(
-                                    "relative aspect-square rounded-lg overflow-hidden transition-all duration-200 group",
-                                    settings.style === style.id 
-                                      ? "ring-2 ring-primary ring-offset-1 ring-offset-background scale-[1.02]" 
-                                      : "hover:scale-[1.02] hover:ring-1 hover:ring-border"
-                                  )}
-                                >
-                                  {/* Gradient Background */}
-                                  <div className={cn(
-                                    "absolute inset-0 bg-gradient-to-br",
-                                    style.gradient
-                                  )} />
-                                  
-                                  {/* Icon */}
-                                  <div className="absolute inset-0 flex items-center justify-center">
-                                    <style.icon className={cn(
-                                      "h-5 w-5 transition-all",
-                                      settings.style === style.id 
-                                        ? "text-white drop-shadow-lg" 
-                                        : "text-white/70 group-hover:text-white"
-                                    )} />
-                                  </div>
-                                  
-                                  {/* Name Overlay */}
-                                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-1">
-                                    <span className="text-[7px] font-medium text-white/90 leading-tight block truncate">
-                                      {style.name}
-                                    </span>
-                                  </div>
-                                  
-                                  {/* Selection Check */}
-                                  {settings.style === style.id && (
-                                    <div className="absolute top-1 right-1 w-3 h-3 bg-primary rounded-full flex items-center justify-center">
-                                      <Check className="h-2 w-2 text-white" />
-                                    </div>
-                                  )}
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent side="bottom" className="max-w-[150px]">
-                                <p className="font-medium">{style.name}</p>
-                                <p className="text-[10px] text-muted-foreground">{style.desc}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        ))}
-                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" className="w-full justify-between h-9 text-xs bg-background/50 border-transparent hover:bg-background px-2">
+                            <div className="flex items-center gap-2 overflow-hidden">
+                              {STYLE_PRESETS.find(s => s.id === settings.style)?.icon && (
+                                 <Sparkles className="h-3.5 w-3.5 text-primary shrink-0" />
+                              )}
+                              <span className="font-medium truncate text-[10px]">
+                                {STYLE_PRESETS.find(s => s.id === settings.style)?.name}
+                              </span>
+                            </div>
+                            <ChevronDown className="h-3 w-3 opacity-50 flex-shrink-0 ml-1" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-[180px] max-h-[300px] overflow-y-auto">
+                          {STYLE_PRESETS.map(style => (
+                            <DropdownMenuItem 
+                              key={style.id}
+                              onClick={() => setSettings({...settings, style: style.id})}
+                              className="text-xs cursor-pointer py-1.5"
+                            >
+                              <div className="flex items-center gap-2">
+                                <style.icon className="h-3.5 w-3.5" />
+                                {style.name}
+                              </div>
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
 
                     {/* More Options Dropdown - Count, Visibility */}
