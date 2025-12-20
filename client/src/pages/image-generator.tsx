@@ -1974,23 +1974,25 @@ export default function ImageGenerator() {
                   </Button>
                 </div>
                 
-                {/* Gallery Grid - CSS Grid layout for horizontal flow (left-to-right, newest first) */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                {/* Gallery Grid - Flexbox layout with consistent row height for tight packing */}
+                <div className="flex flex-wrap gap-3">
                   {generations.map((gen) => (
                     <motion.div 
                       key={gen.id}
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       onClick={() => setSelectedImage(gen)}
+                      style={{
+                        height: '160px',
+                        width: gen.aspectRatio === "9:16" ? '90px' :
+                               gen.aspectRatio === "16:9" ? '284px' :
+                               gen.aspectRatio === "4:5" ? '128px' :
+                               gen.aspectRatio === "3:4" ? '120px' :
+                               '160px'
+                      }}
                       className={cn(
-                        "relative group rounded-xl overflow-hidden cursor-pointer bg-card border hover:shadow-lg transition-all",
-                        gen.isNew ? "border-2 border-[#E91E63]/50 hover:border-[#E91E63]" : "border-border hover:border-primary/50",
-                        gen.aspectRatio === "9:16" && "aspect-[9/16]",
-                        gen.aspectRatio === "16:9" && "aspect-[16/9]",
-                        gen.aspectRatio === "4:5" && "aspect-[4/5]",
-                        gen.aspectRatio === "3:4" && "aspect-[3/4]",
-                        gen.aspectRatio === "1:1" && "aspect-square",
-                        !gen.aspectRatio && "aspect-square"
+                        "relative group rounded-xl overflow-hidden cursor-pointer bg-card border hover:shadow-lg transition-all flex-shrink-0",
+                        gen.isNew ? "border-2 border-[#E91E63]/50 hover:border-[#E91E63]" : "border-border hover:border-primary/50"
                       )}
                     >
                       <img src={gen.src} alt={gen.prompt} className="w-full h-full object-cover" loading="lazy" />
