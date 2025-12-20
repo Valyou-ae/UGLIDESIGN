@@ -16,6 +16,7 @@ import {
   chatSessions,
   chatMessages,
   userPreferences,
+  imageFolders,
   type User, 
   type InsertUser, 
   type UpdateProfile, 
@@ -44,7 +45,9 @@ import {
   type ChatMessage,
   type InsertChatMessage,
   type UserPreferences,
-  type InsertUserPreferences
+  type InsertUserPreferences,
+  type ImageFolder,
+  type InsertImageFolder
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, gte, lte, sql } from "drizzle-orm";
@@ -187,6 +190,13 @@ export interface IStorage {
   getRevenueByDay(days: number): Promise<{ date: string; amount: number }[]>;
   getDailyActiveUsers(days: number): Promise<{ date: string; count: number }[]>;
   getRetentionRate(): Promise<{ weeklyRetention: number; monthlyRetention: number }>;
+  
+  // Image Folders
+  getFoldersByUser(userId: string): Promise<ImageFolder[]>;
+  createFolder(data: InsertImageFolder): Promise<ImageFolder>;
+  updateFolder(id: string, userId: string, data: Partial<InsertImageFolder>): Promise<ImageFolder | undefined>;
+  deleteFolder(id: string, userId: string): Promise<void>;
+  moveImageToFolder(imageId: string, userId: string, folderId: string | null): Promise<GeneratedImage | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1536,6 +1546,58 @@ export class DatabaseStorage implements IStorage {
       weeklyRetention: Math.round((Number(weeklyResult?.count) || 0) / total * 100),
       monthlyRetention: Math.round((Number(monthlyResult?.count) || 0) / total * 100),
     };
+  }
+
+  // Image Folders
+  async getFoldersByUser(userId: string): Promise<ImageFolder[]> {
+    return await db
+      .select()
+      .from(imageFolders)
+      .where(eq(imageFolders.userId, userId))
+      .orderBy(desc(imageFolders.createdAt));
+  }
+
+  async createFolder(data: InsertImageFolder): Promise<ImageFolder> {
+    const [folder] = await db.insert(imageFolders).values(data).returning();
+    return folder;
+  }
+
+  async updateFolder(id: string, userId: string, data: Partial<InsertImageFolder>): Promise<ImageFolder | undefined> {
+    const [folder] = await db
+      .update(imageFolders)
+      .set(data)
+      .where(and(eq(imageFolders.id, id), eq(imageFolders.userId, userId)))
+      .returning();
+    return folder || undefined;
+  }
+
+  async deleteFolder(id: string, userId: string): Promise<void> {
+    // First, unset folderId for all images in this folder
+    await db
+      .update(generatedImages)
+      .set({ folderId: null })
+      .where(and(eq(generatedImages.folderId, id), eq(generatedImages.userId, userId)));
+    
+    // Then delete the folder
+    await db
+      .delete(imageFolders)
+      .where(and(eq(imageFolders.id, id), eq(imageFolders.userId, userId)));
+  }
+
+  async moveImageToFolder(imageId: string, userId: string, folderId: string | null): Promise<GeneratedImage | undefined> {
+    if (folderId) {
+      const [folder] = await db.select().from(imageFolders).where(and(eq(imageFolders.id, folderId), eq(imageFolders.userId, userId)));
+      if (!folder) {
+        return undefined;
+      }
+    }
+    
+    const [image] = await db
+      .update(generatedImages)
+      .set({ folderId })
+      .where(and(eq(generatedImages.id, imageId), eq(generatedImages.userId, userId)))
+      .returning();
+    return image || undefined;
   }
 }
 

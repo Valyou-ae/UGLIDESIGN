@@ -28,6 +28,7 @@ import {
   guestGenerationSchema,
   createMoodBoardSchema,
   updateRoleSchema,
+  insertImageFolderSchema,
 } from "@shared/schema";
 import { ZodError } from "zod";
 import { db } from "./db";
@@ -1085,6 +1086,81 @@ export async function registerRoutes(
       res.json({ images });
     } catch (error) {
       console.error("Images by date error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // ============== IMAGE FOLDERS ROUTES ==============
+
+  app.get("/api/folders", requireAuth, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const folders = await storage.getFoldersByUser(userId);
+      res.json({ folders });
+    } catch (error) {
+      console.error("Get folders error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.post("/api/folders", requireAuth, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const data = insertImageFolderSchema.parse({ ...req.body, userId });
+      const folder = await storage.createFolder(data);
+      res.json({ folder });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: "Invalid folder data", errors: error.errors });
+      }
+      console.error("Create folder error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.patch("/api/folders/:id", requireAuth, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const { id } = req.params;
+      const { name, color } = req.body;
+      
+      const folder = await storage.updateFolder(id, userId, { name, color });
+      if (!folder) {
+        return res.status(404).json({ message: "Folder not found" });
+      }
+      res.json({ folder });
+    } catch (error) {
+      console.error("Update folder error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.delete("/api/folders/:id", requireAuth, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const { id } = req.params;
+      
+      await storage.deleteFolder(id, userId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete folder error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.patch("/api/images/:id/folder", requireAuth, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const { id } = req.params;
+      const { folderId } = req.body;
+      
+      const image = await storage.moveImageToFolder(id, userId, folderId || null);
+      if (!image) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+      res.json({ image });
+    } catch (error) {
+      console.error("Move image to folder error:", error);
       res.status(500).json({ message: "Server error" });
     }
   });

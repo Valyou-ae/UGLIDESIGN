@@ -911,3 +911,38 @@ export const backgroundRemovalApi = {
     return response.json();
   }
 };
+
+// Image Folders API
+export interface ImageFolder {
+  id: string;
+  userId: string;
+  name: string;
+  color: string | null;
+  createdAt: string;
+}
+
+export const foldersApi = {
+  getAll: () =>
+    fetchApi<{ folders: ImageFolder[] }>("/folders"),
+
+  create: (data: { name: string; color?: string }) =>
+    fetchApi<{ folder: ImageFolder }>("/folders", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  update: (id: string, data: { name?: string; color?: string }) =>
+    fetchApi<{ folder: ImageFolder }>(`/folders/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+
+  delete: (id: string) =>
+    fetchApi<{ success: boolean }>(`/folders/${id}`, { method: "DELETE" }),
+
+  moveImage: (imageId: string, folderId: string | null) =>
+    fetchApi<{ image: any }>(`/images/${imageId}/folder`, {
+      method: "PATCH",
+      body: JSON.stringify({ folderId }),
+    }),
+};

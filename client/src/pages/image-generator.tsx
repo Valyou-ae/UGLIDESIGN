@@ -74,6 +74,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sidebar } from "@/components/sidebar";
+import { SaveToFolderModal } from "@/components/save-to-folder-modal";
 import {
   Tooltip,
   TooltipContent,
@@ -107,7 +108,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { generateApi, imagesApi, GenerationEvent, promptFavoritesApi, PromptFavorite } from "@/lib/api";
+import { generateApi, imagesApi, GenerationEvent, promptFavoritesApi, PromptFavorite, foldersApi } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { Label } from "@/components/ui/label";
 import { useLocation } from "wouter";
@@ -260,6 +261,8 @@ export default function ImageGenerator() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isVarying, setIsVarying] = useState(false);
+  const [showFolderModal, setShowFolderModal] = useState(false);
+  const [imageToSave, setImageToSave] = useState<GeneratedImage | null>(null);
   
   const [savedPrompts, setSavedPrompts] = useState<PromptFavorite[]>([]);
   const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
@@ -470,7 +473,16 @@ export default function ImageGenerator() {
     return !id.startsWith('sample-');
   };
 
-  const saveToLibrary = async (image: GeneratedImage) => {
+  const openSaveToFolderModal = (image: GeneratedImage) => {
+    if (!user) {
+      toast({ title: "Please log in", description: "You need to be logged in to save images.", variant: "destructive" });
+      return;
+    }
+    setImageToSave(image);
+    setShowFolderModal(true);
+  };
+
+  const saveToLibrary = async (image: GeneratedImage, folderId: string | null = null) => {
     if (!user) {
       toast({ title: "Please log in", description: "You need to be logged in to save images.", variant: "destructive" });
       return;
@@ -485,6 +497,11 @@ export default function ImageGenerator() {
         isPublic: isPublicImage,
       });
       const savedImage = response.image;
+      
+      if (folderId) {
+        await foldersApi.moveImage(String(savedImage.id), folderId);
+      }
+      
       setGenerations(prev => prev.map(g => 
         g.id === image.id 
           ? { ...g, id: String(savedImage.id), isFavorite: savedImage.isFavorite || false, isPublic: savedImage.isPublic || false } 
@@ -493,11 +510,13 @@ export default function ImageGenerator() {
       if (selectedImage && selectedImage.id === image.id) {
         setSelectedImage(prev => prev ? { ...prev, id: String(savedImage.id), isFavorite: savedImage.isFavorite || false, isPublic: savedImage.isPublic || false } : null);
       }
-      toast({ title: "Saved to Library", description: "Image has been saved to your creations." });
+      const folderMsg = folderId ? " to folder" : "";
+      toast({ title: "Saved to Library" + folderMsg, description: "Image has been saved to your creations." });
     } catch (error) {
       toast({ title: "Save Failed", description: error instanceof Error ? error.message : "Could not save image.", variant: "destructive" });
     } finally {
       setIsSaving(false);
+      setImageToSave(null);
     }
   };
 
@@ -2181,7 +2200,7 @@ export default function ImageGenerator() {
                       <Button 
                         variant="ghost" 
                         className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
-                        onClick={() => saveToLibrary(selectedImage)}
+                        onClick={() => openSaveToFolderModal(selectedImage)}
                         disabled={isSaving}
                         data-testid="button-save-library"
                       >
@@ -2493,6 +2512,20 @@ export default function ImageGenerator() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <SaveToFolderModal
+        isOpen={showFolderModal}
+        onClose={() => {
+          setShowFolderModal(false);
+          setImageToSave(null);
+        }}
+        onSave={(folderId) => {
+          if (imageToSave) {
+            saveToLibrary(imageToSave, folderId);
+          }
+          setShowFolderModal(false);
+        }}
+      />
     </div>
   );
 }
