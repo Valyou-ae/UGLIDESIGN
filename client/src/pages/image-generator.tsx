@@ -1992,12 +1992,12 @@ export default function ImageGenerator() {
                         >
                           <div className={cn(
                             "relative overflow-hidden bg-muted/20",
-                            gen.aspectRatio === "9:16" && "aspect-[9/16] w-[140px]",
-                            gen.aspectRatio === "16:9" && "aspect-[16/9] w-[320px]",
-                            gen.aspectRatio === "4:5" && "aspect-[4/5] w-[180px]",
-                            gen.aspectRatio === "3:4" && "aspect-[3/4] w-[170px]",
-                            gen.aspectRatio === "1:1" && "aspect-square w-[200px]",
-                            !gen.aspectRatio && "aspect-square w-[200px]"
+                            gen.aspectRatio === "9:16" && "aspect-[9/16] w-[180px]",
+                            gen.aspectRatio === "16:9" && "aspect-[16/9] w-[420px]",
+                            gen.aspectRatio === "4:5" && "aspect-[4/5] w-[240px]",
+                            gen.aspectRatio === "3:4" && "aspect-[3/4] w-[225px]",
+                            gen.aspectRatio === "1:1" && "aspect-square w-[280px]",
+                            !gen.aspectRatio && "aspect-square w-[280px]"
                           )}>
                             <img src={gen.src} alt={gen.prompt} className="w-full h-full object-cover" />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2">
