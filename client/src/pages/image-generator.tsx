@@ -1706,13 +1706,14 @@ export default function ImageGenerator() {
                                 <button
                                   onClick={() => setSettings({...settings, aspectRatio: r.id})}
                                   className={cn(
-                                    "h-9 rounded-lg flex items-center justify-center transition-all border",
+                                    "py-1.5 rounded-lg flex flex-col items-center justify-center gap-0.5 transition-all border",
                                     settings.aspectRatio === r.id 
                                       ? "bg-background border-primary/50 text-primary shadow-sm" 
                                       : "bg-background/50 border-transparent text-muted-foreground hover:bg-background hover:text-foreground"
                                   )}
                                 >
                                   <r.icon className={cn("h-3.5 w-3.5 shrink-0", settings.aspectRatio === r.id ? "text-primary" : "opacity-70")} />
+                                  <span className="text-[8px] font-medium">{r.ratioText}</span>
                                 </button>
                               </TooltipTrigger>
                               <TooltipContent side="bottom"><p>{r.label} ({r.ratioText})</p></TooltipContent>
