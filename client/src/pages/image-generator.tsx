@@ -489,29 +489,36 @@ export default function ImageGenerator() {
     }
     setIsSaving(true);
     try {
-      const response = await imagesApi.create({
-        imageUrl: image.src,
-        prompt: image.prompt,
-        style: image.style || "auto",
-        aspectRatio: image.aspectRatio || "1:1",
-        isPublic: isPublicImage,
-      });
-      const savedImage = response.image;
+      const imageIsUnsaved = isUnsavedImage(image.id);
+      let finalImageId = image.id;
+      
+      if (imageIsUnsaved) {
+        const response = await imagesApi.create({
+          imageUrl: image.src,
+          prompt: image.prompt,
+          style: image.style || "auto",
+          aspectRatio: image.aspectRatio || "1:1",
+          isPublic: isPublicImage,
+        });
+        const savedImage = response.image;
+        finalImageId = String(savedImage.id);
+        
+        setGenerations(prev => prev.map(g => 
+          g.id === image.id 
+            ? { ...g, id: finalImageId, isFavorite: savedImage.isFavorite || false, isPublic: savedImage.isPublic || false } 
+            : g
+        ));
+        if (selectedImage && selectedImage.id === image.id) {
+          setSelectedImage(prev => prev ? { ...prev, id: finalImageId, isFavorite: savedImage.isFavorite || false, isPublic: savedImage.isPublic || false } : null);
+        }
+      }
       
       if (folderId) {
-        await foldersApi.moveImage(String(savedImage.id), folderId);
+        await foldersApi.moveImage(finalImageId, folderId);
       }
       
-      setGenerations(prev => prev.map(g => 
-        g.id === image.id 
-          ? { ...g, id: String(savedImage.id), isFavorite: savedImage.isFavorite || false, isPublic: savedImage.isPublic || false } 
-          : g
-      ));
-      if (selectedImage && selectedImage.id === image.id) {
-        setSelectedImage(prev => prev ? { ...prev, id: String(savedImage.id), isFavorite: savedImage.isFavorite || false, isPublic: savedImage.isPublic || false } : null);
-      }
       const folderMsg = folderId ? " to folder" : "";
-      toast({ title: "Saved to Library" + folderMsg, description: "Image has been saved to your creations." });
+      toast({ title: imageIsUnsaved ? "Saved to Library" + folderMsg : "Moved" + folderMsg, description: imageIsUnsaved ? "Image has been saved to your creations." : "Image has been moved to the folder." });
     } catch (error) {
       toast({ title: "Save Failed", description: error instanceof Error ? error.message : "Could not save image.", variant: "destructive" });
     } finally {
