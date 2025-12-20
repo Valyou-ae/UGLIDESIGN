@@ -1807,7 +1807,7 @@ export default function MockupGenerator() {
                               </div>
 
                               {/* Product Grid */}
-                              <div className="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-1.5">
+                              <div className="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-1">
                                 {(() => {
                                   const searchLower = productSearchQuery.toLowerCase();
                                   const itemsToShow = productSearchQuery
@@ -1858,12 +1858,12 @@ export default function MockupGenerator() {
                                       >
                                         <div 
                                           className={cn(
-                                            "w-10 h-10 rounded-lg flex items-center justify-center transition-colors",
+                                            "w-8 h-8 rounded-md flex items-center justify-center transition-colors",
                                             isSelected ? "bg-primary/20" : "bg-muted"
                                           )}
                                         >
                                           <div 
-                                            className="w-6 h-6"
+                                            className="w-5 h-5"
                                             style={{ color: isSelected ? "#E91E63" : "currentColor" }}
                                             dangerouslySetInnerHTML={{ __html: silhouette.svg }}
                                           />
