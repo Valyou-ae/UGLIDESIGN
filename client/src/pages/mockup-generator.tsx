@@ -1938,14 +1938,26 @@ export default function MockupGenerator() {
                                     <CheckCircle2 className="h-5 w-5 text-primary" />
                                   </div>
                                 ) : (
-                                  <div className="flex flex-wrap gap-2">
+                                  <div className="flex flex-wrap gap-1.5">
                                     {[
                                       { name: "White", class: "bg-white border-gray-300" },
-                                      { name: "Black", class: "bg-black border-black" },
+                                      { name: "Black", class: "bg-[#1a1a1a]" },
                                       { name: "Navy", class: "bg-[#1A237E]" },
+                                      { name: "Royal", class: "bg-[#0D47A1]" },
+                                      { name: "Light Blue", class: "bg-[#ADD8E6]" },
                                       { name: "Sport Grey", class: "bg-[#9E9E9E]" },
+                                      { name: "Dark Heather", class: "bg-[#545454]" },
+                                      { name: "Charcoal", class: "bg-[#424242]" },
                                       { name: "Red", class: "bg-[#D32F2F]" },
+                                      { name: "Cardinal", class: "bg-[#880E4F]" },
+                                      { name: "Maroon", class: "bg-[#4A148C]" },
+                                      { name: "Orange", class: "bg-[#F57C00]" },
+                                      { name: "Gold", class: "bg-[#FBC02D]" },
+                                      { name: "Irish Green", class: "bg-[#388E3C]" },
                                       { name: "Forest", class: "bg-[#1B5E20]" },
+                                      { name: "Purple", class: "bg-[#7B1FA2]" },
+                                      { name: "Light Pink", class: "bg-[#F8BBD0]" },
+                                      { name: "Sand", class: "bg-[#F5F5DC]" },
                                     ].map((color) => {
                                       const isSelected = selectedColors.includes(color.name);
                                       return (
@@ -1961,9 +1973,9 @@ export default function MockupGenerator() {
                                                   }
                                                 }}
                                                 className={cn(
-                                                  "h-8 w-8 rounded-full border-2 transition-all hover:scale-110 active:scale-95",
+                                                  "h-6 w-6 rounded-full border transition-all hover:scale-110 active:scale-95",
                                                   color.class,
-                                                  isSelected ? "ring-2 ring-primary ring-offset-2" : "border-transparent"
+                                                  isSelected ? "ring-2 ring-primary ring-offset-1" : "border-border/50"
                                                 )}
                                                 data-testid={`color-${color.name.replace(/\s+/g, '-').toLowerCase()}`}
                                               />
@@ -1973,13 +1985,6 @@ export default function MockupGenerator() {
                                         </TooltipProvider>
                                       );
                                     })}
-                                    <button
-                                      onClick={() => setShowAllColors(!showAllColors)}
-                                      className="h-8 w-8 rounded-full border-2 border-dashed border-border bg-muted/50 flex items-center justify-center text-muted-foreground hover:border-primary transition-all"
-                                      data-testid="button-toggle-colors"
-                                    >
-                                      <Plus className="h-4 w-4" />
-                                    </button>
                                   </div>
                                 )}
                               </div>
