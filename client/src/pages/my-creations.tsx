@@ -351,6 +351,19 @@ export default function MyCreations() {
       return;
     }
 
+    if (action === "Download") {
+      toast({ title: "Downloading", description: `Starting download of ${selectedItems.length} images...` });
+      for (const itemId of selectedItems) {
+        const item = items.find(i => i.id === itemId);
+        if (item) {
+          await downloadImage(item.src, `${item.name.replace(/\s+/g, '_').toLowerCase()}.jpg`);
+        }
+      }
+      setSelectMode(false);
+      setSelectedItems([]);
+      return;
+    }
+
     if (action === "Unfavorite" || action === "Favorite") {
       for (const itemId of selectedItems) {
         await apiToggleFavorite(itemId);
@@ -760,7 +773,11 @@ export default function MyCreations() {
                             <Palette className="h-4 w-4 mr-2" /> Apply Style Transfer
                           </DropdownMenuItem>
                           <DropdownMenuSeparator className="bg-[#2A2A30]" />
-                          <DropdownMenuItem onClick={() => handleAction("Unfavorite", item)} className="text-[#F59E0B] hover:bg-[#2A2A30] cursor-pointer"><StarOff className="h-4 w-4 mr-2" /> Unfavorite</DropdownMenuItem>
+                          {item.favorite ? (
+                            <DropdownMenuItem onClick={() => handleAction("Unfavorite", item)} className="text-[#F59E0B] hover:bg-[#2A2A30] cursor-pointer"><StarOff className="h-4 w-4 mr-2" /> Unfavorite</DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem onClick={() => handleAction("Favorite", item)} className="text-[#F59E0B] hover:bg-[#2A2A30] cursor-pointer"><Star className="h-4 w-4 mr-2" /> Add to Favorites</DropdownMenuItem>
+                          )}
                           <DropdownMenuItem onClick={() => handleAction("Delete", item)} className="text-[#DC2626] hover:bg-[#2A2A30] cursor-pointer"><Trash2 className="h-4 w-4 mr-2" /> Delete</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -898,6 +915,13 @@ export default function MyCreations() {
                                   >
                                     <Palette className="h-4 w-4 mr-2" /> Apply Style Transfer
                                   </DropdownMenuItem>
+                                  <DropdownMenuSeparator className="bg-[#2A2A30]" />
+                                  {item.favorite ? (
+                                    <DropdownMenuItem onClick={() => handleAction("Unfavorite", item)} className="text-[#F59E0B] hover:bg-[#2A2A30] cursor-pointer"><StarOff className="h-4 w-4 mr-2" /> Unfavorite</DropdownMenuItem>
+                                  ) : (
+                                    <DropdownMenuItem onClick={() => handleAction("Favorite", item)} className="text-[#F59E0B] hover:bg-[#2A2A30] cursor-pointer"><Star className="h-4 w-4 mr-2" /> Add to Favorites</DropdownMenuItem>
+                                  )}
+                                  <DropdownMenuItem onClick={() => handleAction("Delete", item)} className="text-[#DC2626] hover:bg-[#2A2A30] cursor-pointer"><Trash2 className="h-4 w-4 mr-2" /> Delete</DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
 
