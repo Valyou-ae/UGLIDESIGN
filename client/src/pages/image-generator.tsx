@@ -1974,27 +1974,30 @@ export default function ImageGenerator() {
                   </Button>
                 </div>
                 
-                {/* Gallery Grid - Flexbox layout with consistent row height for tight packing */}
-                <div className="flex flex-wrap gap-3">
+                {/* Gallery - CSS Columns Masonry (matches My Creations page) */}
+                <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-3">
                   {generations.map((gen) => (
                     <motion.div 
                       key={gen.id}
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       onClick={() => setSelectedImage(gen)}
-                      style={{
-                        height: '220px',
-                        width: gen.aspectRatio === "9:16" ? '124px' :
-                               gen.aspectRatio === "16:9" ? '391px' :
-                               gen.aspectRatio === "4:5" ? '176px' :
-                               gen.aspectRatio === "3:4" ? '165px' :
-                               '220px'
-                      }}
                       className={cn(
-                        "relative group rounded-xl overflow-hidden cursor-pointer bg-card border hover:shadow-lg transition-all flex-shrink-0",
-                        gen.isNew ? "border-2 border-[#E91E63]/50 hover:border-[#E91E63]" : "border-border hover:border-primary/50"
+                        "break-inside-avoid mb-3 relative group rounded-xl overflow-hidden cursor-pointer bg-card border transition-all duration-200",
+                        gen.isNew ? "border-2 border-[#E91E63]/50 hover:border-[#E91E63]" : "border-border hover:border-primary/50",
+                        "hover:shadow-xl hover:scale-[1.02]"
                       )}
                     >
+                      {/* Image Container - Dynamic aspect ratio */}
+                      <div className={cn(
+                        "w-full relative overflow-hidden bg-muted/20",
+                        gen.aspectRatio === "9:16" && "aspect-[9/16]",
+                        gen.aspectRatio === "16:9" && "aspect-[16/9]",
+                        gen.aspectRatio === "4:5" && "aspect-[4/5]",
+                        gen.aspectRatio === "3:4" && "aspect-[3/4]",
+                        gen.aspectRatio === "1:1" && "aspect-square",
+                        !gen.aspectRatio && "aspect-square"
+                      )}>
                       <img src={gen.src} alt={gen.prompt} className="w-full h-full object-cover" loading="lazy" />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2">
                         <div className="flex items-center gap-1">
@@ -2033,6 +2036,7 @@ export default function ImageGenerator() {
                       {gen.isNew && (
                         <div className="absolute top-2 left-2 px-1.5 py-0.5 bg-[#E91E63] text-white text-[9px] font-bold rounded">NEW</div>
                       )}
+                      </div>
                     </motion.div>
                   ))}
                 </div>
