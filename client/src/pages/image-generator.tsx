@@ -183,19 +183,19 @@ const AGENTS: Agent[] = [
 ];
 
 const STYLE_PRESETS = [
-  { name: "Auto", id: "auto", icon: Sparkles, desc: "AI selects best style" },
-  { name: "Photorealistic", id: "photo", icon: Camera, desc: "DSLR quality, natural lighting" },
-  { name: "Cinematic", id: "cinematic", icon: Clapperboard, desc: "Film grain, dramatic shadows" },
-  { name: "Anime/Manga", id: "anime", icon: Tv, desc: "Cel shaded, vibrant colors" },
-  { name: "Oil Painting", id: "oil", icon: Palette, desc: "Visible brushstrokes, Renaissance" },
-  { name: "Watercolor", id: "watercolor", icon: Droplets, desc: "Soft edges, paper texture" },
-  { name: "Digital Art", id: "digital", icon: Monitor, desc: "Trending on ArtStation" },
-  { name: "Minimalist", id: "minimal", icon: Circle, desc: "Clean lines, negative space" },
-  { name: "Retrowave", id: "retro", icon: Sunset, desc: "Neon lights, 80s aesthetic" },
-  { name: "Dark Fantasy", id: "fantasy", icon: Sword, desc: "Gothic, dramatic lighting" },
-  { name: "Pop Art", id: "pop", icon: Shapes, desc: "Bold colors, Ben-Day dots" },
-  { name: "Isometric 3D", id: "iso", icon: Box, desc: "Clean geometry, soft shadows" },
-  { name: "Pencil Sketch", id: "sketch", icon: Pencil, desc: "Graphite, crosshatching" },
+  { name: "Auto", id: "auto", icon: Sparkles, desc: "AI selects best style", gradient: "from-violet-500/40 via-purple-500/30 to-fuchsia-500/40", accent: "violet" },
+  { name: "Photorealistic", id: "photo", icon: Camera, desc: "DSLR quality, natural lighting", gradient: "from-slate-600/50 via-zinc-500/40 to-stone-600/50", accent: "slate" },
+  { name: "Cinematic", id: "cinematic", icon: Clapperboard, desc: "Film grain, dramatic shadows", gradient: "from-amber-700/50 via-orange-900/40 to-yellow-800/50", accent: "amber" },
+  { name: "Anime/Manga", id: "anime", icon: Tv, desc: "Cel shaded, vibrant colors", gradient: "from-pink-500/50 via-rose-400/40 to-red-500/50", accent: "pink" },
+  { name: "Oil Painting", id: "oil", icon: Palette, desc: "Visible brushstrokes, Renaissance", gradient: "from-amber-600/50 via-yellow-700/40 to-orange-700/50", accent: "amber" },
+  { name: "Watercolor", id: "watercolor", icon: Droplets, desc: "Soft edges, paper texture", gradient: "from-sky-400/40 via-cyan-300/30 to-teal-400/40", accent: "sky" },
+  { name: "Digital Art", id: "digital", icon: Monitor, desc: "Trending on ArtStation", gradient: "from-blue-600/50 via-indigo-500/40 to-purple-600/50", accent: "blue" },
+  { name: "Minimalist", id: "minimal", icon: Circle, desc: "Clean lines, negative space", gradient: "from-neutral-300/30 via-gray-200/20 to-stone-300/30", accent: "gray" },
+  { name: "Retrowave", id: "retro", icon: Sunset, desc: "Neon lights, 80s aesthetic", gradient: "from-fuchsia-600/50 via-purple-500/40 to-cyan-500/50", accent: "fuchsia" },
+  { name: "Dark Fantasy", id: "fantasy", icon: Sword, desc: "Gothic, dramatic lighting", gradient: "from-slate-800/60 via-purple-900/50 to-indigo-900/60", accent: "purple" },
+  { name: "Pop Art", id: "pop", icon: Shapes, desc: "Bold colors, Ben-Day dots", gradient: "from-yellow-400/50 via-red-500/40 to-blue-500/50", accent: "yellow" },
+  { name: "Isometric 3D", id: "iso", icon: Box, desc: "Clean geometry, soft shadows", gradient: "from-emerald-500/40 via-teal-400/30 to-cyan-500/40", accent: "emerald" },
+  { name: "Pencil Sketch", id: "sketch", icon: Pencil, desc: "Graphite, crosshatching", gradient: "from-zinc-500/40 via-neutral-400/30 to-stone-500/40", accent: "zinc" },
 ];
 
 const QUALITY_PRESETS = [
@@ -1751,38 +1751,62 @@ export default function ImageGenerator() {
                       </div>
                     </div>
 
-                    {/* Style */}
+                    {/* Style - Visual Thumbnail Grid */}
                     <div className="space-y-1.5" data-tutorial="style-selector">
                       <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block px-0.5">Style</label>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline" className="w-full justify-between h-9 text-xs bg-background/50 border-transparent hover:bg-background px-2">
-                            <div className="flex items-center gap-2 overflow-hidden">
-                              {STYLE_PRESETS.find(s => s.id === settings.style)?.icon && (
-                                 <Sparkles className="h-3.5 w-3.5 text-primary shrink-0" />
-                              )}
-                              <span className="font-medium truncate text-[10px]">
-                                {STYLE_PRESETS.find(s => s.id === settings.style)?.name}
-                              </span>
-                            </div>
-                            <ChevronDown className="h-3 w-3 opacity-50 flex-shrink-0 ml-1" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="w-[180px] max-h-[300px] overflow-y-auto">
-                          {STYLE_PRESETS.map(style => (
-                            <DropdownMenuItem 
-                              key={style.id}
-                              onClick={() => setSettings({...settings, style: style.id})}
-                              className="text-xs cursor-pointer py-1.5"
-                            >
-                              <div className="flex items-center gap-2">
-                                <style.icon className="h-3.5 w-3.5" />
-                                {style.name}
-                              </div>
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5">
+                        {STYLE_PRESETS.map(style => (
+                          <TooltipProvider key={style.id}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  onClick={() => setSettings({...settings, style: style.id})}
+                                  className={cn(
+                                    "relative aspect-square rounded-lg overflow-hidden transition-all duration-200 group",
+                                    settings.style === style.id 
+                                      ? "ring-2 ring-primary ring-offset-1 ring-offset-background scale-[1.02]" 
+                                      : "hover:scale-[1.02] hover:ring-1 hover:ring-border"
+                                  )}
+                                >
+                                  {/* Gradient Background */}
+                                  <div className={cn(
+                                    "absolute inset-0 bg-gradient-to-br",
+                                    style.gradient
+                                  )} />
+                                  
+                                  {/* Icon */}
+                                  <div className="absolute inset-0 flex items-center justify-center">
+                                    <style.icon className={cn(
+                                      "h-5 w-5 transition-all",
+                                      settings.style === style.id 
+                                        ? "text-white drop-shadow-lg" 
+                                        : "text-white/70 group-hover:text-white"
+                                    )} />
+                                  </div>
+                                  
+                                  {/* Name Overlay */}
+                                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-1">
+                                    <span className="text-[7px] font-medium text-white/90 leading-tight block truncate">
+                                      {style.name}
+                                    </span>
+                                  </div>
+                                  
+                                  {/* Selection Check */}
+                                  {settings.style === style.id && (
+                                    <div className="absolute top-1 right-1 w-3 h-3 bg-primary rounded-full flex items-center justify-center">
+                                      <Check className="h-2 w-2 text-white" />
+                                    </div>
+                                  )}
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent side="bottom" className="max-w-[150px]">
+                                <p className="font-medium">{style.name}</p>
+                                <p className="text-[10px] text-muted-foreground">{style.desc}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ))}
+                      </div>
                     </div>
 
                     {/* More Options Dropdown - Count, Visibility */}
