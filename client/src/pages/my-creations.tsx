@@ -296,12 +296,22 @@ export default function MyCreations() {
     }
 
     if (action === "Duplicate") {
-      toast({ title: "Item Duplicated", description: `${item.name} has been duplicated.` });
+      toast({ title: "Coming Soon", description: "Duplicate feature is coming soon." });
       return;
     }
 
     if (action === "Copy") {
       copyImageToClipboard(item.src);
+      return;
+    }
+
+    if (action === "Favorite" || action === "Unfavorite") {
+      toggleFavorite(item.id);
+      return;
+    }
+
+    if (action === "Move") {
+      toast({ title: "Coming Soon", description: "Folder organization is coming soon." });
       return;
     }
 
@@ -333,7 +343,36 @@ export default function MyCreations() {
     }
   };
 
-  const handleBulkAction = (action: string) => {
+  const handleBulkAction = async (action: string) => {
+    if (action === "Move" || action === "Duplicate") {
+      toast({ title: "Coming Soon", description: `Bulk ${action.toLowerCase()} feature is coming soon.` });
+      setSelectMode(false);
+      setSelectedItems([]);
+      return;
+    }
+
+    if (action === "Unfavorite" || action === "Favorite") {
+      for (const itemId of selectedItems) {
+        await apiToggleFavorite(itemId);
+      }
+      toast({ title: "Updated", description: `${selectedItems.length} items updated.` });
+      setSelectMode(false);
+      setSelectedItems([]);
+      return;
+    }
+
+    if (action === "Delete") {
+      for (const itemId of selectedItems) {
+        if (!itemId.startsWith("mock-")) {
+          await apiDeleteImage(itemId);
+        }
+      }
+      toast({ title: "Deleted", description: `${selectedItems.length} items deleted.` });
+      setSelectMode(false);
+      setSelectedItems([]);
+      return;
+    }
+
     toast({
       title: `${action} ${selectedItems.length} items`,
       description: "This action has been performed successfully.",
