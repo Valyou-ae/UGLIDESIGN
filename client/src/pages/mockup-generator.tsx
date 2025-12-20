@@ -1858,12 +1858,12 @@ export default function MockupGenerator() {
                                       >
                                         <div 
                                           className={cn(
-                                            "w-12 h-12 sm:w-14 sm:h-14 rounded-lg flex items-center justify-center transition-colors",
+                                            "w-10 h-10 rounded-lg flex items-center justify-center transition-colors",
                                             isSelected ? "bg-primary/20" : "bg-muted"
                                           )}
                                         >
                                           <div 
-                                            className="w-8 h-8 sm:w-10 sm:h-10"
+                                            className="w-6 h-6"
                                             style={{ color: isSelected ? "#E91E63" : "currentColor" }}
                                             dangerouslySetInnerHTML={{ __html: silhouette.svg }}
                                           />
