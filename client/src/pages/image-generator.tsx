@@ -1974,9 +1974,68 @@ export default function ImageGenerator() {
                   </Button>
                 </div>
                 
-                {/* Gallery - CSS Columns Masonry (matches My Creations page) */}
-                <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-3">
-                  {generations.map((gen) => (
+                {/* New Images Row - Horizontal display at top */}
+                {generations.some(g => g.isNew) && (
+                  <div className="mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="px-2 py-0.5 bg-[#E91E63] text-white text-[10px] font-bold rounded">NEW</div>
+                      <span className="text-xs text-muted-foreground">Just created</span>
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                      {generations.filter(g => g.isNew).map((gen) => (
+                        <motion.div 
+                          key={gen.id}
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          onClick={() => setSelectedImage(gen)}
+                          className="relative group rounded-xl overflow-hidden cursor-pointer bg-card border-2 border-[#E91E63]/50 hover:border-[#E91E63] hover:shadow-xl hover:scale-[1.02] transition-all duration-200"
+                        >
+                          <div className={cn(
+                            "relative overflow-hidden bg-muted/20",
+                            gen.aspectRatio === "9:16" && "aspect-[9/16] w-[140px]",
+                            gen.aspectRatio === "16:9" && "aspect-[16/9] w-[320px]",
+                            gen.aspectRatio === "4:5" && "aspect-[4/5] w-[180px]",
+                            gen.aspectRatio === "3:4" && "aspect-[3/4] w-[170px]",
+                            gen.aspectRatio === "1:1" && "aspect-square w-[200px]",
+                            !gen.aspectRatio && "aspect-square w-[200px]"
+                          )}>
+                            <img src={gen.src} alt={gen.prompt} className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2">
+                              <div className="flex items-center gap-1">
+                                <Button 
+                                  size="icon" 
+                                  className="h-7 w-7 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg"
+                                  onClick={(e) => { e.stopPropagation(); handleVary(gen); }}
+                                >
+                                  <RefreshCw className="h-3 w-3" />
+                                </Button>
+                                <Button 
+                                  size="icon" 
+                                  className="h-7 w-7 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg"
+                                  onClick={(e) => { e.stopPropagation(); downloadImage(gen.src, `generated_${gen.id}.png`); }}
+                                >
+                                  <Download className="h-3 w-3" />
+                                </Button>
+                                <Button 
+                                  size="icon" 
+                                  className="h-7 w-7 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg ml-auto"
+                                  onClick={(e) => { e.stopPropagation(); toggleFavorite(gen.id); }}
+                                >
+                                  <Star className={cn("h-3 w-3", gen.isFavorite && "fill-yellow-400 text-yellow-400")} />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Gallery - CSS Columns Masonry for older images */}
+                {generations.filter(g => !g.isNew).length > 0 && (
+                  <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-3">
+                    {generations.filter(g => !g.isNew).map((gen) => (
                     <motion.div 
                       key={gen.id}
                       initial={{ opacity: 0, scale: 0.9 }}
@@ -2039,7 +2098,8 @@ export default function ImageGenerator() {
                       </div>
                     </motion.div>
                   ))}
-                </div>
+                  </div>
+                )}
               </div>
             )}
 
