@@ -10,6 +10,8 @@ import cors from 'cors';
 import { logger } from './logger';
 import { pool } from './db';
 import * as Sentry from '@sentry/node';
+import { stopCacheCleanup } from './cache';
+import { stopRateLimiterCleanup } from './rateLimiter';
 
 // ============== SENTRY ERROR MONITORING ==============
 // Initialize Sentry early for comprehensive error tracking
@@ -367,6 +369,11 @@ async function initStripe() {
 
     logger.info(`${signal} received, starting graceful shutdown...`, { source: 'shutdown' });
 
+    // Stop background intervals first
+    stopCacheCleanup();
+    stopRateLimiterCleanup();
+    logger.info('Background intervals stopped', { source: 'shutdown' });
+
     // Stop accepting new connections
     httpServer.close(async () => {
       logger.info('HTTP server closed', { source: 'shutdown' });
@@ -391,4 +398,23 @@ async function initStripe() {
 
   process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
   process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+  // Handle unhandled promise rejections - prevents silent failures
+  process.on('unhandledRejection', (reason, promise) => {
+    logger.error('Unhandled Promise Rejection', reason instanceof Error ? reason : new Error(String(reason)), {
+      source: 'process',
+      promise: String(promise),
+    });
+    // Don't exit - log and continue, but consider exiting in strict mode
+  });
+
+  // Handle uncaught synchronous exceptions - these are critical
+  process.on('uncaughtException', (error, origin) => {
+    logger.error('Uncaught Exception - initiating shutdown', error, {
+      source: 'process',
+      origin,
+    });
+    // Uncaught exceptions leave the process in undefined state - must exit
+    gracefulShutdown('uncaughtException');
+  });
 })();

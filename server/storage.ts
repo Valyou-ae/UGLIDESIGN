@@ -50,7 +50,7 @@ import {
   type InsertImageFolder
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, count, gte, lte, sql } from "drizzle-orm";
+import { eq, and, desc, count, gte, lte, sql, inArray } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -62,6 +62,7 @@ export interface IStorage {
   
   createImage(image: InsertImage): Promise<GeneratedImage>;
   getImageById(imageId: string, userId: string): Promise<GeneratedImage | undefined>;
+  getImagesByIds(imageIds: string[], userId: string): Promise<GeneratedImage[]>;
   getPublicImageById(imageId: string): Promise<(GeneratedImage & { username?: string }) | undefined>;
   getImagesByUserId(userId: string, limit?: number, offset?: number): Promise<{ images: GeneratedImage[]; total: number }>;
   getImageCountByUserId(userId: string): Promise<number>;
@@ -136,7 +137,7 @@ export interface IStorage {
   removeItemFromBoard(itemId: string): Promise<void>;
   verifyBoardItemOwnership(userId: string, itemId: string): Promise<boolean>;
 
-  getGalleryImages(): Promise<GalleryImage[]>;
+  getGalleryImages(limit?: number): Promise<GalleryImage[]>;
   getGalleryImageById(imageId: string): Promise<GalleryImage | undefined>;
   getGalleryImageBySourceId(sourceImageId: string): Promise<GalleryImage | undefined>;
   createGalleryImage(data: { title: string; imageUrl: string; creator: string; category?: string; aspectRatio?: string; prompt?: string; sourceImageId?: string }): Promise<GalleryImage>;
@@ -271,6 +272,17 @@ export class DatabaseStorage implements IStorage {
       .from(generatedImages)
       .where(and(eq(generatedImages.id, imageId), eq(generatedImages.userId, userId)));
     return image;
+  }
+
+  async getImagesByIds(imageIds: string[], userId: string): Promise<GeneratedImage[]> {
+    if (imageIds.length === 0) return [];
+    return db
+      .select()
+      .from(generatedImages)
+      .where(and(
+        inArray(generatedImages.id, imageIds),
+        eq(generatedImages.userId, userId)
+      ));
   }
 
   async getPublicImageById(imageId: string): Promise<(GeneratedImage & { username?: string }) | undefined> {
@@ -919,8 +931,10 @@ export class DatabaseStorage implements IStorage {
     await db.delete(moodBoardItems).where(eq(moodBoardItems.id, itemId));
   }
 
-  async getGalleryImages(): Promise<GalleryImage[]> {
-    return db.select().from(galleryImages).orderBy(desc(galleryImages.createdAt));
+  async getGalleryImages(limit: number = 200): Promise<GalleryImage[]> {
+    return db.select().from(galleryImages)
+      .orderBy(desc(galleryImages.createdAt))
+      .limit(limit);
   }
 
   async getGalleryImageById(imageId: string): Promise<GalleryImage | undefined> {

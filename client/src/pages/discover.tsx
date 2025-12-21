@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, memo } from "react";
 import { 
   TrendingUp, 
   BadgeCheck, 
@@ -64,7 +64,7 @@ interface InspirationItem {
   createdAt?: string;
 }
 
-function LazyMasonryCard({ item, index, onLike, onUse, onCopy }: { item: InspirationItem; index: number; onLike?: (id: string) => void; onUse?: (id: string) => void; onCopy?: (prompt: string) => void }) {
+const LazyMasonryCard = memo(function LazyMasonryCard({ item, index, onLike, onUse, onCopy }: { item: InspirationItem; index: number; onLike?: (id: string) => void; onUse?: (id: string) => void; onCopy?: (prompt: string) => void }) {
   const [isVisible, setIsVisible] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -125,7 +125,7 @@ function LazyMasonryCard({ item, index, onLike, onUse, onCopy }: { item: Inspira
             setViewTracked(true);
             galleryApi.viewImage(String(item.id))
               .then(result => setViewCount(result.viewCount))
-              .catch(() => {});
+              .catch((err) => console.warn('Failed to track view:', err));
           }
           observer.disconnect();
         }
@@ -162,7 +162,7 @@ function LazyMasonryCard({ item, index, onLike, onUse, onCopy }: { item: Inspira
     setTimeout(() => setCopied(false), 2000);
     
     if (item.isGalleryImage) {
-      galleryApi.useImage(String(item.id)).catch(() => {});
+      galleryApi.useImage(String(item.id)).catch((err) => console.warn('Failed to track use:', err));
       onUse?.(String(item.id));
     }
     
@@ -376,7 +376,7 @@ function LazyMasonryCard({ item, index, onLike, onUse, onCopy }: { item: Inspira
       </div>
     </motion.div>
   );
-}
+});
 
 const allInspirations: InspirationItem[] = [
   {

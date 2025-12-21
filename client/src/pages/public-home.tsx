@@ -525,7 +525,12 @@ export default function PublicHome() {
           // Try localStorage fallback
           const stored = localStorage.getItem('gallery_cache');
           if (stored) {
-            return JSON.parse(stored);
+            try {
+              return JSON.parse(stored);
+            } catch {
+              // Corrupted cache, clear it
+              localStorage.removeItem('gallery_cache');
+            }
           }
           return { images: [] };
         }

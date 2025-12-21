@@ -7,6 +7,7 @@ import type { Express, RequestHandler } from "express";
 import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
+import type { AuthUser, AuthClaims } from "./types";
 
 const getOidcConfig = memoize(
   async () => {
@@ -42,17 +43,17 @@ export function getSession() {
 }
 
 function updateUserSession(
-  user: any,
+  user: Partial<AuthUser>,
   tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers
 ) {
-  user.claims = tokens.claims();
+  user.claims = tokens.claims() as AuthClaims;
   user.access_token = tokens.access_token;
   user.refresh_token = tokens.refresh_token;
   user.expires_at = user.claims?.exp;
 }
 
 async function upsertUser(
-  claims: any,
+  claims: AuthClaims,
 ) {
   await storage.upsertUser({
     id: claims["sub"],
