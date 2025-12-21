@@ -776,10 +776,10 @@ export default function MockupGenerator() {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>("Men's Clothing");
-  const [selectedProductType, setSelectedProductType] = useState<string | null>(null);
-  const [environmentPrompt, setEnvironmentPrompt] = useState("");
+  const [selectedProductType, setSelectedProductType] = useState<string | null>("T-shirts");
+  const [environmentPrompt, setEnvironmentPrompt] = useState("A minimalist gray or white photography studio with professional soft lighting");
   const [selectedColors, setSelectedColors] = useState<string[]>(["White"]);
-  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+  const [selectedSizes, setSelectedSizes] = useState<string[]>(["M"]);
   const [selectedAngles, setSelectedAngles] = useState<string[]>(["front"]);
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [modelDetails, setModelDetails] = useState<ModelDetails>({
@@ -853,6 +853,22 @@ export default function MockupGenerator() {
       loadTransferredImage();
     }
   }, []);
+
+  // Track previous journey to detect actual journey changes
+  const prevJourneyRef = useRef<JourneyType>(null);
+  
+  // Reset product selection only when journey actually changes
+  useEffect(() => {
+    if (journey && journey !== prevJourneyRef.current) {
+      const categories = journey === "AOP" ? AOP_PRODUCT_CATEGORIES : DTG_PRODUCT_CATEGORIES;
+      const currentCat = categories.find(c => c.name === activeCategory);
+      const products = currentCat?.items || categories[0]?.items || [];
+      if (products.length > 0) {
+        setSelectedProductType(products[0].name);
+      }
+      prevJourneyRef.current = journey;
+    }
+  }, [journey, activeCategory]);
 
   const downloadImage = (url: string, filename: string) => {
     const link = document.createElement('a');
