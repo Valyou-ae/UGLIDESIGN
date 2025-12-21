@@ -63,7 +63,7 @@ export function SaveToFolderModal({
       setCreateError(null);
     },
     onError: (error: Error) => {
-      setCreateError(error.message || "Failed to create project");
+      setCreateError(error.message || "Failed to create folder");
     },
   });
 
@@ -97,10 +97,10 @@ export function SaveToFolderModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Folder className="h-5 w-5" />
-            Save to Project
+            Save to Folder
           </DialogTitle>
           <DialogDescription>
-            Choose a project to organize your image, or create a new one.
+            Choose a folder to organize your image, or create a new one.
           </DialogDescription>
         </DialogHeader>
 
@@ -126,7 +126,7 @@ export function SaveToFolderModal({
                     <div className="h-8 w-8 rounded-md bg-muted flex items-center justify-center">
                       <Folder className="h-4 w-4 text-muted-foreground" />
                     </div>
-                    <span className="flex-1 font-medium">No project</span>
+                    <span className="flex-1 font-medium">No folder</span>
                     {selectedFolderId === null && (
                       <Check className="h-4 w-4 text-primary" />
                     )}
@@ -162,7 +162,7 @@ export function SaveToFolderModal({
               {isCreating ? (
                 <div className="space-y-3 p-3 border rounded-lg bg-muted/30">
                   <Input
-                    placeholder="Project name"
+                    placeholder="Folder name"
                     value={newFolderName}
                     onChange={(e) => {
                       setNewFolderName(e.target.value);
@@ -229,7 +229,7 @@ export function SaveToFolderModal({
                   data-testid="button-new-folder"
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  New Project
+                  New Folder
                 </Button>
               )}
             </>

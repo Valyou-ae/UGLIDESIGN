@@ -20,15 +20,14 @@ const sql = neon(process.env.DATABASE_URL);
 export const db = drizzle(sql, { schema });
 
 // Connection pool for session store and direct queries
-// Optimized for Neon serverless database with cold start handling
+// Sized for production concurrent user load
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  max: parseInt(process.env.DB_POOL_MAX || '10'),  // Reduced for serverless
-  min: 0,  // Allow pool to shrink to 0 for serverless
-  idleTimeoutMillis: 10000,  // Close idle connections quickly
-  connectionTimeoutMillis: 60000,  // 60s timeout for cold starts
+  max: parseInt(process.env.DB_POOL_MAX || '20'),  // Default 20 connections for production
+  min: parseInt(process.env.DB_POOL_MIN || '2'),   // Keep minimum connections warm
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 30000,
   ssl: { rejectUnauthorized: false },
-  allowExitOnIdle: true,  // Allow process to exit if pool is idle
 });
 
 // Handle pool errors
