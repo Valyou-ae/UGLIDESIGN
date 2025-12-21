@@ -854,18 +854,38 @@ export async function registerRoutes(
   app.post("/api/images", requireAuth, async (req: any, res) => {
     try {
       const userId = getUserId(req);
+      const { pool } = await import("./db");
       
-      // Auto-assign default folder if no folderId provided
+      // Auto-assign default folder if no folderId provided - using pool to avoid Neon HTTP driver issues
       let folderId = req.body.folderId;
       if (!folderId) {
-        const defaultFolder = await storage.getOrCreateDefaultFolder(userId);
-        folderId = defaultFolder.id;
+        try {
+          // Check if default folder exists
+          const existingResult = await pool.query(
+            `SELECT id FROM image_folders WHERE user_id = $1 AND name = 'My Folder' LIMIT 1`,
+            [userId]
+          );
+          
+          if (existingResult.rows.length > 0) {
+            folderId = existingResult.rows[0].id;
+          } else {
+            // Create default folder
+            const insertResult = await pool.query(
+              `INSERT INTO image_folders (user_id, name, color) VALUES ($1, 'My Folder', '#6366f1') RETURNING id`,
+              [userId]
+            );
+            folderId = insertResult.rows[0].id;
+          }
+        } catch (folderError) {
+          console.error("Folder creation error (non-blocking):", folderError);
+          // Continue without folder - folderId remains undefined/null
+        }
       }
       
       const imageData = insertImageSchema.parse({
         ...req.body,
         userId,
-        folderId,
+        folderId: folderId || null,
       });
 
       const image = await storage.createImage(imageData);
