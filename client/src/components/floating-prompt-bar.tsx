@@ -370,7 +370,7 @@ export function FloatingPromptBar({ onImageGenerated }: FloatingPromptBarProps =
               onChange={(e) => setPrompt(e.target.value)}
               onFocus={handleFocus}
               placeholder="Describe the image you want to create..."
-              className="w-full bg-transparent text-white placeholder-white/40 text-sm px-4 py-2.5 focus:outline-none"
+              className="w-full bg-transparent text-white placeholder-white/60 text-sm px-4 py-2.5 focus:outline-none"
               data-testid="input-prompt"
             />
           </div>
