@@ -853,9 +853,18 @@ export async function registerRoutes(
   app.post("/api/images", requireAuth, async (req: any, res) => {
     try {
       const userId = getUserId(req);
+      
+      // Auto-assign default folder if no folderId provided
+      let folderId = req.body.folderId;
+      if (!folderId) {
+        const defaultFolder = await storage.getOrCreateDefaultFolder(userId);
+        folderId = defaultFolder.id;
+      }
+      
       const imageData = insertImageSchema.parse({
         ...req.body,
         userId,
+        folderId,
       });
 
       const image = await storage.createImage(imageData);
@@ -1091,6 +1100,17 @@ export async function registerRoutes(
   });
 
   // ============== IMAGE FOLDERS ROUTES ==============
+
+  app.get("/api/folders/default", requireAuth, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const folder = await storage.getOrCreateDefaultFolder(userId);
+      res.json({ folder });
+    } catch (error) {
+      console.error("Get default folder error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
 
   app.get("/api/folders", requireAuth, async (req: any, res) => {
     try {
