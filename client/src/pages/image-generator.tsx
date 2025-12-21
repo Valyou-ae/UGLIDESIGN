@@ -2217,7 +2217,7 @@ export default function ImageGenerator() {
 
                   <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 md:space-y-8">
                     {/* Actions */}
-                    <div className="grid grid-cols-4 gap-2">
+                    <div className="grid grid-cols-5 gap-2">
                       <Button 
                         variant="ghost" 
                         className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
@@ -2225,8 +2225,18 @@ export default function ImageGenerator() {
                         disabled={isSaving}
                         data-testid="button-save-library"
                       >
-                        <Download className={cn("h-5 w-5", isSaving && "animate-pulse")} />
-                        <span className="text-[10px]">{isSaving ? "Saving..." : "Save"}</span>
+                        <FolderInput className={cn("h-5 w-5", isSaving && "animate-pulse")} />
+                        <span className="text-[10px]">{isSaving ? "Moving..." : "Folder"}</span>
+                      </Button>
+                      
+                      <Button 
+                        variant="ghost" 
+                        className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
+                        onClick={() => downloadImage(selectedImage.src, `ugli_${selectedImage.id}.png`)}
+                        data-testid="button-download-detail"
+                      >
+                        <Download className="h-5 w-5" />
+                        <span className="text-[10px]">Download</span>
                       </Button>
                       
                       <Button 
