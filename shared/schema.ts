@@ -40,20 +40,20 @@ export const users = pgTable("users", {
   index("idx_users_created_at").on(table.createdAt),
 ]);
 
-export const imageFolders = pgTable("image_folders", {
+export const imageProjects = pgTable("image_projects", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id).notNull(),
   name: text("name").notNull(),
   color: text("color").default("#6366f1"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => [
-  index("idx_image_folders_user_id").on(table.userId),
+  index("idx_image_projects_user_id").on(table.userId),
 ]);
 
 export const generatedImages = pgTable("generated_images", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id).notNull(),
-  folderId: varchar("folder_id").references(() => imageFolders.id),
+  projectId: varchar("project_id").references(() => imageProjects.id),
   imageUrl: text("image_url").notNull(),
   prompt: text("prompt").notNull(),
   style: text("style"),
@@ -68,7 +68,7 @@ export const generatedImages = pgTable("generated_images", {
   index("idx_generated_images_created_at").on(table.createdAt),
   index("idx_generated_images_user_created").on(table.userId, table.createdAt),
   index("idx_generated_images_is_public").on(table.isPublic),
-  index("idx_generated_images_folder_id").on(table.folderId),
+  index("idx_generated_images_project_id").on(table.projectId),
 ]);
 
 export const affiliateCommissions = pgTable("affiliate_commissions", {
@@ -421,13 +421,13 @@ export const insertMoodBoardItemSchema = createInsertSchema(moodBoardItems).omit
   createdAt: true,
 });
 
-export const insertImageFolderSchema = createInsertSchema(imageFolders).omit({
+export const insertImageProjectSchema = createInsertSchema(imageProjects).omit({
   id: true,
   createdAt: true,
 });
 
-export type ImageFolder = typeof imageFolders.$inferSelect;
-export type InsertImageFolder = z.infer<typeof insertImageFolderSchema>;
+export type ImageProject = typeof imageProjects.$inferSelect;
+export type InsertImageProject = z.infer<typeof insertImageProjectSchema>;
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpdateProfile = z.infer<typeof updateProfileSchema>;

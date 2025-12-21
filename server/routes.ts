@@ -31,7 +31,7 @@ import {
   guestGenerationSchema,
   createMoodBoardSchema,
   updateRoleSchema,
-  insertImageFolderSchema,
+  insertImageProjectSchema,
 } from "@shared/schema";
 import { ZodError } from "zod";
 import { db } from "./db";
