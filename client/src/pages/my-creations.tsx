@@ -370,18 +370,18 @@ export default function MyCreations() {
 
   const handleCreateFolder = async () => {
     if (!newFolderName.trim()) {
-      toast({ variant: "destructive", title: "Error", description: "Please enter a folder name." });
+      toast({ variant: "destructive", title: "Error", description: "Please enter a project name." });
       return;
     }
     setIsCreatingFolder(true);
     try {
       await foldersApi.create({ name: newFolderName.trim() });
       queryClient.invalidateQueries({ queryKey: ["folders"] });
-      toast({ title: "Folder Created", description: `"${newFolderName}" has been created.` });
+      toast({ title: "Project Created", description: `"${newFolderName}" has been created.` });
       setNewFolderName("");
       setShowNewFolderModal(false);
     } catch (error) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to create folder." });
+      toast({ variant: "destructive", title: "Error", description: "Failed to create project." });
     } finally {
       setIsCreatingFolder(false);
     }
@@ -449,7 +449,7 @@ export default function MyCreations() {
     if (activeFilter === "Images" && item.type === "image") return true;
     if (activeFilter === "Mockups" && item.type === "mockup") return true;
     if (activeFilter === "BG Removed" && item.type === "bg-removed") return true;
-    if (activeFilter === "Folders") return true; // Show all when in Folders view
+    if (activeFilter === "My Projects") return true; // Show all when in My Projects view
     return false;
   }).filter(item => 
     item.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -581,7 +581,7 @@ export default function MyCreations() {
             <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
               {[
                 { name: "All", count: items.length },
-                { name: "Folders", count: folders.length },
+                { name: "My Projects", count: folders.length },
                 { name: "My Favourites", count: items.filter(i => i.favorite).length },
                 { name: "Images", count: items.filter(i => i.type === "image").length },
                 { name: "Mockups", count: items.filter(i => i.type === "mockup").length },
@@ -590,7 +590,7 @@ export default function MyCreations() {
                   key={filter.name}
                   onClick={() => {
                     setActiveFilter(filter.name);
-                    if (filter.name !== "Folders") {
+                    if (filter.name !== "My Projects") {
                       setActiveFolderId(null);
                     }
                   }}
@@ -633,7 +633,7 @@ export default function MyCreations() {
                 data-testid="button-new-folder"
               >
                 <FolderPlus className="h-3.5 w-3.5" />
-                New Folder
+                New Project
               </button>
             </div>
           </div>
@@ -679,7 +679,7 @@ export default function MyCreations() {
                       onClick={() => handleBulkAction("Move")}
                       className="flex items-center gap-2 px-4 py-2.5 bg-[#2A2A30] hover:bg-[#3A3A40] text-[#E4E4E7] text-[13px] font-medium rounded-[10px] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <FolderInput className="h-4 w-4" /> Move to Folder
+                      <FolderInput className="h-4 w-4" /> Move to Project
                     </button>
                     <button 
                       disabled={selectedItems.length === 0}
@@ -701,11 +701,11 @@ export default function MyCreations() {
             )}
           </AnimatePresence>
 
-          {/* FOLDERS SECTION - when Folders filter is active */}
-          {activeFilter === "Folders" && !activeFolderId && (
+          {/* PROJECTS SECTION - when My Projects filter is active */}
+          {activeFilter === "My Projects" && !activeFolderId && (
             <div className="mb-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-foreground">Your Folders</h2>
+                <h2 className="text-lg font-semibold text-foreground">Your Projects</h2>
               </div>
               {isLoadingFolders ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -716,9 +716,9 @@ export default function MyCreations() {
               ) : folders.length === 0 ? (
                 <div className="h-[200px] flex flex-col items-center justify-center text-center bg-card border border-border rounded-xl">
                   <Folder className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                  <h3 className="text-lg font-semibold text-foreground mb-2">No folders yet</h3>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">No projects yet</h3>
                   <p className="text-sm text-muted-foreground max-w-sm">
-                    Create folders to organize your images. Use the Save button on any image to create a folder.
+                    Create projects to organize your images. Use the Save button on any image to create a project.
                   </p>
                 </div>
               ) : (
@@ -756,13 +756,13 @@ export default function MyCreations() {
                 className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X className="h-4 w-4" />
-                Clear folder filter
+                Clear project filter
               </button>
               <div className="w-px h-5 bg-border" />
               <div className="flex items-center gap-2">
                 <Folder className="h-4 w-4" style={{ color: folders.find(f => f.id === activeFolderId)?.color || '#6366f1' }} />
                 <span className="font-medium text-foreground">
-                  {folders.find(f => f.id === activeFolderId)?.name || 'Folder'}
+                  {folders.find(f => f.id === activeFolderId)?.name || 'Project'}
                 </span>
               </div>
             </div>
@@ -874,7 +874,7 @@ export default function MyCreations() {
                           <DropdownMenuItem onClick={() => handleAction("Download", item)} className="hover:bg-[#2A2A30] cursor-pointer"><Download className="h-4 w-4 mr-2" /> Download</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleAction("Copy", item)} className="hover:bg-[#2A2A30] cursor-pointer"><ClipboardCopy className="h-4 w-4 mr-2" /> Copy to Clipboard</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleAction("Duplicate", item)} className="hover:bg-[#2A2A30] cursor-pointer"><Copy className="h-4 w-4 mr-2" /> Duplicate</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleAction("Move", item)} className="hover:bg-[#2A2A30] cursor-pointer"><FolderInput className="h-4 w-4 mr-2" /> Move to Folder</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleAction("Move", item)} className="hover:bg-[#2A2A30] cursor-pointer"><FolderInput className="h-4 w-4 mr-2" /> Move to Project</DropdownMenuItem>
                           <DropdownMenuSeparator className="bg-[#2A2A30]" />
                           <DropdownMenuItem 
                             onClick={() => {
@@ -998,7 +998,7 @@ export default function MyCreations() {
                                   <DropdownMenuItem onClick={() => handleAction("Open", item)} className="hover:bg-[#2A2A30] cursor-pointer"><ArrowUpRight className="h-4 w-4 mr-2" /> Open</DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => handleAction("Copy", item)} className="hover:bg-[#2A2A30] cursor-pointer"><ClipboardCopy className="h-4 w-4 mr-2" /> Copy to Clipboard</DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => handleAction("Duplicate", item)} className="hover:bg-[#2A2A30] cursor-pointer"><Copy className="h-4 w-4 mr-2" /> Duplicate</DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => handleAction("Move", item)} className="hover:bg-[#2A2A30] cursor-pointer"><FolderInput className="h-4 w-4 mr-2" /> Move to Folder</DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleAction("Move", item)} className="hover:bg-[#2A2A30] cursor-pointer"><FolderInput className="h-4 w-4 mr-2" /> Move to Project</DropdownMenuItem>
                                   <DropdownMenuSeparator className="bg-[#2A2A30]" />
                                   <DropdownMenuItem 
                                     onClick={() => {
@@ -1111,7 +1111,7 @@ export default function MyCreations() {
                       data-testid="button-folder-detail"
                     >
                       <FolderInput className="h-5 w-5" />
-                      <span className="text-[10px]">Folder</span>
+                      <span className="text-[10px]">Project</span>
                     </Button>
                     
                     <Button 
@@ -1345,14 +1345,14 @@ export default function MyCreations() {
                 setSelectedItem(prev => prev ? { ...prev, folderId } : null);
               }
               toast({ 
-                title: "Moved to Folder", 
-                description: "Image has been moved to the folder." 
+                title: "Moved to Project", 
+                description: "Image has been moved to the project." 
               });
             } catch (error) {
               toast({ 
                 variant: "destructive", 
                 title: "Move Failed", 
-                description: "Could not move image to folder." 
+                description: "Could not move image to project." 
               });
             }
           }
@@ -1368,17 +1368,17 @@ export default function MyCreations() {
           <AlertDialogHeader>
             <AlertDialogTitle className="text-[#FAFAFA] flex items-center gap-2">
               <FolderPlus className="h-5 w-5 text-[#F59E0B]" />
-              Create New Folder
+              Create New Project
             </AlertDialogTitle>
             <AlertDialogDescription className="text-[#A1A1AA]">
-              Enter a name for your new folder to organize your creations.
+              Enter a name for your new project to organize your creations.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4">
             <Input
               value={newFolderName}
               onChange={(e) => setNewFolderName(e.target.value)}
-              placeholder="Folder name..."
+              placeholder="Project name..."
               className="bg-[#27272A] border-[#3F3F46] text-white placeholder:text-[#71717A]"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
@@ -1406,7 +1406,7 @@ export default function MyCreations() {
                   Creating...
                 </>
               ) : (
-                "Create Folder"
+                "Create Project"
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
