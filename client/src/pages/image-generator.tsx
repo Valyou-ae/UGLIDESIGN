@@ -2034,6 +2034,7 @@ export default function ImageGenerator() {
                               e.stopPropagation();
                               handleVary(gen);
                             }}
+                            data-testid="button-vary-gallery"
                           >
                             <RefreshCw className="h-3 w-3" />
                           </Button>
@@ -2044,18 +2045,31 @@ export default function ImageGenerator() {
                               e.stopPropagation();
                               downloadImage(gen.src, `generated_${gen.id}.png`);
                             }}
+                            data-testid="button-download-gallery"
                           >
                             <Download className="h-3 w-3" />
                           </Button>
                           <Button 
                             size="icon" 
-                            className="h-7 w-7 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg ml-auto"
+                            className="h-7 w-7 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg"
                             onClick={(e) => {
                               e.stopPropagation();
                               toggleFavorite(gen.id);
                             }}
+                            data-testid="button-favorite-gallery"
                           >
                             <Star className={cn("h-3 w-3", gen.isFavorite && "fill-yellow-400 text-yellow-400")} />
+                          </Button>
+                          <Button 
+                            size="icon" 
+                            className="h-7 w-7 bg-white/10 hover:bg-red-500/80 text-white border-0 backdrop-blur-md rounded-lg ml-auto"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setImageToDelete(gen);
+                            }}
+                            data-testid="button-delete-gallery"
+                          >
+                            <Trash2 className="h-3 w-3" />
                           </Button>
                         </div>
                       </div>
