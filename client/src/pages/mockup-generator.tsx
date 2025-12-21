@@ -2018,118 +2018,103 @@ export default function MockupGenerator() {
                                 </div>
                                 
                                 {useModel && (
-                                  <div className="space-y-4 mt-3">
-                                    {/* Gender Selection */}
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-xs text-muted-foreground w-16 shrink-0">Gender</span>
-                                      <div className="flex gap-2 flex-1">
-                                        {[
-                                          { value: "MALE", icon: User, label: "Male" },
-                                          { value: "FEMALE", icon: Users, label: "Female" },
-                                        ].map((option) => (
-                                          <TooltipProvider key={option.value}>
-                                            <Tooltip>
-                                              <TooltipTrigger asChild>
-                                                <button
-                                                  onClick={() => setModelDetails({...modelDetails, sex: option.value as "MALE" | "FEMALE"})}
-                                                  className={cn(
-                                                    "flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border transition-all flex-1",
-                                                    modelDetails.sex === option.value
-                                                      ? "bg-primary/10 border-primary text-primary"
-                                                      : "bg-muted/30 border-border text-muted-foreground hover:border-primary/30"
-                                                  )}
-                                                >
-                                                  <option.icon className="h-4 w-4" />
-                                                  <span className="text-xs font-medium">{option.label}</span>
-                                                </button>
-                                              </TooltipTrigger>
-                                              <TooltipContent><p>{option.label}</p></TooltipContent>
-                                            </Tooltip>
-                                          </TooltipProvider>
-                                        ))}
-                                      </div>
-                                    </div>
+                                  <div className="flex flex-wrap items-center gap-2 mt-3">
+                                    {/* Gender */}
+                                    {[
+                                      { value: "MALE", icon: User, label: "M" },
+                                      { value: "FEMALE", icon: Users, label: "F" },
+                                    ].map((option) => (
+                                      <TooltipProvider key={option.value}>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <button
+                                              onClick={() => setModelDetails({...modelDetails, sex: option.value as "MALE" | "FEMALE"})}
+                                              className={cn(
+                                                "flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg border transition-all",
+                                                modelDetails.sex === option.value
+                                                  ? "bg-primary/10 border-primary text-primary"
+                                                  : "bg-muted/30 border-border text-muted-foreground hover:border-primary/30"
+                                              )}
+                                            >
+                                              <option.icon className="h-3.5 w-3.5" />
+                                            </button>
+                                          </TooltipTrigger>
+                                          <TooltipContent><p>{option.value === "MALE" ? "Male" : "Female"}</p></TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+                                    ))}
 
-                                    {/* Ethnicity - keep as dropdown due to many options */}
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-xs text-muted-foreground w-16 shrink-0">Ethnicity</span>
-                                      <Select value={modelDetails.ethnicity} onValueChange={(v) => setModelDetails({...modelDetails, ethnicity: v as any})}>
-                                        <SelectTrigger className="h-9 flex-1"><SelectValue placeholder="Ethnicity" /></SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="WHITE">White</SelectItem>
-                                          <SelectItem value="BLACK">Black</SelectItem>
-                                          <SelectItem value="ASIAN">Asian</SelectItem>
-                                          <SelectItem value="LATINO">Latino</SelectItem>
-                                          <SelectItem value="MIDDLE_EASTERN">Middle Eastern</SelectItem>
-                                          <SelectItem value="MIXED">Mixed</SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
+                                    <div className="w-px h-6 bg-border mx-1" />
 
-                                    {/* Age Selection */}
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-xs text-muted-foreground w-16 shrink-0">Age</span>
-                                      <div className="flex gap-2 flex-1">
-                                        {[
-                                          { value: "YOUNG_ADULT", icon: Smile, label: "Young" },
-                                          { value: "ADULT", icon: UserCheck, label: "Adult" },
-                                          { value: "MIDDLE_AGED", icon: Award, label: "Mature" },
-                                        ].map((option) => (
-                                          <TooltipProvider key={option.value}>
-                                            <Tooltip>
-                                              <TooltipTrigger asChild>
-                                                <button
-                                                  onClick={() => setModelDetails({...modelDetails, age: option.value as any})}
-                                                  className={cn(
-                                                    "flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border transition-all flex-1",
-                                                    modelDetails.age === option.value
-                                                      ? "bg-primary/10 border-primary text-primary"
-                                                      : "bg-muted/30 border-border text-muted-foreground hover:border-primary/30"
-                                                  )}
-                                                >
-                                                  <option.icon className="h-4 w-4" />
-                                                  <span className="text-xs font-medium">{option.label}</span>
-                                                </button>
-                                              </TooltipTrigger>
-                                              <TooltipContent><p>{option.value === "YOUNG_ADULT" ? "Young Adult" : option.value === "MIDDLE_AGED" ? "Middle Aged" : option.label}</p></TooltipContent>
-                                            </Tooltip>
-                                          </TooltipProvider>
-                                        ))}
-                                      </div>
-                                    </div>
+                                    {/* Ethnicity */}
+                                    <Select value={modelDetails.ethnicity} onValueChange={(v) => setModelDetails({...modelDetails, ethnicity: v as any})}>
+                                      <SelectTrigger className="h-8 w-24 text-xs"><SelectValue placeholder="Ethnicity" /></SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="WHITE">White</SelectItem>
+                                        <SelectItem value="BLACK">Black</SelectItem>
+                                        <SelectItem value="ASIAN">Asian</SelectItem>
+                                        <SelectItem value="LATINO">Latino</SelectItem>
+                                        <SelectItem value="MIDDLE_EASTERN">Middle Eastern</SelectItem>
+                                        <SelectItem value="MIXED">Mixed</SelectItem>
+                                      </SelectContent>
+                                    </Select>
 
-                                    {/* Body Type Selection */}
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-xs text-muted-foreground w-16 shrink-0">Body</span>
-                                      <div className="flex gap-2 flex-1">
-                                        {[
-                                          { value: "slim", icon: PersonStanding, label: "Slim" },
-                                          { value: "athletic", icon: Dumbbell, label: "Athletic" },
-                                          { value: "average", icon: User, label: "Average" },
-                                          { value: "plus", icon: Heart, label: "Plus" },
-                                        ].map((option) => (
-                                          <TooltipProvider key={option.value}>
-                                            <Tooltip>
-                                              <TooltipTrigger asChild>
-                                                <button
-                                                  onClick={() => setModelDetails({...modelDetails, modelSize: option.value as any})}
-                                                  className={cn(
-                                                    "flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border transition-all flex-1",
-                                                    modelDetails.modelSize === option.value
-                                                      ? "bg-primary/10 border-primary text-primary"
-                                                      : "bg-muted/30 border-border text-muted-foreground hover:border-primary/30"
-                                                  )}
-                                                >
-                                                  <option.icon className="h-4 w-4" />
-                                                  <span className="text-xs font-medium">{option.label}</span>
-                                                </button>
-                                              </TooltipTrigger>
-                                              <TooltipContent><p>{option.label}</p></TooltipContent>
-                                            </Tooltip>
-                                          </TooltipProvider>
-                                        ))}
-                                      </div>
-                                    </div>
+                                    <div className="w-px h-6 bg-border mx-1" />
+
+                                    {/* Age */}
+                                    {[
+                                      { value: "YOUNG_ADULT", icon: Smile, tooltip: "Young Adult" },
+                                      { value: "ADULT", icon: UserCheck, tooltip: "Adult" },
+                                      { value: "MIDDLE_AGED", icon: Award, tooltip: "Mature" },
+                                    ].map((option) => (
+                                      <TooltipProvider key={option.value}>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <button
+                                              onClick={() => setModelDetails({...modelDetails, age: option.value as any})}
+                                              className={cn(
+                                                "flex items-center justify-center px-2.5 py-1.5 rounded-lg border transition-all",
+                                                modelDetails.age === option.value
+                                                  ? "bg-primary/10 border-primary text-primary"
+                                                  : "bg-muted/30 border-border text-muted-foreground hover:border-primary/30"
+                                              )}
+                                            >
+                                              <option.icon className="h-3.5 w-3.5" />
+                                            </button>
+                                          </TooltipTrigger>
+                                          <TooltipContent><p>{option.tooltip}</p></TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+                                    ))}
+
+                                    <div className="w-px h-6 bg-border mx-1" />
+
+                                    {/* Body */}
+                                    {[
+                                      { value: "slim", icon: PersonStanding, tooltip: "Slim" },
+                                      { value: "athletic", icon: Dumbbell, tooltip: "Athletic" },
+                                      { value: "average", icon: User, tooltip: "Average" },
+                                      { value: "plus", icon: Heart, tooltip: "Plus" },
+                                    ].map((option) => (
+                                      <TooltipProvider key={option.value}>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <button
+                                              onClick={() => setModelDetails({...modelDetails, modelSize: option.value as any})}
+                                              className={cn(
+                                                "flex items-center justify-center px-2.5 py-1.5 rounded-lg border transition-all",
+                                                modelDetails.modelSize === option.value
+                                                  ? "bg-primary/10 border-primary text-primary"
+                                                  : "bg-muted/30 border-border text-muted-foreground hover:border-primary/30"
+                                              )}
+                                            >
+                                              <option.icon className="h-3.5 w-3.5" />
+                                            </button>
+                                          </TooltipTrigger>
+                                          <TooltipContent><p>{option.tooltip}</p></TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+                                    ))}
                                   </div>
                                 )}
                               </div>
