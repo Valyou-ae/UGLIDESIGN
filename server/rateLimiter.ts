@@ -1,3 +1,6 @@
+import type { Request, Response, NextFunction, RequestHandler } from "express";
+import type { AuthenticatedRequest } from "./types";
+
 interface RateLimitEntry {
   count: number;
   resetTime: number;
@@ -6,10 +9,10 @@ interface RateLimitEntry {
 const rateLimitStore = new Map<string, RateLimitEntry>();
 const MAX_RATE_LIMIT_ENTRIES = 10000; // Prevent unbounded memory growth
 
-const createRateLimiter = (maxRequests: number, windowMs: number, message: string) => {
-  return (req: any, res: any, next: any) => {
-    const ip = req.ip || req.connection?.remoteAddress || 'unknown';
-    const userId = req.user?.claims?.sub;
+const createRateLimiter = (maxRequests: number, windowMs: number, message: string): RequestHandler => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const ip = req.ip || req.socket?.remoteAddress || 'unknown';
+    const userId = (req as AuthenticatedRequest).user?.claims?.sub;
     const key = userId ? `user:${userId}` : `ip:${ip}`;
 
     const now = Date.now();

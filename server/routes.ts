@@ -1,6 +1,7 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import express from "express";
 import path from "path";
+import type { AuthenticatedRequest, SSEEventSender } from "./types";
 import { createServer, type Server } from "http";
 import sharp from "sharp";
 import { storage } from "./storage";
@@ -212,35 +213,35 @@ export async function registerRoutes(
     return fallback;
   };
 
-  const requireAuth = (req: any, res: any, next: any) => {
+  const requireAuth = (req: Request, res: Response, next: NextFunction) => {
     if (isTestMode) {
-      req.user = req.user || { claims: { sub: TEST_USER_ID } };
+      (req as AuthenticatedRequest).user = (req as AuthenticatedRequest).user || { claims: { sub: TEST_USER_ID } };
       return next();
     }
     return isAuthenticated(req, res, next);
   };
 
-  const getUserId = (req: any): string => {
+  const getUserId = (req: AuthenticatedRequest): string => {
     if (isTestMode) {
       return TEST_USER_ID;
     }
-    return req.user?.claims?.sub;
+    return req.user?.claims?.sub || '';
   };
 
-  const requireAdmin = async (req: any, res: any, next: any) => {
+  const requireAdmin = async (req: Request, res: Response, next: NextFunction) => {
     requireAuth(req, res, async () => {
       try {
-        const userId = getUserId(req);
+        const userId = getUserId(req as AuthenticatedRequest);
         const user = await storage.getUser(userId);
-        
+
         if (!user) {
           return res.status(404).json({ message: "User not found" });
         }
-        
+
         if (user.role !== 'admin') {
           return res.status(403).json({ message: "Access denied. Admin privileges required." });
         }
-        
+
         next();
       } catch (error) {
         console.error("Admin auth error:", error);
@@ -249,10 +250,10 @@ export async function registerRoutes(
     });
   };
 
-  const requireSuperAdmin = async (req: any, res: any, next: any) => {
+  const requireSuperAdmin = async (req: Request, res: Response, next: NextFunction) => {
     requireAuth(req, res, async () => {
       try {
-        const userId = getUserId(req);
+        const userId = getUserId(req as AuthenticatedRequest);
         const user = await storage.getUser(userId);
         
         if (!user) {
@@ -271,9 +272,9 @@ export async function registerRoutes(
     });
   };
 
-  app.get("/api/auth/user", requireAuth, async (req: any, res) => {
+  app.get("/api/auth/user", requireAuth, async (req: Request, res: Response) => {
     try {
-      const userId = getUserId(req);
+      const userId = getUserId(req as AuthenticatedRequest);
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
