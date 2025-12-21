@@ -10,10 +10,7 @@ export function createMiddleware() {
   };
 
   const getUserId = (req: AuthenticatedRequest): string => {
-    // Support both Replit Auth (req.user.claims.sub) and local auth (req.session.passport.user.id)
-    const replitUserId = req.user?.claims?.sub;
-    const passportUserId = (req as any).session?.passport?.user?.id;
-    return replitUserId || passportUserId || '';
+    return req.user?.claims?.sub || '';
   };
 
   const requireAdmin = async (req: Request, res: Response, next: NextFunction) => {

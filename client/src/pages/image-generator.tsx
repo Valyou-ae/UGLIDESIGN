@@ -68,19 +68,14 @@ import {
   Medal,
   Award,
   Eye,
-  FolderInput,
-  MoreVertical,
-  ArrowUpRight,
-  Shirt,
-  Scissors,
-  FolderKanban
+  FolderInput
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sidebar } from "@/components/sidebar";
-import { SaveToProjectModal } from "@/components/save-to-project-modal";
+import { SaveToFolderModal } from "@/components/save-to-folder-modal";
 import {
   Tooltip,
   TooltipContent,
@@ -114,13 +109,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { generateApi, imagesApi, GenerationEvent, promptFavoritesApi, PromptFavorite, projectsApi } from "@/lib/api";
+import { generateApi, imagesApi, GenerationEvent, promptFavoritesApi, PromptFavorite, foldersApi } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { Label } from "@/components/ui/label";
 import { useLocation } from "wouter";
 import { TutorialOverlay, useTutorial } from "@/components/tutorial-overlay";
 import { useCredits } from "@/hooks/use-credits";
-import { transferImageToTool } from "@/lib/image-transfer";
 import { DailyInspirationFeed, PersonalizedPrompts } from "@/components/daily-inspiration";
 
 // Import generated images for the gallery
@@ -268,7 +262,7 @@ export default function ImageGenerator() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isVarying, setIsVarying] = useState(false);
-  const [showProjectModal, setShowProjectModal] = useState(false);
+  const [showFolderModal, setShowFolderModal] = useState(false);
   const [imageToSave, setImageToSave] = useState<GeneratedImage | null>(null);
   
   const [savedPrompts, setSavedPrompts] = useState<PromptFavorite[]>([]);
@@ -480,16 +474,16 @@ export default function ImageGenerator() {
     return !id.startsWith('sample-');
   };
 
-  const openSaveToProjectModal = (image: GeneratedImage) => {
+  const openSaveToFolderModal = (image: GeneratedImage) => {
     if (!user) {
       toast({ title: "Please log in", description: "You need to be logged in to save images.", variant: "destructive" });
       return;
     }
     setImageToSave(image);
-    setShowProjectModal(true);
+    setShowFolderModal(true);
   };
 
-  const saveToLibrary = async (image: GeneratedImage, projectId: string | null = null) => {
+  const saveToLibrary = async (image: GeneratedImage, folderId: string | null = null) => {
     if (!user) {
       toast({ title: "Please log in", description: "You need to be logged in to save images.", variant: "destructive" });
       return;
@@ -520,12 +514,12 @@ export default function ImageGenerator() {
         }
       }
       
-      if (projectId) {
-        await projectsApi.moveImage(finalImageId, projectId);
+      if (folderId) {
+        await foldersApi.moveImage(finalImageId, folderId);
       }
       
-      const projectMsg = projectId ? " to project" : "";
-      toast({ title: imageIsUnsaved ? "Saved to Library" + projectMsg : "Moved" + projectMsg, description: imageIsUnsaved ? "Image has been saved to your creations." : "Image has been moved to the project." });
+      const folderMsg = folderId ? " to folder" : "";
+      toast({ title: imageIsUnsaved ? "Saved to Library" + folderMsg : "Moved" + folderMsg, description: imageIsUnsaved ? "Image has been saved to your creations." : "Image has been moved to the folder." });
     } catch (error) {
       toast({ title: "Save Failed", description: error instanceof Error ? error.message : "Could not save image.", variant: "destructive" });
     } finally {
@@ -2067,89 +2061,17 @@ export default function ImageGenerator() {
                           >
                             <Star className={cn("h-3 w-3", gen.isFavorite && "fill-yellow-400 text-yellow-400")} />
                           </Button>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                              <Button 
-                                size="icon" 
-                                className="h-7 w-7 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg"
-                                data-testid="button-more-gallery"
-                              >
-                                <MoreVertical className="h-3 w-3" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-[#1F1F25] border-[#2A2A30] text-[#E4E4E7]">
-                              <DropdownMenuItem 
-                                onClick={(e) => { e.stopPropagation(); setSelectedImage(gen); }} 
-                                className="hover:bg-[#2A2A30] cursor-pointer"
-                                data-testid="menu-open"
-                              >
-                                <ArrowUpRight className="h-4 w-4 mr-2" /> Open
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={(e) => { e.stopPropagation(); copyImageToClipboard(gen.src); }} 
-                                className="hover:bg-[#2A2A30] cursor-pointer"
-                                data-testid="menu-copy"
-                              >
-                                <ClipboardCopy className="h-4 w-4 mr-2" /> Copy to Clipboard
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={(e) => { e.stopPropagation(); toast({ title: "Coming Soon", description: "Duplicate feature is coming soon." }); }} 
-                                className="hover:bg-[#2A2A30] cursor-pointer"
-                                data-testid="menu-duplicate"
-                              >
-                                <Copy className="h-4 w-4 mr-2" /> Duplicate
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={(e) => { e.stopPropagation(); openSaveToProjectModal(gen); }} 
-                                className="hover:bg-[#2A2A30] cursor-pointer"
-                                data-testid="menu-move-project"
-                              >
-                                <FolderKanban className="h-4 w-4 mr-2" /> Move to Project
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator className="bg-[#2A2A30]" />
-                              <DropdownMenuItem 
-                                onClick={(e) => { 
-                                  e.stopPropagation(); 
-                                  const route = transferImageToTool({ id: gen.id, src: gen.src, name: gen.prompt, aspectRatio: gen.aspectRatio, type: "image" }, "mockup");
-                                  setLocation(route);
-                                }} 
-                                className="hover:bg-[#2A2A30] cursor-pointer"
-                                data-testid="menu-mockup"
-                              >
-                                <Shirt className="h-4 w-4 mr-2" /> Use in Mockup Creator
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={(e) => { 
-                                  e.stopPropagation(); 
-                                  const route = transferImageToTool({ id: gen.id, src: gen.src, name: gen.prompt, aspectRatio: gen.aspectRatio, type: "image" }, "bg-remover");
-                                  setLocation(route);
-                                }} 
-                                className="hover:bg-[#2A2A30] cursor-pointer"
-                                data-testid="menu-bg-remover"
-                              >
-                                <Scissors className="h-4 w-4 mr-2" /> Remove Background
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={(e) => { 
-                                  e.stopPropagation(); 
-                                  const route = transferImageToTool({ id: gen.id, src: gen.src, name: gen.prompt, aspectRatio: gen.aspectRatio, type: "image" }, "style-transfer");
-                                  setLocation(route);
-                                }} 
-                                className="hover:bg-[#2A2A30] cursor-pointer"
-                                data-testid="menu-style-transfer"
-                              >
-                                <Palette className="h-4 w-4 mr-2" /> Apply Style Transfer
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator className="bg-[#2A2A30]" />
-                              <DropdownMenuItem 
-                                onClick={(e) => { e.stopPropagation(); setImageToDelete(gen); }} 
-                                className="hover:bg-red-500/20 text-red-400 cursor-pointer"
-                                data-testid="menu-delete"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" /> Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <Button 
+                            size="icon" 
+                            className="h-7 w-7 bg-white/10 hover:bg-red-500/80 text-white border-0 backdrop-blur-md rounded-lg ml-auto"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setImageToDelete(gen);
+                            }}
+                            data-testid="button-delete-gallery"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
                         </div>
                       </div>
                       {gen.isNew && (
@@ -2300,12 +2222,12 @@ export default function ImageGenerator() {
                       <Button 
                         variant="ghost" 
                         className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
-                        onClick={() => openSaveToProjectModal(selectedImage)}
+                        onClick={() => openSaveToFolderModal(selectedImage)}
                         disabled={isSaving}
                         data-testid="button-save-library"
                       >
                         <FolderInput className={cn("h-5 w-5", isSaving && "animate-pulse")} />
-                        <span className="text-[10px]">{isSaving ? "Moving..." : "Project"}</span>
+                        <span className="text-[10px]">{isSaving ? "Moving..." : "Folder"}</span>
                       </Button>
                       
                       <Button 
@@ -2623,17 +2545,17 @@ export default function ImageGenerator() {
         </DialogContent>
       </Dialog>
 
-      <SaveToProjectModal
-        isOpen={showProjectModal}
+      <SaveToFolderModal
+        isOpen={showFolderModal}
         onClose={() => {
-          setShowProjectModal(false);
+          setShowFolderModal(false);
           setImageToSave(null);
         }}
-        onSave={(projectId) => {
+        onSave={(folderId) => {
           if (imageToSave) {
-            saveToLibrary(imageToSave, projectId);
+            saveToLibrary(imageToSave, folderId);
           }
-          setShowProjectModal(false);
+          setShowFolderModal(false);
         }}
       />
     </div>

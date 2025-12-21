@@ -1,7 +1,7 @@
 import type { Express, Request, Response } from "express";
 import { ZodError } from "zod";
 import { storage } from "../storage";
-import { insertImageSchema, insertImageProjectSchema } from "@shared/schema";
+import { insertImageSchema, insertImageFolderSchema } from "@shared/schema";
 import { invalidateCache, getCachedImageBuffer, imageCache } from "../cache";
 import type { Middleware } from "./middleware";
 import type { AuthenticatedRequest } from "../types";
@@ -18,38 +18,38 @@ export function registerImageRoutes(app: Express, middleware: Middleware) {
       const userId = getUserId(req as AuthenticatedRequest);
       const { pool } = await import("../db");
 
-      // Auto-assign default project if no projectId provided - using pool to avoid Neon HTTP driver issues
-      let projectId = req.body.projectId;
-      if (!projectId) {
+      // Auto-assign default folder if no folderId provided - using pool to avoid Neon HTTP driver issues
+      let folderId = req.body.folderId;
+      if (!folderId) {
         try {
-          // Check if default project exists
+          // Check if default folder exists
           const existingResult = await pool.query(
-            `SELECT id FROM image_projects WHERE user_id = $1 AND name = 'My Project' LIMIT 1`,
+            `SELECT id FROM image_folders WHERE user_id = $1 AND name = 'My Folder' LIMIT 1`,
             [userId]
           );
 
           if (existingResult.rows.length > 0) {
-            projectId = existingResult.rows[0].id;
+            folderId = existingResult.rows[0].id;
           } else {
-            // Create default project
+            // Create default folder
             const insertResult = await pool.query(
-              `INSERT INTO image_projects (user_id, name, color) VALUES ($1, 'My Project', '#6366f1') RETURNING id`,
+              `INSERT INTO image_folders (user_id, name, color) VALUES ($1, 'My Folder', '#6366f1') RETURNING id`,
               [userId]
             );
             if (insertResult.rows && insertResult.rows[0]) {
-              projectId = insertResult.rows[0].id;
+              folderId = insertResult.rows[0].id;
             }
           }
-        } catch (projectError) {
-          logger.error("Project creation error (non-blocking)", projectError, { source: "images" });
-          // Continue without project - projectId remains undefined/null
+        } catch (folderError) {
+          logger.error("Folder creation error (non-blocking)", folderError, { source: "images" });
+          // Continue without folder - folderId remains undefined/null
         }
       }
 
       const imageData = insertImageSchema.parse({
         ...req.body,
         userId,
-        projectId: projectId || null,
+        folderId: folderId || null,
       });
 
       const image = await storage.createImage(imageData);
@@ -108,9 +108,9 @@ export function registerImageRoutes(app: Express, middleware: Middleware) {
   // Supports both authenticated users and guests via session
   app.get("/api/images/:id/image", async (req: Request, res: Response) => {
     try {
-      // Get userId from authenticated user (claims.sub), passport session, or guestId
-      const authReq = req as AuthenticatedRequest & { session?: { guestId?: string; passport?: { user?: { id?: string } } } };
-      const userId = authReq.user?.claims?.sub || authReq.session?.passport?.user?.id || authReq.session?.guestId;
+      // Get userId from authenticated user (claims.sub) OR guestId from session
+      const authReq = req as AuthenticatedRequest & { session?: { guestId?: string } };
+      const userId = authReq.user?.claims?.sub || authReq.session?.guestId;
 
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
@@ -177,16 +177,12 @@ export function registerImageRoutes(app: Express, middleware: Middleware) {
   app.delete("/api/images/:id", requireAuth, async (req: Request, res: Response) => {
     try {
       const userId = getUserId(req as AuthenticatedRequest);
-      logger.info("Delete image request", { imageId: req.params.id, userId }, { source: "images" });
       const success = await storage.deleteImage(req.params.id, userId);
       if (!success) {
-        logger.warn("Delete failed - image not found or not owned by user", { imageId: req.params.id, userId }, { source: "images" });
         return res.status(404).json({ message: "Image not found" });
       }
-      logger.info("Image deleted successfully", { imageId: req.params.id, userId }, { source: "images" });
       res.json({ message: "Image deleted" });
     } catch (error) {
-      logger.error("Delete image error", error, { source: "images" });
       res.status(500).json({ message: "Server error" });
     }
   });
@@ -310,88 +306,88 @@ export function registerImageRoutes(app: Express, middleware: Middleware) {
     }
   });
 
-  // ============== IMAGE PROJECTS ROUTES ==============
+  // ============== IMAGE FOLDERS ROUTES ==============
 
-  app.get("/api/projects/default", requireAuth, async (req: Request, res: Response) => {
+  app.get("/api/folders/default", requireAuth, async (req: Request, res: Response) => {
     try {
       const userId = getUserId(req as AuthenticatedRequest);
-      const project = await storage.getOrCreateDefaultProject(userId);
-      res.json({ project });
+      const folder = await storage.getOrCreateDefaultFolder(userId);
+      res.json({ folder });
     } catch (error) {
-      logger.error("Get default project error", error, { source: "images" });
+      logger.error("Get default folder error", error, { source: "images" });
       res.status(500).json({ message: "Server error" });
     }
   });
 
-  app.get("/api/projects", requireAuth, async (req: Request, res: Response) => {
+  app.get("/api/folders", requireAuth, async (req: Request, res: Response) => {
     try {
       const userId = getUserId(req as AuthenticatedRequest);
-      const projects = await storage.getProjectsByUser(userId);
-      res.json({ projects });
+      const folders = await storage.getFoldersByUser(userId);
+      res.json({ folders });
     } catch (error) {
-      logger.error("Get projects error", error, { source: "images" });
+      logger.error("Get folders error", error, { source: "images" });
       res.status(500).json({ message: "Server error" });
     }
   });
 
-  app.post("/api/projects", requireAuth, async (req: Request, res: Response) => {
+  app.post("/api/folders", requireAuth, async (req: Request, res: Response) => {
     try {
       const userId = getUserId(req as AuthenticatedRequest);
-      const data = insertImageProjectSchema.parse({ ...req.body, userId });
-      const project = await storage.createProject(data);
-      res.json({ project });
+      const data = insertImageFolderSchema.parse({ ...req.body, userId });
+      const folder = await storage.createFolder(data);
+      res.json({ folder });
     } catch (error) {
       if (error instanceof ZodError) {
-        return res.status(400).json({ message: "Invalid project data", errors: error.errors });
+        return res.status(400).json({ message: "Invalid folder data", errors: error.errors });
       }
-      logger.error("Create project error", error, { source: "images" });
+      logger.error("Create folder error", error, { source: "images" });
       res.status(500).json({ message: "Server error" });
     }
   });
 
-  app.patch("/api/projects/:id", requireAuth, async (req: Request, res: Response) => {
+  app.patch("/api/folders/:id", requireAuth, async (req: Request, res: Response) => {
     try {
       const userId = getUserId(req as AuthenticatedRequest);
       const { id } = req.params;
       const { name, color } = req.body;
 
-      const project = await storage.updateProject(id, userId, { name, color });
-      if (!project) {
-        return res.status(404).json({ message: "Project not found" });
+      const folder = await storage.updateFolder(id, userId, { name, color });
+      if (!folder) {
+        return res.status(404).json({ message: "Folder not found" });
       }
-      res.json({ project });
+      res.json({ folder });
     } catch (error) {
-      logger.error("Update project error", error, { source: "images" });
+      logger.error("Update folder error", error, { source: "images" });
       res.status(500).json({ message: "Server error" });
     }
   });
 
-  app.delete("/api/projects/:id", requireAuth, async (req: Request, res: Response) => {
+  app.delete("/api/folders/:id", requireAuth, async (req: Request, res: Response) => {
     try {
       const userId = getUserId(req as AuthenticatedRequest);
       const { id } = req.params;
 
-      await storage.deleteProject(id, userId);
+      await storage.deleteFolder(id, userId);
       res.json({ success: true });
     } catch (error) {
-      logger.error("Delete project error", error, { source: "images" });
+      logger.error("Delete folder error", error, { source: "images" });
       res.status(500).json({ message: "Server error" });
     }
   });
 
-  app.patch("/api/images/:id/project", requireAuth, async (req: Request, res: Response) => {
+  app.patch("/api/images/:id/folder", requireAuth, async (req: Request, res: Response) => {
     try {
       const userId = getUserId(req as AuthenticatedRequest);
       const { id } = req.params;
-      const { projectId } = req.body;
+      const { folderId } = req.body;
 
-      const image = await storage.moveImageToProject(id, userId, projectId || null);
+      const image = await storage.moveImageToFolder(id, userId, folderId || null);
       if (!image) {
         return res.status(404).json({ message: "Image not found" });
       }
       res.json({ image });
     } catch (error) {
-      logger.error("Move image to project error", error, { source: "images" });
+      logger.error("Move image to folder error", error, { source: "images" });
       res.status(500).json({ message: "Server error" });
     }
   });

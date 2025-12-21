@@ -912,8 +912,8 @@ export const backgroundRemovalApi = {
   }
 };
 
-// Image Projects API
-export interface ImageProject {
+// Image Folders API
+export interface ImageFolder {
   id: string;
   userId: string;
   name: string;
@@ -921,28 +921,28 @@ export interface ImageProject {
   createdAt: string;
 }
 
-export const projectsApi = {
+export const foldersApi = {
   getAll: () =>
-    fetchApi<{ projects: ImageProject[] }>("/projects"),
+    fetchApi<{ folders: ImageFolder[] }>("/folders"),
 
   create: (data: { name: string; color?: string }) =>
-    fetchApi<{ project: ImageProject }>("/projects", {
+    fetchApi<{ folder: ImageFolder }>("/folders", {
       method: "POST",
       body: JSON.stringify(data),
     }),
 
   update: (id: string, data: { name?: string; color?: string }) =>
-    fetchApi<{ project: ImageProject }>(`/projects/${id}`, {
+    fetchApi<{ folder: ImageFolder }>(`/folders/${id}`, {
       method: "PATCH",
       body: JSON.stringify(data),
     }),
 
   delete: (id: string) =>
-    fetchApi<{ success: boolean }>(`/projects/${id}`, { method: "DELETE" }),
+    fetchApi<{ success: boolean }>(`/folders/${id}`, { method: "DELETE" }),
 
-  moveImage: (imageId: string, projectId: string | null) =>
-    fetchApi<{ image: any }>(`/images/${imageId}/project`, {
+  moveImage: (imageId: string, folderId: string | null) =>
+    fetchApi<{ image: any }>(`/images/${imageId}/folder`, {
       method: "PATCH",
-      body: JSON.stringify({ projectId }),
+      body: JSON.stringify({ folderId }),
     }),
 };
