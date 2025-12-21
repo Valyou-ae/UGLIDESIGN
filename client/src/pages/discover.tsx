@@ -2009,7 +2009,7 @@ export default function Discover() {
         const galleryItems: InspirationItem[] = (data.images || []).map((img: any) => ({
           id: img.id,
           title: img.prompt?.slice(0, 40) + (img.prompt?.length > 40 ? '...' : '') || 'Community Creation',
-          image: img.imageUrl,
+          image: img.thumbnailUrl || img.imageUrl,
           creator: img.creatorName || 'anonymous',
           verified: false,
           views: img.viewCount || 0,

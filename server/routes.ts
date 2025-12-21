@@ -2,6 +2,7 @@ import type { Express } from "express";
 import express from "express";
 import path from "path";
 import { createServer, type Server } from "http";
+import sharp from "sharp";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { 
@@ -1204,6 +1205,7 @@ export async function registerRoutes(
 
       const imagesWithLikeStatus = images.map(img => ({
         ...img,
+        thumbnailUrl: `/api/gallery/${img.id}/thumbnail`,
         isLiked: likedImageIds.includes(img.id)
       }));
 
@@ -1290,6 +1292,42 @@ export async function registerRoutes(
       res.json({ ...image, isLiked });
     } catch (error) {
       console.error("Gallery image error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Serve optimized thumbnail for gallery images (faster loading)
+  app.get("/api/gallery/:imageId/thumbnail", async (req: any, res) => {
+    try {
+      const { imageId } = req.params;
+      const width = Math.min(parseInt(req.query.w as string) || 400, 800);
+      
+      const image = await storage.getGalleryImageById(imageId);
+      if (!image || !image.imageUrl) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+      
+      // Handle base64 images
+      if (image.imageUrl.startsWith('data:image/')) {
+        const base64Data = image.imageUrl.split(',')[1];
+        const buffer = Buffer.from(base64Data, 'base64');
+        
+        const thumbnail = await sharp(buffer)
+          .resize(width, undefined, { fit: 'inside', withoutEnlargement: true })
+          .jpeg({ quality: 75 })
+          .toBuffer();
+        
+        res.set({
+          'Content-Type': 'image/jpeg',
+          'Cache-Control': 'public, max-age=604800', // Cache for 1 week
+        });
+        return res.send(thumbnail);
+      }
+      
+      // For URL-based images, redirect
+      res.redirect(image.imageUrl);
+    } catch (error) {
+      console.error("Thumbnail error:", error);
       res.status(500).json({ message: "Server error" });
     }
   });
