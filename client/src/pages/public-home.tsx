@@ -586,7 +586,7 @@ export default function PublicHome() {
       return apiImages.map((img: any) => ({
         id: String(img.id),
         title: img.title || 'Untitled',
-        image: img.imageUrl,
+        image: img.thumbnailUrl || img.imageUrl,
         creator: img.creator || 'unknown',
         verified: Boolean(img.verified),
         views: formatViewCount(img.viewCount || 0),
