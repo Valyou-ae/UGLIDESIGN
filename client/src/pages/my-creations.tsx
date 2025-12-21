@@ -12,6 +12,7 @@ import {
   Trash2, 
   FolderInput, 
   Folder, 
+  FolderPlus,
   ArrowUpRight, 
   Eye, 
   Pencil, 
@@ -107,6 +108,9 @@ export default function MyCreations() {
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
   const [showFolderModal, setShowFolderModal] = useState(false);
   const [itemToMove, setItemToMove] = useState<ItemType | null>(null);
+  const [showNewFolderModal, setShowNewFolderModal] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
+  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -364,6 +368,25 @@ export default function MyCreations() {
     }
   };
 
+  const handleCreateFolder = async () => {
+    if (!newFolderName.trim()) {
+      toast({ variant: "destructive", title: "Error", description: "Please enter a folder name." });
+      return;
+    }
+    setIsCreatingFolder(true);
+    try {
+      await foldersApi.create({ name: newFolderName.trim() });
+      queryClient.invalidateQueries({ queryKey: ["folders"] });
+      toast({ title: "Folder Created", description: `"${newFolderName}" has been created.` });
+      setNewFolderName("");
+      setShowNewFolderModal(false);
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error", description: "Failed to create folder." });
+    } finally {
+      setIsCreatingFolder(false);
+    }
+  };
+
   const handleBulkAction = async (action: string) => {
     if (action === "Move" || action === "Duplicate") {
       toast({ title: "Coming Soon", description: `Bulk ${action.toLowerCase()} feature is coming soon.` });
@@ -602,6 +625,15 @@ export default function MyCreations() {
               >
                 <CheckSquare className="h-3.5 w-3.5" />
                 {selectMode ? "Cancel" : "Select"}
+              </button>
+              
+              <button
+                onClick={() => setShowNewFolderModal(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-all flex-shrink-0 bg-white dark:bg-[#1F1F25] border-[#E4E4E7] dark:border-[#2A2A30] text-white hover:border-[#F59E0B] hover:text-[#F59E0B]"
+                data-testid="button-new-folder"
+              >
+                <FolderPlus className="h-3.5 w-3.5" />
+                New Folder
               </button>
             </div>
           </div>
@@ -1329,6 +1361,57 @@ export default function MyCreations() {
         }}
         imageId={itemToMove?.id}
       />
+
+      {/* New Folder Modal */}
+      <AlertDialog open={showNewFolderModal} onOpenChange={setShowNewFolderModal}>
+        <AlertDialogContent className="bg-[#18181B] border-[#2A2A30]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-[#FAFAFA] flex items-center gap-2">
+              <FolderPlus className="h-5 w-5 text-[#F59E0B]" />
+              Create New Folder
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-[#A1A1AA]">
+              Enter a name for your new folder to organize your creations.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <Input
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+              placeholder="Folder name..."
+              className="bg-[#27272A] border-[#3F3F46] text-white placeholder:text-[#71717A]"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleCreateFolder();
+                }
+              }}
+              autoFocus
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              className="bg-transparent border-[#3F3F46] text-[#A1A1AA] hover:bg-[#27272A] hover:text-white"
+              onClick={() => setNewFolderName("")}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleCreateFolder} 
+              disabled={isCreatingFolder || !newFolderName.trim()}
+              className="bg-[#F59E0B] hover:bg-[#D97706] text-[#18181B] border-0 disabled:opacity-50"
+            >
+              {isCreatingFolder ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Creating...
+                </>
+              ) : (
+                "Create Folder"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
