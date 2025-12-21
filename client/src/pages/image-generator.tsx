@@ -68,7 +68,12 @@ import {
   Medal,
   Award,
   Eye,
-  FolderInput
+  FolderInput,
+  MoreVertical,
+  ArrowUpRight,
+  Shirt,
+  Scissors,
+  FolderKanban
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -115,6 +120,7 @@ import { Label } from "@/components/ui/label";
 import { useLocation } from "wouter";
 import { TutorialOverlay, useTutorial } from "@/components/tutorial-overlay";
 import { useCredits } from "@/hooks/use-credits";
+import { transferImageToTool } from "@/lib/image-transfer";
 import { DailyInspirationFeed, PersonalizedPrompts } from "@/components/daily-inspiration";
 
 // Import generated images for the gallery
@@ -2061,17 +2067,89 @@ export default function ImageGenerator() {
                           >
                             <Star className={cn("h-3 w-3", gen.isFavorite && "fill-yellow-400 text-yellow-400")} />
                           </Button>
-                          <Button 
-                            size="icon" 
-                            className="h-7 w-7 bg-white/10 hover:bg-red-500/80 text-white border-0 backdrop-blur-md rounded-lg ml-auto"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setImageToDelete(gen);
-                            }}
-                            data-testid="button-delete-gallery"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                              <Button 
+                                size="icon" 
+                                className="h-7 w-7 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md rounded-lg"
+                                data-testid="button-more-gallery"
+                              >
+                                <MoreVertical className="h-3 w-3" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-[#1F1F25] border-[#2A2A30] text-[#E4E4E7]">
+                              <DropdownMenuItem 
+                                onClick={(e) => { e.stopPropagation(); setSelectedImage(gen); }} 
+                                className="hover:bg-[#2A2A30] cursor-pointer"
+                                data-testid="menu-open"
+                              >
+                                <ArrowUpRight className="h-4 w-4 mr-2" /> Open
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={(e) => { e.stopPropagation(); copyImageToClipboard(gen.src); }} 
+                                className="hover:bg-[#2A2A30] cursor-pointer"
+                                data-testid="menu-copy"
+                              >
+                                <ClipboardCopy className="h-4 w-4 mr-2" /> Copy to Clipboard
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={(e) => { e.stopPropagation(); toast({ title: "Coming Soon", description: "Duplicate feature is coming soon." }); }} 
+                                className="hover:bg-[#2A2A30] cursor-pointer"
+                                data-testid="menu-duplicate"
+                              >
+                                <Copy className="h-4 w-4 mr-2" /> Duplicate
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={(e) => { e.stopPropagation(); openSaveToProjectModal(gen); }} 
+                                className="hover:bg-[#2A2A30] cursor-pointer"
+                                data-testid="menu-move-project"
+                              >
+                                <FolderKanban className="h-4 w-4 mr-2" /> Move to Project
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator className="bg-[#2A2A30]" />
+                              <DropdownMenuItem 
+                                onClick={(e) => { 
+                                  e.stopPropagation(); 
+                                  const route = transferImageToTool({ id: gen.id, src: gen.src, name: gen.prompt, aspectRatio: gen.aspectRatio, type: "image" }, "mockup");
+                                  setLocation(route);
+                                }} 
+                                className="hover:bg-[#2A2A30] cursor-pointer"
+                                data-testid="menu-mockup"
+                              >
+                                <Shirt className="h-4 w-4 mr-2" /> Use in Mockup Creator
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={(e) => { 
+                                  e.stopPropagation(); 
+                                  const route = transferImageToTool({ id: gen.id, src: gen.src, name: gen.prompt, aspectRatio: gen.aspectRatio, type: "image" }, "bg-remover");
+                                  setLocation(route);
+                                }} 
+                                className="hover:bg-[#2A2A30] cursor-pointer"
+                                data-testid="menu-bg-remover"
+                              >
+                                <Scissors className="h-4 w-4 mr-2" /> Remove Background
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={(e) => { 
+                                  e.stopPropagation(); 
+                                  const route = transferImageToTool({ id: gen.id, src: gen.src, name: gen.prompt, aspectRatio: gen.aspectRatio, type: "image" }, "style-transfer");
+                                  setLocation(route);
+                                }} 
+                                className="hover:bg-[#2A2A30] cursor-pointer"
+                                data-testid="menu-style-transfer"
+                              >
+                                <Palette className="h-4 w-4 mr-2" /> Apply Style Transfer
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator className="bg-[#2A2A30]" />
+                              <DropdownMenuItem 
+                                onClick={(e) => { e.stopPropagation(); setImageToDelete(gen); }} 
+                                className="hover:bg-red-500/20 text-red-400 cursor-pointer"
+                                data-testid="menu-delete"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" /> Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </div>
                       {gen.isNew && (
