@@ -75,7 +75,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sidebar } from "@/components/sidebar";
-import { SaveToFolderModal } from "@/components/save-to-folder-modal";
+import { SaveToProjectModal } from "@/components/save-to-project-modal";
 import {
   Tooltip,
   TooltipContent,
@@ -109,7 +109,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { generateApi, imagesApi, GenerationEvent, promptFavoritesApi, PromptFavorite, foldersApi } from "@/lib/api";
+import { generateApi, imagesApi, GenerationEvent, promptFavoritesApi, PromptFavorite, projectsApi } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { Label } from "@/components/ui/label";
 import { useLocation } from "wouter";
@@ -262,7 +262,7 @@ export default function ImageGenerator() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isVarying, setIsVarying] = useState(false);
-  const [showFolderModal, setShowFolderModal] = useState(false);
+  const [showProjectModal, setShowProjectModal] = useState(false);
   const [imageToSave, setImageToSave] = useState<GeneratedImage | null>(null);
   
   const [savedPrompts, setSavedPrompts] = useState<PromptFavorite[]>([]);
@@ -474,16 +474,16 @@ export default function ImageGenerator() {
     return !id.startsWith('sample-');
   };
 
-  const openSaveToFolderModal = (image: GeneratedImage) => {
+  const openSaveToProjectModal = (image: GeneratedImage) => {
     if (!user) {
       toast({ title: "Please log in", description: "You need to be logged in to save images.", variant: "destructive" });
       return;
     }
     setImageToSave(image);
-    setShowFolderModal(true);
+    setShowProjectModal(true);
   };
 
-  const saveToLibrary = async (image: GeneratedImage, folderId: string | null = null) => {
+  const saveToLibrary = async (image: GeneratedImage, projectId: string | null = null) => {
     if (!user) {
       toast({ title: "Please log in", description: "You need to be logged in to save images.", variant: "destructive" });
       return;
@@ -514,12 +514,12 @@ export default function ImageGenerator() {
         }
       }
       
-      if (folderId) {
-        await foldersApi.moveImage(finalImageId, folderId);
+      if (projectId) {
+        await projectsApi.moveImage(finalImageId, projectId);
       }
       
-      const folderMsg = folderId ? " to folder" : "";
-      toast({ title: imageIsUnsaved ? "Saved to Library" + folderMsg : "Moved" + folderMsg, description: imageIsUnsaved ? "Image has been saved to your creations." : "Image has been moved to the folder." });
+      const projectMsg = projectId ? " to project" : "";
+      toast({ title: imageIsUnsaved ? "Saved to Library" + projectMsg : "Moved" + projectMsg, description: imageIsUnsaved ? "Image has been saved to your creations." : "Image has been moved to the project." });
     } catch (error) {
       toast({ title: "Save Failed", description: error instanceof Error ? error.message : "Could not save image.", variant: "destructive" });
     } finally {
@@ -2222,12 +2222,12 @@ export default function ImageGenerator() {
                       <Button 
                         variant="ghost" 
                         className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
-                        onClick={() => openSaveToFolderModal(selectedImage)}
+                        onClick={() => openSaveToProjectModal(selectedImage)}
                         disabled={isSaving}
                         data-testid="button-save-library"
                       >
                         <FolderInput className={cn("h-5 w-5", isSaving && "animate-pulse")} />
-                        <span className="text-[10px]">{isSaving ? "Moving..." : "Folder"}</span>
+                        <span className="text-[10px]">{isSaving ? "Moving..." : "Project"}</span>
                       </Button>
                       
                       <Button 
@@ -2545,17 +2545,17 @@ export default function ImageGenerator() {
         </DialogContent>
       </Dialog>
 
-      <SaveToFolderModal
-        isOpen={showFolderModal}
+      <SaveToProjectModal
+        isOpen={showProjectModal}
         onClose={() => {
-          setShowFolderModal(false);
+          setShowProjectModal(false);
           setImageToSave(null);
         }}
-        onSave={(folderId) => {
+        onSave={(projectId) => {
           if (imageToSave) {
-            saveToLibrary(imageToSave, folderId);
+            saveToLibrary(imageToSave, projectId);
           }
-          setShowFolderModal(false);
+          setShowProjectModal(false);
         }}
       />
     </div>

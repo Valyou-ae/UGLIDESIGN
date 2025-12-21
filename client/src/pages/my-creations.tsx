@@ -10,8 +10,7 @@ import {
   Download, 
   Star, 
   Trash2, 
-  FolderInput, 
-  Folder, 
+  FolderKanban, 
   ArrowUpRight, 
   Eye, 
   Pencil, 
@@ -66,8 +65,8 @@ import { useImages } from "@/hooks/use-images";
 import { CalendarHistoryModal } from "@/components/calendar-history-modal";
 import { transferImageToTool } from "@/lib/image-transfer";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { foldersApi, type ImageFolder } from "@/lib/api";
-import { SaveToFolderModal } from "@/components/save-to-folder-modal";
+import { projectsApi, type ImageProject } from "@/lib/api";
+import { SaveToProjectModal } from "@/components/save-to-project-modal";
 
 
 type ItemType = {
@@ -83,7 +82,7 @@ type ItemType = {
   tags: string[];
   favorite: boolean;
   isPublic: boolean;
-  folderId: string | null;
+  projectId: string | null;
   prompt: string;
   style: string;
 };
@@ -104,18 +103,18 @@ export default function MyCreations() {
   const [selectedItem, setSelectedItem] = useState<ItemType | null>(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
-  const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
-  const [showFolderModal, setShowFolderModal] = useState(false);
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
+  const [showProjectModal, setShowProjectModal] = useState(false);
   const [itemToMove, setItemToMove] = useState<ItemType | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Fetch folders
-  const { data: foldersData, isLoading: isLoadingFolders } = useQuery({
-    queryKey: ["folders"],
-    queryFn: foldersApi.getAll,
+  // Fetch projects
+  const { data: projectsData, isLoading: isLoadingProjects } = useQuery({
+    queryKey: ["projects"],
+    queryFn: projectsApi.getAll,
   });
-  const folders = foldersData?.folders || [];
+  const projects = projectsData?.projects || [];
   
   // Fetch images from backend API
   const { images: dbImages, isLoading, toggleFavorite: apiToggleFavorite, deleteImage: apiDeleteImage, setVisibility: apiSetVisibility, hasNextPage, fetchNextPage, isFetchingNextPage, total } = useImages();
@@ -147,7 +146,7 @@ export default function MyCreations() {
       favorite: img.isFavorite || false,
       isPublic: img.isPublic || false,
       aspectRatio: img.aspectRatio || "1:1",
-      folderId: img.folderId || null,
+      projectId: img.projectId || null,
       prompt: img.prompt || "",
       style: img.style || "Generated",
     }));
@@ -332,7 +331,7 @@ export default function MyCreations() {
 
     if (action === "Move") {
       setItemToMove(item);
-      setShowFolderModal(true);
+      setShowProjectModal(true);
       return;
     }
 
@@ -417,8 +416,8 @@ export default function MyCreations() {
   };
 
   const filteredItems = items.filter(item => {
-    // First apply folder filter if active
-    if (activeFolderId && item.folderId !== activeFolderId) return false;
+    // First apply project filter if active
+    if (activeProjectId && item.projectId !== activeProjectId) return false;
     
     if (activeFilter === "All") return true;
     if (activeFilter === "My Favourites" && item.favorite) return true;
@@ -426,7 +425,7 @@ export default function MyCreations() {
     if (activeFilter === "Images" && item.type === "image") return true;
     if (activeFilter === "Mockups" && item.type === "mockup") return true;
     if (activeFilter === "BG Removed" && item.type === "bg-removed") return true;
-    if (activeFilter === "Folders") return true; // Show all when in Folders view
+    if (activeFilter === "Projects") return true; // Show all when in Projects view
     return false;
   }).filter(item => 
     item.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -467,7 +466,7 @@ export default function MyCreations() {
             {/* Title Row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Folder className="h-6 w-6 text-[#7C3AED]" />
+                <FolderKanban className="h-6 w-6 text-[#7C3AED]" />
                 <h1 className="text-xl font-bold text-[#18181B] dark:text-[#FAFAFA]">My Creations</h1>
                 <span className="text-xs text-[#71717A] ml-1 bg-[#F4F4F5] dark:bg-[#1F1F25] px-2 py-0.5 rounded-full">{items.length}</span>
               </div>
@@ -558,7 +557,7 @@ export default function MyCreations() {
             <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
               {[
                 { name: "All", count: items.length },
-                { name: "Folders", count: folders.length },
+                { name: "Projects", count: projects.length },
                 { name: "My Favourites", count: items.filter(i => i.favorite).length },
                 { name: "Images", count: items.filter(i => i.type === "image").length },
                 { name: "Mockups", count: items.filter(i => i.type === "mockup").length },
@@ -567,8 +566,8 @@ export default function MyCreations() {
                   key={filter.name}
                   onClick={() => {
                     setActiveFilter(filter.name);
-                    if (filter.name !== "Folders") {
-                      setActiveFolderId(null);
+                    if (filter.name !== "Projects") {
+                      setActiveProjectId(null);
                     }
                   }}
                   className={cn(
@@ -647,7 +646,7 @@ export default function MyCreations() {
                       onClick={() => handleBulkAction("Move")}
                       className="flex items-center gap-2 px-4 py-2.5 bg-[#2A2A30] hover:bg-[#3A3A40] text-[#E4E4E7] text-[13px] font-medium rounded-[10px] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <FolderInput className="h-4 w-4" /> Move to Folder
+                      <FolderKanban className="h-4 w-4" /> Move to Project
                     </button>
                     <button 
                       disabled={selectedItems.length === 0}
@@ -669,45 +668,45 @@ export default function MyCreations() {
             )}
           </AnimatePresence>
 
-          {/* FOLDERS SECTION - when Folders filter is active */}
-          {activeFilter === "Folders" && !activeFolderId && (
+          {/* PROJECTS SECTION - when Projects filter is active */}
+          {activeFilter === "Projects" && !activeProjectId && (
             <div className="mb-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-foreground">Your Folders</h2>
+                <h2 className="text-lg font-semibold text-foreground">Your Projects</h2>
               </div>
-              {isLoadingFolders ? (
+              {isLoadingProjects ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                   {[1, 2, 3, 4].map(i => (
                     <div key={i} className="h-32 bg-muted/50 rounded-xl animate-pulse" />
                   ))}
                 </div>
-              ) : folders.length === 0 ? (
+              ) : projects.length === 0 ? (
                 <div className="h-[200px] flex flex-col items-center justify-center text-center bg-card border border-border rounded-xl">
-                  <Folder className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                  <h3 className="text-lg font-semibold text-foreground mb-2">No folders yet</h3>
+                  <FolderKanban className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">No projects yet</h3>
                   <p className="text-sm text-muted-foreground max-w-sm">
-                    Create folders to organize your images. Use the Save button on any image to create a folder.
+                    Create projects to organize your images. Use the Save button on any image to create a project.
                   </p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                  {folders.map((folder: ImageFolder) => {
-                    const folderImages = items.filter(item => item.folderId === folder.id);
+                  {projects.map((project: ImageProject) => {
+                    const projectImages = items.filter(item => item.projectId === project.id);
                     return (
                       <button
-                        key={folder.id}
-                        onClick={() => setActiveFolderId(folder.id)}
+                        key={project.id}
+                        onClick={() => setActiveProjectId(project.id)}
                         className="group relative bg-card border border-border rounded-xl p-4 hover:border-primary/50 hover:shadow-lg transition-all text-left"
-                        data-testid={`folder-card-${folder.id}`}
+                        data-testid={`project-card-${project.id}`}
                       >
                         <div 
                           className="w-12 h-12 rounded-lg flex items-center justify-center mb-3"
-                          style={{ backgroundColor: `${folder.color || '#6366f1'}20` }}
+                          style={{ backgroundColor: `${project.color || '#6366f1'}20` }}
                         >
-                          <Folder className="h-6 w-6" style={{ color: folder.color || '#6366f1' }} />
+                          <FolderKanban className="h-6 w-6" style={{ color: project.color || '#6366f1' }} />
                         </div>
-                        <h3 className="font-semibold text-foreground truncate mb-1">{folder.name}</h3>
-                        <p className="text-xs text-muted-foreground">{folderImages.length} images</p>
+                        <h3 className="font-semibold text-foreground truncate mb-1">{project.name}</h3>
+                        <p className="text-xs text-muted-foreground">{projectImages.length} images</p>
                       </button>
                     );
                   })}
@@ -716,21 +715,21 @@ export default function MyCreations() {
             </div>
           )}
 
-          {/* ACTIVE FOLDER HEADER */}
-          {activeFolderId && (
+          {/* ACTIVE PROJECT HEADER */}
+          {activeProjectId && (
             <div className="flex items-center gap-3 mb-4">
               <button
-                onClick={() => setActiveFolderId(null)}
+                onClick={() => setActiveProjectId(null)}
                 className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X className="h-4 w-4" />
-                Clear folder filter
+                Clear project filter
               </button>
               <div className="w-px h-5 bg-border" />
               <div className="flex items-center gap-2">
-                <Folder className="h-4 w-4" style={{ color: folders.find(f => f.id === activeFolderId)?.color || '#6366f1' }} />
+                <FolderKanban className="h-4 w-4" style={{ color: projects.find(p => p.id === activeProjectId)?.color || '#6366f1' }} />
                 <span className="font-medium text-foreground">
-                  {folders.find(f => f.id === activeFolderId)?.name || 'Folder'}
+                  {projects.find(p => p.id === activeProjectId)?.name || 'Project'}
                 </span>
               </div>
             </div>
@@ -842,7 +841,7 @@ export default function MyCreations() {
                           <DropdownMenuItem onClick={() => handleAction("Download", item)} className="hover:bg-[#2A2A30] cursor-pointer"><Download className="h-4 w-4 mr-2" /> Download</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleAction("Copy", item)} className="hover:bg-[#2A2A30] cursor-pointer"><ClipboardCopy className="h-4 w-4 mr-2" /> Copy to Clipboard</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleAction("Duplicate", item)} className="hover:bg-[#2A2A30] cursor-pointer"><Copy className="h-4 w-4 mr-2" /> Duplicate</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleAction("Move", item)} className="hover:bg-[#2A2A30] cursor-pointer"><FolderInput className="h-4 w-4 mr-2" /> Move to Folder</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleAction("Move", item)} className="hover:bg-[#2A2A30] cursor-pointer"><FolderKanban className="h-4 w-4 mr-2" /> Move to Project</DropdownMenuItem>
                           <DropdownMenuSeparator className="bg-[#2A2A30]" />
                           <DropdownMenuItem 
                             onClick={() => {
@@ -966,7 +965,7 @@ export default function MyCreations() {
                                   <DropdownMenuItem onClick={() => handleAction("Open", item)} className="hover:bg-[#2A2A30] cursor-pointer"><ArrowUpRight className="h-4 w-4 mr-2" /> Open</DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => handleAction("Copy", item)} className="hover:bg-[#2A2A30] cursor-pointer"><ClipboardCopy className="h-4 w-4 mr-2" /> Copy to Clipboard</DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => handleAction("Duplicate", item)} className="hover:bg-[#2A2A30] cursor-pointer"><Copy className="h-4 w-4 mr-2" /> Duplicate</DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => handleAction("Move", item)} className="hover:bg-[#2A2A30] cursor-pointer"><FolderInput className="h-4 w-4 mr-2" /> Move to Folder</DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleAction("Move", item)} className="hover:bg-[#2A2A30] cursor-pointer"><FolderKanban className="h-4 w-4 mr-2" /> Move to Project</DropdownMenuItem>
                                   <DropdownMenuSeparator className="bg-[#2A2A30]" />
                                   <DropdownMenuItem 
                                     onClick={() => {
@@ -1076,10 +1075,10 @@ export default function MyCreations() {
                       variant="ghost" 
                       className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
                       onClick={() => handleAction("Move", selectedItem)}
-                      data-testid="button-folder-detail"
+                      data-testid="button-project-detail"
                     >
-                      <FolderInput className="h-5 w-5" />
-                      <span className="text-[10px]">Folder</span>
+                      <FolderKanban className="h-5 w-5" />
+                      <span className="text-[10px]">Project</span>
                     </Button>
                     
                     <Button 
@@ -1297,34 +1296,34 @@ export default function MyCreations() {
 
       <CalendarHistoryModal open={calendarOpen} onOpenChange={setCalendarOpen} />
 
-      <SaveToFolderModal
-        isOpen={showFolderModal}
+      <SaveToProjectModal
+        isOpen={showProjectModal}
         onClose={() => {
-          setShowFolderModal(false);
+          setShowProjectModal(false);
           setItemToMove(null);
         }}
-        onSave={async (folderId) => {
-          if (itemToMove && folderId) {
+        onSave={async (projectId) => {
+          if (itemToMove && projectId) {
             try {
-              await foldersApi.moveImage(itemToMove.id, folderId);
+              await projectsApi.moveImage(itemToMove.id, projectId);
               queryClient.invalidateQueries({ queryKey: ["images"] });
-              queryClient.invalidateQueries({ queryKey: ["folders"] });
+              queryClient.invalidateQueries({ queryKey: ["projects"] });
               if (selectedItem && selectedItem.id === itemToMove.id) {
-                setSelectedItem(prev => prev ? { ...prev, folderId } : null);
+                setSelectedItem(prev => prev ? { ...prev, projectId } : null);
               }
               toast({ 
-                title: "Moved to Folder", 
-                description: "Image has been moved to the folder." 
+                title: "Moved to Project", 
+                description: "Image has been moved to the project." 
               });
             } catch (error) {
               toast({ 
                 variant: "destructive", 
                 title: "Move Failed", 
-                description: "Could not move image to folder." 
+                description: "Could not move image to project." 
               });
             }
           }
-          setShowFolderModal(false);
+          setShowProjectModal(false);
           setItemToMove(null);
         }}
         imageId={itemToMove?.id}

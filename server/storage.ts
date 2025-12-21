@@ -17,7 +17,7 @@ import {
   chatSessions,
   chatMessages,
   userPreferences,
-  imageFolders,
+  imageProjects,
   type User, 
   type InsertUser, 
   type UpdateProfile, 
@@ -47,8 +47,8 @@ import {
   type InsertChatMessage,
   type UserPreferences,
   type InsertUserPreferences,
-  type ImageFolder,
-  type InsertImageFolder
+  type ImageProject,
+  type InsertImageProject
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, gte, lte, sql, inArray } from "drizzle-orm";
@@ -193,13 +193,13 @@ export interface IStorage {
   getDailyActiveUsers(days: number): Promise<{ date: string; count: number }[]>;
   getRetentionRate(): Promise<{ weeklyRetention: number; monthlyRetention: number }>;
   
-  // Image Folders
-  getFoldersByUser(userId: string): Promise<ImageFolder[]>;
-  createFolder(data: InsertImageFolder): Promise<ImageFolder>;
-  updateFolder(id: string, userId: string, data: Partial<InsertImageFolder>): Promise<ImageFolder | undefined>;
-  deleteFolder(id: string, userId: string): Promise<void>;
-  moveImageToFolder(imageId: string, userId: string, folderId: string | null): Promise<GeneratedImage | undefined>;
-  getOrCreateDefaultFolder(userId: string): Promise<ImageFolder>;
+  // Image Projects
+  getProjectsByUser(userId: string): Promise<ImageProject[]>;
+  createProject(data: InsertImageProject): Promise<ImageProject>;
+  updateProject(id: string, userId: string, data: Partial<InsertImageProject>): Promise<ImageProject | undefined>;
+  deleteProject(id: string, userId: string): Promise<void>;
+  moveImageToProject(imageId: string, userId: string, projectId: string | null): Promise<GeneratedImage | undefined>;
+  getOrCreateDefaultProject(userId: string): Promise<ImageProject>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -263,14 +263,14 @@ export class DatabaseStorage implements IStorage {
     try {
       const result = await pool.query(
         `INSERT INTO generated_images (
-          user_id, folder_id, image_url, prompt, style, aspect_ratio, 
+          user_id, project_id, image_url, prompt, style, aspect_ratio, 
           generation_type, is_favorite, is_public, view_count, created_at
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
-         RETURNING id, user_id, folder_id, image_url, prompt, style, aspect_ratio,
+         RETURNING id, user_id, project_id, image_url, prompt, style, aspect_ratio,
                    generation_type, is_favorite, is_public, view_count, created_at`,
         [
           image.userId,
-          image.folderId ?? null,
+          image.projectId ?? null,
           image.imageUrl,
           image.prompt,
           image.style ?? null,
@@ -291,7 +291,7 @@ export class DatabaseStorage implements IStorage {
       return {
         id: row.id,
         userId: row.user_id,
-        folderId: row.folder_id,
+        projectId: row.project_id,
         imageUrl: row.image_url,
         prompt: row.prompt,
         style: row.style,
@@ -1639,75 +1639,75 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  // Image Folders
-  async getFoldersByUser(userId: string): Promise<ImageFolder[]> {
+  // Image Projects
+  async getProjectsByUser(userId: string): Promise<ImageProject[]> {
     return await db
       .select()
-      .from(imageFolders)
-      .where(eq(imageFolders.userId, userId))
-      .orderBy(desc(imageFolders.createdAt));
+      .from(imageProjects)
+      .where(eq(imageProjects.userId, userId))
+      .orderBy(desc(imageProjects.createdAt));
   }
 
-  async createFolder(data: InsertImageFolder): Promise<ImageFolder> {
-    const [folder] = await db.insert(imageFolders).values(data).returning();
-    return folder;
+  async createProject(data: InsertImageProject): Promise<ImageProject> {
+    const [project] = await db.insert(imageProjects).values(data).returning();
+    return project;
   }
 
-  async updateFolder(id: string, userId: string, data: Partial<InsertImageFolder>): Promise<ImageFolder | undefined> {
-    const [folder] = await db
-      .update(imageFolders)
+  async updateProject(id: string, userId: string, data: Partial<InsertImageProject>): Promise<ImageProject | undefined> {
+    const [project] = await db
+      .update(imageProjects)
       .set(data)
-      .where(and(eq(imageFolders.id, id), eq(imageFolders.userId, userId)))
+      .where(and(eq(imageProjects.id, id), eq(imageProjects.userId, userId)))
       .returning();
-    return folder || undefined;
+    return project || undefined;
   }
 
-  async deleteFolder(id: string, userId: string): Promise<void> {
-    // First, unset folderId for all images in this folder
+  async deleteProject(id: string, userId: string): Promise<void> {
+    // First, unset projectId for all images in this project
     await db
       .update(generatedImages)
-      .set({ folderId: null })
-      .where(and(eq(generatedImages.folderId, id), eq(generatedImages.userId, userId)));
+      .set({ projectId: null })
+      .where(and(eq(generatedImages.projectId, id), eq(generatedImages.userId, userId)));
     
-    // Then delete the folder
+    // Then delete the project
     await db
-      .delete(imageFolders)
-      .where(and(eq(imageFolders.id, id), eq(imageFolders.userId, userId)));
+      .delete(imageProjects)
+      .where(and(eq(imageProjects.id, id), eq(imageProjects.userId, userId)));
   }
 
-  async moveImageToFolder(imageId: string, userId: string, folderId: string | null): Promise<GeneratedImage | undefined> {
-    if (folderId) {
-      const [folder] = await db.select().from(imageFolders).where(and(eq(imageFolders.id, folderId), eq(imageFolders.userId, userId)));
-      if (!folder) {
+  async moveImageToProject(imageId: string, userId: string, projectId: string | null): Promise<GeneratedImage | undefined> {
+    if (projectId) {
+      const [project] = await db.select().from(imageProjects).where(and(eq(imageProjects.id, projectId), eq(imageProjects.userId, userId)));
+      if (!project) {
         return undefined;
       }
     }
     
     const [image] = await db
       .update(generatedImages)
-      .set({ folderId })
+      .set({ projectId })
       .where(and(eq(generatedImages.id, imageId), eq(generatedImages.userId, userId)))
       .returning();
     return image || undefined;
   }
 
-  async getOrCreateDefaultFolder(userId: string): Promise<ImageFolder> {
-    const existingFolders = await db
+  async getOrCreateDefaultProject(userId: string): Promise<ImageProject> {
+    const existingProjects = await db
       .select()
-      .from(imageFolders)
-      .where(and(eq(imageFolders.userId, userId), eq(imageFolders.name, "My Folder")));
+      .from(imageProjects)
+      .where(and(eq(imageProjects.userId, userId), eq(imageProjects.name, "My Project")));
     
-    if (existingFolders.length > 0) {
-      return existingFolders[0];
+    if (existingProjects.length > 0) {
+      return existingProjects[0];
     }
 
-    const [folder] = await db.insert(imageFolders).values({
+    const [project] = await db.insert(imageProjects).values({
       userId,
-      name: "My Folder",
+      name: "My Project",
       color: "#6366f1"
     }).returning();
     
-    return folder;
+    return project;
   }
 }
 
