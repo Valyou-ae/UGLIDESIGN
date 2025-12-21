@@ -37,7 +37,7 @@ import { db } from "./db";
 import { eq, sql } from "drizzle-orm";
 import { getFromCache, CACHE_TTL, invalidateCache } from "./cache";
 import { verifyGoogleToken } from "./googleAuth";
-import { registerAdminRoutes, registerSuperAdminRoutes, registerAuthRoutes, registerGalleryRoutes, registerUserRoutes, registerImageRoutes, registerGenerationRoutes, registerMockupRoutes, registerBackgroundRoutes, registerMoodBoardRoutes, createMiddleware } from "./routes/index";
+import { registerAdminRoutes, registerSuperAdminRoutes, registerAuthRoutes, registerGalleryRoutes, registerUserRoutes, registerImageRoutes, registerGenerationRoutes, registerMockupRoutes, registerBackgroundRoutes, registerMoodBoardRoutes, registerChatRoutes, createMiddleware } from "./routes/index";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -126,6 +126,7 @@ export async function registerRoutes(
   await registerMockupRoutes(app, sharedMiddleware);
   await registerBackgroundRoutes(app, sharedMiddleware);
   registerMoodBoardRoutes(app, sharedMiddleware);
+  await registerChatRoutes(app, sharedMiddleware);
 
   // Credit costs for different operations
   const CREDIT_COSTS = {
@@ -767,13 +768,6 @@ export async function registerRoutes(
   });
 
   // Image generation routes are now in server/routes/generation.ts
-
-  // Import gemini services still used by other routes (chat)
-  const {
-    generateChatSessionName,
-    chatWithCreativeAgent,
-  } = await import("./services/gemini");
-
   // Mockup, elite mockup, and seamless pattern routes are now in server/routes/mockup.ts
   // Background removal routes are now in server/routes/background.ts
 
@@ -781,241 +775,7 @@ export async function registerRoutes(
 
   // Super admin routes are now in server/routes/super-admin.ts
   // Prompt favorites and mood board routes are now in server/routes/moodboard.ts
-
-  // Chat Sessions API
-  app.get("/api/chat/sessions", requireAuth, async (req: any, res) => {
-    try {
-      const userId = getUserId(req);
-      const sessions = await storage.getChatSessions(userId);
-      res.json({ sessions });
-    } catch (error) {
-      console.error("Get chat sessions error:", error);
-      res.status(500).json({ message: "Failed to get chat sessions" });
-    }
-  });
-
-  app.post("/api/chat/sessions", requireAuth, async (req: any, res) => {
-    try {
-      const userId = getUserId(req);
-      const { name, createProject } = req.body;
-      
-      let projectId: string | undefined;
-      
-      // Auto-create a project folder if requested
-      if (createProject) {
-        const projectName = name || `Chat Project ${new Date().toLocaleDateString()}`;
-        const project = await storage.createMoodBoard(userId, projectName, "Auto-created from Chat Studio");
-        projectId = project.id;
-      }
-      
-      const session = await storage.createChatSession(userId, name || "New Chat", projectId);
-      res.json({ session, projectId });
-    } catch (error) {
-      console.error("Create chat session error:", error);
-      res.status(500).json({ message: "Failed to create chat session" });
-    }
-  });
-
-  app.get("/api/chat/sessions/:id", requireAuth, async (req: any, res) => {
-    try {
-      const userId = getUserId(req);
-      const { id } = req.params;
-      
-      const session = await storage.getChatSession(id, userId);
-      if (!session) {
-        return res.status(404).json({ message: "Chat session not found" });
-      }
-      
-      const messages = await storage.getChatMessages(id);
-
-      // Batch fetch all images to avoid N+1 queries
-      const imageIds = messages
-        .filter(msg => msg.imageId)
-        .map(msg => msg.imageId as string);
-
-      const imageUrlMap = new Map<string, string>();
-      if (imageIds.length > 0) {
-        const images = await storage.getImagesByIds(imageIds, userId);
-        for (const img of images) {
-          imageUrlMap.set(img.id, img.imageUrl);
-        }
-      }
-
-      // Enrich messages with imageUrl using the pre-fetched map
-      const enrichedMessages = messages.map(msg => {
-        if (msg.imageId) {
-          return {
-            ...msg,
-            imageUrl: imageUrlMap.get(msg.imageId) || null
-          };
-        }
-        return msg;
-      });
-      
-      // Get linked project info if exists
-      let project = null;
-      if (session.projectId) {
-        const projectData = await storage.getMoodBoard(userId, session.projectId);
-        if (projectData) {
-          project = projectData.board;
-        }
-      }
-      
-      res.json({ session, messages: enrichedMessages, project });
-    } catch (error) {
-      console.error("Get chat session error:", error);
-      res.status(500).json({ message: "Failed to get chat session" });
-    }
-  });
-
-  app.patch("/api/chat/sessions/:id", requireAuth, async (req: any, res) => {
-    try {
-      const userId = getUserId(req);
-      const { id } = req.params;
-      const data = req.body;
-      
-      const session = await storage.updateChatSession(id, userId, data);
-      if (!session) {
-        return res.status(404).json({ message: "Chat session not found" });
-      }
-      
-      res.json({ session });
-    } catch (error) {
-      console.error("Update chat session error:", error);
-      res.status(500).json({ message: "Failed to update chat session" });
-    }
-  });
-
-  app.post("/api/chat/sessions/:id/generate-name", requireAuth, async (req: any, res) => {
-    try {
-      const userId = getUserId(req);
-      const { id } = req.params;
-      const { firstMessage } = req.body;
-      
-      if (!firstMessage) {
-        return res.status(400).json({ message: "First message is required" });
-      }
-      
-      // Check if name is already locked
-      const existingSession = await storage.getChatSession(id, userId);
-      if (!existingSession) {
-        return res.status(404).json({ message: "Chat session not found" });
-      }
-      
-      if (existingSession.nameLocked) {
-        // Name already locked, return existing name
-        return res.json({ session: existingSession, name: existingSession.name });
-      }
-      
-      const smartName = await generateChatSessionName(firstMessage);
-      const session = await storage.updateChatSession(id, userId, { name: smartName, nameLocked: true });
-      
-      if (!session) {
-        return res.status(404).json({ message: "Chat session not found" });
-      }
-      
-      res.json({ session, name: smartName });
-    } catch (error) {
-      console.error("Generate session name error:", error);
-      res.status(500).json({ message: "Failed to generate session name" });
-    }
-  });
-  
-  app.post("/api/chat/sessions/:id/chat", requireAuth, async (req: any, res) => {
-    try {
-      const userId = getUserId(req);
-      const { messages, context, attachedImage } = req.body;
-      
-      if (!messages || !Array.isArray(messages)) {
-        return res.status(400).json({ message: "Messages array is required" });
-      }
-      
-      let userProfile = null;
-      try {
-        const { getOrCreateUserProfile } = await import("./services/profileAnalyzer");
-        userProfile = await getOrCreateUserProfile(userId);
-      } catch (e) {
-        console.error("Failed to load user profile:", e);
-      }
-      
-      const enrichedContext = {
-        ...context,
-        userProfile: userProfile ? {
-          preferredStyles: userProfile.preferredStyles,
-          preferredSubjects: userProfile.preferredSubjects,
-          preferredMoods: userProfile.preferredMoods,
-          recentPrompts: userProfile.recentContextJson?.recentPrompts || [],
-          creativePatternsDescription: userProfile.creativePatternsJson?.frequentPromptPatterns?.join(', ') || ''
-        } : null
-      };
-      
-      const response = await chatWithCreativeAgent(messages, enrichedContext, attachedImage || null);
-      res.json(response);
-    } catch (error) {
-      console.error("Chat session error:", error);
-      res.status(500).json({ message: "Failed to process chat message" });
-    }
-  });
-
-  app.delete("/api/chat/sessions/:id", requireAuth, async (req: any, res) => {
-    try {
-      const userId = getUserId(req);
-      const { id } = req.params;
-      
-      await storage.deleteChatSession(id, userId);
-      res.json({ message: "Chat session deleted" });
-    } catch (error) {
-      console.error("Delete chat session error:", error);
-      res.status(500).json({ message: "Failed to delete chat session" });
-    }
-  });
-
-  app.post("/api/chat/sessions/:id/messages", requireAuth, async (req: any, res) => {
-    try {
-      const userId = getUserId(req);
-      const { id: sessionId } = req.params;
-      const { role, content, options, imageId, originalPrompt, enhancedPrompt } = req.body;
-      
-      // Verify session belongs to user
-      const session = await storage.getChatSession(sessionId, userId);
-      if (!session) {
-        return res.status(404).json({ message: "Chat session not found" });
-      }
-      
-      const message = await storage.addChatMessage(sessionId, {
-        role,
-        content,
-        options,
-        imageId,
-        originalPrompt,
-        enhancedPrompt,
-      });
-      
-      // If there's an image and session has a linked project, add image to project
-      if (imageId && session.projectId) {
-        try {
-          const existingItems = await storage.getMoodBoard(userId, session.projectId);
-          const itemCount = existingItems?.items.length || 0;
-          await storage.addItemToBoard(session.projectId, imageId, {
-            positionX: (itemCount % 3) * 220,
-            positionY: Math.floor(itemCount / 3) * 220,
-            width: 200,
-            height: 200,
-            zIndex: itemCount,
-          });
-        } catch (e) {
-          console.error("Failed to add image to project:", e);
-        }
-      }
-      
-      res.json({ message });
-    } catch (error) {
-      console.error("Add chat message error:", error);
-      res.status(500).json({ message: "Failed to add chat message" });
-    }
-  });
-
-  // User preferences API is now in server/routes/user.ts
+  // Chat routes are now in server/routes/chat.ts
 
   return httpServer;
 }
