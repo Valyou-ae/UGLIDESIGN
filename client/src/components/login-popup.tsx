@@ -300,13 +300,13 @@ function LoginPopupDialog({ isOpen, onClose, returnTo }: LoginPopupDialogProps) 
                 <Button
                   type="submit"
                   disabled={isEmailLoading || !email.trim()}
-                  className="w-full h-12 bg-gradient-to-r from-[#ed5387] to-[#D4623A] hover:from-[#A84529] hover:to-[#C4522A] text-white font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[#ed5387]/20"
+                  className="w-full h-12 bg-gradient-to-r from-[#ed5387] to-[#9C27B0] hover:from-[#d94777] hover:to-[#8B1FA8] text-white font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[#ed5387]/30"
                   data-testid="button-email-continue"
                 >
                   {isEmailLoading ? (
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                   ) : (
-                    "Send Login Link"
+                    "Send Magic Link"
                   )}
                 </Button>
               </form>
