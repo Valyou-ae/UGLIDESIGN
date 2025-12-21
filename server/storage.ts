@@ -386,6 +386,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteImage(imageId: string, userId: string): Promise<boolean> {
+    // First, remove foreign key references in chat_messages to avoid constraint violation
+    await db
+      .update(chatMessages)
+      .set({ imageId: null })
+      .where(eq(chatMessages.imageId, imageId));
+    
+    // Also remove from gallery_images if it exists there
+    await db
+      .delete(galleryImages)
+      .where(eq(galleryImages.sourceImageId, imageId));
+    
+    // Then delete the image
     const result = await db
       .delete(generatedImages)
       .where(and(eq(generatedImages.id, imageId), eq(generatedImages.userId, userId)))
