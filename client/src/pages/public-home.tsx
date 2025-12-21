@@ -591,7 +591,7 @@ export default function PublicHome() {
         verified: Boolean(img.verified),
         views: formatViewCount(img.viewCount || 0),
         likes: img.likeCount || 0,
-        uses: formatViewCount(Math.floor((img.likeCount || 0) * 0.4)),
+        uses: formatViewCount(Math.floor((img.viewCount || 0) * 0.2)),
         category: img.category || 'General',
         aspectRatio: (img.aspectRatio || '1:1') as "1:1" | "9:16" | "16:9" | "4:5" | "3:4",
         prompt: img.prompt || '',
