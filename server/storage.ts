@@ -1068,33 +1068,54 @@ export class DatabaseStorage implements IStorage {
   }
 
   async likeGalleryImage(imageId: string, userId: string): Promise<{ liked: boolean; likeCount: number }> {
-    const [existingLike] = await db
-      .select()
-      .from(galleryImageLikes)
-      .where(and(eq(galleryImageLikes.imageId, imageId), eq(galleryImageLikes.userId, userId)));
-
-    if (existingLike) {
-      await db
-        .delete(galleryImageLikes)
-        .where(and(eq(galleryImageLikes.imageId, imageId), eq(galleryImageLikes.userId, userId)));
+    // Use raw pool queries to avoid Neon HTTP driver issues
+    const client = await pool.connect();
+    try {
+      // Check if user already liked this image
+      const existingLikeResult = await client.query(
+        'SELECT id FROM gallery_image_likes WHERE image_id = $1 AND user_id = $2',
+        [imageId, userId]
+      );
       
-      await db
-        .update(galleryImages)
-        .set({ likeCount: sql`GREATEST(${galleryImages.likeCount} - 1, 0)` })
-        .where(eq(galleryImages.id, imageId));
+      const existingLike = existingLikeResult.rows[0];
 
-      const [image] = await db.select().from(galleryImages).where(eq(galleryImages.id, imageId));
-      return { liked: false, likeCount: image?.likeCount ?? 0 };
-    } else {
-      await db.insert(galleryImageLikes).values({ imageId, userId });
-      
-      await db
-        .update(galleryImages)
-        .set({ likeCount: sql`${galleryImages.likeCount} + 1` })
-        .where(eq(galleryImages.id, imageId));
+      if (existingLike) {
+        // Unlike: remove like and decrement count
+        await client.query(
+          'DELETE FROM gallery_image_likes WHERE image_id = $1 AND user_id = $2',
+          [imageId, userId]
+        );
+        
+        await client.query(
+          'UPDATE gallery_images SET like_count = GREATEST(like_count - 1, 0) WHERE id = $1',
+          [imageId]
+        );
 
-      const [image] = await db.select().from(galleryImages).where(eq(galleryImages.id, imageId));
-      return { liked: true, likeCount: image?.likeCount ?? 0 };
+        const imageResult = await client.query(
+          'SELECT like_count FROM gallery_images WHERE id = $1',
+          [imageId]
+        );
+        return { liked: false, likeCount: imageResult.rows[0]?.like_count ?? 0 };
+      } else {
+        // Like: add like and increment count
+        await client.query(
+          'INSERT INTO gallery_image_likes (image_id, user_id) VALUES ($1, $2)',
+          [imageId, userId]
+        );
+        
+        await client.query(
+          'UPDATE gallery_images SET like_count = like_count + 1 WHERE id = $1',
+          [imageId]
+        );
+
+        const imageResult = await client.query(
+          'SELECT like_count FROM gallery_images WHERE id = $1',
+          [imageId]
+        );
+        return { liked: true, likeCount: imageResult.rows[0]?.like_count ?? 0 };
+      }
+    } finally {
+      client.release();
     }
   }
 
