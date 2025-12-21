@@ -59,7 +59,6 @@ export function registerGalleryRoutes(app: Express, middleware: Middleware) {
       if (!image) {
         return res.status(404).json({ message: "Image not found" });
       }
-      invalidateCache('gallery:images');
       res.json({ viewCount: image.viewCount });
     } catch (error) {
       console.error("View tracking error:", error);
@@ -75,7 +74,6 @@ export function registerGalleryRoutes(app: Express, middleware: Middleware) {
       if (!image) {
         return res.status(404).json({ message: "Image not found" });
       }
-      invalidateCache('gallery:images');
       res.json({ useCount: image.useCount });
     } catch (error) {
       console.error("Use tracking error:", error);
@@ -87,18 +85,8 @@ export function registerGalleryRoutes(app: Express, middleware: Middleware) {
     try {
       const { imageId } = req.params;
 
-      // Try to get from cache first, fall back to direct query
-      const cachedImages = await getFromCache(
-        'gallery:images',
-        CACHE_TTL.GALLERY_IMAGES,
-        () => storage.getGalleryImages()
-      );
-
-      let image = cachedImages.find(img => img.id === imageId);
-      if (!image) {
-        // If not in cache, try direct query (for newly added images)
-        image = await storage.getGalleryImageById(imageId);
-      }
+      // Always fetch full record for detail view (includes imageUrl)
+      const image = await storage.getGalleryImageById(imageId);
 
       if (!image) {
         return res.status(404).json({ message: "Image not found" });

@@ -973,8 +973,21 @@ export class DatabaseStorage implements IStorage {
     await db.delete(moodBoardItems).where(eq(moodBoardItems.id, itemId));
   }
 
-  async getGalleryImages(limit: number = 200): Promise<GalleryImage[]> {
-    return db.select().from(galleryImages)
+  async getGalleryImages(limit: number = 200): Promise<Omit<GalleryImage, 'imageUrl'>[]> {
+    return db.select({
+      id: galleryImages.id,
+      sourceImageId: galleryImages.sourceImageId,
+      title: galleryImages.title,
+      creator: galleryImages.creator,
+      verified: galleryImages.verified,
+      category: galleryImages.category,
+      aspectRatio: galleryImages.aspectRatio,
+      prompt: galleryImages.prompt,
+      likeCount: galleryImages.likeCount,
+      viewCount: galleryImages.viewCount,
+      useCount: galleryImages.useCount,
+      createdAt: galleryImages.createdAt,
+    }).from(galleryImages)
       .orderBy(desc(galleryImages.createdAt))
       .limit(limit);
   }
