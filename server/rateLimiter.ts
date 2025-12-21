@@ -76,7 +76,7 @@ export const adminRateLimiter = createRateLimiter(
 );
 
 // Cleanup every 10 seconds instead of 60 for more responsive memory management
-setInterval(() => {
+const cleanupInterval = setInterval(() => {
   const now = Date.now();
   const entries = Array.from(rateLimitStore.entries());
   for (const [key, entry] of entries) {
@@ -85,3 +85,10 @@ setInterval(() => {
     }
   }
 }, 10 * 1000);
+
+/**
+ * Stop the rate limiter cleanup interval (call during graceful shutdown)
+ */
+export function stopRateLimiterCleanup(): void {
+  clearInterval(cleanupInterval);
+}

@@ -10,6 +10,8 @@ import cors from 'cors';
 import { logger } from './logger';
 import { pool } from './db';
 import * as Sentry from '@sentry/node';
+import { stopCacheCleanup } from './cache';
+import { stopRateLimiterCleanup } from './rateLimiter';
 
 // ============== SENTRY ERROR MONITORING ==============
 // Initialize Sentry early for comprehensive error tracking
@@ -366,6 +368,11 @@ async function initStripe() {
     isShuttingDown = true;
 
     logger.info(`${signal} received, starting graceful shutdown...`, { source: 'shutdown' });
+
+    // Stop background intervals first
+    stopCacheCleanup();
+    stopRateLimiterCleanup();
+    logger.info('Background intervals stopped', { source: 'shutdown' });
 
     // Stop accepting new connections
     httpServer.close(async () => {

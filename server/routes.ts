@@ -103,7 +103,11 @@ export async function registerRoutes(
 
   await setupAuth(app);
 
-  const isTestMode = process.env.TEST_MODE === "true";
+  // TEST_MODE bypasses authentication - NEVER enable in production
+  const isTestMode = process.env.TEST_MODE === "true" && process.env.NODE_ENV !== "production";
+  if (process.env.TEST_MODE === "true" && process.env.NODE_ENV === "production") {
+    console.error("WARNING: TEST_MODE is ignored in production for security reasons");
+  }
   const TEST_USER_ID = "86375c89-623d-4e4f-b05b-056bc1663bf5";
 
   // Credit costs for different operations

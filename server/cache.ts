@@ -72,7 +72,7 @@ export function clearCache(): void {
 }
 
 // Cleanup expired entries every 30 seconds
-setInterval(() => {
+const cleanupInterval = setInterval(() => {
   const now = Date.now();
   for (const [key, entry] of cache.entries()) {
     if (entry.expires < now) {
@@ -80,6 +80,13 @@ setInterval(() => {
     }
   }
 }, 30 * 1000);
+
+/**
+ * Stop the cache cleanup interval (call during graceful shutdown)
+ */
+export function stopCacheCleanup(): void {
+  clearInterval(cleanupInterval);
+}
 
 // Cache TTL constants
 export const CACHE_TTL = {

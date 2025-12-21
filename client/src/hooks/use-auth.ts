@@ -37,9 +37,10 @@ export function useAuth() {
     queryKey: ["/api/auth/user"],
     queryFn: fetchUser,
     retry: false,
-    staleTime: 0,
-    refetchOnMount: "always",
-    refetchOnWindowFocus: true,
+    staleTime: 30 * 1000, // 30 seconds - reduces redundant API calls
+    gcTime: 5 * 60 * 1000, // 5 minutes - keep in cache for quick restores
+    refetchOnMount: true, // Only refetch if stale, not always
+    refetchOnWindowFocus: true, // Keep this for security - detect logout
   });
 
   const login = () => {
