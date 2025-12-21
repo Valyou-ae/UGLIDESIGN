@@ -103,7 +103,7 @@ function calculateJustifiedRows(items: InspirationItem[], containerWidth: number
   return rows;
 }
 
-function JustifiedGalleryCard({ item, rowHeight, index, onLike, isLoggedIn }: { item: InspirationItem; rowHeight: number; index: number; onLike?: (id: string) => void; isLoggedIn?: boolean }) {
+function JustifiedGalleryCard({ item, rowHeight, index, onLike, isLoggedIn, onImageClick }: { item: InspirationItem; rowHeight: number; index: number; onLike?: (id: string) => void; isLoggedIn?: boolean; onImageClick?: () => void }) {
   const [isVisible, setIsVisible] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -143,6 +143,12 @@ function JustifiedGalleryCard({ item, rowHeight, index, onLike, isLoggedIn }: { 
     }
   };
 
+  const handleCardClick = () => {
+    if (!isLoggedIn && onImageClick) {
+      onImageClick();
+    }
+  };
+
   return (
     <motion.div
       ref={cardRef}
@@ -153,6 +159,7 @@ function JustifiedGalleryCard({ item, rowHeight, index, onLike, isLoggedIn }: { 
       className="relative"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={handleCardClick}
     >
       <div className={cn(
         "group w-full h-full bg-white dark:bg-[#111113] rounded-lg overflow-hidden cursor-pointer hover:shadow-[0_10px_40px_rgba(233,30,99,0.2)] transition-all duration-300",
@@ -249,9 +256,10 @@ interface JustifiedGalleryProps {
   generatedImage?: { imageData: string; mimeType: string; aspectRatio: string } | null;
   onLike?: (id: string) => void;
   isLoggedIn?: boolean;
+  onImageClick?: () => void;
 }
 
-function JustifiedGallery({ items, generatedImage, onLike, isLoggedIn }: JustifiedGalleryProps) {
+function JustifiedGallery({ items, generatedImage, onLike, isLoggedIn, onImageClick }: JustifiedGalleryProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(1200);
@@ -352,6 +360,7 @@ function JustifiedGallery({ items, generatedImage, onLike, isLoggedIn }: Justifi
               index={currentIndex}
               onLike={onLike}
               isLoggedIn={isLoggedIn}
+              onImageClick={onImageClick}
             />
           );
         })}
@@ -606,6 +615,14 @@ export default function PublicHome() {
     setGeneratedImage(imageData);
   }, []);
 
+  const { openLoginPopup } = useLoginPopup();
+  
+  const handleImageClick = useCallback(() => {
+    if (!user) {
+      openLoginPopup();
+    }
+  }, [user, openLoginPopup]);
+
   return (
     <div className="h-screen bg-background flex font-sans text-foreground overflow-hidden">
       <GoogleAutoSignIn />
@@ -620,6 +637,7 @@ export default function PublicHome() {
               generatedImage={generatedImage} 
               onLike={handleLike}
               isLoggedIn={!!user}
+              onImageClick={handleImageClick}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
