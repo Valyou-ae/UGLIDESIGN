@@ -197,6 +197,7 @@ export interface IStorage {
   updateFolder(id: string, userId: string, data: Partial<InsertImageFolder>): Promise<ImageFolder | undefined>;
   deleteFolder(id: string, userId: string): Promise<void>;
   moveImageToFolder(imageId: string, userId: string, folderId: string | null): Promise<GeneratedImage | undefined>;
+  getOrCreateDefaultFolder(userId: string): Promise<ImageFolder>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1598,6 +1599,25 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(generatedImages.id, imageId), eq(generatedImages.userId, userId)))
       .returning();
     return image || undefined;
+  }
+
+  async getOrCreateDefaultFolder(userId: string): Promise<ImageFolder> {
+    const existingFolders = await db
+      .select()
+      .from(imageFolders)
+      .where(and(eq(imageFolders.userId, userId), eq(imageFolders.name, "My Folder")));
+    
+    if (existingFolders.length > 0) {
+      return existingFolders[0];
+    }
+
+    const [folder] = await db.insert(imageFolders).values({
+      userId,
+      name: "My Folder",
+      color: "#6366f1"
+    }).returning();
+    
+    return folder;
   }
 }
 
