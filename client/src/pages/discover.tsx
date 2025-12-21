@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, memo } from "react";
 import { 
   TrendingUp, 
   BadgeCheck, 
@@ -64,7 +64,7 @@ interface InspirationItem {
   createdAt?: string;
 }
 
-function LazyMasonryCard({ item, index, onLike, onUse, onCopy }: { item: InspirationItem; index: number; onLike?: (id: string) => void; onUse?: (id: string) => void; onCopy?: (prompt: string) => void }) {
+const LazyMasonryCard = memo(function LazyMasonryCard({ item, index, onLike, onUse, onCopy }: { item: InspirationItem; index: number; onLike?: (id: string) => void; onUse?: (id: string) => void; onCopy?: (prompt: string) => void }) {
   const [isVisible, setIsVisible] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -376,7 +376,7 @@ function LazyMasonryCard({ item, index, onLike, onUse, onCopy }: { item: Inspira
       </div>
     </motion.div>
   );
-}
+});
 
 const allInspirations: InspirationItem[] = [
   {

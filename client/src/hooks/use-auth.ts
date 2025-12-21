@@ -25,9 +25,14 @@ async function fetchUser() {
   if (!text) {
     return null;
   }
-  
-  const data = JSON.parse(text);
-  return data.user;
+
+  try {
+    const data = JSON.parse(text);
+    return data.user;
+  } catch {
+    console.error('Failed to parse auth response');
+    return null;
+  }
 }
 
 export function useAuth() {

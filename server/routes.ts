@@ -3786,20 +3786,30 @@ export async function registerRoutes(
       }
       
       const messages = await storage.getChatMessages(id);
-      
-      // Enrich messages with imageUrl from generatedImages table
-      const enrichedMessages = await Promise.all(
-        messages.map(async (msg) => {
-          if (msg.imageId) {
-            const image = await storage.getImageById(msg.imageId, userId);
-            return {
-              ...msg,
-              imageUrl: image?.imageUrl || null
-            };
-          }
-          return msg;
-        })
-      );
+
+      // Batch fetch all images to avoid N+1 queries
+      const imageIds = messages
+        .filter(msg => msg.imageId)
+        .map(msg => msg.imageId as string);
+
+      const imageUrlMap = new Map<string, string>();
+      if (imageIds.length > 0) {
+        const images = await storage.getImagesByIds(imageIds, userId);
+        for (const img of images) {
+          imageUrlMap.set(img.id, img.imageUrl);
+        }
+      }
+
+      // Enrich messages with imageUrl using the pre-fetched map
+      const enrichedMessages = messages.map(msg => {
+        if (msg.imageId) {
+          return {
+            ...msg,
+            imageUrl: imageUrlMap.get(msg.imageId) || null
+          };
+        }
+        return msg;
+      });
       
       // Get linked project info if exists
       let project = null;
