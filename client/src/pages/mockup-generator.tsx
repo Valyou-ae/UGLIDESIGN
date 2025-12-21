@@ -2018,42 +2018,118 @@ export default function MockupGenerator() {
                                 </div>
                                 
                                 {useModel && (
-                                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
-                                    <Select value={modelDetails.sex} onValueChange={(v) => setModelDetails({...modelDetails, sex: v as "MALE" | "FEMALE"})}>
-                                      <SelectTrigger className="h-10"><SelectValue placeholder="Gender" /></SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="MALE">Male</SelectItem>
-                                        <SelectItem value="FEMALE">Female</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                    <Select value={modelDetails.ethnicity} onValueChange={(v) => setModelDetails({...modelDetails, ethnicity: v as any})}>
-                                      <SelectTrigger className="h-10"><SelectValue placeholder="Ethnicity" /></SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="WHITE">White</SelectItem>
-                                        <SelectItem value="BLACK">Black</SelectItem>
-                                        <SelectItem value="ASIAN">Asian</SelectItem>
-                                        <SelectItem value="LATINO">Latino</SelectItem>
-                                        <SelectItem value="MIDDLE_EASTERN">Middle Eastern</SelectItem>
-                                        <SelectItem value="MIXED">Mixed</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                    <Select value={modelDetails.age} onValueChange={(v) => setModelDetails({...modelDetails, age: v as any})}>
-                                      <SelectTrigger className="h-10"><SelectValue placeholder="Age" /></SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="YOUNG_ADULT">Young Adult</SelectItem>
-                                        <SelectItem value="ADULT">Adult</SelectItem>
-                                        <SelectItem value="MIDDLE_AGED">Middle Aged</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                    <Select value={modelDetails.modelSize} onValueChange={(v) => setModelDetails({...modelDetails, modelSize: v as any})}>
-                                      <SelectTrigger className="h-10"><SelectValue placeholder="Body" /></SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="slim">Slim</SelectItem>
-                                        <SelectItem value="athletic">Athletic</SelectItem>
-                                        <SelectItem value="average">Average</SelectItem>
-                                        <SelectItem value="plus">Plus</SelectItem>
-                                      </SelectContent>
-                                    </Select>
+                                  <div className="space-y-4 mt-3">
+                                    {/* Gender Selection */}
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs text-muted-foreground w-16 shrink-0">Gender</span>
+                                      <div className="flex gap-2 flex-1">
+                                        {[
+                                          { value: "MALE", icon: User, label: "Male" },
+                                          { value: "FEMALE", icon: Users, label: "Female" },
+                                        ].map((option) => (
+                                          <TooltipProvider key={option.value}>
+                                            <Tooltip>
+                                              <TooltipTrigger asChild>
+                                                <button
+                                                  onClick={() => setModelDetails({...modelDetails, sex: option.value as "MALE" | "FEMALE"})}
+                                                  className={cn(
+                                                    "flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border transition-all flex-1",
+                                                    modelDetails.sex === option.value
+                                                      ? "bg-primary/10 border-primary text-primary"
+                                                      : "bg-muted/30 border-border text-muted-foreground hover:border-primary/30"
+                                                  )}
+                                                >
+                                                  <option.icon className="h-4 w-4" />
+                                                  <span className="text-xs font-medium">{option.label}</span>
+                                                </button>
+                                              </TooltipTrigger>
+                                              <TooltipContent><p>{option.label}</p></TooltipContent>
+                                            </Tooltip>
+                                          </TooltipProvider>
+                                        ))}
+                                      </div>
+                                    </div>
+
+                                    {/* Ethnicity - keep as dropdown due to many options */}
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs text-muted-foreground w-16 shrink-0">Ethnicity</span>
+                                      <Select value={modelDetails.ethnicity} onValueChange={(v) => setModelDetails({...modelDetails, ethnicity: v as any})}>
+                                        <SelectTrigger className="h-9 flex-1"><SelectValue placeholder="Ethnicity" /></SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="WHITE">White</SelectItem>
+                                          <SelectItem value="BLACK">Black</SelectItem>
+                                          <SelectItem value="ASIAN">Asian</SelectItem>
+                                          <SelectItem value="LATINO">Latino</SelectItem>
+                                          <SelectItem value="MIDDLE_EASTERN">Middle Eastern</SelectItem>
+                                          <SelectItem value="MIXED">Mixed</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+
+                                    {/* Age Selection */}
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs text-muted-foreground w-16 shrink-0">Age</span>
+                                      <div className="flex gap-2 flex-1">
+                                        {[
+                                          { value: "YOUNG_ADULT", icon: Smile, label: "Young" },
+                                          { value: "ADULT", icon: UserCheck, label: "Adult" },
+                                          { value: "MIDDLE_AGED", icon: Award, label: "Mature" },
+                                        ].map((option) => (
+                                          <TooltipProvider key={option.value}>
+                                            <Tooltip>
+                                              <TooltipTrigger asChild>
+                                                <button
+                                                  onClick={() => setModelDetails({...modelDetails, age: option.value as any})}
+                                                  className={cn(
+                                                    "flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border transition-all flex-1",
+                                                    modelDetails.age === option.value
+                                                      ? "bg-primary/10 border-primary text-primary"
+                                                      : "bg-muted/30 border-border text-muted-foreground hover:border-primary/30"
+                                                  )}
+                                                >
+                                                  <option.icon className="h-4 w-4" />
+                                                  <span className="text-xs font-medium">{option.label}</span>
+                                                </button>
+                                              </TooltipTrigger>
+                                              <TooltipContent><p>{option.value === "YOUNG_ADULT" ? "Young Adult" : option.value === "MIDDLE_AGED" ? "Middle Aged" : option.label}</p></TooltipContent>
+                                            </Tooltip>
+                                          </TooltipProvider>
+                                        ))}
+                                      </div>
+                                    </div>
+
+                                    {/* Body Type Selection */}
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs text-muted-foreground w-16 shrink-0">Body</span>
+                                      <div className="flex gap-2 flex-1">
+                                        {[
+                                          { value: "slim", icon: PersonStanding, label: "Slim" },
+                                          { value: "athletic", icon: Dumbbell, label: "Athletic" },
+                                          { value: "average", icon: User, label: "Average" },
+                                          { value: "plus", icon: Heart, label: "Plus" },
+                                        ].map((option) => (
+                                          <TooltipProvider key={option.value}>
+                                            <Tooltip>
+                                              <TooltipTrigger asChild>
+                                                <button
+                                                  onClick={() => setModelDetails({...modelDetails, modelSize: option.value as any})}
+                                                  className={cn(
+                                                    "flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border transition-all flex-1",
+                                                    modelDetails.modelSize === option.value
+                                                      ? "bg-primary/10 border-primary text-primary"
+                                                      : "bg-muted/30 border-border text-muted-foreground hover:border-primary/30"
+                                                  )}
+                                                >
+                                                  <option.icon className="h-4 w-4" />
+                                                  <span className="text-xs font-medium">{option.label}</span>
+                                                </button>
+                                              </TooltipTrigger>
+                                              <TooltipContent><p>{option.label}</p></TooltipContent>
+                                            </Tooltip>
+                                          </TooltipProvider>
+                                        ))}
+                                      </div>
+                                    </div>
                                   </div>
                                 )}
                               </div>
