@@ -448,9 +448,9 @@ export async function generateImage(
     console.log(`[Image Generation] Using model: ${model} (quality: ${qualityLevel}, hasText: ${hasTextRequest})`);
 
     // Build config with optimizations for speed
-    // For premium: request IMAGE only (no TEXT) and disable thinking
+    // Always request IMAGE only to ensure the model generates an image (not just text)
     const config: any = {
-      responseModalities: qualityLevel === "premium" ? [Modality.IMAGE] : [Modality.TEXT, Modality.IMAGE],
+      responseModalities: [Modality.IMAGE],
       aspectRatio: validAspectRatio,
     };
     
