@@ -1,3 +1,4 @@
+import { pool } from './db';
 import { 
   users, 
   generatedImages, 
@@ -260,15 +261,47 @@ export class DatabaseStorage implements IStorage {
 
   async createImage(image: InsertImage): Promise<GeneratedImage> {
     try {
-      const [created] = await db
-        .insert(generatedImages)
-        .values(image)
-        .returning();
-      if (!created) {
-        console.error("Image insert returned no result. Input data:", JSON.stringify(image, null, 2).slice(0, 500));
+      const result = await pool.query(
+        `INSERT INTO generated_images (
+          user_id, folder_id, image_url, prompt, style, aspect_ratio, 
+          generation_type, is_favorite, is_public, view_count, created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
+         RETURNING id, user_id, folder_id, image_url, prompt, style, aspect_ratio,
+                   generation_type, is_favorite, is_public, view_count, created_at`,
+        [
+          image.userId,
+          image.folderId ?? null,
+          image.imageUrl,
+          image.prompt,
+          image.style ?? null,
+          image.aspectRatio ?? null,
+          image.generationType ?? 'image',
+          image.isFavorite ?? false,
+          image.isPublic ?? false,
+          image.viewCount ?? 0
+        ]
+      );
+      
+      if (!result.rows || !result.rows[0]) {
+        console.error("Image insert returned no result for userId:", image.userId);
         throw new Error("Failed to insert image into database");
       }
-      return created;
+      
+      const row = result.rows[0];
+      return {
+        id: row.id,
+        userId: row.user_id,
+        folderId: row.folder_id,
+        imageUrl: row.image_url,
+        prompt: row.prompt,
+        style: row.style,
+        aspectRatio: row.aspect_ratio,
+        generationType: row.generation_type,
+        isFavorite: row.is_favorite,
+        isPublic: row.is_public,
+        viewCount: row.view_count,
+        createdAt: row.created_at
+      };
     } catch (error) {
       console.error("Database error in createImage:", error);
       throw error;
