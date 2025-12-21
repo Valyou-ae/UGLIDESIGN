@@ -65,8 +65,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useImages } from "@/hooks/use-images";
 import { CalendarHistoryModal } from "@/components/calendar-history-modal";
 import { transferImageToTool } from "@/lib/image-transfer";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { foldersApi, type ImageFolder } from "@/lib/api";
+import { SaveToFolderModal } from "@/components/save-to-folder-modal";
 
 
 type ItemType = {
@@ -83,6 +84,8 @@ type ItemType = {
   favorite: boolean;
   isPublic: boolean;
   folderId: string | null;
+  prompt: string;
+  style: string;
 };
 
 import { useLocation } from "wouter";
@@ -102,7 +105,10 @@ export default function MyCreations() {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
+  const [showFolderModal, setShowFolderModal] = useState(false);
+  const [itemToMove, setItemToMove] = useState<ItemType | null>(null);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   // Fetch folders
   const { data: foldersData, isLoading: isLoadingFolders } = useQuery({
@@ -142,6 +148,8 @@ export default function MyCreations() {
       isPublic: img.isPublic || false,
       aspectRatio: img.aspectRatio || "1:1",
       folderId: img.folderId || null,
+      prompt: img.prompt || "",
+      style: img.style || "Generated",
     }));
   }, [dbImages]);
 
@@ -323,7 +331,8 @@ export default function MyCreations() {
     }
 
     if (action === "Move") {
-      toast({ title: "Coming Soon", description: "Folder organization is coming soon." });
+      setItemToMove(item);
+      setShowFolderModal(true);
       return;
     }
 
@@ -1066,10 +1075,21 @@ export default function MyCreations() {
                     <Button 
                       variant="ghost" 
                       className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
+                      onClick={() => handleAction("Move", selectedItem)}
+                      data-testid="button-folder-detail"
+                    >
+                      <FolderInput className="h-5 w-5" />
+                      <span className="text-[10px]">Folder</span>
+                    </Button>
+                    
+                    <Button 
+                      variant="ghost" 
+                      className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
                       onClick={() => handleAction("Download", selectedItem)}
+                      data-testid="button-download-detail"
                     >
                       <Download className="h-5 w-5" />
-                      <span className="text-[10px]">Save</span>
+                      <span className="text-[10px]">Download</span>
                     </Button>
                     
                     <Button 
@@ -1086,18 +1106,10 @@ export default function MyCreations() {
                       variant="ghost" 
                       className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
                       onClick={() => handleAction("Duplicate", selectedItem)}
+                      data-testid="button-vary-detail"
                     >
                       <RefreshCw className="h-5 w-5" />
                       <span className="text-[10px]">Vary</span>
-                    </Button>
-
-                    <Button 
-                      variant="ghost" 
-                      className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
-                      onClick={() => handleAction("Edit", selectedItem)}
-                    >
-                      <Pencil className="h-5 w-5" />
-                      <span className="text-[10px]">Edit</span>
                     </Button>
 
                     <Button 
@@ -1109,23 +1121,24 @@ export default function MyCreations() {
                           : "bg-muted/30 hover:bg-muted text-foreground"
                       )}
                       onClick={() => toggleFavorite(selectedItem.id)}
+                      data-testid="button-like-detail"
                     >
                       <Star className={cn("h-5 w-5", selectedItem.favorite && "fill-current")} />
                       <span className="text-[10px]">Like</span>
                     </Button>
                   </div>
 
-                  {/* Info */}
+                  {/* Prompt */}
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Name</label>
-                    <div className="bg-muted/30 rounded-xl p-4 text-sm text-foreground font-medium border border-border relative group">
-                      {selectedItem.name}
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Prompt</label>
+                    <div className="bg-muted/30 rounded-xl p-4 text-sm text-muted-foreground leading-relaxed border border-border relative group">
+                      {selectedItem.prompt || "No prompt available"}
                       <Button 
                         size="icon" 
                         variant="ghost" 
                         className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => {
-                           navigator.clipboard.writeText(selectedItem.name);
+                           navigator.clipboard.writeText(selectedItem.prompt);
                            toast({ title: "Copied" });
                         }}
                       >
@@ -1137,8 +1150,8 @@ export default function MyCreations() {
                   {/* Details */}
                   <div className="space-y-4">
                     <div className="flex justify-between py-2 border-b border-border">
-                      <span className="text-xs text-muted-foreground">Type</span>
-                      <Badge variant="outline" className="uppercase">{selectedItem.type.replace("-", " ")}</Badge>
+                      <span className="text-xs text-muted-foreground">Style</span>
+                      <span className="text-xs font-medium text-foreground capitalize">{selectedItem.style}</span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-border">
                       <span className="text-xs text-muted-foreground">Dimensions</span>
@@ -1283,6 +1296,39 @@ export default function MyCreations() {
       </AlertDialog>
 
       <CalendarHistoryModal open={calendarOpen} onOpenChange={setCalendarOpen} />
+
+      <SaveToFolderModal
+        isOpen={showFolderModal}
+        onClose={() => {
+          setShowFolderModal(false);
+          setItemToMove(null);
+        }}
+        onSave={async (folderId) => {
+          if (itemToMove && folderId) {
+            try {
+              await foldersApi.moveImage(itemToMove.id, folderId);
+              queryClient.invalidateQueries({ queryKey: ["images"] });
+              queryClient.invalidateQueries({ queryKey: ["folders"] });
+              if (selectedItem && selectedItem.id === itemToMove.id) {
+                setSelectedItem(prev => prev ? { ...prev, folderId } : null);
+              }
+              toast({ 
+                title: "Moved to Folder", 
+                description: "Image has been moved to the folder." 
+              });
+            } catch (error) {
+              toast({ 
+                variant: "destructive", 
+                title: "Move Failed", 
+                description: "Could not move image to folder." 
+              });
+            }
+          }
+          setShowFolderModal(false);
+          setItemToMove(null);
+        }}
+        imageId={itemToMove?.id}
+      />
     </div>
   );
 }
