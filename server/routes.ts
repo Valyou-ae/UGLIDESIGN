@@ -37,7 +37,7 @@ import { db } from "./db";
 import { eq, sql } from "drizzle-orm";
 import { getFromCache, CACHE_TTL, invalidateCache } from "./cache";
 import { verifyGoogleToken } from "./googleAuth";
-import { registerAdminRoutes, createMiddleware } from "./routes/index";
+import { registerAdminRoutes, registerSuperAdminRoutes, createMiddleware } from "./routes/index";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -117,6 +117,7 @@ export async function registerRoutes(
 
   // Register modularized routes
   registerAdminRoutes(app, sharedMiddleware);
+  registerSuperAdminRoutes(app, sharedMiddleware);
 
   // Credit costs for different operations
   const CREDIT_COSTS = {
@@ -3108,123 +3109,7 @@ export async function registerRoutes(
 
   // Admin routes are now in server/routes/admin.ts
 
-  // ============== SUPER ADMIN ROUTES ==============
-
-  app.get("/api/super-admin/overview", requireSuperAdmin, async (_req: any, res) => {
-    try {
-      const overview = await storage.getSuperAdminOverview();
-      res.json(overview);
-    } catch (error) {
-      console.error("Super admin overview error:", error);
-      res.status(500).json({ message: "Failed to fetch overview" });
-    }
-  });
-
-  app.get("/api/super-admin/users/growth", requireSuperAdmin, async (req: any, res) => {
-    try {
-      const days = parseInt(req.query.days as string) || 30;
-      const growth = await storage.getUserGrowthByDay(days);
-      res.json({ growth });
-    } catch (error) {
-      console.error("Super admin user growth error:", error);
-      res.status(500).json({ message: "Failed to fetch user growth" });
-    }
-  });
-
-  app.get("/api/super-admin/generations/stats", requireSuperAdmin, async (req: any, res) => {
-    try {
-      const days = parseInt(req.query.days as string) || 30;
-      const stats = await storage.getGenerationsByDay(days);
-      res.json({ stats });
-    } catch (error) {
-      console.error("Super admin generation stats error:", error);
-      res.status(500).json({ message: "Failed to fetch generation stats" });
-    }
-  });
-
-  app.get("/api/super-admin/top-creators", requireSuperAdmin, async (req: any, res) => {
-    try {
-      const limit = parseInt(req.query.limit as string) || 10;
-      const creators = await storage.getTopCreators(limit);
-      res.json({ creators });
-    } catch (error) {
-      console.error("Super admin top creators error:", error);
-      res.status(500).json({ message: "Failed to fetch top creators" });
-    }
-  });
-
-  app.get("/api/super-admin/users/by-role", requireSuperAdmin, async (_req: any, res) => {
-    try {
-      const roleStats = await storage.getUsersByRole();
-      res.json({ roleStats });
-    } catch (error) {
-      console.error("Super admin users by role error:", error);
-      res.status(500).json({ message: "Failed to fetch users by role" });
-    }
-  });
-
-  app.get("/api/super-admin/feature-usage", requireSuperAdmin, async (_req: any, res) => {
-    try {
-      const usage = await storage.getFeatureUsageBreakdown();
-      res.json({ usage });
-    } catch (error) {
-      console.error("Super admin feature usage error:", error);
-      res.status(500).json({ message: "Failed to fetch feature usage" });
-    }
-  });
-
-  app.get("/api/super-admin/subscriptions", requireSuperAdmin, async (_req: any, res) => {
-    try {
-      const stats = await storage.getSubscriptionStats();
-      res.json(stats);
-    } catch (error) {
-      console.error("Super admin subscriptions error:", error);
-      res.status(500).json({ message: "Failed to fetch subscription stats" });
-    }
-  });
-
-  app.get("/api/super-admin/affiliates", requireSuperAdmin, async (req: any, res) => {
-    try {
-      const limit = parseInt(req.query.limit as string) || 10;
-      const affiliates = await storage.getAffiliatePerformance(limit);
-      res.json({ affiliates });
-    } catch (error) {
-      console.error("Super admin affiliates error:", error);
-      res.status(500).json({ message: "Failed to fetch affiliate performance" });
-    }
-  });
-
-  app.get("/api/super-admin/revenue", requireSuperAdmin, async (req: any, res) => {
-    try {
-      const days = parseInt(req.query.days as string) || 30;
-      const revenue = await storage.getRevenueByDay(days);
-      res.json({ revenue });
-    } catch (error) {
-      console.error("Super admin revenue error:", error);
-      res.status(500).json({ message: "Failed to fetch revenue data" });
-    }
-  });
-
-  app.get("/api/super-admin/daily-active-users", requireSuperAdmin, async (req: any, res) => {
-    try {
-      const days = parseInt(req.query.days as string) || 30;
-      const dau = await storage.getDailyActiveUsers(days);
-      res.json({ dau });
-    } catch (error) {
-      console.error("Super admin DAU error:", error);
-      res.status(500).json({ message: "Failed to fetch daily active users" });
-    }
-  });
-
-  app.get("/api/super-admin/retention", requireSuperAdmin, async (_req: any, res) => {
-    try {
-      const retention = await storage.getRetentionRate();
-      res.json(retention);
-    } catch (error) {
-      console.error("Super admin retention error:", error);
-      res.status(500).json({ message: "Failed to fetch retention rate" });
-    }
-  });
+  // Super admin routes are now in server/routes/super-admin.ts
 
   // ============== PROMPT FAVORITES ROUTES ==============
 
