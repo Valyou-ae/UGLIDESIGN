@@ -9,5 +9,6 @@ export { registerMockupRoutes } from "./mockup";
 export { registerBackgroundRoutes } from "./background";
 export { registerMoodBoardRoutes } from "./moodboard";
 export { registerChatRoutes } from "./chat";
+export { registerBillingRoutes } from "./billing";
 export { createMiddleware, type Middleware } from "./middleware";
 export { parsePagination } from "./utils";

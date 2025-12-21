@@ -37,7 +37,7 @@ import { db } from "./db";
 import { eq, sql } from "drizzle-orm";
 import { getFromCache, CACHE_TTL, invalidateCache } from "./cache";
 import { verifyGoogleToken } from "./googleAuth";
-import { registerAdminRoutes, registerSuperAdminRoutes, registerAuthRoutes, registerGalleryRoutes, registerUserRoutes, registerImageRoutes, registerGenerationRoutes, registerMockupRoutes, registerBackgroundRoutes, registerMoodBoardRoutes, registerChatRoutes, createMiddleware } from "./routes/index";
+import { registerAdminRoutes, registerSuperAdminRoutes, registerAuthRoutes, registerGalleryRoutes, registerUserRoutes, registerImageRoutes, registerGenerationRoutes, registerMockupRoutes, registerBackgroundRoutes, registerMoodBoardRoutes, registerChatRoutes, registerBillingRoutes, createMiddleware } from "./routes/index";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -127,6 +127,7 @@ export async function registerRoutes(
   await registerBackgroundRoutes(app, sharedMiddleware);
   registerMoodBoardRoutes(app, sharedMiddleware);
   await registerChatRoutes(app, sharedMiddleware);
+  await registerBillingRoutes(app, sharedMiddleware);
 
   // Credit costs for different operations
   const CREDIT_COSTS = {
@@ -291,191 +292,7 @@ export async function registerRoutes(
 
   // Auth routes are now in server/routes/auth.ts
   // User/profile routes are now in server/routes/user.ts
-
-  // ============== STRIPE BILLING ROUTES ==============
-
-  app.get("/api/stripe/config", async (_req, res) => {
-    try {
-      const { getStripePublishableKey } = await import("./stripeClient");
-      const publishableKey = await getStripePublishableKey();
-      res.json({ publishableKey });
-    } catch (error) {
-      console.error("Stripe config error:", error);
-      res.status(500).json({ message: "Failed to get Stripe configuration" });
-    }
-  });
-
-  app.get("/api/stripe/products", requireAuth, async (_req, res) => {
-    try {
-      const { stripeService } = await import("./stripeService");
-      let products = await stripeService.listProductsWithPrices(true);
-      
-      if (products.length === 0) {
-        await stripeService.syncProductsFromStripe();
-        products = await stripeService.listProductsWithPrices(true);
-      }
-      
-      res.json({ products });
-    } catch (error) {
-      console.error("Stripe products error:", error);
-      res.status(500).json({ message: "Failed to get products" });
-    }
-  });
-
-  app.post("/api/stripe/sync-products", requireAdmin, async (_req, res) => {
-    try {
-      const { stripeService } = await import("./stripeService");
-      const result = await stripeService.syncProductsFromStripe();
-      res.json({ success: true, ...result });
-    } catch (error) {
-      console.error("Stripe sync error:", error);
-      res.status(500).json({ message: "Failed to sync products" });
-    }
-  });
-
-  app.post("/api/stripe/create-checkout-session", requireAuth, async (req: any, res) => {
-    try {
-      const userId = getUserId(req);
-      const { priceId, mode } = req.body;
-
-      if (!priceId || typeof priceId !== 'string' || !priceId.startsWith('price_')) {
-        return res.status(400).json({ message: "Valid Price ID is required (must start with 'price_')" });
-      }
-
-      const validModes = ['subscription', 'payment'];
-      const checkoutMode = validModes.includes(mode) ? mode : 'subscription';
-
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      const { stripeService } = await import("./stripeService");
-      
-      let customerId = user.stripeCustomerId;
-      
-      if (!customerId) {
-        const customer = await stripeService.createCustomer(user.email || '', userId);
-        customerId = customer.id;
-        await storage.updateStripeCustomerId(userId, customerId);
-      }
-
-      const baseUrl = process.env.REPLIT_DOMAINS 
-        ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}`
-        : 'http://localhost:5000';
-
-      const session = await stripeService.createCheckoutSession(
-        customerId,
-        priceId,
-        `${baseUrl}/billing?success=true`,
-        `${baseUrl}/billing?canceled=true`,
-        checkoutMode as 'subscription' | 'payment'
-      );
-
-      res.json({ sessionId: session.id, url: session.url });
-    } catch (error) {
-      console.error("Stripe checkout error:", error);
-      res.status(500).json({ message: "Failed to create checkout session" });
-    }
-  });
-
-  app.post("/api/stripe/create-portal-session", requireAuth, async (req: any, res) => {
-    try {
-      const userId = getUserId(req);
-      const user = await storage.getUser(userId);
-      
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      if (!user.stripeCustomerId) {
-        return res.status(400).json({ message: "No billing account found. Please subscribe first." });
-      }
-
-      const { stripeService } = await import("./stripeService");
-
-      const baseUrl = process.env.REPLIT_DOMAINS 
-        ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}`
-        : 'http://localhost:5000';
-
-      const session = await stripeService.createCustomerPortalSession(
-        user.stripeCustomerId,
-        `${baseUrl}/billing`
-      );
-
-      res.json({ url: session.url });
-    } catch (error) {
-      console.error("Stripe portal error:", error);
-      res.status(500).json({ message: "Failed to create portal session" });
-    }
-  });
-
-  app.get("/api/stripe/subscription-status", requireAuth, async (req: any, res) => {
-    try {
-      const userId = getUserId(req);
-      const user = await storage.getUser(userId);
-      
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      if (!user.stripeCustomerId) {
-        return res.json({ 
-          hasSubscription: false,
-          subscription: null,
-          plan: 'free'
-        });
-      }
-
-      const { getUncachableStripeClient } = await import("./stripeClient");
-      const stripe = await getUncachableStripeClient();
-      
-      const subscriptions = await stripe.subscriptions.list({
-        customer: user.stripeCustomerId,
-        status: 'active',
-        limit: 1,
-      });
-
-      if (subscriptions.data.length === 0) {
-        if (user.stripeSubscriptionId) {
-          await storage.updateStripeSubscriptionId(userId, null);
-        }
-        return res.json({ 
-          hasSubscription: false,
-          subscription: null,
-          plan: 'free'
-        });
-      }
-
-      const subscription = subscriptions.data[0];
-      
-      if (user.stripeSubscriptionId !== subscription.id) {
-        await storage.updateStripeSubscriptionId(userId, subscription.id);
-      }
-
-      const planName = subscription.items.data[0]?.price?.product;
-      let plan = 'pro';
-      if (typeof planName === 'object' && planName !== null && 'name' in planName) {
-        plan = (planName.name as string).toLowerCase().includes('business') ? 'business' : 'pro';
-      }
-
-      res.json({ 
-        hasSubscription: true,
-        subscription: {
-          id: subscription.id,
-          status: subscription.status,
-          current_period_end: (subscription as any).current_period_end,
-          current_period_start: (subscription as any).current_period_start,
-          cancel_at_period_end: subscription.cancel_at_period_end,
-        },
-        plan
-      });
-    } catch (error) {
-      console.error("Stripe subscription status error:", error);
-      res.status(500).json({ message: "Failed to get subscription status" });
-    }
-  });
-
+  // Stripe billing routes are now in server/routes/billing.ts
   // Image and folder routes are now in server/routes/images.ts
   // Gallery routes are now in server/routes/gallery.ts
 
