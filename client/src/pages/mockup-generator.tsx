@@ -132,72 +132,6 @@ import moodUrban from "@assets/generated_images/mood_image_for_urban_street_styl
 import moodNatural from "@assets/generated_images/mood_image_for_natural_organic_style.png";
 import moodBold from "@assets/generated_images/mood_image_for_bold_vibrant_style.png";
 
-// Import brand archetype images
-import brandUrbanEdge from "@assets/generated_images/urban_edge_brand_style.png";
-import brandSoftMinimalist from "@assets/generated_images/soft_minimalist_brand_style.png";
-import brandBoldPlayful from "@assets/generated_images/bold_playful_brand_style.png";
-import brandPremiumLuxe from "@assets/generated_images/premium_luxe_brand_style.png";
-import brandVintageAuthentic from "@assets/generated_images/vintage_authentic_brand_style.png";
-
-// Brand style data with images, taglines, and mood keywords
-const BRAND_STYLES = [
-  { 
-    id: "ECOMMERCE_CLEAN", 
-    name: "E-Commerce Clean", 
-    img: brandSoftMinimalist, 
-    tagline: "Clean & Professional",
-    keywords: ["Minimal", "Trust", "Conversion", "Clarity"]
-  },
-  { 
-    id: "EDITORIAL_FASHION", 
-    name: "Editorial Fashion", 
-    img: brandUrbanEdge, 
-    tagline: "Dramatic & Bold",
-    keywords: ["High Fashion", "Editorial", "Dramatic", "Artistic"]
-  },
-  { 
-    id: "VINTAGE_RETRO", 
-    name: "Vintage Retro", 
-    img: brandVintageAuthentic, 
-    tagline: "Nostalgic & Timeless",
-    keywords: ["Classic", "Authentic", "Heritage", "Warm"]
-  },
-  { 
-    id: "STREET_URBAN", 
-    name: "Street Style Urban", 
-    img: brandUrbanEdge, 
-    tagline: "Gritty & Authentic",
-    keywords: ["Urban", "Raw", "Street", "Edge"]
-  },
-  { 
-    id: "MINIMALIST_MODERN", 
-    name: "Minimalist Modern", 
-    img: brandSoftMinimalist, 
-    tagline: "Less is More",
-    keywords: ["Sleek", "Refined", "Elegant", "Simple"]
-  },
-  { 
-    id: "BOLD_PLAYFUL", 
-    name: "Bold & Playful", 
-    img: brandBoldPlayful, 
-    tagline: "Vibrant & Energetic",
-    keywords: ["Fun", "Colorful", "Dynamic", "Youth"]
-  },
-  { 
-    id: "PREMIUM_LUXE", 
-    name: "Premium Luxe", 
-    img: brandPremiumLuxe, 
-    tagline: "Sophisticated & Elite",
-    keywords: ["Luxury", "Premium", "Exclusive", "Opulent"]
-  },
-  { 
-    id: "NATURAL_ORGANIC", 
-    name: "Natural Organic", 
-    img: moodNatural, 
-    tagline: "Earthy & Sustainable",
-    keywords: ["Eco", "Natural", "Organic", "Earthy"]
-  },
-];
 
 // Types
 type JourneyType = "DTG" | "AOP" | null;
@@ -781,7 +715,6 @@ export default function MockupGenerator() {
   const [selectedColors, setSelectedColors] = useState<string[]>(["White"]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>(["M"]);
   const [selectedAngles, setSelectedAngles] = useState<string[]>(["front"]);
-  const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [modelDetails, setModelDetails] = useState<ModelDetails>({
     age: "ADULT",
     sex: "MALE",
@@ -1156,7 +1089,7 @@ export default function MockupGenerator() {
       return;
     }
 
-    const styleName = selectedStyle || "minimal";
+    const styleName = "ECOMMERCE_CLEAN";
     const productName = selectedProductType || "t-shirt";
     const isAopJourney = journey === "AOP";
     const colors = isAopJourney ? ["White"] : (selectedColors.length > 0 ? selectedColors : ["White"]);
@@ -1698,10 +1631,10 @@ export default function MockupGenerator() {
                             </Button>
                             <Button
                               onClick={handleNext}
-                              disabled={!uploadedImage || !selectedStyle || (journey === "AOP" && !isAlreadySeamless && !selectedVariationId)}
+                              disabled={!uploadedImage || (journey === "AOP" && !isAlreadySeamless && !selectedVariationId)}
                               className={cn(
                                 "gap-2 px-6 min-h-[44px] flex-1 sm:flex-none max-w-[200px]",
-                                (uploadedImage && selectedStyle && (journey !== "AOP" || isAlreadySeamless || selectedVariationId))
+                                (uploadedImage && (journey !== "AOP" || isAlreadySeamless || selectedVariationId))
                                   ? "bg-primary hover:bg-[#C2185B] text-white" 
                                   : "bg-muted text-muted-foreground opacity-50 cursor-not-allowed"
                               )}
@@ -2261,7 +2194,7 @@ export default function MockupGenerator() {
                                     </div>
                                     <div className="bg-card/80 rounded-lg p-2 border">
                                       <span className="text-muted-foreground">Style:</span>
-                                      <p className="font-medium truncate">{BRAND_STYLES.find(s => s.id === selectedStyle)?.name || "Minimal"}</p>
+                                      <p className="font-medium truncate">E-Commerce Clean</p>
                                     </div>
                                     <div className="bg-card/80 rounded-lg p-2 border">
                                       <span className="text-muted-foreground">Model:</span>
