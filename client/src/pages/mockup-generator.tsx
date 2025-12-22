@@ -1761,8 +1761,8 @@ export default function MockupGenerator() {
                                         className={cn(
                                           "group relative flex flex-col items-center gap-1 p-2 rounded-lg border transition-all hover:scale-[1.02] active:scale-[0.98]",
                                           isSelected
-                                            ? "border-primary bg-primary/10 ring-2 ring-primary/20"
-                                            : "border-border bg-background hover:border-primary/30 hover:bg-muted/50"
+                                            ? "border-border bg-muted/30"
+                                            : "border-border bg-background hover:bg-muted/50"
                                         )}
                                         data-testid={`product-card-${item.name.replace(/\s+/g, '-').toLowerCase()}`}
                                       >
@@ -1782,26 +1782,17 @@ export default function MockupGenerator() {
                                             </>
                                           ) : (
                                             <>
-                                              <div className={cn(
-                                                "absolute inset-0 transition-all duration-200 group-hover:opacity-0",
-                                                isSelected ? "bg-primary/20" : "bg-zinc-800"
-                                              )} />
-                                              <div className={cn(
-                                                "absolute inset-0 transition-all duration-200 opacity-0 group-hover:opacity-100",
-                                                isSelected ? "bg-primary/30" : "bg-zinc-700"
-                                              )} />
+                                              <div className="absolute inset-0 transition-all duration-200 group-hover:opacity-0 bg-zinc-800" />
+                                              <div className="absolute inset-0 transition-all duration-200 opacity-0 group-hover:opacity-100 bg-zinc-700" />
                                             </>
                                           )}
                                         </div>
-                                        <span className={cn(
-                                          "text-xs text-center font-medium leading-tight line-clamp-2",
-                                          isSelected ? "text-primary" : "text-muted-foreground"
-                                        )}>
+                                        <span className="text-xs text-center font-medium leading-tight line-clamp-2 text-muted-foreground">
                                           {item.name}
                                         </span>
                                         {isSelected && (
-                                          <div className="absolute top-1 right-1">
-                                            <Check className="h-4 w-4 text-primary" />
+                                          <div className="absolute top-1 right-1 bg-primary rounded-full p-0.5">
+                                            <Check className="h-3 w-3 text-white" />
                                           </div>
                                         )}
                                       </button>
