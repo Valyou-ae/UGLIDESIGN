@@ -1758,15 +1758,10 @@ export default function MockupGenerator() {
                                             }
                                           }
                                         }}
-                                        className={cn(
-                                          "group relative flex flex-col items-center gap-1 p-2 rounded-lg border transition-all hover:scale-[1.02] active:scale-[0.98]",
-                                          isSelected
-                                            ? "border-border bg-muted/30"
-                                            : "border-border bg-background hover:bg-muted/50"
-                                        )}
+                                        className="group relative flex flex-col items-center transition-all hover:scale-[1.02] active:scale-[0.98]"
                                         data-testid={`product-card-${item.name.replace(/\s+/g, '-').toLowerCase()}`}
                                       >
-                                        <div className="relative w-16 h-16 rounded-lg overflow-hidden">
+                                        <div className="relative w-full aspect-square rounded-lg overflow-hidden">
                                           {hasImage ? (
                                             <>
                                               <img 
@@ -1787,11 +1782,11 @@ export default function MockupGenerator() {
                                             </>
                                           )}
                                         </div>
-                                        <span className="text-xs text-center font-medium leading-tight line-clamp-2 text-muted-foreground">
+                                        <span className="mt-1 text-xs text-center font-medium leading-tight line-clamp-2 text-muted-foreground">
                                           {item.name}
                                         </span>
                                         {isSelected && (
-                                          <div className="absolute top-1 right-1 bg-primary rounded-full p-0.5">
+                                          <div className="absolute top-2 right-2 bg-primary rounded-full p-0.5">
                                             <Check className="h-3 w-3 text-white" />
                                           </div>
                                         )}
