@@ -1716,7 +1716,7 @@ export default function MockupGenerator() {
                               </div>
 
                               {/* Product Grid */}
-                              <div className="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-1">
+                              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
                                 {(() => {
                                   const searchLower = productSearchQuery.toLowerCase();
                                   const itemsToShow = productSearchQuery
@@ -1766,7 +1766,7 @@ export default function MockupGenerator() {
                                         )}
                                         data-testid={`product-card-${item.name.replace(/\s+/g, '-').toLowerCase()}`}
                                       >
-                                        <div className="relative w-12 h-12 rounded-md overflow-hidden">
+                                        <div className="relative w-16 h-16 rounded-lg overflow-hidden">
                                           {hasImage ? (
                                             <>
                                               <img 
@@ -1783,25 +1783,13 @@ export default function MockupGenerator() {
                                           ) : (
                                             <>
                                               <div className={cn(
-                                                "absolute inset-0 flex items-center justify-center transition-all duration-200 group-hover:opacity-0",
-                                                isSelected ? "bg-primary/30" : "bg-zinc-800"
-                                              )}>
-                                                <div 
-                                                  className="w-6 h-6 opacity-40"
-                                                  style={{ color: isSelected ? "#ed5387" : "#888" }}
-                                                  dangerouslySetInnerHTML={{ __html: silhouette.svg }}
-                                                />
-                                              </div>
+                                                "absolute inset-0 transition-all duration-200 group-hover:opacity-0",
+                                                isSelected ? "bg-primary/20" : "bg-zinc-800"
+                                              )} />
                                               <div className={cn(
-                                                "absolute inset-0 flex items-center justify-center transition-all duration-200 opacity-0 group-hover:opacity-100",
-                                                isSelected ? "bg-primary/40" : "bg-zinc-700"
-                                              )}>
-                                                <div 
-                                                  className="w-6 h-6 opacity-60"
-                                                  style={{ color: isSelected ? "#ed5387" : "#aaa" }}
-                                                  dangerouslySetInnerHTML={{ __html: silhouette.svg }}
-                                                />
-                                              </div>
+                                                "absolute inset-0 transition-all duration-200 opacity-0 group-hover:opacity-100",
+                                                isSelected ? "bg-primary/30" : "bg-zinc-700"
+                                              )} />
                                             </>
                                           )}
                                         </div>
