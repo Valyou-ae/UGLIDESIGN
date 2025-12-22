@@ -478,9 +478,9 @@ ${materialPreset.promptAddition}
 - Design style: ${designAnalysis.style}
 - Design complexity: ${designAnalysis.complexity}
 - Design type: ${designAnalysis.designType}
-- Placement: ${printSpec?.placement || designAnalysis.suggestedPlacement}
+${journey === 'DTG' ? `- Placement: ${printSpec?.placement || designAnalysis.suggestedPlacement}` : `- Placement: FULL COVERAGE (All-Over Print)`}
 
-===== PRINT SPECIFICATION (POD INDUSTRY STANDARD) =====
+${journey === 'DTG' ? `===== PRINT SPECIFICATION (POD INDUSTRY STANDARD) =====
 [MANDATORY - PRODUCT-SPECIFIC PRINT AREA]
 - Product: ${product.name}
 - Print area: ${printAreaDesc}
@@ -490,9 +490,16 @@ ${materialPreset.promptAddition}
 ${printSpec?.bleed ? `- Bleed: ${printSpec.bleed}"` : ''}
 ${printSpec?.safeZone ? `- Safe zone: ${printSpec.safeZone}" from edges` : ''}
 ${printSpec?.wrapAround ? '- Wrap-around: Yes (design continues around edges/seams)' : ''}
-${printSpec?.notes ? `- Notes: ${printSpec.notes}` : ''}
+${printSpec?.notes ? `- Notes: ${printSpec.notes}` : ''}` : `===== AOP PRINT SPECIFICATION (FULL COVERAGE) =====
+[MANDATORY - ALL-OVER PRINT COVERS ENTIRE GARMENT]
+- Product: ${product.name}
+- Coverage: 100% - ENTIRE SURFACE OF GARMENT
+- Placement: EDGE-TO-EDGE (no blank areas, no center placement)
+- The pattern/design tiles seamlessly across the ENTIRE garment
+- THERE IS NO "PRINT AREA" - THE ENTIRE FABRIC IS THE DESIGN
+- Collar, cuffs, and trim may have solid accent color derived from pattern`}
 
-===== DESIGN SIZE LOCK (CRITICAL) =====
+${journey === 'DTG' ? `===== DESIGN SIZE LOCK (CRITICAL) =====
 [MANDATORY - IDENTICAL DESIGN SIZE ACROSS ALL ANGLES]
 - The design must be printed at EXACTLY the specified print area dimensions
 - Design size must be IDENTICAL whether viewed from front, side, three-quarter, or any angle
@@ -504,7 +511,18 @@ SIZE CONSISTENCY RULES:
 1. FRONT VIEW: Design visible at full print area size (${printSpec?.printAreaWidth || 12}" wide)
 2. THREE-QUARTER VIEW: Same design, same size, visible at an angle (appears slightly compressed due to perspective)
 3. SIDE VIEW: Design may be partially visible from the side, but same physical size
-4. CLOSE-UP VIEW: Zoomed in on the design, so it appears larger (this is expected)
+4. CLOSE-UP VIEW: Zoomed in on the design, so it appears larger (this is expected)` : `===== AOP PATTERN CONSISTENCY LOCK (CRITICAL) =====
+[MANDATORY - PATTERN COVERS EVERYTHING]
+- The pattern tiles seamlessly across the ENTIRE garment surface
+- EVERY ANGLE must show the same pattern covering all visible fabric
+- There is NO blank fabric, NO solid color base - ONLY the pattern
+- Pattern scale must be IDENTICAL across all angles and all views
+
+AOP CONSISTENCY RULES:
+1. FRONT VIEW: Pattern covers entire front of garment edge-to-edge
+2. THREE-QUARTER VIEW: Same pattern visible, covering all fabric at angle
+3. SIDE VIEW: Pattern continues on side, maintaining tile consistency
+4. CLOSE-UP VIEW: Zoomed into the pattern - showing pattern detail, NOT a logo`}
 
 ${journey === 'DTG' ? `
 DTG PRINT METHOD:
@@ -534,6 +552,22 @@ AOP PRINT METHOD:
 ${printMethod.technicalDescription}
 ===== END DESIGN LOCK =====`;
 
+  const aopCloseupOverride = journey === 'AOP' && angle === 'closeup' ? `
+===== AOP CLOSEUP CLARIFICATION (CRITICAL) =====
+[MANDATORY - FOR ALL-OVER PRINT CLOSEUPS]
+This is a CLOSEUP of an ALL-OVER PRINT garment. The "design" is NOT a logo or graphic in the center.
+
+FOR AOP CLOSEUPS:
+- The ENTIRE visible fabric area is covered with the repeating pattern
+- There is NO blank/solid fabric - the pattern covers EVERYTHING edge-to-edge
+- The closeup should show the seamless pattern covering the chest/fabric area
+- The pattern tiles continuously across the entire visible surface
+- Focus on showing: pattern detail, fabric texture with pattern, how pattern flows over body contours
+- DO NOT show: a single logo/graphic in the center, blank fabric around a design, DTG-style placement
+
+THE ENTIRE GARMENT IS THE DESIGN. The closeup shows a zoomed-in section of the all-over pattern.
+===== END AOP CLOSEUP =====` : '';
+
   const cameraLockBlock = `
 ===== CAMERA/POSE LOCK =====
 [LOCKED - EXACT CAMERA SETTINGS]
@@ -545,6 +579,7 @@ ${printMethod.technicalDescription}
 - Perspective: ${cameraSpec?.perspective || 'eye level'}
 ${cameraSpec?.promptAddition || 'Standard product photography angle'}
 ${cameraSpec?.technicalDescription || 'Professional product shot'}
+${aopCloseupOverride}
 ===== END CAMERA/POSE LOCK =====`;
 
   const lightingLockBlock = `
@@ -705,14 +740,16 @@ If a reference photo was provided, the person in your output MUST be the SAME pe
     design: {
       type: 'DESIGN_LOCK',
       locked: true,
-      summary: `${designAnalysis.designType} - ${designAnalysis.style}`,
+      summary: journey === 'AOP' ? `AOP Pattern - ${designAnalysis.style}` : `${designAnalysis.designType} - ${designAnalysis.style}`,
       details: {
         style: designAnalysis.style,
         complexity: designAnalysis.complexity,
-        designType: designAnalysis.designType,
-        placement: designAnalysis.suggestedPlacement,
+        designType: journey === 'AOP' ? 'seamless-pattern' : designAnalysis.designType,
+        placement: journey === 'AOP' ? 'full-coverage-aop' : designAnalysis.suggestedPlacement,
         printMethod: journey,
-        hasTransparency: designAnalysis.hasTransparency
+        hasTransparency: designAnalysis.hasTransparency,
+        isAOP: journey === 'AOP',
+        aopNote: journey === 'AOP' ? 'Pattern covers entire garment surface edge-to-edge' : undefined
       }
     },
     camera: {
@@ -855,28 +892,34 @@ export async function generateSingleMockup(
         inlineData: { data: personaHeadshot, mimeType: "image/png" }
       });
       parts.push({
-        text: `===== CRITICAL IDENTITY REFERENCE =====
-[MANDATORY - HIGHEST PRIORITY INSTRUCTION]
+        text: `===== CRITICAL IDENTITY REFERENCE - PHOTO PROVIDED =====
+[MANDATORY - HIGHEST PRIORITY - THIS IS THE PERSON TO RENDER]
 
-This photo shows the EXACT person who MUST appear in the generated mockup image.
+**IDENTITY LOCK ACTIVE** - A reference photo has been provided. You MUST render this EXACT same person.
 
-STRICT IDENTITY MATCHING REQUIREMENTS:
-1. FACE: Copy this EXACT face - same bone structure, nose shape, lip shape, eye spacing
-2. HAIR: EXACT same hairstyle, hair color, hair length, and texture
-3. BEARD/FACIAL HAIR: If present, EXACT same style, length, and coverage
-4. SKIN: EXACT same skin tone and complexion
-5. EYES: EXACT same eye color, shape, and expression style
-6. AGE: Same apparent age - do not make younger or older
-7. BODY TYPE: Same build and proportions (adjusted for garment size if specified)
+This is NOT a style reference. This is NOT optional. This IS the person who must appear in your output.
 
-DO NOT:
-- Change any facial features
-- Alter hair style or color
-- Add or remove facial hair
-- Change skin tone or ethnicity
-- Substitute with a similar-looking person
+FACE MATCHING (MANDATORY - PIXEL-LEVEL ACCURACY REQUIRED):
+1. BONE STRUCTURE: Copy the exact skull shape, cheekbone prominence, jawline angle
+2. NOSE: Exact same nose - bridge width, tip shape, nostril size, length
+3. MOUTH: Exact lip shape, lip thickness, philtrum length, mouth width
+4. EYES: Exact eye shape, spacing, depth, eyelid crease, brow position
+5. FOREHEAD: Same forehead height and hairline position
+6. CHIN: Exact chin shape, prominence, and width
 
-The person in your output image MUST be immediately recognizable as the SAME individual shown in this reference photo.
+COLORING (MANDATORY - EXACT MATCH):
+1. SKIN TONE: Identical skin color, undertones, and complexion
+2. HAIR COLOR: Exact same shade - do not lighten or darken
+3. EYE COLOR: Exact same iris color
+4. HAIR STYLE: Identical cut, length, texture, and styling
+
+CONSISTENCY RULE:
+This same person must appear in ALL mockup angles (front, three-quarter, side, closeup).
+If you cannot match this face exactly, the output is INVALID.
+
+VERIFICATION CHECK:
+Before finalizing, ask: "Would someone who knows this person recognize them in my output?"
+If the answer is "no" or "maybe", regenerate with closer matching.
 
 ===== END IDENTITY REFERENCE =====`
       });
