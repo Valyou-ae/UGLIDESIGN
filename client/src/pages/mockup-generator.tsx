@@ -151,6 +151,7 @@ import capProduct from "@assets/generated_images/white_baseball_cap_product.png"
 import toteBagProduct from "@assets/generated_images/white_tote_bag_product.png";
 import mugProduct from "@assets/generated_images/white_coffee_mug_product.png";
 import pillowProduct from "@assets/generated_images/white_throw_pillow_product.png";
+import designHereOverlay from "@assets/Design_Here_Strioke_1766425700407.png";
 
 // Product images mapping by category and product name
 const PRODUCT_IMAGES: Record<string, Record<string, string>> = {
@@ -1851,11 +1852,20 @@ export default function MockupGenerator() {
                                           )}
                                         >
                                           {productImage ? (
-                                            <img 
-                                              src={productImage} 
-                                              alt={item.name}
-                                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                            />
+                                            <>
+                                              <img 
+                                                src={productImage} 
+                                                alt={item.name}
+                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                              />
+                                              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                <img 
+                                                  src={designHereOverlay}
+                                                  alt="Print area"
+                                                  className="w-[45%] h-auto opacity-70 mt-[-5%]"
+                                                />
+                                              </div>
+                                            </>
                                           ) : (
                                             <div 
                                               className={cn(
