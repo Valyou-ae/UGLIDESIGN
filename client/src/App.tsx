@@ -72,6 +72,11 @@ function Router() {
           <MockupGenerator />
         </AuthGuard>
       </Route>
+      <Route path="/mockup-generator">
+        <AuthGuard>
+          <MockupGenerator />
+        </AuthGuard>
+      </Route>
       <Route path="/style-transfer">
         <AuthGuard>
           <StyleTransfer />
