@@ -879,7 +879,8 @@ function releaseConcurrencySlot(): void {
 export async function generateSingleMockup(
   designBase64: string,
   renderSpec: RenderSpecification,
-  personaHeadshot?: string
+  personaHeadshot?: string,
+  previousMockupReference?: string
 ): Promise<GeneratedMockup | null> {
   await waitForRateLimit();
   await waitForConcurrencySlot();
@@ -922,6 +923,30 @@ Before finalizing, ask: "Would someone who knows this person recognize them in m
 If the answer is "no" or "maybe", regenerate with closer matching.
 
 ===== END IDENTITY REFERENCE =====`
+      });
+    }
+
+    // Add previous mockup as additional consistency reference
+    if (previousMockupReference) {
+      parts.push({
+        inlineData: { data: previousMockupReference, mimeType: "image/png" }
+      });
+      parts.push({
+        text: `===== CROSS-ANGLE CONSISTENCY REFERENCE =====
+[MANDATORY - MATCH THIS PREVIOUS SHOT]
+
+This is a mockup from a PREVIOUS ANGLE of the SAME photoshoot.
+
+CONSISTENCY REQUIREMENTS:
+1. SAME MODEL: This is the SAME PERSON - match their face, hair, and body EXACTLY
+2. SAME PRODUCT: Same garment with same pattern/design coverage
+3. SAME ENVIRONMENT: Same background, lighting conditions, and studio setup
+4. SAME STYLE: Same photography style, color grading, and mood
+
+The person in your output must be IMMEDIATELY RECOGNIZABLE as the same individual from this reference.
+Only the CAMERA ANGLE should change - everything else stays consistent.
+
+===== END CROSS-ANGLE REFERENCE =====`
       });
     }
 
@@ -1027,13 +1052,14 @@ export async function generateMockupWithRetry(
   designBase64: string,
   renderSpec: RenderSpecification,
   personaHeadshot?: string,
+  previousMockupReference?: string,
   maxRetries: number = GENERATION_CONFIG.MAX_RETRIES
 ): Promise<GeneratedMockup | null> {
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      const result = await generateSingleMockup(designBase64, renderSpec, personaHeadshot);
+      const result = await generateSingleMockup(designBase64, renderSpec, personaHeadshot, previousMockupReference);
       if (result) {
         return result;
       }
@@ -1142,7 +1168,31 @@ export async function generateMockupBatch(
   let completedCount = 0;
   const totalJobs = jobs.length;
 
-  const processJob = async (job: GenerationJob): Promise<void> => {
+  // For wearable products with persona lock, process SEQUENTIALLY to use first result as reference
+  // This improves model consistency by passing the first generated image to subsequent generations
+  let firstSuccessfulMockup: string | undefined;
+  
+  if (request.product.isWearable && personaLock) {
+    // Sequential processing for consistency
+    for (const job of jobs) {
+      await processJobWithReference(job, firstSuccessfulMockup);
+      
+      // Capture first successful result to use as reference
+      if (!firstSuccessfulMockup && job.result?.imageData) {
+        firstSuccessfulMockup = job.result.imageData;
+        logger.info("First mockup captured for cross-angle consistency reference", { source: "eliteMockupGenerator" });
+      }
+    }
+  } else {
+    // Parallel processing for non-wearable products
+    const batchSize = GENERATION_CONFIG.MAX_CONCURRENT_JOBS;
+    for (let i = 0; i < jobs.length; i += batchSize) {
+      const batchJobs = jobs.slice(i, i + batchSize);
+      await Promise.all(batchJobs.map(job => processJobWithReference(job, undefined)));
+    }
+  }
+  
+  async function processJobWithReference(job: GenerationJob, referenceImage?: string): Promise<void> {
     job.status = 'processing';
     job.startedAt = Date.now();
 
@@ -1163,10 +1213,12 @@ export async function generateMockupBatch(
       request.outputQuality
     );
 
+    // Use both headshot AND first successful mockup as references for better consistency
     const result = await generateMockupWithRetry(
       request.designImage,
       renderSpec,
-      personaHeadshot
+      personaHeadshot,
+      referenceImage
     );
 
     if (result) {
@@ -1188,12 +1240,6 @@ export async function generateMockupBatch(
     if (onProgress) {
       onProgress(completedCount, totalJobs, job);
     }
-  };
-
-  const batchSize = GENERATION_CONFIG.MAX_CONCURRENT_JOBS;
-  for (let i = 0; i < jobs.length; i += batchSize) {
-    const batchJobs = jobs.slice(i, i + batchSize);
-    await Promise.all(batchJobs.map(processJob));
   }
 
   const failedJobs = jobs.filter(j => j.status === 'failed').length;
