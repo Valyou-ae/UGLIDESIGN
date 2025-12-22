@@ -922,26 +922,42 @@ Apply this design to the product as specified:
 ${renderSpec.fullPrompt}`
     });
 
+    logger.info("Calling Gemini API for mockup generation", { source: "eliteMockupGenerator", model: MODELS.IMAGE_GENERATION });
+    
     const response = await genAI.models.generateContent({
       model: MODELS.IMAGE_GENERATION,
       contents: [{ role: "user", parts }],
       config: { responseModalities: [Modality.TEXT, Modality.IMAGE] }
     });
 
+    logger.info("Gemini API response received", { source: "eliteMockupGenerator", hasCandidates: !!response.candidates, candidateCount: response.candidates?.length || 0 });
+
     const candidates = response.candidates;
     if (!candidates || candidates.length === 0) {
-      logger.error("No candidates in mockup response", { source: "eliteMockupGenerator" });
+      const finishReason = (response as { promptFeedback?: { blockReason?: string } }).promptFeedback?.blockReason;
+      logger.error("No candidates in mockup response", { source: "eliteMockupGenerator", finishReason, responseText: response.text?.substring(0, 500) });
       return null;
     }
 
     const content = candidates[0].content;
+    const finishReason = candidates[0].finishReason;
+    
     if (!content || !content.parts) {
-      logger.error("No content parts in mockup response", { source: "eliteMockupGenerator" });
+      logger.error("No content parts in mockup response", { source: "eliteMockupGenerator", finishReason });
       return null;
     }
 
+    // Log what parts we received
+    const partTypes = content.parts.map(p => {
+      if (p.inlineData) return `image/${p.inlineData.mimeType}`;
+      if (p.text) return `text(${p.text.substring(0, 100)}...)`;
+      return 'unknown';
+    });
+    logger.info("Response parts received", { source: "eliteMockupGenerator", partTypes, finishReason });
+
     for (const part of content.parts) {
       if (part.inlineData && part.inlineData.data) {
+        logger.info("Mockup image generated successfully", { source: "eliteMockupGenerator" });
         return {
           imageData: part.inlineData.data,
           mimeType: part.inlineData.mimeType || "image/png",
@@ -952,7 +968,9 @@ ${renderSpec.fullPrompt}`
       }
     }
 
-    logger.error("No image data in mockup response", { source: "eliteMockupGenerator" });
+    // Log text content if any (usually contains error/refusal message)
+    const textContent = content.parts.find(p => p.text)?.text;
+    logger.error("No image data in mockup response", { source: "eliteMockupGenerator", finishReason, textResponse: textContent?.substring(0, 500) });
     return null;
   } catch (error) {
     logger.error("Single mockup generation failed", error, { source: "eliteMockupGenerator" });
