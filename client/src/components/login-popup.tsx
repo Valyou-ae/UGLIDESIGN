@@ -272,6 +272,43 @@ function LoginPopupDialog({ isOpen, onClose, returnTo }: LoginPopupDialogProps) 
                 />
               </div>
 
+              {/* Dummy Login Button */}
+              <Button
+                onClick={async () => {
+                  setIsLoading(true);
+                  setError(null);
+                  try {
+                    const response = await fetch("/api/auth/dummy-login", {
+                      method: "POST",
+                      credentials: "include",
+                    });
+                    if (response.ok) {
+                      await queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
+                      onClose();
+                      setTimeout(() => {
+                        setLocation(returnTo || "/discover");
+                      }, 100);
+                    } else {
+                      const data = await response.json();
+                      setError(data.message || "Login failed");
+                    }
+                  } catch (err) {
+                    setError("Login failed. Please try again.");
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }}
+                disabled={isLoading}
+                className="w-full h-12 bg-[#333] hover:bg-[#444] text-white font-medium rounded-xl transition-all"
+                data-testid="button-dummy-login"
+              >
+                {isLoading ? (
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                ) : (
+                  "Demo Login (No Sign-in Required)"
+                )}
+              </Button>
+
               {/* Divider */}
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
