@@ -246,6 +246,221 @@ export const DTG_PRODUCTS: Product[] = [
       surfaceType: 'flexible',
       notes: 'Consider fabric thickness and texture absorption'
     }
+  },
+  {
+    id: 'gildan-polo',
+    name: 'Gildan Polo Shirt',
+    category: 'Apparel',
+    subcategory: 'Polo Shirts',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: STANDARD_DTG_COLORS,
+    defaultPlacement: 'left-chest',
+    genderTarget: 'unisex',
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 4,
+      printAreaHeight: 4,
+      printAreaWidthPixels: 1200,
+      printAreaHeightPixels: 1200,
+      dpi: 300,
+      placement: 'left-chest',
+      placementDescription: 'Left chest placement, positioned 2-3 inches from collar and 3 inches from armpit seam',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Collar and button placket should remain clear of design'
+    }
+  },
+  {
+    id: 'bella-tank-top',
+    name: 'Bella+Canvas Tank Top',
+    category: 'Apparel',
+    subcategory: 'Tank Tops',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: BELLA_CANVAS_COLORS,
+    defaultPlacement: 'center-chest',
+    genderTarget: 'unisex',
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 10,
+      printAreaHeight: 14,
+      printAreaWidthPixels: 3000,
+      printAreaHeightPixels: 4200,
+      dpi: 300,
+      placement: 'center-chest',
+      placementDescription: 'Centered on chest between armhole openings, positioned 2-3 inches below neckline',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Design should not extend into armhole areas'
+    }
+  },
+  {
+    id: 'gildan-5400',
+    name: 'Gildan 5400 Long Sleeve T-Shirt',
+    category: 'Apparel',
+    subcategory: 'Long Sleeve Shirts',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: STANDARD_DTG_COLORS,
+    defaultPlacement: 'center-chest',
+    genderTarget: 'unisex',
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 12,
+      printAreaHeight: 16,
+      printAreaWidthPixels: 3600,
+      printAreaHeightPixels: 4800,
+      dpi: 300,
+      placement: 'center-chest',
+      placementDescription: 'Centered on chest, horizontally centered between shoulder seams',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Long sleeves may also have optional sleeve print placement'
+    }
+  },
+  {
+    id: 'bella-vneck',
+    name: 'Bella+Canvas V-Neck T-Shirt',
+    category: 'Apparel',
+    subcategory: 'V-Neck Shirts',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: BELLA_CANVAS_COLORS,
+    defaultPlacement: 'center-chest',
+    genderTarget: 'unisex',
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 11,
+      printAreaHeight: 15,
+      printAreaWidthPixels: 3300,
+      printAreaHeightPixels: 4500,
+      dpi: 300,
+      placement: 'center-chest',
+      placementDescription: 'Centered on chest below V-neckline, positioned 4-5 inches from V-neck point',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Design should clear the V-neckline by at least 1 inch'
+    }
+  },
+  {
+    id: 'bella-crop-top',
+    name: 'Bella+Canvas Crop Top',
+    category: 'Apparel',
+    subcategory: 'Crop Tops',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: BELLA_CANVAS_COLORS,
+    defaultPlacement: 'center-chest',
+    genderTarget: 'womens',
+    sizeChart: [
+      { size: 'XS', chest: 30, length: 16, sleeve: 6 },
+      { size: 'S', chest: 32, length: 17, sleeve: 6.5 },
+      { size: 'M', chest: 34, length: 18, sleeve: 7 },
+      { size: 'L', chest: 36, length: 19, sleeve: 7.5 },
+      { size: 'XL', chest: 38, length: 20, sleeve: 8 },
+      { size: '2XL', chest: 40, length: 21, sleeve: 8.5 }
+    ],
+    printSpec: {
+      printAreaWidth: 9,
+      printAreaHeight: 10,
+      printAreaWidthPixels: 2700,
+      printAreaHeightPixels: 3000,
+      dpi: 300,
+      placement: 'center-chest',
+      placementDescription: 'Centered on shortened torso area, design should fit within cropped length',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Cropped length means smaller vertical print area'
+    }
+  },
+  {
+    id: 'champion-shorts',
+    name: 'Champion Mesh Shorts',
+    category: 'Apparel',
+    subcategory: 'Shorts',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: STANDARD_DTG_COLORS,
+    defaultPlacement: 'left-leg',
+    genderTarget: 'unisex',
+    sizeChart: [
+      { size: 'S', chest: 0, length: 17, sleeve: 0 },
+      { size: 'M', chest: 0, length: 18, sleeve: 0 },
+      { size: 'L', chest: 0, length: 19, sleeve: 0 },
+      { size: 'XL', chest: 0, length: 20, sleeve: 0 },
+      { size: '2XL', chest: 0, length: 21, sleeve: 0 }
+    ],
+    printSpec: {
+      printAreaWidth: 4,
+      printAreaHeight: 5,
+      printAreaWidthPixels: 1200,
+      printAreaHeightPixels: 1500,
+      dpi: 300,
+      placement: 'left-leg',
+      placementDescription: 'Print on left leg front, positioned 3-4 inches from waistband',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Design typically placed on one leg for athletic look'
+    }
+  },
+  {
+    id: 'bomber-jacket',
+    name: 'Bomber Jacket',
+    category: 'Apparel',
+    subcategory: 'Jackets',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: [
+      { name: 'Black', hex: '#000000', category: 'dark' },
+      { name: 'Navy', hex: '#1E3A5F', category: 'dark' },
+      { name: 'Olive', hex: '#556B2F', category: 'dark' },
+      { name: 'Burgundy', hex: '#800020', category: 'dark' }
+    ],
+    defaultPlacement: 'back-center',
+    genderTarget: 'unisex',
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 14,
+      printAreaHeight: 16,
+      printAreaWidthPixels: 4200,
+      printAreaHeightPixels: 4800,
+      dpi: 300,
+      placement: 'back-center',
+      placementDescription: 'Large back print centered below collar, avoiding bottom ribbing',
+      safeZone: 0.5,
+      surfaceType: 'flexible',
+      notes: 'Bomber jackets can also have left chest patch placement'
+    }
+  },
+  {
+    id: 'windbreaker',
+    name: 'Lightweight Windbreaker',
+    category: 'Apparel',
+    subcategory: 'Jackets',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: [
+      { name: 'Black', hex: '#000000', category: 'dark' },
+      { name: 'Navy', hex: '#1E3A5F', category: 'dark' },
+      { name: 'Red', hex: '#B22222', category: 'dark' },
+      { name: 'White', hex: '#FFFFFF', category: 'light' }
+    ],
+    defaultPlacement: 'left-chest',
+    genderTarget: 'unisex',
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 4,
+      printAreaHeight: 4,
+      printAreaWidthPixels: 1200,
+      printAreaHeightPixels: 1200,
+      dpi: 300,
+      placement: 'left-chest',
+      placementDescription: 'Left chest logo placement, positioned below shoulder seam',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Lightweight material may show design differently than cotton'
+    }
   }
 ];
 
@@ -405,6 +620,150 @@ export const AOP_PRODUCTS: Product[] = [
       wrapAround: true,
       surfaceType: 'flexible',
       notes: '82% polyester/18% spandex blend, UPF 38+, four-way stretch'
+    }
+  },
+  {
+    id: 'aop-tank-top',
+    name: 'AOP Tank Top',
+    category: 'Apparel',
+    subcategory: 'Tank Tops',
+    productType: 'aop-apparel',
+    isWearable: true,
+    availableColors: AOP_BASE_COLORS,
+    defaultPlacement: 'full-coverage',
+    genderTarget: 'unisex',
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 30,
+      printAreaHeight: 34,
+      printAreaWidthPixels: 4500,
+      printAreaHeightPixels: 5100,
+      dpi: 150,
+      placement: 'full-surface',
+      placementDescription: 'Edge-to-edge seamless sublimation on sleeveless tank',
+      bleed: 0.25,
+      wrapAround: true,
+      surfaceType: 'flexible',
+      notes: 'Pattern must align at shoulder seams and side seams'
+    }
+  },
+  {
+    id: 'aop-crop-top',
+    name: 'AOP Crop Top',
+    category: 'Apparel',
+    subcategory: 'Crop Tops',
+    productType: 'aop-apparel',
+    isWearable: true,
+    availableColors: AOP_BASE_COLORS,
+    defaultPlacement: 'full-coverage',
+    genderTarget: 'womens',
+    sizeChart: [
+      { size: 'XS', chest: 30, length: 16, sleeve: 6 },
+      { size: 'S', chest: 32, length: 17, sleeve: 6.5 },
+      { size: 'M', chest: 34, length: 18, sleeve: 7 },
+      { size: 'L', chest: 36, length: 19, sleeve: 7.5 },
+      { size: 'XL', chest: 38, length: 20, sleeve: 8 }
+    ],
+    printSpec: {
+      printAreaWidth: 26,
+      printAreaHeight: 24,
+      printAreaWidthPixels: 3900,
+      printAreaHeightPixels: 3600,
+      dpi: 150,
+      placement: 'full-surface',
+      placementDescription: 'Edge-to-edge seamless sublimation on cropped length',
+      bleed: 0.25,
+      wrapAround: true,
+      surfaceType: 'flexible',
+      notes: 'Shorter garment length, pattern continues to hemline'
+    }
+  },
+  {
+    id: 'aop-shorts',
+    name: 'AOP Athletic Shorts',
+    category: 'Apparel',
+    subcategory: 'Shorts',
+    productType: 'aop-apparel',
+    isWearable: true,
+    availableColors: AOP_BASE_COLORS,
+    defaultPlacement: 'full-coverage',
+    genderTarget: 'unisex',
+    sizeChart: [
+      { size: 'S', chest: 0, length: 15, sleeve: 0 },
+      { size: 'M', chest: 0, length: 16, sleeve: 0 },
+      { size: 'L', chest: 0, length: 17, sleeve: 0 },
+      { size: 'XL', chest: 0, length: 18, sleeve: 0 },
+      { size: '2XL', chest: 0, length: 19, sleeve: 0 }
+    ],
+    printSpec: {
+      printAreaWidth: 32,
+      printAreaHeight: 24,
+      printAreaWidthPixels: 4800,
+      printAreaHeightPixels: 3600,
+      dpi: 150,
+      placement: 'full-surface',
+      placementDescription: 'Edge-to-edge seamless sublimation on both legs and waistband',
+      bleed: 0.25,
+      wrapAround: true,
+      surfaceType: 'flexible',
+      notes: 'Pattern must align at inseam and side seams'
+    }
+  },
+  {
+    id: 'aop-dress',
+    name: 'AOP Skater Dress',
+    category: 'Apparel',
+    subcategory: 'Dresses',
+    productType: 'aop-apparel',
+    isWearable: true,
+    availableColors: AOP_BASE_COLORS,
+    defaultPlacement: 'full-coverage',
+    genderTarget: 'womens',
+    sizeChart: [
+      { size: 'XS', chest: 32, length: 34, sleeve: 0 },
+      { size: 'S', chest: 34, length: 35, sleeve: 0 },
+      { size: 'M', chest: 36, length: 36, sleeve: 0 },
+      { size: 'L', chest: 38, length: 37, sleeve: 0 },
+      { size: 'XL', chest: 40, length: 38, sleeve: 0 },
+      { size: '2XL', chest: 42, length: 39, sleeve: 0 }
+    ],
+    printSpec: {
+      printAreaWidth: 40,
+      printAreaHeight: 48,
+      printAreaWidthPixels: 6000,
+      printAreaHeightPixels: 7200,
+      dpi: 150,
+      placement: 'full-surface',
+      placementDescription: 'Edge-to-edge seamless sublimation from bodice to skirt hem',
+      bleed: 0.25,
+      wrapAround: true,
+      surfaceType: 'flexible',
+      notes: 'Fitted bodice with flared skater skirt, sleeveless design'
+    }
+  },
+  {
+    id: 'aop-bomber-jacket',
+    name: 'AOP Bomber Jacket',
+    category: 'Apparel',
+    subcategory: 'Jackets',
+    productType: 'aop-apparel',
+    isWearable: true,
+    availableColors: AOP_BASE_COLORS,
+    defaultPlacement: 'full-coverage',
+    genderTarget: 'unisex',
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 44,
+      printAreaHeight: 48,
+      printAreaWidthPixels: 6600,
+      printAreaHeightPixels: 7200,
+      dpi: 150,
+      placement: 'full-surface',
+      placementDescription: 'Edge-to-edge seamless sublimation on entire jacket body and sleeves',
+      bleed: 0.25,
+      wrapAround: true,
+      surfaceType: 'flexible',
+      notes: 'Solid color ribbing at collar, cuffs, and waistband. Front zipper unprinted.'
     }
   },
   {
