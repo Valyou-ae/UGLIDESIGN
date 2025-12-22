@@ -123,17 +123,42 @@ export async function registerMockupRoutes(app: Express, middleware: Middleware)
         : 'high';
 
       res.setHeader("Content-Type", "text/event-stream");
-      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Cache-Control", "no-cache, no-transform");
       res.setHeader("Connection", "keep-alive");
       res.setHeader("X-Accel-Buffering", "no");
+      res.setHeader("Transfer-Encoding", "chunked");
       res.flushHeaders();
 
       const sendEvent = (event: string, data: unknown) => {
-        res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
-        if (typeof (res as { flush?: () => void }).flush === 'function') {
-          (res as { flush: () => void }).flush();
+        try {
+          res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+          if (typeof (res as { flush?: () => void }).flush === 'function') {
+            (res as { flush: () => void }).flush();
+          }
+        } catch (e) {
+          logger.error("Error sending SSE event", e, { source: "mockup", event });
         }
       };
+
+      // Send keepalive comments every 8 seconds to prevent proxy/browser timeout
+      let connectionClosed = false;
+      const keepaliveInterval = setInterval(() => {
+        if (connectionClosed) return;
+        try {
+          res.write(`:keepalive ${Date.now()}\n\n`);
+          if (typeof (res as { flush?: () => void }).flush === 'function') {
+            (res as { flush: () => void }).flush();
+          }
+        } catch (e) {
+          connectionClosed = true;
+          clearInterval(keepaliveInterval);
+        }
+      }, 8000);
+
+      res.on('close', () => {
+        connectionClosed = true;
+        clearInterval(keepaliveInterval);
+      });
 
       const base64Data = designImage.replace(/^data:image\/\w+;base64,/, "");
 
@@ -347,6 +372,7 @@ export async function registerMockupRoutes(app: Express, middleware: Middleware)
         }
 
         sendEvent("stream_end", { success: batchCompleted && !personaLockFailed, timestamp: Date.now() });
+        clearInterval(keepaliveInterval);
         res.end();
         return;
       }
@@ -387,10 +413,12 @@ export async function registerMockupRoutes(app: Express, middleware: Middleware)
       sendEvent("status", { stage: "complete", message: "All mockups generated!", progress: 100 });
       sendEvent("complete", { success: true, totalGenerated: completedJobs });
 
+      clearInterval(keepaliveInterval);
       res.end();
     } catch (error) {
       logger.error("Batch mockup generation error", error, { source: "mockup" });
       res.write(`event: error\ndata: ${JSON.stringify({ message: "Batch generation failed" })}\n\n`);
+      clearInterval(keepaliveInterval);
       res.end();
     }
   });
