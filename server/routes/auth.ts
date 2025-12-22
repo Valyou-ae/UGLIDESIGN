@@ -5,6 +5,7 @@ import { verifyGoogleToken } from "../googleAuth";
 import type { Middleware } from "./middleware";
 import type { AuthenticatedRequest } from "../types";
 import { logger } from "../logger";
+import { pool } from "../db";
 
 export function registerAuthRoutes(app: Express, middleware: Middleware) {
   const { requireAuth, getUserId } = middleware;
@@ -214,21 +215,25 @@ export function registerAuthRoutes(app: Express, middleware: Middleware) {
       const dummyEmail = "demo@ugli.ai";
       const dummyGoogleId = "dummy_user_12345";
       
-      // Use upsert directly to avoid query issues
-      const user = await storage.upsertUser({
-        id: dummyGoogleId,
-        email: dummyEmail,
-        username: "demo_user",
-        displayName: "Demo User",
-        profileImageUrl: null,
-        role: 'user',
-      });
+      // Use raw SQL for reliability
+      const result = await pool.query(
+        `INSERT INTO users (id, email, username, display_name, role)
+         VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT (id) DO UPDATE SET updated_at = NOW()
+         RETURNING id, email, username, display_name, profile_image_url, role`,
+        [dummyGoogleId, dummyEmail, "demo_user", "Demo User", "user"]
+      );
+      
+      const user = result.rows[0];
+      if (!user) {
+        throw new Error("Failed to create/get demo user");
+      }
 
       const userSession = {
         claims: {
           sub: user.id,
           email: user.email,
-          name: user.displayName,
+          name: user.display_name,
         },
         expires_at: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60),
       };
@@ -249,8 +254,8 @@ export function registerAuthRoutes(app: Express, middleware: Middleware) {
           id: user.id,
           username: user.username,
           email: user.email,
-          displayName: user.displayName,
-          profileImageUrl: user.profileImageUrl,
+          displayName: user.display_name,
+          profileImageUrl: user.profile_image_url,
           role: user.role,
         }
       });
