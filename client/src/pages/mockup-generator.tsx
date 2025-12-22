@@ -192,6 +192,8 @@ const AOP_STEPS: WizardStep[] = ["design", "product", "customize", "output"];
 interface ProductItem {
   name: string;
   icon: React.ComponentType<{ className?: string }>;
+  image?: string;
+  hoverImage?: string;
 }
 
 interface ProductCategory {
@@ -205,7 +207,7 @@ const DTG_PRODUCT_CATEGORIES: ProductCategory[] = [
     name: "Men's Clothing", 
     icon: User,
     items: [
-      { name: "T-shirts", icon: Shirt },
+      { name: "T-shirts", icon: Shirt, image: "/products/mens/T-Shirt.png", hoverImage: "/products/mens/T-Shirt_Hover.png" },
       { name: "Polo shirts", icon: Award },
       { name: "Tank tops", icon: Sun },
       { name: "3/4 sleeve shirts", icon: MoveHorizontal },
@@ -213,8 +215,9 @@ const DTG_PRODUCT_CATEGORIES: ProductCategory[] = [
       { name: "Embroidered shirts", icon: Tag },
       { name: "Jackets & vests", icon: Shield },
       { name: "Hoodies", icon: Cloud },
-      { name: "Sweatshirts", icon: Layers },
+      { name: "Sweatshirts", icon: Layers, image: "/products/mens/Sweatshirt.png", hoverImage: "/products/mens/Sweatshirt_Hover.png" },
       { name: "Knitwear", icon: Grid },
+      { name: "Leggings", icon: Layers, image: "/products/mens/Leggings.png", hoverImage: "/products/mens/Leggings_Hover.png" },
     ]
   },
   { 
@@ -231,7 +234,7 @@ const DTG_PRODUCT_CATEGORIES: ProductCategory[] = [
       { name: "Dresses", icon: Umbrella }, 
       { name: "Knitwear", icon: Grid },
       { name: "Jackets", icon: Shield },
-      { name: "Hoodies", icon: Cloud },
+      { name: "Hoodies", icon: Cloud, image: "/products/womens/Hoodie.png", hoverImage: "/products/womens/Hoodie_Hover.png" },
       { name: "Sweatshirts", icon: Layers },
     ]
   },
@@ -1736,6 +1739,7 @@ export default function MockupGenerator() {
                                   return itemsToShow.map((item) => {
                                     const isSelected = selectedProductType === item.name && effectiveActiveCategory === item.category;
                                     const silhouette = PRODUCT_SILHOUETTES[item.name] || PRODUCT_SILHOUETTES["default"];
+                                    const hasImage = !!(item.image && item.hoverImage);
                                     return (
                                       <button
                                         key={`${item.category}-${item.name}`}
@@ -1755,25 +1759,40 @@ export default function MockupGenerator() {
                                           }
                                         }}
                                         className={cn(
-                                          "relative flex flex-col items-center gap-1 p-2 rounded-lg border transition-all hover:scale-[1.02] active:scale-[0.98]",
+                                          "group relative flex flex-col items-center gap-1 p-2 rounded-lg border transition-all hover:scale-[1.02] active:scale-[0.98]",
                                           isSelected
                                             ? "border-primary bg-primary/10 ring-2 ring-primary/20"
                                             : "border-border bg-background hover:border-primary/30 hover:bg-muted/50"
                                         )}
                                         data-testid={`product-card-${item.name.replace(/\s+/g, '-').toLowerCase()}`}
                                       >
-                                        <div 
-                                          className={cn(
-                                            "w-8 h-8 rounded-md flex items-center justify-center transition-colors",
-                                            isSelected ? "bg-primary/20" : "bg-muted"
-                                          )}
-                                        >
+                                        {hasImage ? (
+                                          <div className="relative w-12 h-12 rounded-md overflow-hidden">
+                                            <img 
+                                              src={item.image} 
+                                              alt={item.name}
+                                              className="absolute inset-0 w-full h-full object-cover transition-opacity duration-200 group-hover:opacity-0"
+                                            />
+                                            <img 
+                                              src={item.hoverImage} 
+                                              alt={`${item.name} hover`}
+                                              className="absolute inset-0 w-full h-full object-cover transition-opacity duration-200 opacity-0 group-hover:opacity-100"
+                                            />
+                                          </div>
+                                        ) : (
                                           <div 
-                                            className="w-5 h-5"
-                                            style={{ color: isSelected ? "#ed5387" : "currentColor" }}
-                                            dangerouslySetInnerHTML={{ __html: silhouette.svg }}
-                                          />
-                                        </div>
+                                            className={cn(
+                                              "w-8 h-8 rounded-md flex items-center justify-center transition-colors",
+                                              isSelected ? "bg-primary/20" : "bg-muted"
+                                            )}
+                                          >
+                                            <div 
+                                              className="w-5 h-5"
+                                              style={{ color: isSelected ? "#ed5387" : "currentColor" }}
+                                              dangerouslySetInnerHTML={{ __html: silhouette.svg }}
+                                            />
+                                          </div>
+                                        )}
                                         <span className={cn(
                                           "text-xs text-center font-medium leading-tight line-clamp-2",
                                           isSelected ? "text-primary" : "text-muted-foreground"
