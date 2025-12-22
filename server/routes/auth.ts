@@ -209,6 +209,60 @@ export function registerAuthRoutes(app: Express, middleware: Middleware) {
     }
   });
 
+  app.post("/api/auth/dummy-login", async (req: Request, res: Response) => {
+    try {
+      const dummyEmail = "demo@ugli.ai";
+      const dummyGoogleId = "dummy_user_12345";
+      
+      let user = await storage.getUserByEmail(dummyEmail);
+      
+      if (!user) {
+        user = await storage.upsertUser({
+          id: dummyGoogleId,
+          email: dummyEmail,
+          username: "demo_user",
+          displayName: "Demo User",
+          profileImageUrl: null,
+          role: 'user',
+        });
+      }
+
+      const userSession = {
+        claims: {
+          sub: user.id,
+          email: user.email,
+          name: user.displayName,
+        },
+        expires_at: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60),
+      };
+
+      await new Promise<void>((resolve, reject) => {
+        (req as AuthenticatedRequest & { login: Function }).login(userSession, (err: Error | null) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      });
+
+      res.json({
+        success: true,
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          displayName: user.displayName,
+          profileImageUrl: user.profileImageUrl,
+          role: user.role,
+        }
+      });
+    } catch (error) {
+      logger.error("Dummy login error", error, { source: "auth" });
+      res.status(500).json({ message: "Login failed" });
+    }
+  });
+
   app.post("/api/auth/logout", (req: Request, res: Response) => {
     const authReq = req as AuthenticatedRequest & { session?: { destroy: (cb: (err?: Error) => void) => void } };
     if (authReq.session) {
