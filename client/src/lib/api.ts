@@ -467,6 +467,7 @@ function parseMockupSSEStream(
         if (dataStr) {
           try {
             const data = JSON.parse(dataStr);
+            console.log("SSE Event received:", eventType, eventType === "image" ? { ...data, imageData: data.imageData ? `[${data.imageData.length} chars]` : undefined } : data);
             onEvent({ type: eventType, data });
           } catch (e) {
             console.error("Failed to parse mockup SSE data:", dataStr.substring(0, 100) + "...", e);
