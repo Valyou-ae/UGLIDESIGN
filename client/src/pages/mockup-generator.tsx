@@ -132,6 +132,97 @@ import moodUrban from "@assets/generated_images/mood_image_for_urban_street_styl
 import moodNatural from "@assets/generated_images/mood_image_for_natural_organic_style.png";
 import moodBold from "@assets/generated_images/mood_image_for_bold_vibrant_style.png";
 
+// Import product images for product selector
+import menTshirt from "@assets/generated_images/man_wearing_white_t-shirt.png";
+import menPoloShirt from "@assets/generated_images/man_wearing_white_polo_shirt.png";
+import menTankTop from "@assets/generated_images/man_wearing_white_tank_top.png";
+import menLongSleeve from "@assets/generated_images/man_white_long_sleeve_shirt.png";
+import menHoodie from "@assets/generated_images/man_wearing_white_hoodie.png";
+import menSweatshirt from "@assets/generated_images/man_wearing_white_sweatshirt.png";
+import menJacket from "@assets/generated_images/man_wearing_white_jacket.png";
+import womenTshirt from "@assets/generated_images/woman_wearing_white_t-shirt.png";
+import womenPoloShirt from "@assets/generated_images/woman_white_polo_shirt.png";
+import womenTankTop from "@assets/generated_images/woman_wearing_white_tank_top.png";
+import womenHoodie from "@assets/generated_images/woman_wearing_white_hoodie.png";
+import womenSweatshirt from "@assets/generated_images/woman_white_sweatshirt.png";
+import womenDress from "@assets/generated_images/woman_wearing_white_dress.png";
+import kidTshirt from "@assets/generated_images/kid_wearing_white_t-shirt.png";
+import capProduct from "@assets/generated_images/white_baseball_cap_product.png";
+import toteBagProduct from "@assets/generated_images/white_tote_bag_product.png";
+import mugProduct from "@assets/generated_images/white_coffee_mug_product.png";
+import pillowProduct from "@assets/generated_images/white_throw_pillow_product.png";
+
+// Product images mapping by category and product name
+const PRODUCT_IMAGES: Record<string, Record<string, string>> = {
+  "Men's Clothing": {
+    "T-shirts": menTshirt,
+    "Polo shirts": menPoloShirt,
+    "Tank tops": menTankTop,
+    "Long sleeve shirts": menLongSleeve,
+    "3/4 sleeve shirts": menLongSleeve,
+    "Embroidered shirts": menTshirt,
+    "Hoodies": menHoodie,
+    "Sweatshirts": menSweatshirt,
+    "Jackets & vests": menJacket,
+    "Knitwear": menSweatshirt,
+  },
+  "Women's Clothing": {
+    "T-shirts": womenTshirt,
+    "Polo shirts": womenPoloShirt,
+    "Tank tops": womenTankTop,
+    "Crop tops": womenTankTop,
+    "Long sleeve shirts": womenTshirt,
+    "3/4 sleeve shirts": womenTshirt,
+    "Embroidered shirts": womenTshirt,
+    "Dresses": womenDress,
+    "Hoodies": womenHoodie,
+    "Sweatshirts": womenSweatshirt,
+    "Jackets": menJacket,
+    "Knitwear": womenSweatshirt,
+  },
+  "Kids' Clothing": {
+    "T-shirts": kidTshirt,
+    "All-over shirts": kidTshirt,
+    "Long sleeve shirts": kidTshirt,
+    "3/4 sleeve shirts": kidTshirt,
+    "Hoodies": kidTshirt,
+    "Sweatshirts": kidTshirt,
+    "Hats": capProduct,
+    "Leggings": kidTshirt,
+    "Baby bodysuits": kidTshirt,
+  },
+  "Accessories": {
+    "Tote bags": toteBagProduct,
+    "Duffle bags": toteBagProduct,
+    "Drawstring bags": toteBagProduct,
+    "Backpacks": toteBagProduct,
+    "Handbags": toteBagProduct,
+    "Flip flops": toteBagProduct,
+    "Shoes": toteBagProduct,
+    "Socks": toteBagProduct,
+    "Phone cases": toteBagProduct,
+    "Laptop cases": toteBagProduct,
+    "Mouse pads": toteBagProduct,
+    "Face masks": toteBagProduct,
+  },
+  "Home & Living": {
+    "Wall art": pillowProduct,
+    "Mugs": mugProduct,
+    "Posters": pillowProduct,
+    "Framed posters": pillowProduct,
+    "Blankets": pillowProduct,
+    "Pillow cases": pillowProduct,
+    "Magnets": mugProduct,
+    "Tableware": mugProduct,
+    "Water bottles": mugProduct,
+    "Tumblers": mugProduct,
+    "Coasters": mugProduct,
+    "Postcards": pillowProduct,
+    "Notebooks": pillowProduct,
+    "Stickers": mugProduct,
+    "Aprons": menTshirt,
+  },
+};
 
 // Types
 type JourneyType = "DTG" | "AOP" | null;
@@ -1713,7 +1804,7 @@ export default function MockupGenerator() {
                               </div>
 
                               {/* Product Grid */}
-                              <div className="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-1">
+                              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                                 {(() => {
                                   const searchLower = productSearchQuery.toLowerCase();
                                   const itemsToShow = productSearchQuery
@@ -1735,6 +1826,7 @@ export default function MockupGenerator() {
 
                                   return itemsToShow.map((item) => {
                                     const isSelected = selectedProductType === item.name && effectiveActiveCategory === item.category;
+                                    const productImage = PRODUCT_IMAGES[item.category]?.[item.name];
                                     const silhouette = PRODUCT_SILHOUETTES[item.name] || PRODUCT_SILHOUETTES["default"];
                                     return (
                                       <button
@@ -1755,36 +1847,51 @@ export default function MockupGenerator() {
                                           }
                                         }}
                                         className={cn(
-                                          "relative flex flex-col items-center gap-1 p-2 rounded-lg border transition-all hover:scale-[1.02] active:scale-[0.98]",
+                                          "group relative flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98]",
                                           isSelected
-                                            ? "border-primary bg-primary/10 ring-2 ring-primary/20"
-                                            : "border-border bg-background hover:border-primary/30 hover:bg-muted/50"
+                                            ? "border-primary bg-primary/5 ring-2 ring-primary/30 shadow-md"
+                                            : "border-border bg-background hover:border-primary/40 hover:bg-muted/30"
                                         )}
                                         data-testid={`product-card-${item.name.replace(/\s+/g, '-').toLowerCase()}`}
                                       >
                                         <div 
                                           className={cn(
-                                            "w-8 h-8 rounded-md flex items-center justify-center transition-colors",
-                                            isSelected ? "bg-primary/20" : "bg-muted"
+                                            "relative w-full aspect-square rounded-lg overflow-hidden transition-all duration-200",
+                                            isSelected ? "ring-2 ring-primary/20" : "group-hover:ring-1 group-hover:ring-primary/10"
                                           )}
                                         >
-                                          <div 
-                                            className="w-5 h-5"
-                                            style={{ color: isSelected ? "#ed5387" : "currentColor" }}
-                                            dangerouslySetInnerHTML={{ __html: silhouette.svg }}
-                                          />
+                                          {productImage ? (
+                                            <img 
+                                              src={productImage} 
+                                              alt={item.name}
+                                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                            />
+                                          ) : (
+                                            <div 
+                                              className={cn(
+                                                "w-full h-full flex items-center justify-center bg-muted/50",
+                                                isSelected && "bg-primary/10"
+                                              )}
+                                            >
+                                              <div 
+                                                className="w-12 h-12"
+                                                style={{ color: isSelected ? "#ed5387" : "currentColor" }}
+                                                dangerouslySetInnerHTML={{ __html: silhouette.svg }}
+                                              />
+                                            </div>
+                                          )}
+                                          {isSelected && (
+                                            <div className="absolute top-2 right-2 bg-primary rounded-full p-1 shadow-md">
+                                              <Check className="h-3 w-3 text-white" />
+                                            </div>
+                                          )}
                                         </div>
                                         <span className={cn(
-                                          "text-xs text-center font-medium leading-tight line-clamp-2",
-                                          isSelected ? "text-primary" : "text-muted-foreground"
+                                          "text-sm text-center font-medium leading-tight line-clamp-2 transition-colors",
+                                          isSelected ? "text-primary" : "text-foreground group-hover:text-primary"
                                         )}>
                                           {item.name}
                                         </span>
-                                        {isSelected && (
-                                          <div className="absolute top-1 right-1">
-                                            <Check className="h-4 w-4 text-primary" />
-                                          </div>
-                                        )}
                                       </button>
                                     );
                                   });
