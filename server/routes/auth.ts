@@ -214,18 +214,15 @@ export function registerAuthRoutes(app: Express, middleware: Middleware) {
       const dummyEmail = "demo@ugli.ai";
       const dummyGoogleId = "dummy_user_12345";
       
-      let user = await storage.getUserByEmail(dummyEmail);
-      
-      if (!user) {
-        user = await storage.upsertUser({
-          id: dummyGoogleId,
-          email: dummyEmail,
-          username: "demo_user",
-          displayName: "Demo User",
-          profileImageUrl: null,
-          role: 'user',
-        });
-      }
+      // Use upsert directly to avoid query issues
+      const user = await storage.upsertUser({
+        id: dummyGoogleId,
+        email: dummyEmail,
+        username: "demo_user",
+        displayName: "Demo User",
+        profileImageUrl: null,
+        role: 'user',
+      });
 
       const userSession = {
         claims: {
