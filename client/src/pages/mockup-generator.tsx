@@ -159,6 +159,7 @@ const PRODUCT_IMAGES: Record<string, Record<string, string>> = {
     "Polo shirts": menPoloShirt,
     "Tank tops": menTankTop,
     "Long sleeve shirts": menLongSleeve,
+    "3/4 sleeve shirts": menLongSleeve,
     "Embroidered shirts": menTshirt,
     "Hoodies": menHoodie,
     "Sweatshirts": menSweatshirt,
@@ -171,6 +172,7 @@ const PRODUCT_IMAGES: Record<string, Record<string, string>> = {
     "Tank tops": womenTankTop,
     "Crop tops": womenTankTop,
     "Long sleeve shirts": womenTshirt,
+    "3/4 sleeve shirts": womenTshirt,
     "Embroidered shirts": womenTshirt,
     "Dresses": womenDress,
     "Hoodies": womenHoodie,
@@ -182,6 +184,7 @@ const PRODUCT_IMAGES: Record<string, Record<string, string>> = {
     "T-shirts": kidTshirt,
     "All-over shirts": kidTshirt,
     "Long sleeve shirts": kidTshirt,
+    "3/4 sleeve shirts": kidTshirt,
     "Hoodies": kidTshirt,
     "Sweatshirts": kidTshirt,
     "Hats": capProduct,
@@ -296,6 +299,7 @@ const DTG_PRODUCT_CATEGORIES: ProductCategory[] = [
       { name: "T-shirts", icon: Shirt },
       { name: "Polo shirts", icon: Award },
       { name: "Tank tops", icon: Sun },
+      { name: "3/4 sleeve shirts", icon: MoveHorizontal },
       { name: "Long sleeve shirts", icon: Wind },
       { name: "Embroidered shirts", icon: Tag },
       { name: "Jackets & vests", icon: Shield },
@@ -313,6 +317,7 @@ const DTG_PRODUCT_CATEGORIES: ProductCategory[] = [
       { name: "Tank tops", icon: Sun },
       { name: "Crop tops", icon: Scissors },
       { name: "Embroidered shirts", icon: Tag },
+      { name: "3/4 sleeve shirts", icon: MoveHorizontal },
       { name: "Long sleeve shirts", icon: Wind },
       { name: "Dresses", icon: Umbrella }, 
       { name: "Knitwear", icon: Grid },
@@ -327,6 +332,7 @@ const DTG_PRODUCT_CATEGORIES: ProductCategory[] = [
     items: [
       { name: "T-shirts", icon: Shirt },
       { name: "All-over shirts", icon: Grid },
+      { name: "3/4 sleeve shirts", icon: MoveHorizontal },
       { name: "Long sleeve shirts", icon: Wind },
       { name: "Hoodies", icon: Cloud },
       { name: "Sweatshirts", icon: Layers },
@@ -434,6 +440,10 @@ const PRODUCT_SILHOUETTES: Record<string, { svg: string; designArea: { top: stri
   },
   "Polo shirts": {
     svg: `<svg viewBox="0 0 100 120" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M20 5 L35 0 L50 8 L65 0 L80 5 L95 25 L75 35 L75 115 L25 115 L25 35 L5 25 Z" stroke="currentColor" stroke-width="1" fill="currentColor"/><path d="M42 0 L50 15 L58 0" stroke="currentColor" stroke-width="1" fill="none" opacity="0.4"/></svg>`,
+    designArea: { top: "30%", left: "28%", width: "44%", height: "40%" }
+  },
+  "3/4 sleeve shirts": {
+    svg: `<svg viewBox="0 0 100 120" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M20 5 L35 0 L50 5 L65 0 L80 5 L92 20 L78 28 L78 115 L22 115 L22 28 L8 20 Z" stroke="currentColor" stroke-width="1" fill="currentColor"/></svg>`,
     designArea: { top: "30%", left: "28%", width: "44%", height: "40%" }
   },
   "Long sleeve shirts": {
