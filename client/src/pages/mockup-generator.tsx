@@ -1491,13 +1491,13 @@ export default function MockupGenerator() {
                                   <Badge variant="outline" className="text-[10px] text-muted-foreground">PNG recommended</Badge>
                                 </div>
                               ) : (
-                                <div className="flex items-center gap-4">
-                                  <div className="relative w-24 h-24 sm:w-32 sm:h-32 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbC1vcGFjaXR5PSIwLjEiPjxyZWN0IHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iIzAwMCIvPjxyZWN0IHg9IjEwIiB5PSIxMCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjMDAwIi8+PC9zdmc+')] bg-repeat rounded-lg border border-border overflow-hidden flex-shrink-0">
+                                <div className="flex flex-col items-center justify-center py-6">
+                                  <div className="relative w-36 h-36 sm:w-48 sm:h-48 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbC1vcGFjaXR5PSIwLjEiPjxyZWN0IHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iIzAwMCIvPjxyZWN0IHg9IjEwIiB5PSIxMCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjMDAwIi8+PC9zdmc+')] bg-repeat rounded-lg border border-border overflow-hidden">
                                     <img src={uploadedImage} alt="Uploaded" className="w-full h-full object-contain" />
                                   </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-foreground truncate">design_v1.png</p>
-                                    <p className="text-xs text-muted-foreground mb-2">Ready for mockup</p>
+                                  <div className="text-center mt-4">
+                                    <p className="text-sm font-medium text-foreground">design_v1.png</p>
+                                    <p className="text-xs text-muted-foreground mb-3">Ready for mockup</p>
                                     <Button 
                                       variant="outline"
                                       size="sm"
@@ -1517,7 +1517,7 @@ export default function MockupGenerator() {
                                   </div>
                                   
                                   {journey === "AOP" && (
-                                    <label className="flex items-center gap-2 p-3 rounded-lg border border-border bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors">
+                                    <label className="flex items-center gap-2 p-3 mt-4 rounded-lg border border-border bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors">
                                       <input 
                                         type="checkbox"
                                         checked={isAlreadySeamless}
