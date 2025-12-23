@@ -71,7 +71,8 @@ import {
   FolderInput,
   Shirt,
   Scissors,
-  ArrowUpRight
+  ArrowUpRight,
+  Rocket
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -1533,7 +1534,7 @@ export default function ImageGenerator() {
                           {status === "generating" ? (
                             <RefreshCw className="h-4 w-4 animate-spin" />
                           ) : (
-                            <Sparkles className="h-4 w-4 fill-white" />
+                            <Rocket className="h-4 w-4" />
                           )}
                         </Button>
                       </motion.div>
