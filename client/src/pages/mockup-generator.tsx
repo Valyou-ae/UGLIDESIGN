@@ -2014,7 +2014,7 @@ export default function MockupGenerator() {
                                     {/* Ethnicity Section */}
                                     <div className="mt-4">
                                       <label className="text-xs font-semibold text-muted-foreground mb-2 block">Ethnicity</label>
-                                      <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                                      <div className="flex flex-wrap gap-3 justify-start">
                                         {[
                                           { value: "White", label: "White", image: ethnicityWhite },
                                           { value: "Black", label: "Black", image: ethnicityBlack },
@@ -2029,19 +2029,26 @@ export default function MockupGenerator() {
                                           <button
                                             key={option.value}
                                             onClick={() => setModelDetails({...modelDetails, ethnicity: option.value as any})}
-                                            className={cn(
-                                              "flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-lg border transition-all",
-                                              modelDetails.ethnicity === option.value
-                                                ? "bg-primary/10 border-primary text-primary"
-                                                : "bg-muted/30 border-border text-muted-foreground hover:border-primary/30"
-                                            )}
+                                            className="flex flex-col items-center gap-1 group"
                                           >
-                                            <img 
-                                              src={option.image} 
-                                              alt={option.label}
-                                              className="h-10 w-10 rounded-full object-cover border-2 border-border"
-                                            />
-                                            <span className="text-xs font-medium leading-tight text-center">{option.label}</span>
+                                            <div className={cn(
+                                              "rounded-full p-0.5 transition-all",
+                                              modelDetails.ethnicity === option.value
+                                                ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                                                : "hover:ring-2 hover:ring-muted-foreground/30 hover:ring-offset-2 hover:ring-offset-background"
+                                            )}>
+                                              <img 
+                                                src={option.image} 
+                                                alt={option.label}
+                                                className="h-14 w-14 rounded-full object-cover"
+                                              />
+                                            </div>
+                                            <span className={cn(
+                                              "text-[10px] font-medium leading-tight text-center",
+                                              modelDetails.ethnicity === option.value
+                                                ? "text-primary"
+                                                : "text-muted-foreground group-hover:text-foreground"
+                                            )}>{option.label}</span>
                                           </button>
                                         ))}
                                       </div>
