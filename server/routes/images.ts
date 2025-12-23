@@ -163,13 +163,17 @@ export function registerImageRoutes(app: Express, middleware: Middleware) {
 
   app.patch("/api/images/:id/favorite", requireAuth, async (req: Request, res: Response) => {
     try {
+      logger.info("Toggle favorite request", { imageId: req.params.id, source: "images" });
       const userId = getUserId(req as AuthenticatedRequest);
+      logger.info("Toggle favorite userId", { userId, source: "images" });
       const image = await storage.toggleImageFavorite(req.params.id, userId);
+      logger.info("Toggle favorite result", { found: !!image, source: "images" });
       if (!image) {
         return res.status(404).json({ message: "Image not found" });
       }
       res.json({ image });
     } catch (error) {
+      logger.error("Toggle favorite error", error, { source: "images" });
       res.status(500).json({ message: "Server error" });
     }
   });
