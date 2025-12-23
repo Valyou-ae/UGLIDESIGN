@@ -278,7 +278,7 @@ const DTG_PRODUCT_CATEGORIES: ProductCategory[] = [
     items: [
       { name: "Wall art", icon: Frame },
       { name: "Posters", icon: StickyNote },
-      { name: "Framed posters", icon: Frame },
+      { name: "Framed posters", icon: Frame, image: "/products/home/Framed_Poster_White.png", hoverImage: "/products/home/Framed_Poster_Hover.png" },
       { name: "Blankets", icon: Layers },
       { name: "Pillow cases", icon: Layers },
       { name: "Magnets", icon: StickyNote },
