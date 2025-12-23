@@ -210,61 +210,6 @@ export function registerAuthRoutes(app: Express, middleware: Middleware) {
     }
   });
 
-  app.post("/api/auth/dummy-login", async (req: Request, res: Response) => {
-    try {
-      const dummyEmail = "demo@ugli.ai";
-      const dummyGoogleId = "dummy_user_12345";
-      
-      // Use raw SQL for reliability
-      const result = await pool.query(
-        `INSERT INTO users (id, email, username, display_name, role)
-         VALUES ($1, $2, $3, $4, $5)
-         ON CONFLICT (id) DO UPDATE SET updated_at = NOW()
-         RETURNING id, email, username, display_name, profile_image_url, role`,
-        [dummyGoogleId, dummyEmail, "demo_user", "Demo User", "user"]
-      );
-      
-      const user = result.rows[0];
-      if (!user) {
-        throw new Error("Failed to create/get demo user");
-      }
-
-      const userSession = {
-        claims: {
-          sub: user.id,
-          email: user.email,
-          name: user.display_name,
-        },
-        expires_at: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60),
-      };
-
-      await new Promise<void>((resolve, reject) => {
-        (req as AuthenticatedRequest & { login: Function }).login(userSession, (err: Error | null) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve();
-          }
-        });
-      });
-
-      res.json({
-        success: true,
-        user: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          displayName: user.display_name,
-          profileImageUrl: user.profile_image_url,
-          role: user.role,
-        }
-      });
-    } catch (error) {
-      logger.error("Dummy login error", error, { source: "auth" });
-      res.status(500).json({ message: "Login failed" });
-    }
-  });
-
   app.post("/api/auth/logout", (req: Request, res: Response) => {
     const authReq = req as AuthenticatedRequest & { session?: { destroy: (cb: (err?: Error) => void) => void } };
     if (authReq.session) {
