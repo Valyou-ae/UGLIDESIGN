@@ -369,20 +369,47 @@ export class DatabaseStorage implements IStorage {
   }
 
   async toggleImageFavorite(imageId: string, userId: string): Promise<GeneratedImage | undefined> {
-    const [image] = await db
-      .select()
-      .from(generatedImages)
-      .where(and(eq(generatedImages.id, imageId), eq(generatedImages.userId, userId)));
+    // Use pool directly to avoid Neon HTTP driver caching issues
+    const { pool } = await import("./db");
     
-    if (!image) return undefined;
-
-    const [updated] = await db
-      .update(generatedImages)
-      .set({ isFavorite: !image.isFavorite })
-      .where(eq(generatedImages.id, imageId))
-      .returning();
+    // First check if image exists for this user
+    const checkResult = await pool.query(
+      `SELECT id, is_favorite FROM generated_images WHERE id = $1 AND user_id = $2`,
+      [imageId, userId]
+    );
     
-    return updated;
+    if (checkResult.rows.length === 0) {
+      return undefined;
+    }
+    
+    const currentFavorite = checkResult.rows[0].is_favorite;
+    
+    // Toggle the favorite status
+    const updateResult = await pool.query(
+      `UPDATE generated_images SET is_favorite = $1 WHERE id = $2 RETURNING *`,
+      [!currentFavorite, imageId]
+    );
+    
+    if (updateResult.rows.length === 0) {
+      return undefined;
+    }
+    
+    // Map database column names to schema field names
+    const row = updateResult.rows[0];
+    return {
+      id: row.id,
+      userId: row.user_id,
+      folderId: row.folder_id,
+      imageUrl: row.image_url,
+      prompt: row.prompt,
+      style: row.style,
+      aspectRatio: row.aspect_ratio,
+      generationType: row.generation_type,
+      isFavorite: row.is_favorite,
+      isPublic: row.is_public,
+      viewCount: row.view_count,
+      createdAt: row.created_at,
+    };
   }
 
   async deleteImage(imageId: string, userId: string): Promise<boolean> {
