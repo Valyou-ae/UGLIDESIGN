@@ -1249,20 +1249,20 @@ export class DatabaseStorage implements IStorage {
         const user = await this.getUser(userId);
         const creatorName = user?.displayName || user?.username || "UGLI User";
         
-        // Add to gallery
+        // Add to gallery - use snake_case from raw database row
         await this.createGalleryImage({
           sourceImageId: imageId,
           title: image.prompt?.slice(0, 100) || "AI Generated Image",
-          imageUrl: image.imageUrl,
+          imageUrl: image.image_url,
           creator: creatorName,
           category: image.style || "ai-generated",
-          aspectRatio: image.aspectRatio || "1:1",
+          aspectRatio: image.aspect_ratio || "1:1",
           prompt: image.prompt || "",
         });
       }
     } else {
-      // Remove from gallery - pass imageUrl and prompt as fallbacks for older images without sourceImageId
-      await this.deleteGalleryImageBySourceId(imageId, image.imageUrl, image.prompt || undefined);
+      // Remove from gallery - use snake_case from raw database row
+      await this.deleteGalleryImageBySourceId(imageId, image.image_url, image.prompt || undefined);
     }
     
     return updated;
