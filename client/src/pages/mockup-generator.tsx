@@ -2020,45 +2020,6 @@ export default function MockupGenerator() {
                               </div>
                             )}
 
-                            {/* Scene / Environment */}
-                            <div className="bg-card rounded-xl border border-border p-4 sm:p-5">
-                              <div className="flex items-center gap-2 mb-3">
-                                <Camera className="h-4 w-4 text-primary" />
-                                <label className="text-sm font-bold text-foreground">Scene</label>
-                              </div>
-                              
-                              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-3">
-                                {[
-                                  { icon: Building, label: "Urban", prompt: "A vibrant urban street scene with graffiti walls, neon lights, and natural sunlight" },
-                                  { icon: Camera, label: "Studio", prompt: "A minimalist gray or white photography studio with professional soft lighting" },
-                                  { icon: Trees, label: "Nature", prompt: "A beautiful outdoor park setting with lush greenery and golden hour lighting" },
-                                  { icon: Coffee, label: "Cafe", prompt: "A cozy coffee shop interior with warm lighting, wood accents, and modern decor" },
-                                  { icon: Dumbbell, label: "Gym", prompt: "A modern fitness gym with motivational atmosphere and athletic equipment" },
-                                  { icon: Sun, label: "Beach", prompt: "A sunny beach setting with sand, ocean waves, and bright summery daylight" },
-                                ].map((template, i) => (
-                                  <button
-                                    key={i}
-                                    onClick={() => setEnvironmentPrompt(template.prompt)}
-                                    className={cn(
-                                      "flex flex-col items-center justify-center gap-1 p-2 rounded-lg border transition-all h-[60px]",
-                                      environmentPrompt === template.prompt
-                                        ? "bg-primary/10 border-primary"
-                                        : "bg-muted/30 border-border hover:border-primary/30"
-                                    )}
-                                  >
-                                    <template.icon className={cn("h-4 w-4", environmentPrompt === template.prompt ? "text-primary" : "text-muted-foreground")} />
-                                    <span className={cn("text-[10px] font-medium", environmentPrompt === template.prompt ? "text-primary" : "text-muted-foreground")}>{template.label}</span>
-                                  </button>
-                                ))}
-                              </div>
-                              
-                              <Textarea
-                                value={environmentPrompt}
-                                onChange={(e) => setEnvironmentPrompt(e.target.value)}
-                                placeholder="Or describe a custom scene..."
-                                className="h-20 text-sm resize-none"
-                              />
-                            </div>
                           </div>
 
                           {/* Footer Navigation */}
@@ -2068,10 +2029,10 @@ export default function MockupGenerator() {
                             </Button>
                             <Button
                               onClick={handleNext}
-                              disabled={selectedSizes.length === 0 || (journey !== "AOP" && selectedColors.length === 0) || environmentPrompt.length <= 5}
+                              disabled={selectedSizes.length === 0 || (journey !== "AOP" && selectedColors.length === 0)}
                               className={cn(
                                 "gap-2 px-6 min-h-[44px] flex-1 sm:flex-none max-w-[200px]",
-                                (selectedSizes.length > 0 && (journey === "AOP" || selectedColors.length > 0) && environmentPrompt.length > 5)
+                                (selectedSizes.length > 0 && (journey === "AOP" || selectedColors.length > 0))
                                   ? "bg-primary hover:bg-[#C2185B] text-white" 
                                   : "bg-muted text-muted-foreground opacity-50 cursor-not-allowed"
                               )}
@@ -2089,6 +2050,46 @@ export default function MockupGenerator() {
                           {!generatedMockups.length && !isGenerating ? (
                             <div className="flex-1 flex flex-col">
                               <div className="flex-1 overflow-y-auto scrollbar-hide space-y-4 pb-4">
+                                {/* Scene / Environment */}
+                                <div className="bg-card rounded-xl border border-border p-4 sm:p-5">
+                                  <div className="flex items-center gap-2 mb-3">
+                                    <Camera className="h-4 w-4 text-primary" />
+                                    <label className="text-sm font-bold text-foreground">Scene</label>
+                                  </div>
+                                  
+                                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-3">
+                                    {[
+                                      { icon: Building, label: "Urban", prompt: "A vibrant urban street scene with graffiti walls, neon lights, and natural sunlight" },
+                                      { icon: Camera, label: "Studio", prompt: "A minimalist gray or white photography studio with professional soft lighting" },
+                                      { icon: Trees, label: "Nature", prompt: "A beautiful outdoor park setting with lush greenery and golden hour lighting" },
+                                      { icon: Coffee, label: "Cafe", prompt: "A cozy coffee shop interior with warm lighting, wood accents, and modern decor" },
+                                      { icon: Dumbbell, label: "Gym", prompt: "A modern fitness gym with motivational atmosphere and athletic equipment" },
+                                      { icon: Sun, label: "Beach", prompt: "A sunny beach setting with sand, ocean waves, and bright summery daylight" },
+                                    ].map((template, i) => (
+                                      <button
+                                        key={i}
+                                        onClick={() => setEnvironmentPrompt(template.prompt)}
+                                        className={cn(
+                                          "flex flex-col items-center justify-center gap-1 p-2 rounded-lg border transition-all h-[60px]",
+                                          environmentPrompt === template.prompt
+                                            ? "bg-primary/10 border-primary"
+                                            : "bg-muted/30 border-border hover:border-primary/30"
+                                        )}
+                                      >
+                                        <template.icon className={cn("h-4 w-4", environmentPrompt === template.prompt ? "text-primary" : "text-muted-foreground")} />
+                                        <span className={cn("text-[10px] font-medium", environmentPrompt === template.prompt ? "text-primary" : "text-muted-foreground")}>{template.label}</span>
+                                      </button>
+                                    ))}
+                                  </div>
+                                  
+                                  <Textarea
+                                    value={environmentPrompt}
+                                    onChange={(e) => setEnvironmentPrompt(e.target.value)}
+                                    placeholder="Or describe a custom scene..."
+                                    className="h-20 text-sm resize-none"
+                                  />
+                                </div>
+
                                 {/* Angles Selection */}
                                 <div className="bg-card rounded-xl border border-border p-4 sm:p-5">
                                   <div className="flex items-center justify-between mb-3">
@@ -2229,10 +2230,10 @@ export default function MockupGenerator() {
                                 </Button>
                                 <Button
                                   onClick={handleGenerate}
-                                  disabled={selectedAngles.length === 0}
+                                  disabled={selectedAngles.length === 0 || (environmentPrompt?.length ?? 0) <= 5}
                                   className={cn(
                                     "gap-2 px-6 min-h-[44px] flex-1 sm:flex-none",
-                                    selectedAngles.length > 0
+                                    (selectedAngles.length > 0 && (environmentPrompt?.length ?? 0) > 5)
                                       ? "bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white" 
                                       : "bg-muted text-muted-foreground opacity-50 cursor-not-allowed"
                                   )}
