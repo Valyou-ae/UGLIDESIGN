@@ -193,12 +193,16 @@ export function registerImageRoutes(app: Express, middleware: Middleware) {
 
   app.patch("/api/images/:id/visibility", requireAuth, async (req: Request, res: Response) => {
     try {
+      logger.info("Visibility toggle request", { imageId: req.params.id, source: "images" });
       const userId = getUserId(req as AuthenticatedRequest);
+      logger.info("Visibility toggle userId", { userId, source: "images" });
       const { isPublic } = req.body;
+      logger.info("Visibility toggle isPublic", { isPublic, source: "images" });
       if (typeof isPublic !== "boolean") {
         return res.status(400).json({ message: "isPublic must be a boolean" });
       }
       const image = await storage.setImageVisibility(req.params.id, userId, isPublic);
+      logger.info("Visibility toggle result", { found: !!image, source: "images" });
       if (!image) {
         return res.status(404).json({ message: "Image not found" });
       }
@@ -206,6 +210,7 @@ export function registerImageRoutes(app: Express, middleware: Middleware) {
       await invalidateCache('gallery:images');
       res.json({ image });
     } catch (error) {
+      logger.error("Visibility toggle error", error, { source: "images" });
       res.status(500).json({ message: "Server error" });
     }
   });
