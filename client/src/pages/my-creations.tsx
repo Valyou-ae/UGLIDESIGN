@@ -11,7 +11,8 @@ import {
   Star, 
   Trash2, 
   FolderInput, 
-  Folder, 
+  Folder,
+  FolderPlus, 
   ArrowUpRight, 
   Eye, 
   Pencil, 
@@ -602,6 +603,15 @@ export default function MyCreations() {
               >
                 <CheckSquare className="h-3.5 w-3.5" />
                 {selectMode ? "Cancel" : "Select"}
+              </button>
+              
+              <button
+                onClick={() => setShowFolderModal(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-all flex-shrink-0 bg-white dark:bg-[#1F1F25] border-[#E4E4E7] dark:border-[#2A2A30] text-white hover:border-[#F59E0B] hover:text-[#F59E0B]"
+                data-testid="button-new-folder"
+              >
+                <FolderPlus className="h-3.5 w-3.5" />
+                New Folder
               </button>
             </div>
           </div>
