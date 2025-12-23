@@ -1991,8 +1991,8 @@ export default function MockupGenerator() {
                                       <label className="text-xs font-semibold text-muted-foreground mb-2 block">Gender</label>
                                       <div className="grid grid-cols-2 gap-2">
                                         {[
-                                          { value: "MALE", icon: User, label: "Male" },
-                                          { value: "FEMALE", icon: Users, label: "Female" },
+                                          { value: "MALE", symbol: "♂", label: "Male" },
+                                          { value: "FEMALE", symbol: "♀", label: "Female" },
                                         ].map((option) => (
                                           <button
                                             key={option.value}
@@ -2004,7 +2004,7 @@ export default function MockupGenerator() {
                                                 : "bg-muted/30 border-border text-muted-foreground hover:border-primary/30"
                                             )}
                                           >
-                                            <option.icon className="h-6 w-6" />
+                                            <span className="text-2xl font-bold">{option.symbol}</span>
                                             <span className="text-sm font-medium">{option.label}</span>
                                           </button>
                                         ))}
