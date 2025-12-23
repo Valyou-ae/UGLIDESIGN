@@ -2092,98 +2092,101 @@ export default function MockupGenerator() {
                                     />
                                   </div>
 
-                                  {/* Angles Selection */}
-                                  <div className="bg-card rounded-xl border border-border p-4 sm:p-5">
-                                    <div className="flex items-center justify-between mb-3">
-                                      <div className="flex items-center gap-2">
-                                        <Camera className="h-4 w-4 text-primary" />
-                                        <h3 className="text-sm font-bold text-foreground">Camera Angles</h3>
+                                  {/* Right Column: Camera Angles + Output Quality */}
+                                  <div className="flex flex-col gap-4">
+                                    {/* Angles Selection */}
+                                    <div className="bg-card rounded-xl border border-border p-4 sm:p-5">
+                                      <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center gap-2">
+                                          <Camera className="h-4 w-4 text-primary" />
+                                          <h3 className="text-sm font-bold text-foreground">Camera Angles</h3>
+                                        </div>
+                                        <div className="flex gap-2">
+                                          <button 
+                                            onClick={() => setSelectedAngles(MOCKUP_ANGLES.filter(a => a.recommended).map(a => a.id))}
+                                            className="text-xs font-medium text-green-600 hover:underline"
+                                          >
+                                            Recommended
+                                          </button>
+                                          <span className="text-border text-xs">|</span>
+                                          <button 
+                                            onClick={() => setSelectedAngles(MOCKUP_ANGLES.map(a => a.id))}
+                                            className="text-xs font-medium text-primary hover:underline"
+                                          >
+                                            All
+                                          </button>
+                                          <span className="text-border text-xs">|</span>
+                                          <button 
+                                            onClick={() => setSelectedAngles([])}
+                                            className="text-xs font-medium text-muted-foreground hover:underline"
+                                          >
+                                            Clear
+                                          </button>
+                                        </div>
                                       </div>
-                                      <div className="flex gap-2">
-                                        <button 
-                                          onClick={() => setSelectedAngles(MOCKUP_ANGLES.filter(a => a.recommended).map(a => a.id))}
-                                          className="text-xs font-medium text-green-600 hover:underline"
-                                        >
-                                          Recommended
-                                        </button>
-                                        <span className="text-border text-xs">|</span>
-                                        <button 
-                                          onClick={() => setSelectedAngles(MOCKUP_ANGLES.map(a => a.id))}
-                                          className="text-xs font-medium text-primary hover:underline"
-                                        >
-                                          All
-                                        </button>
-                                        <span className="text-border text-xs">|</span>
-                                        <button 
-                                          onClick={() => setSelectedAngles([])}
-                                          className="text-xs font-medium text-muted-foreground hover:underline"
-                                        >
-                                          Clear
-                                        </button>
-                                      </div>
+                                      
+                                      <TooltipProvider delayDuration={200}>
+                                        <div className="flex flex-wrap justify-center gap-3">
+                                          {MOCKUP_ANGLES.map((angle) => {
+                                            const isSelected = selectedAngles.includes(angle.id);
+                                            return (
+                                              <Tooltip key={angle.id}>
+                                                <TooltipTrigger asChild>
+                                                  <button
+                                                    onClick={() => {
+                                                      if (isSelected) {
+                                                        setSelectedAngles(selectedAngles.filter(id => id !== angle.id));
+                                                      } else {
+                                                        setSelectedAngles([...selectedAngles, angle.id]);
+                                                      }
+                                                    }}
+                                                    className={cn(
+                                                      "relative h-24 w-24 rounded-xl border-2 flex flex-col items-center justify-center gap-2 transition-all",
+                                                      isSelected 
+                                                        ? "bg-primary/10 border-primary text-primary" 
+                                                        : "bg-muted/30 border-border text-muted-foreground hover:border-primary/30"
+                                                    )}
+                                                    data-testid={`angle-${angle.id}`}
+                                                  >
+                                                    <angle.icon className="h-8 w-8" />
+                                                    <span className="text-sm font-medium leading-tight">{angle.name.split(' ')[0]}</span>
+                                                    {angle.recommended && !isSelected && (
+                                                      <div className="absolute -top-1 -right-1 h-3 w-3 bg-green-500 rounded-full" />
+                                                    )}
+                                                    {isSelected && (
+                                                      <div className="absolute -top-1 -right-1 bg-primary rounded-full p-0.5">
+                                                        <Check className="h-3 w-3 text-white" />
+                                                      </div>
+                                                    )}
+                                                  </button>
+                                                </TooltipTrigger>
+                                                <TooltipContent side="bottom" className="text-xs">{angle.description}</TooltipContent>
+                                              </Tooltip>
+                                            );
+                                          })}
+                                        </div>
+                                      </TooltipProvider>
                                     </div>
-                                    
-                                    <TooltipProvider delayDuration={200}>
-                                      <div className="flex flex-wrap justify-center gap-3">
-                                        {MOCKUP_ANGLES.map((angle) => {
-                                          const isSelected = selectedAngles.includes(angle.id);
-                                          return (
-                                            <Tooltip key={angle.id}>
-                                              <TooltipTrigger asChild>
-                                                <button
-                                                  onClick={() => {
-                                                    if (isSelected) {
-                                                      setSelectedAngles(selectedAngles.filter(id => id !== angle.id));
-                                                    } else {
-                                                      setSelectedAngles([...selectedAngles, angle.id]);
-                                                    }
-                                                  }}
-                                                  className={cn(
-                                                    "relative h-24 w-24 rounded-xl border-2 flex flex-col items-center justify-center gap-2 transition-all",
-                                                    isSelected 
-                                                      ? "bg-primary/10 border-primary text-primary" 
-                                                      : "bg-muted/30 border-border text-muted-foreground hover:border-primary/30"
-                                                  )}
-                                                  data-testid={`angle-${angle.id}`}
-                                                >
-                                                  <angle.icon className="h-8 w-8" />
-                                                  <span className="text-sm font-medium leading-tight">{angle.name.split(' ')[0]}</span>
-                                                  {angle.recommended && !isSelected && (
-                                                    <div className="absolute -top-1 -right-1 h-3 w-3 bg-green-500 rounded-full" />
-                                                  )}
-                                                  {isSelected && (
-                                                    <div className="absolute -top-1 -right-1 bg-primary rounded-full p-0.5">
-                                                      <Check className="h-3 w-3 text-white" />
-                                                    </div>
-                                                  )}
-                                                </button>
-                                              </TooltipTrigger>
-                                              <TooltipContent side="bottom" className="text-xs">{angle.description}</TooltipContent>
-                                            </Tooltip>
-                                          );
-                                        })}
-                                      </div>
-                                    </TooltipProvider>
-                                  </div>
-                                </div>
 
-                                {/* Quality + Summary */}
-                                <div className="bg-card rounded-xl border border-border p-4 sm:p-5">
-                                  <div className="flex items-center justify-between mb-4">
-                                    <div className="flex items-center gap-2">
-                                      <Maximize2 className="h-4 w-4 text-primary" />
-                                      <span className="text-sm font-bold text-foreground">Output Quality</span>
+                                    {/* Output Quality - Below Camera Angles */}
+                                    <div className="bg-card rounded-xl border border-border p-4 sm:p-5">
+                                      <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                          <Maximize2 className="h-4 w-4 text-primary" />
+                                          <span className="text-sm font-bold text-foreground">Output Quality</span>
+                                        </div>
+                                        <Select value={outputQuality} onValueChange={(value: OutputQuality) => setOutputQuality(value)}>
+                                          <SelectTrigger className="w-[140px] h-9" data-testid="quality-select">
+                                            <SelectValue />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            {OUTPUT_QUALITY_OPTIONS.map((q) => (
+                                              <SelectItem key={q.id} value={q.id}>{q.name} ({q.resolution})</SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                      </div>
                                     </div>
-                                    <Select value={outputQuality} onValueChange={(value: OutputQuality) => setOutputQuality(value)}>
-                                      <SelectTrigger className="w-[140px] h-9" data-testid="quality-select">
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {OUTPUT_QUALITY_OPTIONS.map((q) => (
-                                          <SelectItem key={q.id} value={q.id}>{q.name} ({q.resolution})</SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
                                   </div>
                                 </div>
 
