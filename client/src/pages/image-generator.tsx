@@ -1334,7 +1334,7 @@ export default function ImageGenerator() {
     if (completedCount > 0) {
       return "Processing...";
     }
-    return "Initializing AI Agents...";
+    return "Generating Images...";
   };
 
   return (
