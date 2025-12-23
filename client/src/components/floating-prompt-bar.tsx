@@ -395,8 +395,7 @@ export function FloatingPromptBar({ onImageGenerated }: FloatingPromptBarProps =
               disabled={isGenerating || (isAuthenticated && !prompt.trim())}
               className={cn(
                 "flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#ed5387] to-[#9C27B0] text-white rounded-full font-semibold text-sm hover:shadow-lg hover:shadow-[#ed5387]/30 transition-shadow",
-                isGenerating && "opacity-60 cursor-not-allowed",
-                isAuthenticated && !prompt.trim() && "opacity-60 cursor-not-allowed"
+                isGenerating && "opacity-60 cursor-not-allowed"
               )}
               data-testid="button-generate"
             >
