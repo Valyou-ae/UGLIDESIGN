@@ -1205,18 +1205,40 @@ export class DatabaseStorage implements IStorage {
   }
 
   async setImageVisibility(imageId: string, userId: string, isPublic: boolean): Promise<GeneratedImage | undefined> {
-    const [image] = await db
-      .select()
-      .from(generatedImages)
-      .where(and(eq(generatedImages.id, imageId), eq(generatedImages.userId, userId)));
+    // Use pool directly to avoid Neon HTTP driver caching issues
+    const { pool } = await import("./db");
     
-    if (!image) return undefined;
+    // First check if image exists and belongs to user
+    const checkResult = await pool.query(
+      `SELECT * FROM generated_images WHERE id = $1 AND user_id = $2`,
+      [imageId, userId]
+    );
+    
+    if (checkResult.rows.length === 0) return undefined;
+    const image = checkResult.rows[0];
 
-    const [updated] = await db
-      .update(generatedImages)
-      .set({ isPublic })
-      .where(eq(generatedImages.id, imageId))
-      .returning();
+    // Update the visibility
+    const updateResult = await pool.query(
+      `UPDATE generated_images SET is_public = $1 WHERE id = $2 RETURNING *`,
+      [isPublic, imageId]
+    );
+    
+    if (updateResult.rows.length === 0) return undefined;
+    const row = updateResult.rows[0];
+    const updated: GeneratedImage = {
+      id: row.id,
+      userId: row.user_id,
+      folderId: row.folder_id,
+      imageUrl: row.image_url,
+      prompt: row.prompt,
+      style: row.style,
+      aspectRatio: row.aspect_ratio,
+      generationType: row.generation_type,
+      isFavorite: row.is_favorite,
+      isPublic: row.is_public,
+      viewCount: row.view_count,
+      createdAt: row.created_at,
+    };
     
     // Handle gallery sync
     if (isPublic) {

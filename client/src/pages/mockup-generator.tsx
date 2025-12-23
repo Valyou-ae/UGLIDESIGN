@@ -1485,24 +1485,26 @@ export default function MockupGenerator() {
                               </div>
                               
                               {!uploadedImage ? (
-                                <div 
-                                  className="w-full border-2 border-dashed border-border rounded-xl p-6 sm:p-10 hover:border-primary hover:bg-primary/5 transition-all cursor-pointer group active:scale-[0.99] text-center"
-                                  onClick={() => fileInputRef.current?.click()}
-                                  data-testid="dropzone-upload"
-                                >
-                                  <input 
-                                    type="file" 
-                                    ref={fileInputRef} 
-                                    className="hidden" 
-                                    accept="image/*"
-                                    onChange={handleFileUpload}
-                                  />
-                                  <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                                    <Cloud className="h-6 w-6 text-primary" />
+                                <div className="flex items-center justify-center w-full py-8">
+                                  <div 
+                                    className="aspect-square w-[300px] sm:w-[360px] border-2 border-dashed border-border rounded-xl hover:border-primary hover:bg-primary/5 transition-all cursor-pointer group active:scale-[0.99] flex flex-col items-center justify-center"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    data-testid="dropzone-upload"
+                                  >
+                                    <input 
+                                      type="file" 
+                                      ref={fileInputRef} 
+                                      className="hidden" 
+                                      accept="image/*"
+                                      onChange={handleFileUpload}
+                                    />
+                                    <div className="h-14 w-14 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                      <Cloud className="h-7 w-7 text-primary" />
+                                    </div>
+                                    <h4 className="text-lg font-bold text-foreground mb-1.5">Drag & drop your design</h4>
+                                    <p className="text-sm text-muted-foreground mb-3">or tap to browse</p>
+                                    <Badge variant="outline" className="text-xs text-muted-foreground">PNG recommended</Badge>
                                   </div>
-                                  <h4 className="text-base font-bold text-foreground mb-1">Drag & drop your design</h4>
-                                  <p className="text-xs text-muted-foreground mb-2">or tap to browse</p>
-                                  <Badge variant="outline" className="text-[10px] text-muted-foreground">PNG recommended</Badge>
                                 </div>
                               ) : (
                                 <div className="flex flex-col items-center justify-center py-6">
