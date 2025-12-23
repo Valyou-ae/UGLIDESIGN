@@ -428,12 +428,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteImage(imageId: string, userId: string): Promise<boolean> {
-    const result = await db
-      .delete(generatedImages)
-      .where(and(eq(generatedImages.id, imageId), eq(generatedImages.userId, userId)))
-      .returning();
+    // Use pool directly to avoid Neon HTTP driver caching issues
+    const { pool } = await import("./db");
     
-    return result.length > 0;
+    const result = await pool.query(
+      `DELETE FROM generated_images WHERE id = $1 AND user_id = $2 RETURNING id`,
+      [imageId, userId]
+    );
+    
+    return result.rows.length > 0;
   }
 
   async getUserStats(userId: string): Promise<{ images: number; mockups: number; bgRemoved: number; total: number }> {
@@ -888,12 +891,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPromptFavorites(userId: string): Promise<PromptFavorite[]> {
-    const results = await db
-      .select()
-      .from(promptFavorites)
-      .where(eq(promptFavorites.userId, userId))
-      .orderBy(desc(promptFavorites.createdAt));
-    return results || [];
+    // Use pool directly to avoid Neon HTTP driver issues
+    const { pool } = await import("./db");
+    
+    const result = await pool.query(
+      `SELECT * FROM prompt_favorites WHERE user_id = $1 ORDER BY created_at DESC`,
+      [userId]
+    );
+    
+    return result.rows.map((row: any) => ({
+      id: row.id,
+      userId: row.user_id,
+      name: row.name,
+      prompt: row.prompt,
+      style: row.style,
+      aspectRatio: row.aspect_ratio,
+      quality: row.quality,
+      detail: row.detail,
+      speed: row.speed,
+      createdAt: row.created_at,
+    }));
   }
 
   async deletePromptFavorite(id: string, userId: string): Promise<void> {
