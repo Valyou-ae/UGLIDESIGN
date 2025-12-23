@@ -825,7 +825,7 @@ function CTA() {
           </p>
           <Link href="/signup">
             <Button size="lg" className="bg-white text-[#ed5387] hover:bg-white/90 h-12 px-8" data-testid="button-cta-final">
-              Get Started Free
+              Get Started For FREE!
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>

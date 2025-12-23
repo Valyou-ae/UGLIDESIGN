@@ -451,7 +451,7 @@ export default function Pricing() {
                       ) : isCurrentPlan ? (
                         "Current Plan"
                       ) : plan.id === "free" ? (
-                        "Get Started Free"
+                        "Get Started For FREE!"
                       ) : (
                         <>
                           Upgrade to {plan.name}

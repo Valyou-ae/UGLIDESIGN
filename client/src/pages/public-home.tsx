@@ -477,7 +477,7 @@ function BrandingHeader({ isLoggedIn }: { isLoggedIn: boolean }) {
           className="ml-4 bg-gradient-to-r from-[#ed5387] to-[#9C27B0] hover:from-[#C2185B] hover:to-[#7B1FA2] text-white font-medium px-4 py-1.5 text-sm rounded-full shadow-lg shadow-[#ed5387]/30 transition-all hover:scale-105"
           data-testid="button-get-started-hero"
         >
-          Get Started Free
+          Get Started For FREE!
           <ArrowRight className="ml-2 h-3.5 w-3.5" />
         </Button>
       </div>
