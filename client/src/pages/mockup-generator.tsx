@@ -2005,15 +2005,15 @@ export default function MockupGenerator() {
                                       <label className="text-xs font-semibold text-muted-foreground mb-2 block">Ethnicity</label>
                                       <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                                         {[
-                                          { value: "White", label: "White" },
-                                          { value: "Black", label: "Black" },
-                                          { value: "Hispanic", label: "Hispanic" },
-                                          { value: "Asian", label: "Asian" },
-                                          { value: "Indian", label: "Indian" },
-                                          { value: "Southeast Asian", label: "SE Asian" },
-                                          { value: "Middle Eastern", label: "Mid Eastern" },
-                                          { value: "Indigenous", label: "Indigenous" },
-                                          { value: "Diverse", label: "Diverse" },
+                                          { value: "White", label: "White", image: "/attached_assets/generated_images/white_ethnicity_face_avatar.png" },
+                                          { value: "Black", label: "Black", image: "/attached_assets/generated_images/black_ethnicity_face_avatar.png" },
+                                          { value: "Hispanic", label: "Hispanic", image: "/attached_assets/generated_images/hispanic_ethnicity_face_avatar.png" },
+                                          { value: "Asian", label: "Asian", image: "/attached_assets/generated_images/asian_ethnicity_face_avatar.png" },
+                                          { value: "Indian", label: "Indian", image: "/attached_assets/generated_images/indian_ethnicity_face_avatar.png" },
+                                          { value: "Southeast Asian", label: "SE Asian", image: "/attached_assets/generated_images/se_asian_ethnicity_face_avatar.png" },
+                                          { value: "Middle Eastern", label: "Mid Eastern", image: "/attached_assets/generated_images/mid_eastern_ethnicity_avatar.png" },
+                                          { value: "Indigenous", label: "Indigenous", image: "/attached_assets/generated_images/indigenous_ethnicity_avatar.png" },
+                                          { value: "Diverse", label: "Diverse", image: "/attached_assets/generated_images/diverse_ethnicity_avatar.png" },
                                         ].map((option) => (
                                           <button
                                             key={option.value}
@@ -2025,7 +2025,11 @@ export default function MockupGenerator() {
                                                 : "bg-muted/30 border-border text-muted-foreground hover:border-primary/30"
                                             )}
                                           >
-                                            <User className="h-6 w-6" />
+                                            <img 
+                                              src={option.image} 
+                                              alt={option.label}
+                                              className="h-10 w-10 rounded-full object-cover border-2 border-border"
+                                            />
                                             <span className="text-xs font-medium leading-tight text-center">{option.label}</span>
                                           </button>
                                         ))}
