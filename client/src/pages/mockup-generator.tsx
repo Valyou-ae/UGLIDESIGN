@@ -2050,118 +2050,121 @@ export default function MockupGenerator() {
                           {!generatedMockups.length && !isGenerating ? (
                             <div className="flex-1 flex flex-col">
                               <div className="flex-1 overflow-y-auto scrollbar-hide space-y-4 pb-4">
-                                {/* Scene / Environment */}
-                                <div className="bg-card rounded-xl border border-border p-4 sm:p-5">
-                                  <div className="flex items-center gap-2 mb-3">
-                                    <Camera className="h-4 w-4 text-primary" />
-                                    <label className="text-sm font-bold text-foreground">Scene</label>
-                                  </div>
-                                  
-                                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-3">
-                                    {[
-                                      { icon: Building, label: "Urban", prompt: "A vibrant urban street scene with graffiti walls, neon lights, and natural sunlight" },
-                                      { icon: Camera, label: "Studio", prompt: "A minimalist gray or white photography studio with professional soft lighting" },
-                                      { icon: Trees, label: "Nature", prompt: "A beautiful outdoor park setting with lush greenery and golden hour lighting" },
-                                      { icon: Coffee, label: "Cafe", prompt: "A cozy coffee shop interior with warm lighting, wood accents, and modern decor" },
-                                      { icon: Dumbbell, label: "Gym", prompt: "A modern fitness gym with motivational atmosphere and athletic equipment" },
-                                      { icon: Sun, label: "Beach", prompt: "A sunny beach setting with sand, ocean waves, and bright summery daylight" },
-                                    ].map((template, i) => (
-                                      <button
-                                        key={i}
-                                        onClick={() => setEnvironmentPrompt(template.prompt)}
-                                        className={cn(
-                                          "flex flex-col items-center justify-center gap-1 p-2 rounded-lg border transition-all h-[60px]",
-                                          environmentPrompt === template.prompt
-                                            ? "bg-primary/10 border-primary"
-                                            : "bg-muted/30 border-border hover:border-primary/30"
-                                        )}
-                                      >
-                                        <template.icon className={cn("h-4 w-4", environmentPrompt === template.prompt ? "text-primary" : "text-muted-foreground")} />
-                                        <span className={cn("text-[10px] font-medium", environmentPrompt === template.prompt ? "text-primary" : "text-muted-foreground")}>{template.label}</span>
-                                      </button>
-                                    ))}
-                                  </div>
-                                  
-                                  <Textarea
-                                    value={environmentPrompt}
-                                    onChange={(e) => setEnvironmentPrompt(e.target.value)}
-                                    placeholder="Or describe a custom scene..."
-                                    className="h-20 text-sm resize-none"
-                                  />
-                                </div>
-
-                                {/* Angles Selection */}
-                                <div className="bg-card rounded-xl border border-border p-4 sm:p-5">
-                                  <div className="flex items-center justify-between mb-3">
-                                    <div className="flex items-center gap-2">
+                                {/* Scene + Camera Angles - Side by Side */}
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                  {/* Scene / Environment */}
+                                  <div className="bg-card rounded-xl border border-border p-4 sm:p-5">
+                                    <div className="flex items-center gap-2 mb-3">
                                       <Camera className="h-4 w-4 text-primary" />
-                                      <h3 className="text-sm font-bold text-foreground">Camera Angles</h3>
+                                      <label className="text-sm font-bold text-foreground">Scene</label>
                                     </div>
-                                    <div className="flex gap-2">
-                                      <button 
-                                        onClick={() => setSelectedAngles(MOCKUP_ANGLES.filter(a => a.recommended).map(a => a.id))}
-                                        className="text-[10px] font-medium text-green-600 hover:underline"
-                                      >
-                                        Recommended
-                                      </button>
-                                      <span className="text-border text-[10px]">|</span>
-                                      <button 
-                                        onClick={() => setSelectedAngles(MOCKUP_ANGLES.map(a => a.id))}
-                                        className="text-[10px] font-medium text-primary hover:underline"
-                                      >
-                                        All
-                                      </button>
-                                      <span className="text-border text-[10px]">|</span>
-                                      <button 
-                                        onClick={() => setSelectedAngles([])}
-                                        className="text-[10px] font-medium text-muted-foreground hover:underline"
-                                      >
-                                        Clear
-                                      </button>
+                                    
+                                    <div className="grid grid-cols-3 gap-2 mb-3">
+                                      {[
+                                        { icon: Building, label: "Urban", prompt: "A vibrant urban street scene with graffiti walls, neon lights, and natural sunlight" },
+                                        { icon: Camera, label: "Studio", prompt: "A minimalist gray or white photography studio with professional soft lighting" },
+                                        { icon: Trees, label: "Nature", prompt: "A beautiful outdoor park setting with lush greenery and golden hour lighting" },
+                                        { icon: Coffee, label: "Cafe", prompt: "A cozy coffee shop interior with warm lighting, wood accents, and modern decor" },
+                                        { icon: Dumbbell, label: "Gym", prompt: "A modern fitness gym with motivational atmosphere and athletic equipment" },
+                                        { icon: Sun, label: "Beach", prompt: "A sunny beach setting with sand, ocean waves, and bright summery daylight" },
+                                      ].map((template, i) => (
+                                        <button
+                                          key={i}
+                                          onClick={() => setEnvironmentPrompt(template.prompt)}
+                                          className={cn(
+                                            "flex flex-col items-center justify-center gap-1 p-2 rounded-lg border transition-all h-[60px]",
+                                            environmentPrompt === template.prompt
+                                              ? "bg-primary/10 border-primary"
+                                              : "bg-muted/30 border-border hover:border-primary/30"
+                                          )}
+                                        >
+                                          <template.icon className={cn("h-4 w-4", environmentPrompt === template.prompt ? "text-primary" : "text-muted-foreground")} />
+                                          <span className={cn("text-[10px] font-medium", environmentPrompt === template.prompt ? "text-primary" : "text-muted-foreground")}>{template.label}</span>
+                                        </button>
+                                      ))}
                                     </div>
+                                    
+                                    <Textarea
+                                      value={environmentPrompt}
+                                      onChange={(e) => setEnvironmentPrompt(e.target.value)}
+                                      placeholder="Or describe a custom scene..."
+                                      className="h-20 text-sm resize-none"
+                                    />
                                   </div>
-                                  
-                                  <TooltipProvider delayDuration={200}>
-                                    <div className="flex flex-wrap justify-center gap-3">
-                                      {MOCKUP_ANGLES.map((angle) => {
-                                        const isSelected = selectedAngles.includes(angle.id);
-                                        return (
-                                          <Tooltip key={angle.id}>
-                                            <TooltipTrigger asChild>
-                                              <button
-                                                onClick={() => {
-                                                  if (isSelected) {
-                                                    setSelectedAngles(selectedAngles.filter(id => id !== angle.id));
-                                                  } else {
-                                                    setSelectedAngles([...selectedAngles, angle.id]);
-                                                  }
-                                                }}
-                                                className={cn(
-                                                  "relative h-20 w-20 rounded-xl border-2 flex flex-col items-center justify-center gap-1.5 transition-all",
-                                                  isSelected 
-                                                    ? "bg-primary/10 border-primary text-primary" 
-                                                    : "bg-muted/30 border-border text-muted-foreground hover:border-primary/30"
-                                                )}
-                                                data-testid={`angle-${angle.id}`}
-                                              >
-                                                <angle.icon className="h-6 w-6" />
-                                                <span className="text-[10px] font-medium leading-tight">{angle.name.split(' ')[0]}</span>
-                                                {angle.recommended && !isSelected && (
-                                                  <div className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-green-500 rounded-full" />
-                                                )}
-                                                {isSelected && (
-                                                  <div className="absolute -top-1 -right-1 bg-primary rounded-full p-0.5">
-                                                    <Check className="h-2.5 w-2.5 text-white" />
-                                                  </div>
-                                                )}
-                                              </button>
-                                            </TooltipTrigger>
-                                            <TooltipContent side="bottom" className="text-xs">{angle.description}</TooltipContent>
-                                          </Tooltip>
-                                        );
-                                      })}
+
+                                  {/* Angles Selection */}
+                                  <div className="bg-card rounded-xl border border-border p-4 sm:p-5">
+                                    <div className="flex items-center justify-between mb-3">
+                                      <div className="flex items-center gap-2">
+                                        <Camera className="h-4 w-4 text-primary" />
+                                        <h3 className="text-sm font-bold text-foreground">Camera Angles</h3>
+                                      </div>
+                                      <div className="flex gap-2">
+                                        <button 
+                                          onClick={() => setSelectedAngles(MOCKUP_ANGLES.filter(a => a.recommended).map(a => a.id))}
+                                          className="text-xs font-medium text-green-600 hover:underline"
+                                        >
+                                          Recommended
+                                        </button>
+                                        <span className="text-border text-xs">|</span>
+                                        <button 
+                                          onClick={() => setSelectedAngles(MOCKUP_ANGLES.map(a => a.id))}
+                                          className="text-xs font-medium text-primary hover:underline"
+                                        >
+                                          All
+                                        </button>
+                                        <span className="text-border text-xs">|</span>
+                                        <button 
+                                          onClick={() => setSelectedAngles([])}
+                                          className="text-xs font-medium text-muted-foreground hover:underline"
+                                        >
+                                          Clear
+                                        </button>
+                                      </div>
                                     </div>
-                                  </TooltipProvider>
+                                    
+                                    <TooltipProvider delayDuration={200}>
+                                      <div className="flex flex-wrap justify-center gap-3">
+                                        {MOCKUP_ANGLES.map((angle) => {
+                                          const isSelected = selectedAngles.includes(angle.id);
+                                          return (
+                                            <Tooltip key={angle.id}>
+                                              <TooltipTrigger asChild>
+                                                <button
+                                                  onClick={() => {
+                                                    if (isSelected) {
+                                                      setSelectedAngles(selectedAngles.filter(id => id !== angle.id));
+                                                    } else {
+                                                      setSelectedAngles([...selectedAngles, angle.id]);
+                                                    }
+                                                  }}
+                                                  className={cn(
+                                                    "relative h-24 w-24 rounded-xl border-2 flex flex-col items-center justify-center gap-2 transition-all",
+                                                    isSelected 
+                                                      ? "bg-primary/10 border-primary text-primary" 
+                                                      : "bg-muted/30 border-border text-muted-foreground hover:border-primary/30"
+                                                  )}
+                                                  data-testid={`angle-${angle.id}`}
+                                                >
+                                                  <angle.icon className="h-8 w-8" />
+                                                  <span className="text-sm font-medium leading-tight">{angle.name.split(' ')[0]}</span>
+                                                  {angle.recommended && !isSelected && (
+                                                    <div className="absolute -top-1 -right-1 h-3 w-3 bg-green-500 rounded-full" />
+                                                  )}
+                                                  {isSelected && (
+                                                    <div className="absolute -top-1 -right-1 bg-primary rounded-full p-0.5">
+                                                      <Check className="h-3 w-3 text-white" />
+                                                    </div>
+                                                  )}
+                                                </button>
+                                              </TooltipTrigger>
+                                              <TooltipContent side="bottom" className="text-xs">{angle.description}</TooltipContent>
+                                            </Tooltip>
+                                          );
+                                        })}
+                                      </div>
+                                    </TooltipProvider>
+                                  </div>
                                 </div>
 
                                 {/* Quality + Summary */}
