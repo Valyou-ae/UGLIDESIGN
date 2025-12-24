@@ -1838,13 +1838,18 @@ export default function MockupGenerator() {
                       <button
                         key={img.id}
                         onClick={async () => {
-                          setSelectedRecentImageId(img.id);
-                          try {
-                            const dataUrl = await fetchImageAsDataUrl(img.imageUrl);
-                            setUploadedImage(dataUrl);
-                            setPreviewMinimized(false);
-                          } catch (error) {
-                            console.error("Failed to load recent image:", error);
+                          if (selectedRecentImageId === img.id) {
+                            setSelectedRecentImageId(null);
+                            setUploadedImage(null);
+                          } else {
+                            setSelectedRecentImageId(img.id);
+                            try {
+                              const dataUrl = await fetchImageAsDataUrl(img.imageUrl);
+                              setUploadedImage(dataUrl);
+                              setPreviewMinimized(false);
+                            } catch (error) {
+                              console.error("Failed to load recent image:", error);
+                            }
                           }
                         }}
                         className={cn(
