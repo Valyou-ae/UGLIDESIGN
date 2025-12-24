@@ -286,12 +286,21 @@ const OUTPUT_QUALITY_OPTIONS: { id: OutputQuality; name: string; resolution: str
   { id: "ultra", name: "Ultra", resolution: "2048px", credits: 4, bestFor: "Print-ready, large format, professional catalogs" }
 ];
 
+interface MockupVersion {
+  id: string;
+  src: string;
+  prompt?: string;
+  timestamp: Date;
+}
+
 interface MockupDetails {
   src: string;
   angle: string;
   color: string;
   size: string;
   index: number;
+  versions?: MockupVersion[];
+  currentVersionIndex?: number;
 }
 
 interface GeneratedMockupData {
@@ -300,6 +309,8 @@ interface GeneratedMockupData {
   color: string;
   size: string;
   isLiked?: boolean;
+  versions?: MockupVersion[];
+  currentVersionIndex?: number;
 }
 
 const DTG_STEPS: WizardStep[] = ["design", "product", "customize", "output"];
@@ -870,6 +881,8 @@ export default function MockupGenerator() {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const [selectedMockupDetails, setSelectedMockupDetails] = useState<MockupDetails | null>(null);
+  const [popupEditPrompt, setPopupEditPrompt] = useState("");
+  const [isEditingMockup, setIsEditingMockup] = useState(false);
   const [summaryOpen, setSummaryOpen] = useState(true);
   const [previewMinimized, setPreviewMinimized] = useState(true);
   const [showTransferBanner, setShowTransferBanner] = useState(false);
@@ -2758,6 +2771,216 @@ export default function MockupGenerator() {
             </div>
           </div>
         )}
+
+        {/* Mockup Details Popup */}
+        <AnimatePresence>
+          {selectedMockupDetails && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+              onClick={() => {
+                setSelectedMockupDetails(null);
+                setPopupEditPrompt("");
+              }}
+              data-testid="mockup-popup-overlay"
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                transition={{ type: "spring", duration: 0.3 }}
+                className="relative flex flex-col md:flex-row bg-background rounded-2xl overflow-hidden max-w-5xl w-full max-h-[90vh] shadow-2xl border border-border"
+                onClick={(e) => e.stopPropagation()}
+                data-testid="mockup-popup-content"
+              >
+                {/* Left: Image */}
+                <div className="flex-1 bg-muted/20 flex items-center justify-center p-4 md:p-8 min-h-[300px] md:min-h-[500px]">
+                  <img
+                    src={selectedMockupDetails.versions && selectedMockupDetails.versions.length > 0
+                      ? selectedMockupDetails.versions[selectedMockupDetails.currentVersionIndex ?? 0]?.src
+                      : selectedMockupDetails.src}
+                    alt="Mockup Preview"
+                    className="max-w-full max-h-[60vh] object-contain rounded-lg shadow-lg"
+                    data-testid="mockup-popup-image"
+                  />
+                </div>
+
+                {/* Right: Details */}
+                <div className="w-full md:w-[380px] bg-card border-t md:border-t-0 md:border-l border-border flex flex-col">
+                  <div className="p-4 md:p-6 border-b border-border flex justify-between items-center shrink-0">
+                    <h3 className="font-bold text-foreground">Mockup Details</h3>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setSelectedMockupDetails(null);
+                        setPopupEditPrompt("");
+                      }}
+                      className="text-muted-foreground hover:text-foreground"
+                      data-testid="mockup-popup-close"
+                    >
+                      <X className="h-5 w-5" />
+                    </Button>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+                    {/* Actions */}
+                    <div className="grid grid-cols-4 gap-2">
+                      <Button
+                        variant="ghost"
+                        className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
+                        onClick={() => {
+                          const currentSrc = selectedMockupDetails.versions && selectedMockupDetails.versions.length > 0
+                            ? selectedMockupDetails.versions[selectedMockupDetails.currentVersionIndex ?? 0]?.src
+                            : selectedMockupDetails.src;
+                          const link = document.createElement('a');
+                          link.href = currentSrc;
+                          link.download = `mockup_${selectedMockupDetails.index + 1}.png`;
+                          link.click();
+                        }}
+                        data-testid="mockup-popup-download"
+                      >
+                        <Download className="h-5 w-5" />
+                        <span className="text-[10px]">Download</span>
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
+                        onClick={() => {
+                          const currentSrc = selectedMockupDetails.versions && selectedMockupDetails.versions.length > 0
+                            ? selectedMockupDetails.versions[selectedMockupDetails.currentVersionIndex ?? 0]?.src
+                            : selectedMockupDetails.src;
+                          navigator.clipboard.writeText(currentSrc);
+                          toast({ title: "Image URL copied!" });
+                        }}
+                        data-testid="mockup-popup-copy"
+                      >
+                        <Copy className="h-5 w-5" />
+                        <span className="text-[10px]">Copy</span>
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border"
+                        onClick={() => {
+                          setGeneratedMockups(prev => prev.map((m, i) =>
+                            i === selectedMockupDetails.index ? { ...m, isLiked: !m.isLiked } : m
+                          ));
+                          toast({ title: generatedMockups[selectedMockupDetails.index]?.isLiked ? "Removed from favorites" : "Added to favorites!" });
+                        }}
+                        data-testid="mockup-popup-like"
+                      >
+                        <Heart className={cn("h-5 w-5", generatedMockups[selectedMockupDetails.index]?.isLiked && "fill-red-500 text-red-500")} />
+                        <span className="text-[10px]">Like</span>
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        className="flex flex-col h-16 gap-1 bg-muted/30 hover:bg-muted text-foreground rounded-xl border border-border text-destructive hover:text-destructive"
+                        onClick={() => {
+                          setGeneratedMockups(prev => prev.filter((_, i) => i !== selectedMockupDetails.index));
+                          setSelectedMockupDetails(null);
+                          toast({ title: "Mockup deleted" });
+                        }}
+                        data-testid="mockup-popup-delete"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                        <span className="text-[10px]">Delete</span>
+                      </Button>
+                    </div>
+
+                    {/* Edit Prompt */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Edit with Prompt</label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={popupEditPrompt}
+                          onChange={(e) => setPopupEditPrompt(e.target.value)}
+                          placeholder="Describe changes you want..."
+                          className="w-full text-sm px-3 pr-10 py-2.5 rounded-xl border border-border bg-muted/30 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && popupEditPrompt.trim()) {
+                              toast({ title: "Edit feature coming soon!", description: "This will regenerate the mockup with your prompt." });
+                            }
+                          }}
+                          data-testid="mockup-popup-edit-input"
+                        />
+                        <button
+                          className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 flex items-center justify-center rounded-lg bg-primary hover:bg-primary/90 text-white transition-colors disabled:opacity-50"
+                          disabled={!popupEditPrompt.trim() || isEditingMockup}
+                          onClick={() => {
+                            if (popupEditPrompt.trim()) {
+                              toast({ title: "Edit feature coming soon!", description: "This will regenerate the mockup with your prompt." });
+                            }
+                          }}
+                          data-testid="mockup-popup-edit-submit"
+                        >
+                          {isEditingMockup ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Rocket className="h-3.5 w-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Mockup Info */}
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Details</label>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Color</span>
+                          <span className="text-foreground font-medium">{selectedMockupDetails.color}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Angle</span>
+                          <span className="text-foreground font-medium">{selectedMockupDetails.angle}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Size</span>
+                          <span className="text-foreground font-medium">{selectedMockupDetails.size}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Version History */}
+                    {selectedMockupDetails.versions && selectedMockupDetails.versions.length > 1 && (
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Version History</label>
+                        <div className="flex gap-2 overflow-x-auto pb-2">
+                          {selectedMockupDetails.versions.map((version, vIndex) => (
+                            <button
+                              key={version.id}
+                              className={cn(
+                                "relative shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all",
+                                (selectedMockupDetails.currentVersionIndex ?? 0) === vIndex
+                                  ? "border-primary ring-2 ring-primary/30"
+                                  : "border-border hover:border-primary/50"
+                              )}
+                              onClick={() => {
+                                const mockupIndex = selectedMockupDetails.index;
+                                setGeneratedMockups(prev => prev.map((m, i) =>
+                                  i === mockupIndex ? { ...m, currentVersionIndex: vIndex } : m
+                                ));
+                                setSelectedMockupDetails(prev => prev ? { ...prev, currentVersionIndex: vIndex } : null);
+                              }}
+                              data-testid={`mockup-version-${vIndex}`}
+                            >
+                              <img src={version.src} alt={`Version ${vIndex + 1}`} className="w-full h-full object-cover" />
+                              <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[8px] text-center py-0.5">
+                                V{vIndex + 1}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
     </div>
   );
