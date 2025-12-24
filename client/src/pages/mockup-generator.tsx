@@ -1653,7 +1653,7 @@ export default function MockupGenerator() {
                   <div className="absolute inset-0 bg-gradient-to-r from-[#A78BFA]/5 via-transparent to-[#C4B5FD]/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                   <Badge className="absolute top-3 right-3 md:top-5 md:right-5 bg-gradient-to-r from-[#A78BFA] to-[#C4B5FD] text-white text-[10px] md:text-[11px]">
                     <Sparkles className="h-3 w-3 mr-1" />
-                    AI Magic
+                    UGLI Magic
                   </Badge>
                   
                   <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 relative">
@@ -1731,7 +1731,7 @@ export default function MockupGenerator() {
                 </div>
                 <Badge className="bg-gradient-to-r from-[#A78BFA] to-[#C4B5FD] text-white rounded-full px-2 py-0.5 text-[11px]">
                   <Sparkles className="h-3 w-3 mr-1" />
-                  AI Magic
+                  UGLI Magic
                 </Badge>
               </div>
               <p className="text-sm md:text-[15px] text-muted-foreground">
