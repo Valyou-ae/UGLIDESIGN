@@ -1917,7 +1917,7 @@ export default function ImageGenerator() {
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
           {/* Main Content - 3/4 width on lg+ */}
           <div className="flex-1 lg:basis-3/4 overflow-y-auto p-6 md:p-8 pb-40 md:pb-10 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-            <div className="max-w-[1200px] mx-auto space-y-8">
+            <div className="space-y-8">
             
             {/* Generation Status - Shows during generation with progressive image cards */}
             {status === "generating" && pendingImages.length > 0 && (
