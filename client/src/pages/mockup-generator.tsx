@@ -89,7 +89,8 @@ import {
   Flower2,
   Ghost,
   Leaf,
-  PartyPopper
+  PartyPopper,
+  Rocket
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -2682,14 +2683,21 @@ export default function MockupGenerator() {
                                         </DropdownMenu>
                                       </div>
                                     </motion.div>
-                                      <div className="relative">
+                                      <div className="relative flex gap-1">
                                         <input
                                           type="text"
                                           placeholder="Edit with prompt..."
-                                          className="w-full text-xs px-2 py-1.5 rounded-lg border border-border bg-background/80 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                                          className="flex-1 text-xs px-2 py-1.5 rounded-lg border border-border bg-background/80 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                                           onClick={(e) => e.stopPropagation()}
                                           data-testid={`mockup-edit-prompt-${index}`}
                                         />
+                                        <button
+                                          className="h-7 w-7 flex items-center justify-center rounded-lg bg-primary hover:bg-primary/90 text-white transition-colors shrink-0"
+                                          onClick={(e) => e.stopPropagation()}
+                                          data-testid={`mockup-edit-submit-${index}`}
+                                        >
+                                          <Rocket className="h-3.5 w-3.5" />
+                                        </button>
                                       </div>
                                     </div>
                                   ))}
