@@ -834,4 +834,122 @@ export async function registerMockupRoutes(app: Express, middleware: Middleware)
       res.status(500).json({ success: false, message: "AI pattern generation failed" });
     }
   });
+
+  // ============== MOCKUP VERSION HISTORY ROUTES ==============
+  const { storage } = await import("../storage");
+
+  // Save a new version
+  app.post("/api/mockup/versions", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { sessionId, imageUrl, thumbnailUrl, prompt, productName, productColor, productSize, angle, metadata } = req.body;
+
+      if (!sessionId || !imageUrl) {
+        return res.status(400).json({ message: "Session ID and image URL are required" });
+      }
+
+      // Get next version number
+      const latestVersion = await storage.getLatestVersionNumber(userId, sessionId);
+      const versionNumber = latestVersion + 1;
+
+      const version = await storage.saveMockupVersion({
+        userId,
+        mockupSessionId: sessionId,
+        imageUrl,
+        thumbnailUrl,
+        prompt,
+        productName,
+        productColor,
+        productSize,
+        angle,
+        versionNumber,
+        metadata
+      });
+
+      res.json({ success: true, version });
+    } catch (error) {
+      logger.error("Save mockup version error", error, { source: "mockup" });
+      res.status(500).json({ message: "Failed to save version" });
+    }
+  });
+
+  // Get versions for a session
+  app.get("/api/mockup/versions/:sessionId", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { sessionId } = req.params;
+      const versions = await storage.getMockupVersions(userId, sessionId);
+
+      res.json({ versions });
+    } catch (error) {
+      logger.error("Get mockup versions error", error, { source: "mockup" });
+      res.status(500).json({ message: "Failed to get versions" });
+    }
+  });
+
+  // Get a specific version
+  app.get("/api/mockup/version/:versionId", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { versionId } = req.params;
+      const version = await storage.getMockupVersion(userId, versionId);
+
+      if (!version) {
+        return res.status(404).json({ message: "Version not found" });
+      }
+
+      res.json({ version });
+    } catch (error) {
+      logger.error("Get mockup version error", error, { source: "mockup" });
+      res.status(500).json({ message: "Failed to get version" });
+    }
+  });
+
+  // Get user's mockup sessions with version counts
+  app.get("/api/mockup/sessions", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const limit = parseInt(req.query.limit as string) || 20;
+      const sessions = await storage.getUserMockupSessions(userId, limit);
+
+      res.json({ sessions });
+    } catch (error) {
+      logger.error("Get mockup sessions error", error, { source: "mockup" });
+      res.status(500).json({ message: "Failed to get sessions" });
+    }
+  });
+
+  // Delete a version
+  app.delete("/api/mockup/version/:versionId", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { versionId } = req.params;
+      await storage.deleteMockupVersion(userId, versionId);
+
+      res.json({ success: true });
+    } catch (error) {
+      logger.error("Delete mockup version error", error, { source: "mockup" });
+      res.status(500).json({ message: "Failed to delete version" });
+    }
+  });
 }

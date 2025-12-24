@@ -141,7 +141,7 @@ export interface IStorage {
   removeItemFromBoard(itemId: string): Promise<void>;
   verifyBoardItemOwnership(userId: string, itemId: string): Promise<boolean>;
 
-  getGalleryImages(limit?: number): Promise<GalleryImage[]>;
+  getGalleryImages(limit?: number): Promise<Omit<GalleryImage, 'imageUrl'>[]>;
   getGalleryImageById(imageId: string): Promise<GalleryImage | undefined>;
   getGalleryImageBySourceId(sourceImageId: string): Promise<GalleryImage | undefined>;
   createGalleryImage(data: { title: string; imageUrl: string; creator: string; category?: string; aspectRatio?: string; prompt?: string; sourceImageId?: string }): Promise<GalleryImage>;
