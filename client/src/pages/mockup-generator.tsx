@@ -81,7 +81,10 @@ import {
   Package,
   RotateCw,
   Archive,
-  Sliders
+  Sliders,
+  MoreVertical,
+  Trash2,
+  Palette as PaletteIcon
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -119,6 +122,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import {
   Command,
   CommandInput,
@@ -196,6 +206,7 @@ interface GeneratedMockupData {
   angle: string;
   color: string;
   size: string;
+  isLiked?: boolean;
 }
 
 const DTG_STEPS: WizardStep[] = ["design", "product", "customize", "output"];
@@ -2429,8 +2440,94 @@ export default function MockupGenerator() {
                                           <Download className="h-4 w-4 mr-1" /> Download
                                         </Button>
                                       </div>
-                                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
-                                        <p className="text-[10px] text-white truncate">{mockup.color} • {mockup.angle}</p>
+                                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 flex items-end justify-between">
+                                        <p className="text-[10px] text-white truncate flex-1">{mockup.color} • {mockup.angle}</p>
+                                        <DropdownMenu>
+                                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                            <button 
+                                              className="h-6 w-6 rounded-full bg-black/40 hover:bg-black/60 flex items-center justify-center transition-colors"
+                                              data-testid={`mockup-menu-${index}`}
+                                            >
+                                              <MoreVertical className="h-3.5 w-3.5 text-white" />
+                                            </button>
+                                          </DropdownMenuTrigger>
+                                          <DropdownMenuContent align="end" className="w-44">
+                                            <DropdownMenuItem 
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                const route = transferImageToTool({
+                                                  id: `mockup-${Date.now()}`,
+                                                  src: mockup.src,
+                                                  name: `${selectedProductType} mockup`,
+                                                  type: "mockup"
+                                                }, "bg-remover");
+                                                setLocation(route);
+                                              }}
+                                              data-testid={`mockup-menu-bg-remover-${index}`}
+                                            >
+                                              <Scissors className="h-4 w-4 mr-2" />
+                                              BG Remover
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem 
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setLocation("/image-generator");
+                                              }}
+                                              data-testid={`mockup-menu-image-gen-${index}`}
+                                            >
+                                              <Wand2 className="h-4 w-4 mr-2" />
+                                              Image Generation
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem 
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                const route = transferImageToTool({
+                                                  id: `mockup-${Date.now()}`,
+                                                  src: mockup.src,
+                                                  name: `${selectedProductType} mockup`,
+                                                  type: "mockup"
+                                                }, "style-transfer");
+                                                setLocation(route);
+                                              }}
+                                              data-testid={`mockup-menu-change-style-${index}`}
+                                            >
+                                              <PaletteIcon className="h-4 w-4 mr-2" />
+                                              Change Style
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem 
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setGeneratedMockups(prev => prev.map((m, i) => 
+                                                  i === index ? { ...m, isLiked: !m.isLiked } : m
+                                                ));
+                                                toast({
+                                                  title: mockup.isLiked ? "Removed from favorites" : "Added to favorites",
+                                                  description: mockup.isLiked ? "Mockup unliked" : "Mockup added to favorites",
+                                                });
+                                              }}
+                                              data-testid={`mockup-menu-like-${index}`}
+                                            >
+                                              <Heart className={cn("h-4 w-4 mr-2", mockup.isLiked && "fill-current text-red-500")} />
+                                              {mockup.isLiked ? "Unlike" : "Like"}
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem 
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setGeneratedMockups(prev => prev.filter((_, i) => i !== index));
+                                                toast({
+                                                  title: "Deleted",
+                                                  description: "Mockup removed",
+                                                });
+                                              }}
+                                              className="text-destructive focus:text-destructive"
+                                              data-testid={`mockup-menu-delete-${index}`}
+                                            >
+                                              <Trash2 className="h-4 w-4 mr-2" />
+                                              Delete
+                                            </DropdownMenuItem>
+                                          </DropdownMenuContent>
+                                        </DropdownMenu>
                                       </div>
                                     </motion.div>
                                   ))}
