@@ -877,7 +877,7 @@ export async function registerMockupRoutes(app: Express, middleware: Middleware)
     }
   });
 
-  // Get versions for a session
+  // Get versions for a session (optionally filtered by angle/color)
   app.get("/api/mockup/versions/:sessionId", requireAuth, async (req: Request, res: Response) => {
     try {
       const userId = req.user?.id;
@@ -886,7 +886,12 @@ export async function registerMockupRoutes(app: Express, middleware: Middleware)
       }
 
       const { sessionId } = req.params;
-      const versions = await storage.getMockupVersions(userId, sessionId);
+      const angle = req.query.angle as string | undefined;
+      const color = req.query.color as string | undefined;
+      const size = req.query.size as string | undefined;
+      const productName = req.query.productName as string | undefined;
+      
+      const versions = await storage.getMockupVersions(userId, sessionId, { angle, color, size, productName });
 
       res.json({ versions });
     } catch (error) {
