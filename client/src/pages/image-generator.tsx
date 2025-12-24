@@ -63,11 +63,6 @@ import {
   BookmarkCheck,
   Heart,
   Coins,
-  Trophy,
-  Crown,
-  Medal,
-  Award,
-  Eye,
   FolderInput,
   Shirt,
   Scissors,
@@ -120,7 +115,6 @@ import { useLocation } from "wouter";
 import { transferImageToTool } from "@/lib/image-transfer";
 import { TutorialOverlay, useTutorial } from "@/components/tutorial-overlay";
 import { useCredits } from "@/hooks/use-credits";
-import { DailyInspirationFeed, PersonalizedPrompts } from "@/components/daily-inspiration";
 
 // Import generated images for the gallery
 import cyberpunkCity from "@assets/generated_images/futuristic_cyberpunk_city_street_at_night_with_neon_lights_and_rain.png";
@@ -143,36 +137,6 @@ type GeneratedImage = {
   alreadySaved?: boolean;  // For images already saved by backend (premium mode)
   isPublic?: boolean;  // Whether image is visible in public gallery
 };
-
-interface LeaderboardEntry {
-  userId: string;
-  username: string | null;
-  displayName: string | null;
-  profileImageUrl: string | null;
-  imageCount: number;
-  likeCount: number;
-  viewCount: number;
-  rank: number;
-}
-
-async function fetchLeaderboard(): Promise<{ leaderboard: LeaderboardEntry[] }> {
-  const response = await fetch(`/api/leaderboard?period=all-time&limit=5`);
-  if (!response.ok) throw new Error("Failed to fetch leaderboard");
-  return response.json();
-}
-
-function getRankIcon(rank: number) {
-  switch (rank) {
-    case 1:
-      return <Crown className="h-4 w-4 text-yellow-500" />;
-    case 2:
-      return <Medal className="h-4 w-4 text-gray-400" />;
-    case 3:
-      return <Award className="h-4 w-4 text-purple-600" />;
-    default:
-      return <span className="text-muted-foreground font-mono text-xs">#{rank}</span>;
-  }
-}
 
 type Agent = {
   id: number;
@@ -291,14 +255,6 @@ export default function ImageGenerator() {
   } = useTutorial();
 
   const { credits, invalidate: invalidateCredits } = useCredits();
-
-  const { data: leaderboardData, isLoading: isLoadingLeaderboard, error: leaderboardError } = useQuery({
-    queryKey: ['leaderboard', 'all-time'],
-    queryFn: fetchLeaderboard,
-    staleTime: 1000 * 30,
-    refetchInterval: 1000 * 30,
-  });
-  const topCreators = leaderboardData?.leaderboard || [];
 
   useEffect(() => {
     if (tutorialCompleted) return;
@@ -1914,9 +1870,9 @@ export default function ImageGenerator() {
         </div>
 
         {/* CREATIVE WORKSPACE */}
-        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-          {/* Main Content - 3/4 width on lg+ */}
-          <div className="flex-1 lg:basis-3/4 overflow-y-auto p-6 md:p-8 pb-40 md:pb-10 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Main Content - Full width (matches My Creations layout) */}
+          <div className="flex-1 overflow-y-auto p-6 md:p-8 pb-40 md:pb-10 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             <div className="space-y-8">
             
             {/* Generation Status - Shows during generation with progressive image cards */}
@@ -2182,87 +2138,6 @@ export default function ImageGenerator() {
                 </p>
               </div>
             )}
-            </div>
-          </div>
-          
-          {/* Inspiration Section - 1/4 width on lg+, hidden on mobile */}
-          <div className="hidden lg:flex lg:basis-1/4 border-l border-border overflow-y-auto bg-background">
-            <div className="w-full p-4 space-y-6">
-              <PersonalizedPrompts onTryPrompt={(prompt: string) => setPrompt(prompt)} />
-              <DailyInspirationFeed onTryPrompt={(prompt) => setPrompt(prompt)} />
-              
-              {/* Top Creators Leaderboard */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Trophy className="h-4 w-4 text-[#9C27B0]" />
-                  <h3 className="text-sm font-semibold text-foreground">Top Creators</h3>
-                </div>
-                <div className="bg-muted/30 border border-border rounded-xl p-4">
-                  {isLoadingLeaderboard ? (
-                    <div className="space-y-3">
-                      {[...Array(5)].map((_, i) => (
-                        <div key={i} className="flex items-center gap-3 p-2 animate-pulse">
-                          <div className="w-6 h-4 bg-muted rounded" />
-                          <div className="h-8 w-8 bg-muted rounded-full" />
-                          <div className="flex-1">
-                            <div className="h-4 w-24 bg-muted rounded" />
-                          </div>
-                          <div className="text-right">
-                            <div className="h-4 w-8 bg-muted rounded" />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : leaderboardError ? (
-                    <div className="text-center py-4">
-                      <p className="text-sm text-muted-foreground">Could not load leaderboard</p>
-                    </div>
-                  ) : topCreators.length === 0 ? (
-                    <div className="text-center py-4">
-                      <p className="text-sm text-muted-foreground">Be the first to create!</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {topCreators.map((creator) => (
-                        <div
-                          key={creator.userId}
-                          className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
-                          data-testid={`leaderboard-entry-${creator.rank}`}
-                        >
-                          <div className="w-6 flex justify-center shrink-0">
-                            {getRankIcon(creator.rank)}
-                          </div>
-                          <Avatar className="h-8 w-8 shrink-0">
-                            <AvatarImage src={creator.profileImageUrl || undefined} />
-                            <AvatarFallback className="text-xs">
-                              {(creator.displayName || creator.username || "U").slice(0, 2).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">
-                              {creator.displayName || creator.username || "Anonymous"}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-3 shrink-0">
-                            <div className="flex items-center gap-1 text-muted-foreground">
-                              <ImageIcon className="h-3 w-3" />
-                              <span className="text-xs font-medium">{creator.imageCount}</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-muted-foreground">
-                              <Heart className="h-3 w-3" />
-                              <span className="text-xs font-medium">{creator.likeCount}</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-muted-foreground">
-                              <Eye className="h-3 w-3" />
-                              <span className="text-xs font-medium">{creator.viewCount}</span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
             </div>
           </div>
         </div>
