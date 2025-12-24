@@ -117,7 +117,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getTransferredImage, clearTransferredImage, fetchImageAsDataUrl, transferImageToTool } from "@/lib/image-transfer";
 import { useLocation } from "wouter";
 import { Input } from "@/components/ui/input";
-import { mockupApi, MockupEvent } from "@/lib/api";
+import { mockupApi, MockupEvent, TextToMockupProgressEvent, TextToMockupParsedPrompt } from "@/lib/api";
 import {
   Collapsible,
   CollapsibleContent,
@@ -163,7 +163,7 @@ import ethnicityDiverse from "@assets/generated_images/diverse_ethnicity_avatar.
 
 
 // Types
-type JourneyType = "DTG" | "AOP" | null;
+type JourneyType = "DTG" | "AOP" | "TEXT_TO_MOCKUP" | null;
 type WizardStep = 
   | "design"    // Upload + Seamless for AOP
   | "product"   // Product picker only
@@ -894,6 +894,15 @@ export default function MockupGenerator() {
   const [availableSizes, setAvailableSizes] = useState<{code: string; label: string}[]>([]);
   const [isLoadingSizes, setIsLoadingSizes] = useState(false);
 
+  // Text-to-Mockup state
+  const [textToMockupPrompt, setTextToMockupPrompt] = useState("");
+  const [textToMockupParsedPrompt, setTextToMockupParsedPrompt] = useState<TextToMockupParsedPrompt | null>(null);
+  const [textToMockupDesignImage, setTextToMockupDesignImage] = useState<string | null>(null);
+  const [textToMockupMockupImage, setTextToMockupMockupImage] = useState<string | null>(null);
+  const [textToMockupProgress, setTextToMockupProgress] = useState(0);
+  const [textToMockupStage, setTextToMockupStage] = useState("");
+  const [isTextToMockupGenerating, setIsTextToMockupGenerating] = useState(false);
+
   const completedJobs = batchJobs.filter(j => j.status === 'completed').length;
   const failedJobsCount = batchJobs.filter(j => j.status === 'failed').length;
   const pendingJobs = batchJobs.filter(j => j.status === 'pending').length;
@@ -1249,6 +1258,79 @@ export default function MockupGenerator() {
   const handleJourneySelect = (type: JourneyType) => {
     setJourney(type);
     setCurrentStepIndex(0);
+    // Reset text-to-mockup state when switching modes
+    if (type !== "TEXT_TO_MOCKUP") {
+      setTextToMockupPrompt("");
+      setTextToMockupParsedPrompt(null);
+      setTextToMockupDesignImage(null);
+      setTextToMockupMockupImage(null);
+      setTextToMockupProgress(0);
+      setTextToMockupStage("");
+    }
+  };
+
+  const handleTextToMockupGenerate = async () => {
+    if (!textToMockupPrompt.trim() || isTextToMockupGenerating) return;
+
+    setIsTextToMockupGenerating(true);
+    setTextToMockupProgress(0);
+    setTextToMockupStage("Starting...");
+    setTextToMockupDesignImage(null);
+    setTextToMockupMockupImage(null);
+    setTextToMockupParsedPrompt(null);
+
+    try {
+      await mockupApi.textToMockup(
+        textToMockupPrompt,
+        { outputQuality },
+        (event: TextToMockupProgressEvent) => {
+          setTextToMockupProgress(event.progress);
+          setTextToMockupStage(event.message);
+
+          if (event.parsedPrompt) {
+            setTextToMockupParsedPrompt(event.parsedPrompt);
+          }
+          if (event.designImage) {
+            setTextToMockupDesignImage(`data:image/png;base64,${event.designImage}`);
+          }
+          if (event.mockupImage) {
+            setTextToMockupMockupImage(`data:image/png;base64,${event.mockupImage}`);
+          }
+
+          if (event.stage === "complete") {
+            toast({
+              title: "Mockup Generated!",
+              description: "Your AI-generated mockup is ready.",
+              className: "bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-900/50 dark:text-green-400",
+            });
+          } else if (event.stage === "error") {
+            toast({
+              title: "Generation Failed",
+              description: event.error || "Failed to generate mockup",
+              variant: "destructive",
+            });
+          }
+        }
+      );
+    } catch (error: any) {
+      console.error("Text-to-mockup generation failed:", error);
+      toast({
+        title: "Generation Failed",
+        description: error.message || "Failed to generate mockup. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsTextToMockupGenerating(false);
+    }
+  };
+
+  const handleTextToMockupReset = () => {
+    setTextToMockupPrompt("");
+    setTextToMockupParsedPrompt(null);
+    setTextToMockupDesignImage(null);
+    setTextToMockupMockupImage(null);
+    setTextToMockupProgress(0);
+    setTextToMockupStage("");
   };
 
   // Categories that should skip the customize (size/colors) step
@@ -1561,6 +1643,38 @@ export default function MockupGenerator() {
                 </div>
               </div>
 
+              {/* Text-to-Mockup Card - Full Width Below */}
+              <div className="w-full max-w-[900px] mt-3 md:mt-6">
+                <div 
+                  onClick={() => handleJourneySelect("TEXT_TO_MOCKUP")}
+                  className="bg-gradient-to-br from-card to-card/80 border-2 border-border rounded-[20px] md:rounded-[24px] p-5 md:p-8 text-left cursor-pointer transition-all duration-300 hover:border-[#E3B436] hover:-translate-y-1 hover:shadow-2xl hover:shadow-[#E3B436]/15 group relative overflow-hidden"
+                  data-testid="button-text-to-mockup"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#E3B436]/5 via-transparent to-[#ed5387]/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <Badge className="absolute top-3 right-3 md:top-5 md:right-5 bg-gradient-to-r from-[#E3B436] to-[#ed5387] text-white text-[10px] md:text-[11px]">
+                    <Sparkles className="h-3 w-3 mr-1" />
+                    AI Magic
+                  </Badge>
+                  
+                  <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 relative">
+                    <div className="h-12 w-12 md:h-16 md:w-16 rounded-xl bg-gradient-to-br from-[#E3B436]/20 to-[#ed5387]/20 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                      <Wand2 className="h-6 w-6 md:h-8 md:w-8 text-[#E3B436]" />
+                    </div>
+                    
+                    <div className="flex-1">
+                      <h3 className="text-lg md:text-xl font-bold text-foreground mb-1 md:mb-2">Text-to-Mockup</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Describe your vision in plain English and let AI generate both the design AND the mockup. Just say "white hoodie with a geometric wolf design, urban street setting" and watch the magic happen.
+                      </p>
+                    </div>
+                    
+                    <span className="text-xs md:text-sm font-bold text-[#E3B436] group-hover:underline flex items-center shrink-0">
+                      Try it <ChevronRight className="h-3 w-3 md:h-4 md:w-4 ml-1" />
+                    </span>
+                  </div>
+                </div>
+              </div>
+
               {/* Design Transfer Banner - shown below DTG/AOP cards */}
               <AnimatePresence>
                 {showTransferBanner && uploadedImage && (
@@ -1595,8 +1709,258 @@ export default function MockupGenerator() {
               </AnimatePresence>
             </div>
           </div>
+        ) : journey === "TEXT_TO_MOCKUP" ? (
+          // State 2b: Text-to-Mockup Mode
+          <div className="p-4 md:p-8 lg:p-10 max-w-[1000px] mx-auto min-h-full flex flex-col animate-fade-in">
+            {/* Header */}
+            <div className="mb-6 md:mb-8">
+              <div className="flex items-center text-[13px] text-muted-foreground mb-2">
+                <button onClick={() => setJourney(null)} className="hover:text-foreground transition-colors">
+                  Home
+                </button>
+                <span className="mx-2">/</span>
+                <span>Text-to-Mockup</span>
+              </div>
+              
+              <div className="flex flex-wrap items-center gap-3 mb-2">
+                <div className="flex items-center gap-2">
+                  <h1 className="text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-[#E3B436] to-[#ed5387] bg-clip-text text-transparent">
+                    Text-to-Mockup
+                  </h1>
+                  <Wand2 className="h-5 w-5 md:h-6 md:w-6 text-[#E3B436]" />
+                </div>
+                <Badge className="bg-gradient-to-r from-[#E3B436] to-[#ed5387] text-white rounded-full px-2 py-0.5 text-[11px]">
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  AI Magic
+                </Badge>
+              </div>
+              <p className="text-sm md:text-[15px] text-muted-foreground">
+                Describe your vision and AI will generate both the design and the mockup
+              </p>
+            </div>
+
+            {/* Main Content */}
+            <div className="flex-1 flex flex-col gap-6">
+              {/* Prompt Input Card */}
+              <div className="bg-card border border-border rounded-2xl p-5 md:p-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <Sparkles className="h-5 w-5 text-[#E3B436]" />
+                  <h2 className="text-lg font-bold text-foreground">Describe Your Mockup</h2>
+                </div>
+                
+                <Textarea
+                  placeholder="Example: A black hoodie with a geometric wolf design, worn by a young woman walking in an urban street at sunset..."
+                  value={textToMockupPrompt}
+                  onChange={(e) => setTextToMockupPrompt(e.target.value)}
+                  className="min-h-[120px] text-base resize-none mb-4"
+                  disabled={isTextToMockupGenerating}
+                  data-testid="input-text-to-mockup-prompt"
+                />
+
+                {/* Quality Selector */}
+                <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+                  <div className="flex items-center gap-2">
+                    <Maximize2 className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">Quality:</span>
+                    <Select value={outputQuality} onValueChange={(value: OutputQuality) => setOutputQuality(value)}>
+                      <SelectTrigger className="w-[140px] h-9" data-testid="text-to-mockup-quality-select">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {OUTPUT_QUALITY_OPTIONS.map((q) => (
+                          <SelectItem key={q.id} value={q.id}>{q.name} ({q.resolution})</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setJourney(null)}
+                      className="gap-2"
+                      data-testid="button-back-to-selection"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Back
+                    </Button>
+                    <Button
+                      onClick={handleTextToMockupGenerate}
+                      disabled={!textToMockupPrompt.trim() || isTextToMockupGenerating}
+                      className={cn(
+                        "gap-2 px-6",
+                        textToMockupPrompt.trim() && !isTextToMockupGenerating
+                          ? "bg-gradient-to-r from-[#E3B436] to-[#ed5387] hover:opacity-90 text-white"
+                          : ""
+                      )}
+                      data-testid="button-generate-text-to-mockup"
+                    >
+                      {isTextToMockupGenerating ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Wand2 className="h-4 w-4" />
+                          Generate Mockup
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Progress Bar */}
+                {isTextToMockupGenerating && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">{textToMockupStage}</span>
+                      <span className="text-primary font-medium">{textToMockupProgress}%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                      <motion.div
+                        className="bg-gradient-to-r from-[#E3B436] to-[#ed5387] h-full rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${textToMockupProgress}%` }}
+                        transition={{ duration: 0.3 }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Parsed Prompt Preview */}
+              {textToMockupParsedPrompt && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-card border border-border rounded-2xl p-5 md:p-6"
+                >
+                  <div className="flex items-center gap-2 mb-4">
+                    <Info className="h-5 w-5 text-primary" />
+                    <h3 className="text-lg font-bold text-foreground">AI Understanding</h3>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                    <div className="bg-muted/50 rounded-lg p-3">
+                      <span className="text-muted-foreground text-xs uppercase tracking-wide">Design</span>
+                      <p className="font-medium truncate">{textToMockupParsedPrompt.designConcept}</p>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg p-3">
+                      <span className="text-muted-foreground text-xs uppercase tracking-wide">Product</span>
+                      <p className="font-medium truncate">{textToMockupParsedPrompt.productColor} {textToMockupParsedPrompt.productType}</p>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg p-3">
+                      <span className="text-muted-foreground text-xs uppercase tracking-wide">Style</span>
+                      <p className="font-medium truncate">{textToMockupParsedPrompt.designStyle}</p>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg p-3">
+                      <span className="text-muted-foreground text-xs uppercase tracking-wide">Scene</span>
+                      <p className="font-medium truncate">{textToMockupParsedPrompt.sceneDescription}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Results Grid */}
+              {(textToMockupDesignImage || textToMockupMockupImage) && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6"
+                >
+                  {/* Design Asset */}
+                  {textToMockupDesignImage && (
+                    <div className="bg-card border border-border rounded-2xl overflow-hidden">
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
+                        <div className="flex items-center gap-2">
+                          <Palette className="h-4 w-4 text-primary" />
+                          <span className="text-sm font-semibold">Generated Design</span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const link = document.createElement("a");
+                            link.href = textToMockupDesignImage;
+                            link.download = "design.png";
+                            link.click();
+                          }}
+                          data-testid="button-download-design"
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="aspect-square bg-muted/20">
+                        <img src={textToMockupDesignImage} alt="Generated design" className="w-full h-full object-contain" />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Mockup Result */}
+                  {textToMockupMockupImage && (
+                    <div className="bg-card border border-border rounded-2xl overflow-hidden">
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
+                        <div className="flex items-center gap-2">
+                          <Camera className="h-4 w-4 text-secondary" />
+                          <span className="text-sm font-semibold">Final Mockup</span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const link = document.createElement("a");
+                            link.href = textToMockupMockupImage;
+                            link.download = "mockup.png";
+                            link.click();
+                          }}
+                          data-testid="button-download-mockup"
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="aspect-[4/3] bg-muted/20">
+                        <img src={textToMockupMockupImage} alt="Generated mockup" className="w-full h-full object-cover" />
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+
+              {/* Action Buttons After Generation */}
+              {textToMockupMockupImage && !isTextToMockupGenerating && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex flex-wrap items-center justify-center gap-3"
+                >
+                  <Button
+                    variant="outline"
+                    onClick={handleTextToMockupReset}
+                    className="gap-2"
+                    data-testid="button-new-mockup"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    Generate Another
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      if (textToMockupDesignImage) {
+                        setUploadedImage(textToMockupDesignImage);
+                        setJourney("DTG");
+                      }
+                    }}
+                    className="gap-2 bg-gradient-to-r from-primary to-secondary text-white"
+                    data-testid="button-use-in-wizard"
+                  >
+                    <Shirt className="h-4 w-4" />
+                    Customize in Wizard
+                  </Button>
+                </motion.div>
+              )}
+            </div>
+          </div>
         ) : (
-          // State 2: Step-by-Step Wizard
+          // State 2a: Step-by-Step Wizard (DTG/AOP)
           <div className="flex-1 flex flex-col h-full">
             {/* Top Progress Bar - Mobile scrollable, desktop fixed */}
             <div className="bg-card border-b border-border px-2 sm:px-4 md:px-10 py-3 md:py-6">

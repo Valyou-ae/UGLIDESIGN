@@ -692,6 +692,112 @@ export async function registerMockupRoutes(app: Express, middleware: Middleware)
     }
   });
 
+  // ============== TEXT-TO-MOCKUP ROUTES ==============
+  const { orchestrateTextToMockup, parseTextToMockupPrompt } = await import("../services/textToMockupOrchestrator");
+
+  app.post("/api/mockup/text-to-mockup", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const { prompt, outputQuality = "high", overrides } = req.body;
+
+      if (!prompt || typeof prompt !== "string") {
+        return res.status(400).json({ message: "Prompt is required" });
+      }
+
+      if (prompt.length < 5) {
+        return res.status(400).json({ message: "Please provide a more detailed description" });
+      }
+
+      if (prompt.length > 2000) {
+        return res.status(400).json({ message: "Prompt is too long. Please keep it under 2000 characters" });
+      }
+
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache, no-transform");
+      res.setHeader("Connection", "keep-alive");
+      res.setHeader("X-Accel-Buffering", "no");
+      res.setHeader("Transfer-Encoding", "chunked");
+      res.flushHeaders();
+
+      const sendEvent = (event: string, data: unknown) => {
+        try {
+          res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+          if (typeof (res as { flush?: () => void }).flush === "function") {
+            (res as { flush: () => void }).flush();
+          }
+        } catch (e) {
+          logger.error("Error sending SSE event", e, { source: "mockup", event });
+        }
+      };
+
+      let connectionClosed = false;
+      const keepaliveInterval = setInterval(() => {
+        if (connectionClosed) return;
+        try {
+          res.write(`:keepalive ${Date.now()}\n\n`);
+          if (typeof (res as { flush?: () => void }).flush === "function") {
+            (res as { flush: () => void }).flush();
+          }
+        } catch (e) {
+          connectionClosed = true;
+          clearInterval(keepaliveInterval);
+        }
+      }, 8000);
+
+      res.on("close", () => {
+        connectionClosed = true;
+        clearInterval(keepaliveInterval);
+      });
+
+      const result = await orchestrateTextToMockup(
+        prompt,
+        outputQuality,
+        overrides,
+        (progressEvent) => {
+          if (!connectionClosed) {
+            sendEvent("progress", progressEvent);
+          }
+        }
+      );
+
+      if (result.success) {
+        sendEvent("complete", {
+          success: true,
+          parsedPrompt: result.parsedPrompt,
+          designImage: result.designImage,
+          mockupImage: result.mockupImage,
+        });
+      } else {
+        sendEvent("error", {
+          success: false,
+          error: result.error || "Failed to generate mockup",
+        });
+      }
+
+      clearInterval(keepaliveInterval);
+      res.end();
+    } catch (error) {
+      logger.error("Text-to-mockup generation error", error, { source: "mockup" });
+      res.write(`event: error\ndata: ${JSON.stringify({ message: "Text-to-mockup generation failed" })}\n\n`);
+      res.end();
+    }
+  });
+
+  app.post("/api/mockup/parse-prompt", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const { prompt } = req.body;
+
+      if (!prompt || typeof prompt !== "string") {
+        return res.status(400).json({ message: "Prompt is required" });
+      }
+
+      const parsedPrompt = await parseTextToMockupPrompt(prompt);
+      res.json({ parsedPrompt });
+    } catch (error) {
+      logger.error("Prompt parsing error", error, { source: "mockup" });
+      res.status(500).json({ message: "Failed to parse prompt" });
+    }
+  });
+
   // ============== AI SEAMLESS PATTERN ROUTES ==============
   const { generateAISeamlessPattern } = await import("../services/gemini");
 

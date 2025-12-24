@@ -525,11 +525,151 @@ function parseMockupSSEStream(
 }
 
 // Mockup API
+export interface TextToMockupParsedPrompt {
+  designConcept: string;
+  designStyle: string;
+  productType: string;
+  productCategory: string;
+  productColor: string;
+  sceneType: 'lifestyle' | 'flatlay' | 'model';
+  sceneDescription: string;
+  modelSex?: 'Male' | 'Female';
+  modelAge?: string;
+  modelEthnicity?: string;
+  seasonalTheme?: string;
+  brandStyle?: string;
+  additionalDetails?: string;
+}
+
+export interface TextToMockupProgressEvent {
+  stage: 'parsing' | 'generating_design' | 'preparing_mockup' | 'generating_mockup' | 'complete' | 'error';
+  message: string;
+  progress: number;
+  parsedPrompt?: TextToMockupParsedPrompt;
+  designImage?: string;
+  mockupImage?: string;
+  error?: string;
+}
+
+export type TextToMockupEventCallback = (event: TextToMockupProgressEvent) => void;
+
+async function parseTextToMockupSSEStream(
+  response: Response,
+  onEvent: TextToMockupEventCallback
+): Promise<void> {
+  const reader = response.body?.getReader();
+  if (!reader) {
+    throw new Error("No response body");
+  }
+
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  return new Promise((resolve, reject) => {
+    const read = async () => {
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+
+          if (done) {
+            if (buffer.trim()) {
+              processEvents();
+            }
+            break;
+          }
+
+          buffer += decoder.decode(value, { stream: true });
+          processEvents();
+        }
+        resolve();
+      } catch (error) {
+        reject(error instanceof Error ? error : new Error(String(error)));
+      }
+    };
+
+    const processEvents = () => {
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+
+      let currentEventType = "progress";
+      for (const line of lines) {
+        const trimmedLine = line.trim();
+        if (!trimmedLine || trimmedLine.startsWith(":")) continue;
+
+        if (trimmedLine.startsWith("event:")) {
+          currentEventType = trimmedLine.slice(6).trim();
+        } else if (trimmedLine.startsWith("data:")) {
+          try {
+            const data = JSON.parse(trimmedLine.slice(5).trim());
+            if (currentEventType === "complete") {
+              onEvent({
+                stage: "complete",
+                message: "Mockup generation complete!",
+                progress: 100,
+                parsedPrompt: data.parsedPrompt,
+                designImage: data.designImage,
+                mockupImage: data.mockupImage,
+              });
+            } else if (currentEventType === "error") {
+              onEvent({
+                stage: "error",
+                message: data.error || "Generation failed",
+                progress: 0,
+                error: data.error,
+              });
+            } else {
+              onEvent(data as TextToMockupProgressEvent);
+            }
+          } catch (e) {
+            console.warn("Failed to parse SSE data:", trimmedLine);
+          }
+        }
+      }
+    };
+
+    read();
+  });
+}
+
 export const mockupApi = {
   analyze: (designImage: string) =>
     fetchApi<{ analysis: DesignAnalysis }>("/mockup/analyze", {
       method: "POST",
       body: JSON.stringify({ designImage }),
+    }),
+
+  textToMockup: async (
+    prompt: string,
+    options: {
+      outputQuality?: 'standard' | 'high' | 'ultra';
+      overrides?: Partial<TextToMockupParsedPrompt>;
+    } = {},
+    onEvent: TextToMockupEventCallback
+  ): Promise<void> => {
+    try {
+      const response = await fetch("/api/mockup/text-to-mockup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ prompt, ...options }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Text-to-mockup generation failed");
+      }
+
+      await parseTextToMockupSSEStream(response, onEvent);
+    } catch (error) {
+      console.error("Text-to-mockup generation error:", error);
+      throw error;
+    }
+  },
+
+  parsePrompt: (prompt: string) =>
+    fetchApi<{ parsedPrompt: TextToMockupParsedPrompt }>("/mockup/parse-prompt", {
+      method: "POST",
+      body: JSON.stringify({ prompt }),
     }),
 
   generate: async (
