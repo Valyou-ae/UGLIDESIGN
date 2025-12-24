@@ -2307,12 +2307,12 @@ export default function ImageGenerator() {
             })()}
 
             {/* Prompt History Section */}
-            {promptHistory.length > 0 && (
-              <div className="p-4 border-t border-border">
-                <div className="flex items-center gap-2 mb-3">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <h3 className="font-semibold text-sm text-foreground">Prompt History</h3>
-                </div>
+            <div className="p-4 border-t border-border">
+              <div className="flex items-center gap-2 mb-3">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <h3 className="font-semibold text-sm text-foreground">Prompt History</h3>
+              </div>
+              {promptHistory.length > 0 ? (
                 <ScrollArea className="h-[200px]">
                   <div className="space-y-2 pr-3">
                     {promptHistory.map((item) => {
@@ -2356,8 +2356,13 @@ export default function ImageGenerator() {
                     })}
                   </div>
                 </ScrollArea>
-              </div>
-            )}
+              ) : (
+                <div className="text-center py-6 text-muted-foreground">
+                  <Clock className="h-8 w-8 mx-auto mb-2 opacity-40" />
+                  <p className="text-xs">Your prompt history will appear here</p>
+                </div>
+              )}
+            </div>
 
           </div>
         </div>
