@@ -2566,35 +2566,6 @@ export default function MockupGenerator() {
                                       </Button>
                                     </div>
                                   </div>
-                                  <div className="flex items-center justify-center gap-2">
-                                    <span className="text-xs text-muted-foreground">Use mockup in:</span>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => {
-                                        if (generatedMockups.length > 0) {
-                                          const route = transferImageToTool({
-                                            id: `mockup-${Date.now()}`,
-                                            src: generatedMockups[0].src,
-                                            name: `${selectedProductType} mockup`,
-                                            type: "mockup"
-                                          }, "bg-remover");
-                                          setLocation(route);
-                                        }
-                                      }}
-                                      data-testid="button-to-bg-remover"
-                                    >
-                                      <Scissors className="h-4 w-4 mr-1" /> BG Remover
-                                    </Button>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => setLocation("/image-generator")}
-                                      data-testid="button-to-image-generator"
-                                    >
-                                      <Wand2 className="h-4 w-4 mr-1" /> Image Creator
-                                    </Button>
-                                  </div>
                                 </div>
                               )}
                             </div>
