@@ -484,6 +484,37 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
 export type InsertChatSession = z.infer<typeof insertChatSessionSchema>;
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 
+// ============== MOCKUP VERSION HISTORY ==============
+
+export const mockupVersions = pgTable("mockup_versions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  mockupSessionId: varchar("mockup_session_id").notNull(),
+  imageUrl: text("image_url").notNull(),
+  thumbnailUrl: text("thumbnail_url"),
+  prompt: text("prompt"),
+  productName: text("product_name"),
+  productColor: text("product_color"),
+  productSize: text("product_size"),
+  angle: text("angle"),
+  versionNumber: integer("version_number").default(1).notNull(),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_mockup_versions_user_id").on(table.userId),
+  index("idx_mockup_versions_session_id").on(table.mockupSessionId),
+  index("idx_mockup_versions_user_session").on(table.userId, table.mockupSessionId),
+  index("idx_mockup_versions_created_at").on(table.createdAt),
+]);
+
+export const insertMockupVersionSchema = createInsertSchema(mockupVersions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertMockupVersion = z.infer<typeof insertMockupVersionSchema>;
+export type MockupVersion = typeof mockupVersions.$inferSelect;
+
 // ============== VALIDATION SCHEMAS ==============
 
 // UUID validation helper

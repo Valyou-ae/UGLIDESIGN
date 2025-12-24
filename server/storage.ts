@@ -48,7 +48,10 @@ import {
   type UserPreferences,
   type InsertUserPreferences,
   type ImageFolder,
-  type InsertImageFolder
+  type InsertImageFolder,
+  type MockupVersion,
+  type InsertMockupVersion,
+  mockupVersions
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, gte, lte, sql, inArray } from "drizzle-orm";
@@ -200,6 +203,14 @@ export interface IStorage {
   deleteFolder(id: string, userId: string): Promise<void>;
   moveImageToFolder(imageId: string, userId: string, folderId: string | null): Promise<GeneratedImage | undefined>;
   getOrCreateDefaultFolder(userId: string): Promise<ImageFolder>;
+  
+  // Mockup Version History
+  saveMockupVersion(version: InsertMockupVersion): Promise<MockupVersion>;
+  getMockupVersions(userId: string, sessionId: string): Promise<MockupVersion[]>;
+  getMockupVersion(userId: string, versionId: string): Promise<MockupVersion | undefined>;
+  getLatestVersionNumber(userId: string, sessionId: string): Promise<number>;
+  deleteMockupVersion(userId: string, versionId: string): Promise<void>;
+  getUserMockupSessions(userId: string, limit?: number): Promise<{ sessionId: string; latestVersion: MockupVersion; versionCount: number }[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1821,6 +1832,69 @@ export class DatabaseStorage implements IStorage {
     }).returning();
     
     return folder;
+  }
+
+  // Mockup Version History
+  async saveMockupVersion(version: InsertMockupVersion): Promise<MockupVersion> {
+    const [result] = await db.insert(mockupVersions).values(version).returning();
+    return result;
+  }
+
+  async getMockupVersions(userId: string, sessionId: string): Promise<MockupVersion[]> {
+    return await db
+      .select()
+      .from(mockupVersions)
+      .where(and(eq(mockupVersions.userId, userId), eq(mockupVersions.mockupSessionId, sessionId)))
+      .orderBy(desc(mockupVersions.versionNumber));
+  }
+
+  async getMockupVersion(userId: string, versionId: string): Promise<MockupVersion | undefined> {
+    const [version] = await db
+      .select()
+      .from(mockupVersions)
+      .where(and(eq(mockupVersions.id, versionId), eq(mockupVersions.userId, userId)));
+    return version || undefined;
+  }
+
+  async getLatestVersionNumber(userId: string, sessionId: string): Promise<number> {
+    const [result] = await db
+      .select({ maxVersion: sql<number>`COALESCE(MAX(${mockupVersions.versionNumber}), 0)` })
+      .from(mockupVersions)
+      .where(and(eq(mockupVersions.userId, userId), eq(mockupVersions.mockupSessionId, sessionId)));
+    return result?.maxVersion || 0;
+  }
+
+  async deleteMockupVersion(userId: string, versionId: string): Promise<void> {
+    await db
+      .delete(mockupVersions)
+      .where(and(eq(mockupVersions.id, versionId), eq(mockupVersions.userId, userId)));
+  }
+
+  async getUserMockupSessions(userId: string, limit = 20): Promise<{ sessionId: string; latestVersion: MockupVersion; versionCount: number }[]> {
+    const sessions = await db
+      .selectDistinct({ mockupSessionId: mockupVersions.mockupSessionId })
+      .from(mockupVersions)
+      .where(eq(mockupVersions.userId, userId))
+      .orderBy(desc(mockupVersions.createdAt))
+      .limit(limit);
+
+    const results = await Promise.all(
+      sessions.map(async (s) => {
+        const versions = await db
+          .select()
+          .from(mockupVersions)
+          .where(and(eq(mockupVersions.userId, userId), eq(mockupVersions.mockupSessionId, s.mockupSessionId)))
+          .orderBy(desc(mockupVersions.versionNumber));
+        
+        return {
+          sessionId: s.mockupSessionId,
+          latestVersion: versions[0],
+          versionCount: versions.length
+        };
+      })
+    );
+
+    return results.filter(r => r.latestVersion);
   }
 }
 
