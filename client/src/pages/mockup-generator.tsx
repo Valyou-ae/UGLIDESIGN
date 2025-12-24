@@ -2431,15 +2431,6 @@ export default function MockupGenerator() {
                                       data-testid={`mockup-${index}`}
                                     >
                                       <img src={mockup.src} alt={`Mockup ${index + 1}`} className="w-full h-full object-cover" />
-                                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
-                                        <Button 
-                                          size="sm" 
-                                          className="opacity-0 group-hover:opacity-100 transition-opacity"
-                                          onClick={(e) => { e.stopPropagation(); downloadImage(mockup.src, `mockup_${index + 1}.png`); }}
-                                        >
-                                          <Download className="h-4 w-4 mr-1" /> Download
-                                        </Button>
-                                      </div>
                                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 flex items-end justify-between">
                                         <p className="text-[10px] text-white truncate flex-1">{mockup.color} • {mockup.angle}</p>
                                         <DropdownMenu>
@@ -2471,12 +2462,12 @@ export default function MockupGenerator() {
                                             <DropdownMenuItem 
                                               onClick={(e) => {
                                                 e.stopPropagation();
-                                                setLocation("/image-generator");
+                                                downloadImage(mockup.src, `mockup_${index + 1}.png`);
                                               }}
-                                              data-testid={`mockup-menu-image-gen-${index}`}
+                                              data-testid={`mockup-menu-download-${index}`}
                                             >
-                                              <Wand2 className="h-4 w-4 mr-2" />
-                                              Image Generation
+                                              <Download className="h-4 w-4 mr-2" />
+                                              Download
                                             </DropdownMenuItem>
                                             <DropdownMenuItem 
                                               onClick={(e) => {
