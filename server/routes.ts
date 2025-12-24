@@ -38,7 +38,7 @@ import { db } from "./db";
 import { eq, sql } from "drizzle-orm";
 import { getFromCache, CACHE_TTL, invalidateCache } from "./cache";
 import { verifyGoogleToken } from "./googleAuth";
-import { registerAdminRoutes, registerSuperAdminRoutes, registerAuthRoutes, registerGalleryRoutes, registerUserRoutes, registerImageRoutes, registerGenerationRoutes, registerMockupRoutes, registerBackgroundRoutes, registerMoodBoardRoutes, registerChatRoutes, registerBillingRoutes, registerAffiliateRoutes, registerInspirationRoutes, createMiddleware } from "./routes/index";
+import { registerAdminRoutes, registerSuperAdminRoutes, registerAuthRoutes, registerGalleryRoutes, registerUserRoutes, registerImageRoutes, registerGenerationRoutes, registerMockupRoutes, registerBackgroundRoutes, registerMoodBoardRoutes, registerBillingRoutes, registerAffiliateRoutes, registerInspirationRoutes, createMiddleware } from "./routes/index";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -120,7 +120,6 @@ export async function registerRoutes(
   await registerMockupRoutes(app, sharedMiddleware);
   await registerBackgroundRoutes(app, sharedMiddleware);
   registerMoodBoardRoutes(app, sharedMiddleware);
-  await registerChatRoutes(app, sharedMiddleware);
   await registerBillingRoutes(app, sharedMiddleware);
   registerAffiliateRoutes(app, sharedMiddleware);
   await registerInspirationRoutes(app, sharedMiddleware);
