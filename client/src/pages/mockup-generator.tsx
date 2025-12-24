@@ -912,6 +912,14 @@ export default function MockupGenerator() {
   const [textToMockupStage, setTextToMockupStage] = useState("");
   const [isTextToMockupGenerating, setIsTextToMockupGenerating] = useState(false);
 
+  // Recently created images for quick selection
+  interface RecentImage {
+    id: number;
+    imageUrl: string;
+  }
+  const [recentImages, setRecentImages] = useState<RecentImage[]>([]);
+  const [selectedRecentImageId, setSelectedRecentImageId] = useState<number | null>(null);
+
   const completedJobs = batchJobs.filter(j => j.status === 'completed').length;
   const failedJobsCount = batchJobs.filter(j => j.status === 'failed').length;
   const pendingJobs = batchJobs.filter(j => j.status === 'pending').length;
@@ -940,6 +948,31 @@ export default function MockupGenerator() {
       };
       loadTransferredImage();
     }
+  }, []);
+
+  // Fetch recently created images for quick selection
+  useEffect(() => {
+    const fetchRecentImages = async () => {
+      try {
+        const response = await fetch("/api/images?limit=6", { credentials: "include" });
+        if (response.ok) {
+          const data = await response.json();
+          const images = data.images || [];
+          const recent: RecentImage[] = images.slice(0, 6).map((img: { id: number; imageUrl?: string }) => ({
+            id: img.id,
+            imageUrl: img.imageUrl || `/api/images/${img.id}/image`
+          }));
+          setRecentImages(recent);
+          // Select the most recent one (first in list)
+          if (recent.length > 0) {
+            setSelectedRecentImageId(recent[0].id);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch recent images:", error);
+      }
+    };
+    fetchRecentImages();
   }, []);
 
   // Track previous journey to detect actual journey changes
@@ -1782,6 +1815,51 @@ export default function MockupGenerator() {
                   </span>
                 </div>
               </div>
+
+              {/* Recently Created Section */}
+              {recentImages.length > 0 && (
+                <div className="w-full max-w-[900px] mt-6 md:mt-8">
+                  <div className="flex items-center gap-2 mb-3">
+                    <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                    <h3 className="text-sm font-medium text-muted-foreground">Recently Created</h3>
+                  </div>
+                  <div className="flex gap-2 md:gap-3 overflow-x-auto pb-2">
+                    {recentImages.map((img) => (
+                      <button
+                        key={img.id}
+                        onClick={async () => {
+                          setSelectedRecentImageId(img.id);
+                          try {
+                            const dataUrl = await fetchImageAsDataUrl(img.imageUrl);
+                            setUploadedImage(dataUrl);
+                            setPreviewMinimized(false);
+                          } catch (error) {
+                            console.error("Failed to load recent image:", error);
+                          }
+                        }}
+                        className={cn(
+                          "relative h-14 w-14 md:h-16 md:w-16 rounded-lg overflow-hidden flex-shrink-0 transition-all duration-200 border-2",
+                          selectedRecentImageId === img.id
+                            ? "border-primary ring-2 ring-primary/30 scale-105"
+                            : "border-border hover:border-primary/50 hover:scale-[1.02]"
+                        )}
+                        data-testid={`recent-image-${img.id}`}
+                      >
+                        <img
+                          src={img.imageUrl}
+                          alt="Recent creation"
+                          className="h-full w-full object-cover"
+                        />
+                        {selectedRecentImageId === img.id && (
+                          <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
+                            <Check className="h-4 w-4 text-primary" />
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Design Transfer Banner - shown below DTG/AOP cards */}
               <AnimatePresence>
