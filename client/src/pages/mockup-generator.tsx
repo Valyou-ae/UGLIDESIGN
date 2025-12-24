@@ -1358,7 +1358,7 @@ export default function MockupGenerator() {
     }
   }, []);
 
-  const handleJourneySelect = (type: JourneyType) => {
+  const handleJourneySelect = async (type: JourneyType) => {
     setJourney(type);
     setCurrentStepIndex(0);
     // Reset text-to-mockup state when switching modes
@@ -1369,6 +1369,20 @@ export default function MockupGenerator() {
       setTextToMockupMockupImage(null);
       setTextToMockupProgress(0);
       setTextToMockupStage("");
+      
+      // If a recent image is selected and no uploaded image exists, load it
+      if (selectedRecentImageId && !uploadedImage) {
+        const selectedImage = recentImages.find(img => img.id === selectedRecentImageId);
+        if (selectedImage) {
+          try {
+            const dataUrl = await fetchImageAsDataUrl(selectedImage.imageUrl);
+            setUploadedImage(dataUrl);
+            setPreviewMinimized(false);
+          } catch (error) {
+            console.error("Failed to load selected recent image:", error);
+          }
+        }
+      }
     }
   };
 
