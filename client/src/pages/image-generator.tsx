@@ -67,7 +67,12 @@ import {
   Shirt,
   Scissors,
   ArrowUpRight,
-  Rocket
+  Rocket,
+  Trophy,
+  ChevronLeft,
+  ChevronRight,
+  Lightbulb,
+  Eye
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -244,6 +249,7 @@ export default function ImageGenerator() {
   const [isPublicImage, setIsPublicImage] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [inspirationIndex, setInspirationIndex] = useState(0);
   
   const { 
     isOpen: isTutorialOpen, 
@@ -2158,133 +2164,183 @@ export default function ImageGenerator() {
           {/* Right Sidebar - Inspiration & Leaderboard */}
           <div className="hidden lg:flex flex-col w-80 xl:w-96 border-l border-border bg-card/50 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             
-            {/* Leaderboard Section */}
+            {/* Daily Inspiration Section - Carousel Style */}
+            {(() => {
+              const defaultInspirations = [
+                { id: '1', prompt: "A vibrant cyberpunk cityscape at night with towering neon-lit skyscrapers, flying cars, rain-slicked streets reflecting colorful lights...", category: "Scifi", title: "Cyberpunk Cityscape", difficulty: "Intermediate" },
+                { id: '2', prompt: "Mystical forest with bioluminescent mushrooms glowing at twilight, magical creatures hidden in the shadows...", category: "Fantasy", title: "Enchanted Forest", difficulty: "Beginner" },
+                { id: '3', prompt: "Serene Japanese garden in autumn with a koi pond, traditional bridge, falling maple leaves...", category: "Peaceful", title: "Zen Garden", difficulty: "Beginner" },
+                { id: '4', prompt: "Ancient temple ruins overgrown with vines, mysterious glowing runes on the walls...", category: "Adventure", title: "Lost Temple", difficulty: "Advanced" },
+                { id: '5', prompt: "Underwater city with bioluminescent architecture, merfolk swimming between coral towers...", category: "Fantasy", title: "Deep Sea Kingdom", difficulty: "Intermediate" },
+                { id: '6', prompt: "Steampunk airship fleet soaring through golden sunset clouds, brass and copper gleaming...", category: "Steampunk", title: "Sky Pirates", difficulty: "Advanced" },
+              ];
+              const inspirations = (inspirationsData?.inspirations || []).length > 0 
+                ? inspirationsData!.inspirations.map(i => ({ ...i, title: i.prompt.split(' ').slice(0, 3).join(' '), difficulty: "Intermediate" }))
+                : defaultInspirations;
+              const currentInspiration = inspirations[inspirationIndex % inspirations.length];
+              
+              return (
             <div className="p-4 border-b border-border">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="h-6 w-6 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center">
-                  <Star className="h-3 w-3 text-white" />
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Lightbulb className="h-4 w-4 text-[#ed5387]" />
+                  <h3 className="font-semibold text-sm text-foreground">Daily Inspiration</h3>
                 </div>
-                <h3 className="font-semibold text-sm text-foreground">Top Creators</h3>
-                <span className="text-[10px] text-muted-foreground ml-auto">This Week</span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                    onClick={() => setInspirationIndex(prev => prev === 0 ? inspirations.length - 1 : prev - 1)}
+                    data-testid="inspiration-prev"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="text-xs text-muted-foreground">
+                    {inspirationIndex + 1}/{inspirations.length}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                    onClick={() => setInspirationIndex(prev => prev === inspirations.length - 1 ? 0 : prev + 1)}
+                    data-testid="inspiration-next"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-              <div className="space-y-2">
-                {(leaderboardData?.leaderboard || []).length > 0 ? (
-                  leaderboardData!.leaderboard.map((creator, idx) => (
+              
+              <div className="bg-card border border-border rounded-xl p-4" data-testid="inspiration-card">
+                <div className="flex items-center justify-between mb-3">
+                  <Badge className="bg-[#ed5387] text-white text-[10px] hover:bg-[#ed5387]">
+                    {currentInspiration.category}
+                  </Badge>
+                  <span className="flex items-center gap-1 text-[10px] text-[#ed5387]">
+                    <Zap className="h-3 w-3" />
+                    {currentInspiration.difficulty || 'Intermediate'}
+                  </span>
+                </div>
+                
+                <h4 className="font-bold text-foreground mb-3">
+                  {currentInspiration.title || currentInspiration.prompt.split(' ').slice(0, 3).join(' ')}
+                </h4>
+                
+                <div className="bg-muted/50 rounded-lg p-3 mb-4 relative group">
+                  <p className="text-xs text-muted-foreground line-clamp-3">
+                    {currentInspiration.prompt}
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => {
+                      navigator.clipboard.writeText(currentInspiration.prompt);
+                      toast({ title: "Copied!", description: "Prompt copied to clipboard" });
+                    }}
+                    data-testid="copy-inspiration"
+                  >
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                </div>
+                
+                <Button
+                  onClick={() => setPrompt(currentInspiration.prompt)}
+                  className="w-full bg-[#ed5387] hover:bg-[#ed5387]/90 text-white gap-2"
+                  data-testid="try-inspiration"
+                >
+                  <Lightbulb className="h-4 w-4" />
+                  Try This Prompt
+                </Button>
+                
+                {/* Dot Navigation */}
+                <div className="flex items-center justify-center gap-1.5 mt-4">
+                  {inspirations.slice(0, 6).map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setInspirationIndex(idx)}
+                      className={cn(
+                        "w-2 h-2 rounded-full transition-colors",
+                        idx === inspirationIndex % inspirations.length
+                          ? "bg-[#ed5387]"
+                          : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                      )}
+                      data-testid={`inspiration-dot-${idx}`}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+              );
+            })()}
+
+            {/* Top Creators Section */}
+            <div className="p-4 flex-1">
+              <div className="flex items-center gap-2 mb-4">
+                <Trophy className="h-4 w-4 text-yellow-500" />
+                <h3 className="font-semibold text-sm text-foreground">Top Creators</h3>
+              </div>
+              
+              <div className="bg-card border border-border rounded-xl overflow-hidden">
+                {(() => {
+                  const creators = (leaderboardData?.leaderboard || []).length > 0 
+                    ? leaderboardData!.leaderboard 
+                    : [
+                        { userId: '1', username: 'CreativeAI', displayName: 'CreativeAI', profileImageUrl: null, imageCount: 156, likeCount: 42, viewCount: 1200 },
+                        { userId: '2', username: 'DesignPro', displayName: 'DesignPro', profileImageUrl: null, imageCount: 142, likeCount: 38, viewCount: 980 },
+                        { userId: '3', username: 'ArtMaster', displayName: 'ArtMaster', profileImageUrl: null, imageCount: 128, likeCount: 35, viewCount: 850 },
+                        { userId: '4', username: 'PixelWizard', displayName: 'PixelWizard', profileImageUrl: null, imageCount: 97, likeCount: 28, viewCount: 620 },
+                      ];
+                  
+                  const getRankIcon = (idx: number) => {
+                    if (idx === 0) return <Trophy className="h-4 w-4 text-yellow-500" />;
+                    if (idx === 1) return <Trophy className="h-4 w-4 text-gray-400" />;
+                    if (idx === 2) return <Trophy className="h-4 w-4 text-amber-600" />;
+                    return <span className="text-xs text-muted-foreground">#{idx + 1}</span>;
+                  };
+                  
+                  return creators.map((creator, idx) => (
                     <div 
                       key={creator.userId} 
-                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                      className={cn(
+                        "flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors cursor-pointer",
+                        idx !== creators.length - 1 && "border-b border-border"
+                      )}
                       data-testid={`leaderboard-user-${idx + 1}`}
                     >
-                      <span className="text-xs font-bold text-muted-foreground w-4">
-                        {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `#${idx + 1}`}
-                      </span>
-                      <Avatar className="h-7 w-7">
+                      <div className="w-6 flex items-center justify-center">
+                        {getRankIcon(idx)}
+                      </div>
+                      <Avatar className="h-8 w-8">
                         {creator.profileImageUrl ? (
                           <AvatarImage src={creator.profileImageUrl} alt={creator.displayName || creator.username || ''} />
                         ) : null}
-                        <AvatarFallback className="bg-gradient-to-br from-[#ed5387] to-[#9C27B0] text-white text-[10px]">
+                        <AvatarFallback className="bg-gradient-to-br from-[#ed5387] to-[#9C27B0] text-white text-xs">
                           {(creator.displayName || creator.username || 'U').slice(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-foreground truncate">
+                        <p className="text-sm font-medium text-foreground truncate">
                           {creator.displayName || creator.username || 'Anonymous'}
                         </p>
-                        <p className="text-[10px] text-muted-foreground">{creator.imageCount} creations</p>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <ImageIcon className="h-3 w-3" />
+                          {creator.imageCount}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Heart className="h-3 w-3" />
+                          {creator.likeCount || 0}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Eye className="h-3 w-3" />
+                          {creator.viewCount || 0}
+                        </span>
                       </div>
                     </div>
-                  ))
-                ) : (
-                  <p className="text-xs text-muted-foreground text-center py-4">
-                    No creators yet. Be the first!
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Daily Inspiration Section */}
-            <div className="p-4 border-b border-border">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="h-6 w-6 rounded-full bg-gradient-to-br from-[#ed5387] to-[#9C27B0] flex items-center justify-center">
-                  <Sparkles className="h-3 w-3 text-white" />
-                </div>
-                <h3 className="font-semibold text-sm text-foreground">Daily Inspiration</h3>
-              </div>
-              <div className="space-y-3">
-                {(inspirationsData?.inspirations || []).length > 0 ? (
-                  inspirationsData!.inspirations.map((inspiration, idx) => (
-                    <div 
-                      key={inspiration.id}
-                      onClick={() => setPrompt(inspiration.prompt)}
-                      className="p-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/60 hover:border-[#ed5387]/30 transition-all cursor-pointer group"
-                      data-testid={`daily-inspiration-${idx}`}
-                    >
-                      <p className="text-xs text-foreground line-clamp-2 mb-2 group-hover:text-[#ed5387] transition-colors">
-                        {inspiration.prompt}
-                      </p>
-                      <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                        <span className="px-1.5 py-0.5 bg-muted rounded">{inspiration.category}</span>
-                        {inspiration.featured && (
-                          <span className="flex items-center gap-1 text-[#E3B436]">
-                            <Star className="h-3 w-3" />
-                            Featured
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <>
-                    {[
-                      { prompt: "Mystical forest with bioluminescent mushrooms at twilight", category: "Fantasy" },
-                      { prompt: "Futuristic cyberpunk cityscape with neon rain", category: "Sci-Fi" },
-                      { prompt: "Serene Japanese garden in autumn with koi pond", category: "Peaceful" },
-                    ].map((inspiration, idx) => (
-                      <div 
-                        key={idx}
-                        onClick={() => setPrompt(inspiration.prompt)}
-                        className="p-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/60 hover:border-[#ed5387]/30 transition-all cursor-pointer group"
-                        data-testid={`daily-inspiration-${idx}`}
-                      >
-                        <p className="text-xs text-foreground line-clamp-2 mb-2 group-hover:text-[#ed5387] transition-colors">
-                          {inspiration.prompt}
-                        </p>
-                        <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                          <span className="px-1.5 py-0.5 bg-muted rounded">{inspiration.category}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Recent Prompt History */}
-            <div className="p-4 flex-1">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center">
-                  <Clock className="h-3 w-3 text-muted-foreground" />
-                </div>
-                <h3 className="font-semibold text-sm text-foreground">Your History</h3>
-              </div>
-              <div className="space-y-2">
-                {generations.slice(0, 5).map((gen, idx) => (
-                  <div 
-                    key={gen.id}
-                    onClick={() => setPrompt(gen.prompt)}
-                    className="p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer group"
-                    data-testid={`prompt-history-${idx}`}
-                  >
-                    <p className="text-xs text-muted-foreground line-clamp-2 group-hover:text-foreground transition-colors">
-                      {gen.prompt}
-                    </p>
-                  </div>
-                ))}
-                {generations.length === 0 && (
-                  <p className="text-xs text-muted-foreground text-center py-4">
-                    Your prompt history will appear here
-                  </p>
-                )}
+                  ));
+                })()}
               </div>
             </div>
           </div>
