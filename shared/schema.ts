@@ -62,6 +62,9 @@ export const generatedImages = pgTable("generated_images", {
   isFavorite: boolean("is_favorite").default(false),
   isPublic: boolean("is_public").default(false),
   viewCount: integer("view_count").default(0).notNull(),
+  parentImageId: varchar("parent_image_id"),
+  editPrompt: text("edit_prompt"),
+  versionNumber: integer("version_number").default(1).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => [
   index("idx_generated_images_user_id").on(table.userId),
@@ -69,6 +72,7 @@ export const generatedImages = pgTable("generated_images", {
   index("idx_generated_images_user_created").on(table.userId, table.createdAt),
   index("idx_generated_images_is_public").on(table.isPublic),
   index("idx_generated_images_folder_id").on(table.folderId),
+  index("idx_generated_images_parent_id").on(table.parentImageId),
 ]);
 
 export const affiliateCommissions = pgTable("affiliate_commissions", {
