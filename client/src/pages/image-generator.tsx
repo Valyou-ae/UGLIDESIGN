@@ -2544,9 +2544,9 @@ export default function ImageGenerator() {
                       <div className="space-y-3 bg-gradient-to-br from-[#ed5387]/10 to-[#ed5387]/5 rounded-xl p-4 border border-[#ed5387]/20">
                         <label className="text-xs font-bold text-foreground uppercase tracking-widest flex items-center gap-2">
                           <Wand2 className="h-4 w-4 text-[#ed5387]" />
-                          Edit with AI
+                          Edit with UGLI AI
                         </label>
-                        <div className="flex gap-2">
+                        <div className="relative w-full">
                           <Input
                             placeholder="Remove background, change color to blue..."
                             value={editPrompt}
@@ -2558,27 +2558,21 @@ export default function ImageGenerator() {
                               }
                             }}
                             disabled={isEditing}
-                            className="flex-1 h-10 text-sm bg-background/80 border-border"
+                            className="w-full h-11 text-sm bg-background/80 border-border pr-12"
                             data-testid="input-edit-prompt"
                           />
-                          <Button
+                          <button
                             onClick={handleEditImage}
                             disabled={!editPrompt.trim() || isEditing}
-                            className="h-10 px-5 bg-[#ed5387] hover:bg-[#d64375] text-white font-medium"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-[#ed5387] hover:bg-[#d64375] text-white flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             data-testid="button-apply-edit"
                           >
                             {isEditing ? (
-                              <>
-                                <RefreshCw className="h-4 w-4 mr-1.5 animate-spin" />
-                                Editing...
-                              </>
+                              <RefreshCw className="h-4 w-4 animate-spin" />
                             ) : (
-                              <>
-                                <Wand2 className="h-4 w-4 mr-1.5" />
-                                Apply
-                              </>
+                              <Rocket className="h-4 w-4" />
                             )}
-                          </Button>
+                          </button>
                         </div>
                         <p className="text-[10px] text-muted-foreground">
                           Describe what you want to change using natural language
