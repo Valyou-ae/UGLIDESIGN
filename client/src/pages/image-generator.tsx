@@ -1870,8 +1870,8 @@ export default function ImageGenerator() {
         </div>
 
         {/* CREATIVE WORKSPACE */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Main Content - Full width (matches My Creations layout) */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Main Content - 3 columns + sidebar */}
           <div className="flex-1 overflow-y-auto p-6 md:p-8 pb-40 md:pb-10 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             <div className="space-y-8">
             
@@ -1912,7 +1912,7 @@ export default function ImageGenerator() {
                   "grid gap-3",
                   pendingImages.length === 1 ? "grid-cols-1 max-w-md mx-auto" :
                   pendingImages.length === 2 ? "grid-cols-2" :
-                  "grid-cols-2 md:grid-cols-4"
+                  "grid-cols-2 md:grid-cols-3"
                 )}>
                   {pendingImages.map((pending, index) => (
                     <motion.div
@@ -1977,8 +1977,8 @@ export default function ImageGenerator() {
                   </Button>
                 </div>
                 
-                {/* Gallery Grid - CSS Columns Masonry layout (matches My Creations page) */}
-                <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-3">
+                {/* Gallery Grid - CSS Columns Masonry layout (3 columns to make room for sidebar) */}
+                <div className="columns-1 sm:columns-2 lg:columns-3 gap-3">
                   {generations.map((gen) => (
                     <motion.div 
                       key={gen.id}
@@ -2138,6 +2138,112 @@ export default function ImageGenerator() {
                 </p>
               </div>
             )}
+            </div>
+          </div>
+
+          {/* Right Sidebar - Inspiration & Leaderboard */}
+          <div className="hidden lg:flex flex-col w-80 xl:w-96 border-l border-border bg-card/50 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            
+            {/* Leaderboard Section */}
+            <div className="p-4 border-b border-border">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="h-6 w-6 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center">
+                  <Star className="h-3 w-3 text-white" />
+                </div>
+                <h3 className="font-semibold text-sm text-foreground">Top Creators</h3>
+              </div>
+              <div className="space-y-2">
+                {[
+                  { rank: 1, name: "CreativeAI", images: 156, badge: "🥇" },
+                  { rank: 2, name: "DesignPro", images: 142, badge: "🥈" },
+                  { rank: 3, name: "ArtMaster", images: 128, badge: "🥉" },
+                  { rank: 4, name: "PixelWizard", images: 97 },
+                  { rank: 5, name: "DreamMaker", images: 84 },
+                ].map((user) => (
+                  <div 
+                    key={user.rank} 
+                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                    data-testid={`leaderboard-user-${user.rank}`}
+                  >
+                    <span className="text-xs font-bold text-muted-foreground w-4">
+                      {user.badge || `#${user.rank}`}
+                    </span>
+                    <Avatar className="h-7 w-7">
+                      <AvatarFallback className="bg-gradient-to-br from-[#ed5387] to-[#9C27B0] text-white text-[10px]">
+                        {user.name.slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-foreground truncate">{user.name}</p>
+                      <p className="text-[10px] text-muted-foreground">{user.images} creations</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Daily Inspiration Section */}
+            <div className="p-4 border-b border-border">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="h-6 w-6 rounded-full bg-gradient-to-br from-[#ed5387] to-[#9C27B0] flex items-center justify-center">
+                  <Sparkles className="h-3 w-3 text-white" />
+                </div>
+                <h3 className="font-semibold text-sm text-foreground">Daily Inspiration</h3>
+              </div>
+              <div className="space-y-3">
+                {[
+                  { prompt: "Mystical forest with bioluminescent mushrooms at twilight", style: "Fantasy", uses: 234 },
+                  { prompt: "Futuristic cyberpunk cityscape with neon rain", style: "Sci-Fi", uses: 189 },
+                  { prompt: "Serene Japanese garden in autumn with koi pond", style: "Peaceful", uses: 156 },
+                ].map((inspiration, idx) => (
+                  <div 
+                    key={idx}
+                    onClick={() => setPrompt(inspiration.prompt)}
+                    className="p-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/60 hover:border-[#ed5387]/30 transition-all cursor-pointer group"
+                    data-testid={`daily-inspiration-${idx}`}
+                  >
+                    <p className="text-xs text-foreground line-clamp-2 mb-2 group-hover:text-[#ed5387] transition-colors">
+                      {inspiration.prompt}
+                    </p>
+                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                      <span className="px-1.5 py-0.5 bg-muted rounded">{inspiration.style}</span>
+                      <span className="flex items-center gap-1">
+                        <Wand2 className="h-3 w-3" />
+                        {inspiration.uses} uses
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Recent Prompt History */}
+            <div className="p-4 flex-1">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center">
+                  <Clock className="h-3 w-3 text-muted-foreground" />
+                </div>
+                <h3 className="font-semibold text-sm text-foreground">Your History</h3>
+              </div>
+              <div className="space-y-2">
+                {generations.slice(0, 5).map((gen, idx) => (
+                  <div 
+                    key={gen.id}
+                    onClick={() => setPrompt(gen.prompt)}
+                    className="p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer group"
+                    data-testid={`prompt-history-${idx}`}
+                  >
+                    <p className="text-xs text-muted-foreground line-clamp-2 group-hover:text-foreground transition-colors">
+                      {gen.prompt}
+                    </p>
+                  </div>
+                ))}
+                {generations.length === 0 && (
+                  <p className="text-xs text-muted-foreground text-center py-4">
+                    Your prompt history will appear here
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>
