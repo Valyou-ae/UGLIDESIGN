@@ -963,10 +963,6 @@ export default function MockupGenerator() {
             imageUrl: img.imageUrl || `/api/images/${img.id}/image`
           }));
           setRecentImages(recent);
-          // Select the most recent one (first in list)
-          if (recent.length > 0) {
-            setSelectedRecentImageId(recent[0].id);
-          }
         }
       } catch (error) {
         console.error("Failed to fetch recent images:", error);
