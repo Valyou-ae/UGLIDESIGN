@@ -234,12 +234,37 @@ export async function registerMockupRoutes(app: Express, middleware: Middleware)
 
         const isAopJourney = journey === "AOP";
         const productSource = isAopJourney ? knowledge.getAOPProducts() : knowledge.getDTGProducts();
+        const allProducts = knowledge.getAllProducts();
 
-        const product = productSource.find(p =>
-          p.name.toLowerCase().includes(productType.toLowerCase()) ||
-          p.subcategory?.toLowerCase().includes(productType.toLowerCase()) ||
-          p.id.toLowerCase().includes(productType.toLowerCase())
-        ) || productSource[0];
+        // Use direct name mapping for accurate product matching
+        let product = knowledge.getProductByFrontendName(productType);
+        
+        // If mapping found a valid product, use it directly (even if outside DTG/AOP for accessories/home products)
+        if (product && allProducts.some(p => p.id === product!.id)) {
+          logger.info("Product matched via direct mapping", { source: "mockup", productType, productId: product.id, productName: product.name });
+        } else {
+          // Fallback: try to find in the journey-specific products first
+          product = productSource.find(p =>
+            p.name.toLowerCase().includes(productType.toLowerCase()) ||
+            p.subcategory?.toLowerCase().includes(productType.toLowerCase()) ||
+            p.id.toLowerCase().includes(productType.toLowerCase())
+          );
+          
+          // If still not found, try all products
+          if (!product) {
+            product = allProducts.find(p =>
+              p.name.toLowerCase().includes(productType.toLowerCase()) ||
+              p.subcategory?.toLowerCase().includes(productType.toLowerCase()) ||
+              p.id.toLowerCase().includes(productType.toLowerCase())
+            );
+          }
+          
+          // Final fallback: use first product from the source (log warning)
+          if (!product) {
+            logger.warn("Product not found, using default", { source: "mockup", productType, journey });
+            product = productSource[0];
+          }
+        }
 
         const sizeMap: Record<string, string> = {
           "XS": "XS", "S": "S", "M": "M", "L": "L", "XL": "XL",

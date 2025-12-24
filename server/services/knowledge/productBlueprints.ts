@@ -246,6 +246,609 @@ export const DTG_PRODUCTS: Product[] = [
       surfaceType: 'flexible',
       notes: 'Consider fabric thickness and texture absorption'
     }
+  },
+  // Women's Products
+  {
+    id: 'womens-crop-top',
+    name: 'Crop tops',
+    category: 'Apparel',
+    subcategory: 'Crop tops',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: BELLA_CANVAS_COLORS,
+    defaultPlacement: 'center-chest',
+    genderTarget: 'womens',
+    sizeChart: [
+      { size: 'XS', chest: 30, length: 16, sleeve: 6 },
+      { size: 'S', chest: 32, length: 17, sleeve: 6.5 },
+      { size: 'M', chest: 34, length: 18, sleeve: 7 },
+      { size: 'L', chest: 36, length: 19, sleeve: 7.5 },
+      { size: 'XL', chest: 38, length: 20, sleeve: 8 },
+      { size: '2XL', chest: 40, length: 21, sleeve: 8.5 }
+    ],
+    printSpec: {
+      printAreaWidth: 10,
+      printAreaHeight: 10,
+      printAreaWidthPixels: 3000,
+      printAreaHeightPixels: 3000,
+      dpi: 300,
+      placement: 'center-chest',
+      placementDescription: 'Centered on chest, cropped length garment with shorter torso',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Cropped silhouette, design should fit within smaller print area'
+    }
+  },
+  {
+    id: 'womens-tank-top',
+    name: 'Tank tops',
+    category: 'Apparel',
+    subcategory: 'Tank tops',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: BELLA_CANVAS_COLORS,
+    defaultPlacement: 'center-chest',
+    genderTarget: 'womens',
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 10,
+      printAreaHeight: 14,
+      printAreaWidthPixels: 3000,
+      printAreaHeightPixels: 4200,
+      dpi: 300,
+      placement: 'center-chest',
+      placementDescription: 'Centered on chest, sleeveless design with racerback or standard straps',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Sleeveless tank, wider armholes require smaller print width'
+    }
+  },
+  {
+    id: 'womens-polo',
+    name: 'Polo shirts',
+    category: 'Apparel',
+    subcategory: 'Polo shirts',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: STANDARD_DTG_COLORS,
+    defaultPlacement: 'left-chest',
+    genderTarget: 'womens',
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 4,
+      printAreaHeight: 4,
+      printAreaWidthPixels: 1200,
+      printAreaHeightPixels: 1200,
+      dpi: 300,
+      placement: 'left-chest',
+      placementDescription: 'Left chest placement, 3-4 inches below shoulder seam, collar and button placket',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Traditional polo with collar, small logo placement preferred'
+    }
+  },
+  {
+    id: 'womens-dress',
+    name: 'Dresses',
+    category: 'Apparel',
+    subcategory: 'Dresses',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: BELLA_CANVAS_COLORS,
+    defaultPlacement: 'center-chest',
+    genderTarget: 'womens',
+    sizeChart: [
+      { size: 'XS', chest: 32, length: 34, sleeve: 0 },
+      { size: 'S', chest: 34, length: 35, sleeve: 0 },
+      { size: 'M', chest: 36, length: 36, sleeve: 0 },
+      { size: 'L', chest: 38, length: 37, sleeve: 0 },
+      { size: 'XL', chest: 40, length: 38, sleeve: 0 },
+      { size: '2XL', chest: 42, length: 39, sleeve: 0 }
+    ],
+    printSpec: {
+      printAreaWidth: 12,
+      printAreaHeight: 16,
+      printAreaWidthPixels: 3600,
+      printAreaHeightPixels: 4800,
+      dpi: 300,
+      placement: 'center-chest',
+      placementDescription: 'Centered on bodice, feminine silhouette with flowing skirt',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'T-shirt dress style, design on upper bodice area'
+    }
+  },
+  {
+    id: 'womens-34-sleeve',
+    name: '3/4 sleeve shirts',
+    category: 'Apparel',
+    subcategory: '3/4 sleeve shirts',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: BELLA_CANVAS_COLORS,
+    defaultPlacement: 'center-chest',
+    genderTarget: 'womens',
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 12,
+      printAreaHeight: 14,
+      printAreaWidthPixels: 3600,
+      printAreaHeightPixels: 4200,
+      dpi: 300,
+      placement: 'center-chest',
+      placementDescription: 'Centered on chest, 3/4 length sleeves ending at elbow',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Raglan or set-in sleeve with 3/4 length'
+    }
+  },
+  {
+    id: 'womens-long-sleeve',
+    name: 'Long sleeve shirts',
+    category: 'Apparel',
+    subcategory: 'Long sleeve shirts',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: BELLA_CANVAS_COLORS,
+    defaultPlacement: 'center-chest',
+    genderTarget: 'womens',
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 12,
+      printAreaHeight: 14,
+      printAreaWidthPixels: 3600,
+      printAreaHeightPixels: 4200,
+      dpi: 300,
+      placement: 'center-chest',
+      placementDescription: 'Centered on chest, full length sleeves',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Long sleeve fitted or relaxed fit options'
+    }
+  },
+  {
+    id: 'womens-knitwear',
+    name: 'Knitwear',
+    category: 'Apparel',
+    subcategory: 'Knitwear',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: SWEATSHIRT_COLORS,
+    defaultPlacement: 'center-chest',
+    genderTarget: 'womens',
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 10,
+      printAreaHeight: 12,
+      printAreaWidthPixels: 3000,
+      printAreaHeightPixels: 3600,
+      dpi: 300,
+      placement: 'center-chest',
+      placementDescription: 'Centered on chest, knit fabric texture',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Knit sweater or cardigan, consider texture absorption'
+    }
+  },
+  {
+    id: 'womens-jacket',
+    name: 'Jackets',
+    category: 'Apparel',
+    subcategory: 'Jackets',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: SWEATSHIRT_COLORS,
+    defaultPlacement: 'back-center',
+    genderTarget: 'womens',
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 14,
+      printAreaHeight: 16,
+      printAreaWidthPixels: 4200,
+      printAreaHeightPixels: 4800,
+      dpi: 300,
+      placement: 'back-center',
+      placementDescription: 'Centered on back panel, large print area',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Bomber or lightweight jacket with back print'
+    }
+  },
+  // Men's Products
+  {
+    id: 'mens-tank-top',
+    name: 'Tank tops',
+    category: 'Apparel',
+    subcategory: 'Tank tops',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: STANDARD_DTG_COLORS,
+    defaultPlacement: 'center-chest',
+    genderTarget: 'mens',
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 11,
+      printAreaHeight: 15,
+      printAreaWidthPixels: 3300,
+      printAreaHeightPixels: 4500,
+      dpi: 300,
+      placement: 'center-chest',
+      placementDescription: 'Centered on chest, athletic cut sleeveless design',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Athletic tank top, wider shoulder straps'
+    }
+  },
+  {
+    id: 'mens-polo',
+    name: 'Polo shirts',
+    category: 'Apparel',
+    subcategory: 'Polo shirts',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: STANDARD_DTG_COLORS,
+    defaultPlacement: 'left-chest',
+    genderTarget: 'mens',
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 4,
+      printAreaHeight: 4,
+      printAreaWidthPixels: 1200,
+      printAreaHeightPixels: 1200,
+      dpi: 300,
+      placement: 'left-chest',
+      placementDescription: 'Left chest placement, traditional polo with collar and button placket',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Classic polo shirt, small logo or embroidery preferred'
+    }
+  },
+  {
+    id: 'mens-34-sleeve',
+    name: '3/4 sleeve shirts',
+    category: 'Apparel',
+    subcategory: '3/4 sleeve shirts',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: STANDARD_DTG_COLORS,
+    defaultPlacement: 'center-chest',
+    genderTarget: 'mens',
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 12,
+      printAreaHeight: 14,
+      printAreaWidthPixels: 3600,
+      printAreaHeightPixels: 4200,
+      dpi: 300,
+      placement: 'center-chest',
+      placementDescription: 'Centered on chest, raglan 3/4 sleeve baseball style',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Baseball raglan style with contrasting sleeves'
+    }
+  },
+  {
+    id: 'mens-long-sleeve',
+    name: 'Long sleeve shirts',
+    category: 'Apparel',
+    subcategory: 'Long sleeve shirts',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: STANDARD_DTG_COLORS,
+    defaultPlacement: 'center-chest',
+    genderTarget: 'mens',
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 12,
+      printAreaHeight: 14,
+      printAreaWidthPixels: 3600,
+      printAreaHeightPixels: 4200,
+      dpi: 300,
+      placement: 'center-chest',
+      placementDescription: 'Centered on chest, full length sleeves',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Long sleeve tee, relaxed fit'
+    }
+  },
+  {
+    id: 'mens-embroidered',
+    name: 'Embroidered shirts',
+    category: 'Apparel',
+    subcategory: 'Embroidered shirts',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: STANDARD_DTG_COLORS,
+    defaultPlacement: 'left-chest',
+    genderTarget: 'mens',
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 4,
+      printAreaHeight: 4,
+      printAreaWidthPixels: 1200,
+      printAreaHeightPixels: 1200,
+      dpi: 300,
+      placement: 'left-chest',
+      placementDescription: 'Left chest embroidery placement, small detailed design',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Embroidered design, limited colors and detail'
+    }
+  },
+  {
+    id: 'mens-jacket-vest',
+    name: 'Jackets & vests',
+    category: 'Apparel',
+    subcategory: 'Jackets & vests',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: SWEATSHIRT_COLORS,
+    defaultPlacement: 'back-center',
+    genderTarget: 'mens',
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 14,
+      printAreaHeight: 16,
+      printAreaWidthPixels: 4200,
+      printAreaHeightPixels: 4800,
+      dpi: 300,
+      placement: 'back-center',
+      placementDescription: 'Centered on back panel, bomber or coach style jacket',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Bomber jacket or vest with large back print'
+    }
+  },
+  {
+    id: 'mens-knitwear',
+    name: 'Knitwear',
+    category: 'Apparel',
+    subcategory: 'Knitwear',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: SWEATSHIRT_COLORS,
+    defaultPlacement: 'center-chest',
+    genderTarget: 'mens',
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 10,
+      printAreaHeight: 12,
+      printAreaWidthPixels: 3000,
+      printAreaHeightPixels: 3600,
+      dpi: 300,
+      placement: 'center-chest',
+      placementDescription: 'Centered on chest, knit sweater texture',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Knit sweater, consider texture absorption'
+    }
+  },
+  {
+    id: 'mens-leggings',
+    name: 'Leggings',
+    category: 'Apparel',
+    subcategory: 'Leggings',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: STANDARD_DTG_COLORS,
+    defaultPlacement: 'thigh',
+    genderTarget: 'mens',
+    sizeChart: STANDARD_SIZE_CHART,
+    printSpec: {
+      printAreaWidth: 8,
+      printAreaHeight: 10,
+      printAreaWidthPixels: 2400,
+      printAreaHeightPixels: 3000,
+      dpi: 300,
+      placement: 'thigh',
+      placementDescription: 'Side thigh placement, compression fit athletic leggings',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Athletic compression leggings with side print'
+    }
+  },
+  // Kids' Products
+  {
+    id: 'kids-tshirt',
+    name: 'T-shirts',
+    category: 'Apparel',
+    subcategory: 'T-shirts',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: STANDARD_DTG_COLORS,
+    defaultPlacement: 'center-chest',
+    genderTarget: 'unisex',
+    sizeChart: [
+      { size: 'XS (2-4)', chest: 22, length: 15, sleeve: 4 },
+      { size: 'S (6-8)', chest: 26, length: 18, sleeve: 5 },
+      { size: 'M (10-12)', chest: 30, length: 21, sleeve: 6 },
+      { size: 'L (14-16)', chest: 34, length: 24, sleeve: 7 },
+      { size: 'XL (18)', chest: 36, length: 26, sleeve: 7.5 }
+    ],
+    printSpec: {
+      printAreaWidth: 8,
+      printAreaHeight: 10,
+      printAreaWidthPixels: 2400,
+      printAreaHeightPixels: 3000,
+      dpi: 300,
+      placement: 'center-chest',
+      placementDescription: 'Centered on chest, scaled for youth sizes',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Youth sizing, smaller print area'
+    }
+  },
+  {
+    id: 'kids-hoodie',
+    name: 'Hoodies',
+    category: 'Apparel',
+    subcategory: 'Hoodies',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: SWEATSHIRT_COLORS,
+    defaultPlacement: 'center-chest',
+    genderTarget: 'unisex',
+    sizeChart: [
+      { size: 'XS (2-4)', chest: 24, length: 16, sleeve: 14 },
+      { size: 'S (6-8)', chest: 28, length: 19, sleeve: 17 },
+      { size: 'M (10-12)', chest: 32, length: 22, sleeve: 20 },
+      { size: 'L (14-16)', chest: 36, length: 25, sleeve: 23 },
+      { size: 'XL (18)', chest: 38, length: 27, sleeve: 25 }
+    ],
+    printSpec: {
+      printAreaWidth: 8,
+      printAreaHeight: 10,
+      printAreaWidthPixels: 2400,
+      printAreaHeightPixels: 3000,
+      dpi: 300,
+      placement: 'center-chest',
+      placementDescription: 'Centered on chest, youth hoodie with kangaroo pocket',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Youth hoodie, above pocket placement'
+    }
+  },
+  {
+    id: 'kids-sweatshirt',
+    name: 'Sweatshirts',
+    category: 'Apparel',
+    subcategory: 'Sweatshirts',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: SWEATSHIRT_COLORS,
+    defaultPlacement: 'center-chest',
+    genderTarget: 'unisex',
+    sizeChart: [
+      { size: 'XS (2-4)', chest: 24, length: 15, sleeve: 14 },
+      { size: 'S (6-8)', chest: 28, length: 18, sleeve: 17 },
+      { size: 'M (10-12)', chest: 32, length: 21, sleeve: 20 },
+      { size: 'L (14-16)', chest: 36, length: 24, sleeve: 23 },
+      { size: 'XL (18)', chest: 38, length: 26, sleeve: 25 }
+    ],
+    printSpec: {
+      printAreaWidth: 8,
+      printAreaHeight: 10,
+      printAreaWidthPixels: 2400,
+      printAreaHeightPixels: 3000,
+      dpi: 300,
+      placement: 'center-chest',
+      placementDescription: 'Centered on chest, youth crewneck sweatshirt',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Youth sweatshirt, crewneck style'
+    }
+  },
+  {
+    id: 'kids-long-sleeve',
+    name: 'Long sleeve shirts',
+    category: 'Apparel',
+    subcategory: 'Long sleeve shirts',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: STANDARD_DTG_COLORS,
+    defaultPlacement: 'center-chest',
+    genderTarget: 'unisex',
+    sizeChart: [
+      { size: 'XS (2-4)', chest: 22, length: 15, sleeve: 14 },
+      { size: 'S (6-8)', chest: 26, length: 18, sleeve: 17 },
+      { size: 'M (10-12)', chest: 30, length: 21, sleeve: 20 },
+      { size: 'L (14-16)', chest: 34, length: 24, sleeve: 23 },
+      { size: 'XL (18)', chest: 36, length: 26, sleeve: 25 }
+    ],
+    printSpec: {
+      printAreaWidth: 8,
+      printAreaHeight: 10,
+      printAreaWidthPixels: 2400,
+      printAreaHeightPixels: 3000,
+      dpi: 300,
+      placement: 'center-chest',
+      placementDescription: 'Centered on chest, youth long sleeve tee',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Youth long sleeve shirt'
+    }
+  },
+  {
+    id: 'kids-leggings',
+    name: 'Leggings',
+    category: 'Apparel',
+    subcategory: 'Leggings',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: STANDARD_DTG_COLORS,
+    defaultPlacement: 'thigh',
+    genderTarget: 'unisex',
+    sizeChart: [
+      { size: 'XS (2-4)', chest: 20, length: 18, sleeve: 0 },
+      { size: 'S (6-8)', chest: 22, length: 22, sleeve: 0 },
+      { size: 'M (10-12)', chest: 24, length: 26, sleeve: 0 },
+      { size: 'L (14-16)', chest: 26, length: 30, sleeve: 0 }
+    ],
+    printSpec: {
+      printAreaWidth: 6,
+      printAreaHeight: 8,
+      printAreaWidthPixels: 1800,
+      printAreaHeightPixels: 2400,
+      dpi: 300,
+      placement: 'thigh',
+      placementDescription: 'Side thigh placement, youth athletic leggings',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Youth leggings with side print'
+    }
+  },
+  {
+    id: 'baby-bodysuit',
+    name: 'Baby bodysuits',
+    category: 'Apparel',
+    subcategory: 'Baby bodysuits',
+    productType: 'dtg-apparel',
+    isWearable: true,
+    availableColors: STANDARD_DTG_COLORS,
+    defaultPlacement: 'center-chest',
+    genderTarget: 'unisex',
+    sizeChart: [
+      { size: '0-3M', chest: 16, length: 11, sleeve: 3 },
+      { size: '3-6M', chest: 17, length: 12, sleeve: 3.5 },
+      { size: '6-12M', chest: 18, length: 13, sleeve: 4 },
+      { size: '12-18M', chest: 19, length: 14, sleeve: 4.5 },
+      { size: '18-24M', chest: 20, length: 15, sleeve: 5 }
+    ],
+    printSpec: {
+      printAreaWidth: 5,
+      printAreaHeight: 6,
+      printAreaWidthPixels: 1500,
+      printAreaHeightPixels: 1800,
+      dpi: 300,
+      placement: 'center-chest',
+      placementDescription: 'Centered on chest, infant onesie with snap closure',
+      safeZone: 0.25,
+      surfaceType: 'flexible',
+      notes: 'Infant bodysuit, small print area'
+    }
+  },
+  {
+    id: 'kids-hat',
+    name: 'Hats',
+    category: 'Accessories',
+    subcategory: 'Hats',
+    productType: 'accessory-hat',
+    isWearable: true,
+    availableColors: STANDARD_DTG_COLORS,
+    defaultPlacement: 'front-panel',
+    genderTarget: 'unisex',
+    printSpec: {
+      printAreaWidth: 4,
+      printAreaHeight: 2.5,
+      printAreaWidthPixels: 1200,
+      printAreaHeightPixels: 750,
+      dpi: 300,
+      placement: 'front-panel',
+      placementDescription: 'Centered on front panel, youth baseball cap',
+      safeZone: 0.125,
+      surfaceType: 'flexible',
+      notes: 'Youth baseball cap, embroidery or patch preferred'
+    }
   }
 ];
 
@@ -1282,6 +1885,173 @@ export const HOME_LIVING_PRODUCTS: Product[] = [
 ];
 
 const ALL_PRODUCTS: Product[] = [...DTG_PRODUCTS, ...AOP_PRODUCTS, ...ACCESSORY_PRODUCTS, ...HOME_LIVING_PRODUCTS];
+
+// Direct mapping from frontend product names to backend product IDs
+// This ensures exact matching regardless of case, pluralization, or wording differences
+export const PRODUCT_NAME_MAP: Record<string, string> = {
+  // Women's Products
+  'crop tops': 'womens-crop-top',
+  'crop top': 'womens-crop-top',
+  'tank tops': 'womens-tank-top',
+  'tank top': 'womens-tank-top',
+  'polo shirts': 'womens-polo',
+  'polo shirt': 'womens-polo',
+  'dresses': 'womens-dress',
+  'dress': 'womens-dress',
+  '3/4 sleeve shirts': 'womens-34-sleeve',
+  '3/4 sleeve': 'womens-34-sleeve',
+  'long sleeve shirts': 'womens-long-sleeve',
+  'long sleeve': 'womens-long-sleeve',
+  'knitwear': 'womens-knitwear',
+  'sweater': 'womens-knitwear',
+  'jackets': 'womens-jacket',
+  'jacket': 'womens-jacket',
+  // Men's Products
+  'embroidered shirts': 'mens-embroidered',
+  'embroidered shirt': 'mens-embroidered',
+  'jackets & vests': 'mens-jacket-vest',
+  'jacket & vest': 'mens-jacket-vest',
+  'leggings': 'mens-leggings',
+  // Kids' Products
+  'baby bodysuits': 'baby-bodysuit',
+  'baby bodysuit': 'baby-bodysuit',
+  'onesies': 'baby-bodysuit',
+  'onesie': 'baby-bodysuit',
+  // T-Shirts (generic mapping based on context)
+  't-shirts': 'bella-3001',
+  't-shirt': 'bella-3001',
+  'tee': 'bella-3001',
+  'tees': 'bella-3001',
+  // Hoodies
+  'hoodies': 'gildan-18500',
+  'hoodie': 'gildan-18500',
+  'pullover hoodie': 'gildan-18500',
+  // Sweatshirts
+  'sweatshirts': 'gildan-18000',
+  'sweatshirt': 'gildan-18000',
+  'crewneck': 'gildan-18000',
+  // Bags
+  'tote bags': 'tote-bag',
+  'tote bag': 'tote-bag',
+  'drawstring bags': 'drawstring-bag',
+  'drawstring bag': 'drawstring-bag',
+  'backpacks': 'backpack',
+  'backpack': 'backpack',
+  'duffle bags': 'duffle-bag',
+  'duffle bag': 'duffle-bag',
+  'handbags': 'tote-bag',
+  'handbag': 'tote-bag',
+  // Footwear
+  'flip flops': 'flip-flops',
+  'flip-flops': 'flip-flops',
+  'socks': 'socks',
+  'sock': 'socks',
+  'shoes': 'flip-flops',
+  // Tech Accessories
+  'phone cases': 'phone-case-iphone-15',
+  'phone case': 'phone-case-iphone-15',
+  'laptop cases': 'laptop-sleeve-15',
+  'laptop case': 'laptop-sleeve-15',
+  'laptop sleeve': 'laptop-sleeve-15',
+  'mouse pads': 'mouse-pad',
+  'mouse pad': 'mouse-pad',
+  'mousepad': 'mouse-pad',
+  // Other Accessories
+  'face masks': 'face-mask',
+  'face mask': 'face-mask',
+  'hats': 'kids-hat',
+  'hat': 'kids-hat',
+  'caps': 'kids-hat',
+  'cap': 'kids-hat',
+  // Drinkware
+  'mugs': 'mug-11oz',
+  'mug': 'mug-11oz',
+  'coffee mug': 'mug-11oz',
+  'tumblers': 'tumbler-20oz',
+  'tumbler': 'tumbler-20oz',
+  'water bottles': 'water-bottle',
+  'water bottle': 'water-bottle',
+  'bottle': 'water-bottle',
+  // Wall Art
+  'wall art': 'canvas-8x10',
+  'canvas': 'canvas-8x10',
+  'canvas print': 'canvas-8x10',
+  'posters': 'poster-18x24',
+  'poster': 'poster-18x24',
+  'framed posters': 'framed-poster-18x24',
+  'framed poster': 'framed-poster-18x24',
+  // Home Textiles
+  'blankets': 'blanket-50x60',
+  'blanket': 'blanket-50x60',
+  'throw blanket': 'blanket-50x60',
+  'pillow cases': 'pillow-case-18x18',
+  'pillow case': 'pillow-case-18x18',
+  'pillowcase': 'pillow-case-18x18',
+  'pillows': 'aop-square-pillow',
+  'pillow': 'aop-square-pillow',
+  'throw pillow': 'aop-square-pillow',
+  'towels': 'aop-beach-towel',
+  'towel': 'aop-beach-towel',
+  'beach towel': 'aop-beach-towel',
+  // Tableware
+  'coasters': 'coaster',
+  'coaster': 'coaster',
+  'tableware': 'coaster',
+  // Stationery
+  'magnets': 'magnet-3x3',
+  'magnet': 'magnet-3x3',
+  'postcards': 'postcard-4x6',
+  'postcard': 'postcard-4x6',
+  'notebooks': 'notebook-a5',
+  'notebook': 'notebook-a5',
+  'stickers': 'sticker-sheet',
+  'sticker': 'sticker-sheet',
+  // Apparel Extras
+  'aprons': 'tote-bag',
+  'apron': 'tote-bag',
+  // All-Over Print
+  'all-over print shirts': 'aop-mens-cut-sew-tee',
+  'all-over print shirt': 'aop-mens-cut-sew-tee',
+  'aop shirt': 'aop-mens-cut-sew-tee',
+  'aop t-shirt': 'aop-mens-cut-sew-tee',
+  'all-over shirts': 'aop-mens-cut-sew-tee',
+  'all-over hoodie': 'aop-hoodie',
+  'aop hoodie': 'aop-hoodie',
+  'aop leggings': 'aop-womens-leggings',
+  'all-over leggings': 'aop-womens-leggings',
+};
+
+// Normalize product name for matching (lowercase, trim, remove extra spaces)
+function normalizeProductName(name: string): string {
+  return name.toLowerCase().trim().replace(/\s+/g, ' ');
+}
+
+// Get product by frontend name using direct mapping
+export function getProductByFrontendName(frontendName: string): Product | undefined {
+  const normalized = normalizeProductName(frontendName);
+  const productId = PRODUCT_NAME_MAP[normalized];
+  
+  if (productId) {
+    return ALL_PRODUCTS.find(p => p.id === productId);
+  }
+  
+  // Fallback: try exact name match
+  const exactMatch = ALL_PRODUCTS.find(p => normalizeProductName(p.name) === normalized);
+  if (exactMatch) return exactMatch;
+  
+  // Fallback: try subcategory match
+  const subcategoryMatch = ALL_PRODUCTS.find(p => normalizeProductName(p.subcategory) === normalized);
+  if (subcategoryMatch) return subcategoryMatch;
+  
+  // Fallback: try partial name match
+  const partialMatch = ALL_PRODUCTS.find(p => 
+    normalizeProductName(p.name).includes(normalized) || 
+    normalized.includes(normalizeProductName(p.name))
+  );
+  if (partialMatch) return partialMatch;
+  
+  return undefined;
+}
 
 export function getProduct(id: string): Product | undefined {
   return ALL_PRODUCTS.find(p => p.id === id);
