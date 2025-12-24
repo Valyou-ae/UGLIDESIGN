@@ -773,6 +773,8 @@ export default function MockupGenerator() {
   const [currentlyProcessing, setCurrentlyProcessing] = useState<string | null>(null);
   const [failedJobs, setFailedJobs] = useState<BatchJob[]>([]);
   const [isDownloadingZip, setIsDownloadingZip] = useState(false);
+  const [availableSizes, setAvailableSizes] = useState<{code: string; label: string}[]>([]);
+  const [isLoadingSizes, setIsLoadingSizes] = useState(false);
 
   const completedJobs = batchJobs.filter(j => j.status === 'completed').length;
   const failedJobsCount = batchJobs.filter(j => j.status === 'failed').length;
@@ -819,6 +821,66 @@ export default function MockupGenerator() {
       prevJourneyRef.current = journey;
     }
   }, [journey, activeCategory]);
+
+  // Fetch sizes when selected product changes
+  useEffect(() => {
+    const fetchSizes = async () => {
+      if (!selectedProductType) {
+        setAvailableSizes([]);
+        return;
+      }
+      
+      setIsLoadingSizes(true);
+      try {
+        const response = await fetch(`/api/products/lookup/${encodeURIComponent(selectedProductType)}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.product?.sizes && data.product.sizes.length > 0) {
+            setAvailableSizes(data.product.sizes);
+            // Reset selected sizes to first available size
+            setSelectedSizes([data.product.sizes[0].code]);
+          } else {
+            // Default sizes if none available
+            setAvailableSizes([
+              { code: "XS", label: "XS" },
+              { code: "S", label: "S" },
+              { code: "M", label: "M" },
+              { code: "L", label: "L" },
+              { code: "XL", label: "XL" },
+              { code: "2XL", label: "2XL" },
+            ]);
+            setSelectedSizes(["M"]);
+          }
+        } else {
+          // Default sizes on error
+          setAvailableSizes([
+            { code: "XS", label: "XS" },
+            { code: "S", label: "S" },
+            { code: "M", label: "M" },
+            { code: "L", label: "L" },
+            { code: "XL", label: "XL" },
+            { code: "2XL", label: "2XL" },
+          ]);
+          setSelectedSizes(["M"]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch product sizes:", error);
+        setAvailableSizes([
+          { code: "XS", label: "XS" },
+          { code: "S", label: "S" },
+          { code: "M", label: "M" },
+          { code: "L", label: "L" },
+          { code: "XL", label: "XL" },
+          { code: "2XL", label: "2XL" },
+        ]);
+        setSelectedSizes(["M"]);
+      } finally {
+        setIsLoadingSizes(false);
+      }
+    };
+
+    fetchSizes();
+  }, [selectedProductType]);
 
   const downloadImage = (url: string, filename: string) => {
     const link = document.createElement('a');
@@ -1859,33 +1921,42 @@ export default function MockupGenerator() {
                               <div className="bg-card rounded-xl border border-border p-4 sm:p-5">
                                 <div className="flex items-center justify-between mb-3">
                                   <label className="text-sm font-bold text-foreground">Sizes</label>
-                                  <Badge variant="secondary" className="text-xs">{selectedSizes.length} selected</Badge>
+                                  <Badge variant="secondary" className="text-xs">
+                                    {isLoadingSizes ? "Loading..." : `${selectedSizes.length} selected`}
+                                  </Badge>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
-                                  {["XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"].map((size) => {
-                                    const isSelected = selectedSizes.includes(size);
-                                    return (
-                                      <button
-                                        key={size}
-                                        onClick={() => {
-                                          if (isSelected) {
-                                            setSelectedSizes(selectedSizes.filter(s => s !== size));
-                                          } else {
-                                            setSelectedSizes([...selectedSizes, size]);
-                                          }
-                                        }}
-                                        className={cn(
-                                          "h-10 min-w-[40px] px-3 rounded-lg text-sm font-medium border-2 transition-all active:scale-95",
-                                          isSelected 
-                                            ? "bg-primary border-primary text-white" 
-                                            : "bg-background border-border text-muted-foreground hover:border-primary/50"
-                                        )}
-                                        data-testid={`size-${size}`}
-                                      >
-                                        {size}
-                                      </button>
-                                    );
-                                  })}
+                                  {isLoadingSizes ? (
+                                    <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                      <span>Loading sizes...</span>
+                                    </div>
+                                  ) : (
+                                    availableSizes.map((sizeOption) => {
+                                      const isSelected = selectedSizes.includes(sizeOption.code);
+                                      return (
+                                        <button
+                                          key={sizeOption.code}
+                                          onClick={() => {
+                                            if (isSelected) {
+                                              setSelectedSizes(selectedSizes.filter(s => s !== sizeOption.code));
+                                            } else {
+                                              setSelectedSizes([...selectedSizes, sizeOption.code]);
+                                            }
+                                          }}
+                                          className={cn(
+                                            "h-10 min-w-[40px] px-3 rounded-lg text-sm font-medium border-2 transition-all active:scale-95",
+                                            isSelected 
+                                              ? "bg-primary border-primary text-white" 
+                                              : "bg-background border-border text-muted-foreground hover:border-primary/50"
+                                          )}
+                                          data-testid={`size-${sizeOption.code}`}
+                                        >
+                                          {sizeOption.label}
+                                        </button>
+                                      );
+                                    })
+                                  )}
                                 </div>
                               </div>
 
