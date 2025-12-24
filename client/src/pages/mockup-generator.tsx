@@ -85,10 +85,11 @@ import {
   MoreVertical,
   Trash2,
   Palette as PaletteIcon,
-  Gift,
-  Flower,
-  Moon,
-  Leaf
+  TreePine,
+  Flower2,
+  Ghost,
+  Leaf,
+  PartyPopper
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -202,7 +203,7 @@ const SEASONAL_THEMES: SeasonalTheme[] = [
   {
     id: "christmas",
     name: "Christmas",
-    icon: Gift,
+    icon: TreePine,
     description: "Cozy winter holiday vibes with festive elements",
     sceneKeywords: ["christmas tree", "cozy fireplace", "snow", "warm lights", "holiday decorations", "wrapped gifts", "winter cabin"],
     colorPalette: ["#C41E3A", "#165B33", "#FFD700", "#FFFFFF"],
@@ -220,7 +221,7 @@ const SEASONAL_THEMES: SeasonalTheme[] = [
   {
     id: "spring",
     name: "Spring",
-    icon: Flower,
+    icon: Flower2,
     description: "Fresh blooms and bright renewal",
     sceneKeywords: ["blooming flowers", "garden", "fresh greenery", "cherry blossoms", "bright sunny day", "meadow"],
     colorPalette: ["#90EE90", "#FFB7C5", "#87CEEB", "#FFFACD"],
@@ -238,7 +239,7 @@ const SEASONAL_THEMES: SeasonalTheme[] = [
   {
     id: "halloween",
     name: "Halloween",
-    icon: Moon,
+    icon: Ghost,
     description: "Spooky and mysterious autumn nights",
     sceneKeywords: ["spooky", "pumpkins", "autumn night", "gothic", "mysterious fog", "haunted house"],
     colorPalette: ["#FF6600", "#000000", "#800080", "#1C1C1C"],
@@ -2279,7 +2280,7 @@ export default function MockupGenerator() {
                               <p className="text-xs text-muted-foreground mb-3">
                                 Add festive backgrounds and styling for holidays and events
                               </p>
-                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                              <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
                                 {SEASONAL_THEMES.map((theme) => {
                                   const ThemeIcon = theme.icon;
                                   const isSelected = selectedSeasonalTheme === theme.id;
