@@ -2604,11 +2604,11 @@ export default function MockupGenerator() {
                       {/* ========== STEP 3: CUSTOMIZE (Sizes + Colors + Model + Scene) ========== */}
                       {currentStep === "customize" && (
                         <div className="flex flex-col h-full animate-fade-in">
-                          <div className="flex-1 overflow-y-auto scrollbar-hide space-y-4 sm:space-y-6 pb-4">
+                          <div className="flex-1 overflow-y-auto scrollbar-hide space-y-3 sm:space-y-4 pb-4">
                             {/* Sizes + Colors */}
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                               {/* Sizes */}
-                              <div className="bg-card rounded-xl border border-border p-4 sm:p-5">
+                              <div className="bg-card rounded-xl border border-border p-3 sm:p-4">
                                 <div className="flex items-center justify-between mb-3">
                                   <label className="text-sm font-bold text-foreground">Sizes</label>
                                   <Badge variant="secondary" className="text-xs">
@@ -2651,7 +2651,7 @@ export default function MockupGenerator() {
                               </div>
 
                               {/* Colors */}
-                              <div className="bg-card rounded-xl border border-border p-4 sm:p-5">
+                              <div className="bg-card rounded-xl border border-border p-3 sm:p-4">
                                 <div className="flex items-center justify-between mb-3">
                                   <label className="text-sm font-bold text-foreground">Colors</label>
                                   {journey !== "AOP" && <Badge variant="secondary" className="text-xs">{selectedColors.length} selected</Badge>}
@@ -2719,7 +2719,7 @@ export default function MockupGenerator() {
                             </div>
 
                             {/* Scene/Display Options (ALL products) */}
-                            <div className="bg-card rounded-xl border border-border p-4 sm:p-5">
+                            <div className="bg-card rounded-xl border border-border p-3 sm:p-4">
                               <div className="flex items-center justify-between mb-3">
                                 <label className="text-sm font-bold text-foreground">
                                   {isNonWearableCategory(effectiveActiveCategory) ? "Scene Type" : "Model Display"}
@@ -2778,8 +2778,8 @@ export default function MockupGenerator() {
                                 {useModel && !isNonWearableCategory(effectiveActiveCategory) && (
                                   <>
                                     {/* Gender Section */}
-                                    <div className="mt-3">
-                                      <label className="text-xs font-semibold text-muted-foreground mb-2 block">Gender</label>
+                                    <div className="mt-2">
+                                      <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Gender</label>
                                       <div className="grid grid-cols-2 gap-2">
                                         {[
                                           { value: "MALE", symbol: "♂", label: "Male" },
@@ -2789,7 +2789,7 @@ export default function MockupGenerator() {
                                             key={option.value}
                                             onClick={() => setModelDetails({...modelDetails, sex: option.value as "MALE" | "FEMALE"})}
                                             className={cn(
-                                              "flex flex-col items-center justify-center gap-2 py-3 rounded-lg border transition-all",
+                                              "flex flex-col items-center justify-center gap-1 py-2 rounded-lg border transition-all",
                                               modelDetails.sex === option.value
                                                 ? "bg-primary/10 border-primary text-primary"
                                                 : "bg-muted/30 border-border text-muted-foreground hover:border-primary/30"
@@ -2803,8 +2803,8 @@ export default function MockupGenerator() {
                                     </div>
                                     
                                     {/* Ethnicity Section */}
-                                    <div className="mt-4">
-                                      <label className="text-xs font-semibold text-muted-foreground mb-2 block">Ethnicity</label>
+                                    <div className="mt-2">
+                                      <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Ethnicity</label>
                                       <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2 w-full">
                                         {[
                                           { value: "White", label: "White", image: ethnicityWhite },
@@ -2849,7 +2849,7 @@ export default function MockupGenerator() {
                               </div>
 
                             {/* Seasonal Themes */}
-                            <div className="bg-card rounded-xl border border-border p-4 sm:p-5">
+                            <div className="bg-card rounded-xl border border-border p-3 sm:p-4">
                               <div className="flex items-center gap-2 mb-3">
                                 <Sparkles className="h-4 w-4 text-primary" />
                                 <label className="text-sm font-bold text-foreground">Seasonal Theme</label>
