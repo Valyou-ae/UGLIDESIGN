@@ -570,3 +570,47 @@ export interface BackgroundRemovalJob {
   startedAt?: number;
   completedAt?: number;
 }
+
+// ============================================================================
+// TEXT-TO-MOCKUP (AI-Driven Mockup Generation from Natural Language)
+// ============================================================================
+
+export interface TextToMockupParsedPrompt {
+  designConcept: string;
+  designStyle: string;
+  productType: string;
+  productCategory: string;
+  productColor: string;
+  sceneType: SceneType;
+  sceneDescription: string;
+  modelSex?: Sex;
+  modelAge?: AgeGroup;
+  modelEthnicity?: Ethnicity;
+  seasonalTheme?: string;
+  brandStyle?: string;
+  additionalDetails?: string;
+}
+
+export interface TextToMockupRequest {
+  prompt: string;
+  outputQuality?: OutputQuality;
+  overrides?: Partial<TextToMockupParsedPrompt>;
+}
+
+export interface TextToMockupProgressEvent {
+  stage: 'parsing' | 'generating_design' | 'preparing_mockup' | 'generating_mockup' | 'complete' | 'error';
+  message: string;
+  progress: number;
+  parsedPrompt?: TextToMockupParsedPrompt;
+  designImage?: string;
+  mockupImage?: string;
+  error?: string;
+}
+
+export interface TextToMockupResult {
+  success: boolean;
+  parsedPrompt: TextToMockupParsedPrompt;
+  designImage: string;
+  mockupImage: string;
+  error?: string;
+}
