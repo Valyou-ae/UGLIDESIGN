@@ -2520,7 +2520,117 @@ export default function ImageGenerator() {
                   </div>
 
                   <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 md:space-y-8">
-                    {/* Actions */}
+                    {/* Prompt - at top */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Prompt</label>
+                      <div className="bg-muted/30 rounded-xl p-4 text-sm text-muted-foreground leading-relaxed border border-border relative group">
+                        {selectedImage.prompt}
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => {
+                             navigator.clipboard.writeText(selectedImage.prompt);
+                             toast({ title: "Copied" });
+                          }}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Edit Image Section - prominent styling */}
+                    {selectedImage.id && !selectedImage.id.startsWith("sample-") && (
+                      <div className="space-y-3 bg-gradient-to-br from-[#ed5387]/10 to-[#ed5387]/5 rounded-xl p-4 border border-[#ed5387]/20">
+                        <label className="text-xs font-bold text-foreground uppercase tracking-widest flex items-center gap-2">
+                          <Wand2 className="h-4 w-4 text-[#ed5387]" />
+                          Edit with AI
+                        </label>
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="Remove background, change color to blue..."
+                            value={editPrompt}
+                            onChange={(e) => setEditPrompt(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && !e.shiftKey) {
+                                e.preventDefault();
+                                handleEditImage();
+                              }
+                            }}
+                            disabled={isEditing}
+                            className="flex-1 h-10 text-sm bg-background/80 border-border"
+                            data-testid="input-edit-prompt"
+                          />
+                          <Button
+                            onClick={handleEditImage}
+                            disabled={!editPrompt.trim() || isEditing}
+                            className="h-10 px-5 bg-[#ed5387] hover:bg-[#d64375] text-white font-medium"
+                            data-testid="button-apply-edit"
+                          >
+                            {isEditing ? (
+                              <>
+                                <RefreshCw className="h-4 w-4 mr-1.5 animate-spin" />
+                                Editing...
+                              </>
+                            ) : (
+                              <>
+                                <Wand2 className="h-4 w-4 mr-1.5" />
+                                Apply
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground">
+                          Describe what you want to change using natural language
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Version History with edit prompts */}
+                    {imageVersions.length > 1 && (
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+                          <HistoryIcon className="h-3 w-3" />
+                          Version History ({imageVersions.length})
+                        </label>
+                        <div className="space-y-2">
+                          {imageVersions.map((version, index) => (
+                            <button
+                              key={version.id}
+                              onClick={() => selectImageVersion(version)}
+                              className={cn(
+                                "w-full flex items-center gap-3 p-2 rounded-lg border transition-all hover:bg-muted/50",
+                                selectedImage.id === version.id 
+                                  ? "border-[#ed5387] bg-[#ed5387]/10" 
+                                  : "border-border opacity-80 hover:opacity-100"
+                              )}
+                              data-testid={`version-thumbnail-${index}`}
+                            >
+                              <div className="relative shrink-0 w-12 h-12 rounded-md overflow-hidden border border-border">
+                                <img 
+                                  src={version.imageUrl} 
+                                  alt={`Version ${version.versionNumber}`}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <div className="flex-1 text-left min-w-0">
+                                <div className="text-xs font-medium text-foreground">
+                                  {version.versionNumber === 0 ? "Original" : `Version ${version.versionNumber}`}
+                                </div>
+                                <div className="text-[10px] text-muted-foreground truncate">
+                                  {version.editPrompt || (version.versionNumber === 0 ? "Original creation" : "Edit")}
+                                </div>
+                              </div>
+                              {selectedImage.id === version.id && (
+                                <div className="shrink-0 w-2 h-2 rounded-full bg-[#ed5387]" />
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Actions - moved to bottom */}
                     <div className="grid grid-cols-6 gap-2">
                       <Button 
                         variant="ghost" 
@@ -2592,107 +2702,6 @@ export default function ImageGenerator() {
                         <Scissors className="h-5 w-5" />
                         <span className="text-[10px]">Remove BG</span>
                       </Button>
-                    </div>
-
-                    {/* Edit Image Section */}
-                    {selectedImage.id && !selectedImage.id.startsWith("sample-") && (
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
-                          <Wand2 className="h-3 w-3" />
-                          Edit with AI
-                        </label>
-                        <div className="flex gap-2">
-                          <Input
-                            placeholder="Remove background, change color to blue..."
-                            value={editPrompt}
-                            onChange={(e) => setEditPrompt(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" && !e.shiftKey) {
-                                e.preventDefault();
-                                handleEditImage();
-                              }
-                            }}
-                            disabled={isEditing}
-                            className="flex-1 h-9 text-sm bg-muted/30 border-border"
-                            data-testid="input-edit-prompt"
-                          />
-                          <Button
-                            onClick={handleEditImage}
-                            disabled={!editPrompt.trim() || isEditing}
-                            size="sm"
-                            className="h-9 px-4 bg-[#ed5387] hover:bg-[#d64375] text-white"
-                            data-testid="button-apply-edit"
-                          >
-                            {isEditing ? (
-                              <>
-                                <RefreshCw className="h-4 w-4 mr-1.5 animate-spin" />
-                                Editing...
-                              </>
-                            ) : (
-                              <>
-                                <Wand2 className="h-4 w-4 mr-1.5" />
-                                Apply
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                        <p className="text-[10px] text-muted-foreground">
-                          Describe what you want to change using natural language
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Version History */}
-                    {imageVersions.length > 1 && (
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
-                          <HistoryIcon className="h-3 w-3" />
-                          Version History ({imageVersions.length})
-                        </label>
-                        <div className="flex gap-2 overflow-x-auto pb-2">
-                          {imageVersions.map((version, index) => (
-                            <button
-                              key={version.id}
-                              onClick={() => selectImageVersion(version)}
-                              className={cn(
-                                "relative shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 transition-all hover:opacity-100",
-                                selectedImage.id === version.id 
-                                  ? "border-[#ed5387] ring-2 ring-[#ed5387]/30" 
-                                  : "border-border opacity-70 hover:border-muted-foreground"
-                              )}
-                              data-testid={`version-thumbnail-${index}`}
-                            >
-                              <img 
-                                src={version.imageUrl} 
-                                alt={`Version ${version.versionNumber}`}
-                                className="w-full h-full object-cover"
-                              />
-                              <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-[8px] text-white text-center py-0.5">
-                                {version.versionNumber === 0 ? "Original" : `v${version.versionNumber}`}
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Prompt */}
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Prompt</label>
-                      <div className="bg-muted/30 rounded-xl p-4 text-sm text-muted-foreground leading-relaxed border border-border relative group">
-                        {selectedImage.prompt}
-                        <Button 
-                          size="icon" 
-                          variant="ghost" 
-                          className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => {
-                             navigator.clipboard.writeText(selectedImage.prompt);
-                             toast({ title: "Copied" });
-                          }}
-                        >
-                          <Copy className="h-3 w-3" />
-                        </Button>
-                      </div>
                     </div>
 
                     {/* Details */}
