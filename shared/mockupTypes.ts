@@ -179,12 +179,34 @@ export interface Product {
   printSpec?: PrintSpecification;
   silhouettePath?: string;
   thumbnailSvg?: string;
+  frontendName?: string;
+  backendId?: string;
+  printfulId?: string;
+  printMethod?: 'dtg' | 'sublimation' | 'aop' | 'embroidery';
+  printAreas?: PrintArea[];
+  sizes?: ProductSize[];
+  promptKeywords?: string[];
+}
+
+export interface PrintArea {
+  name: string;
+  widthInches: number;
+  heightInches: number;
+  widthPixels: number;
+  heightPixels: number;
+  position: string;
+}
+
+export interface ProductSize {
+  code: string;
+  label: string;
 }
 
 export interface ProductColor {
   name: string;
   hex: string;
   category?: 'light' | 'dark' | 'neutral';
+  isPopular?: boolean;
 }
 
 // ============================================================================
