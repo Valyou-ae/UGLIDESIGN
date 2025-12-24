@@ -749,7 +749,56 @@ export const mockupApi = {
       throw error;
     }
   },
+
+  // Version History
+  saveVersion: (data: {
+    sessionId: string;
+    imageUrl: string;
+    thumbnailUrl?: string;
+    prompt?: string;
+    productName?: string;
+    productColor?: string;
+    productSize?: string;
+    angle?: string;
+    metadata?: Record<string, unknown>;
+  }) =>
+    fetchApi<{ success: boolean; version: MockupVersion }>("/mockup/versions", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  getVersions: (sessionId: string) =>
+    fetchApi<{ versions: MockupVersion[] }>(`/mockup/versions/${sessionId}`),
+
+  getVersion: (versionId: string) =>
+    fetchApi<{ version: MockupVersion }>(`/mockup/version/${versionId}`),
+
+  getSessions: (limit = 20) =>
+    fetchApi<{ sessions: { sessionId: string; latestVersion: MockupVersion; versionCount: number }[] }>(
+      `/mockup/sessions?limit=${limit}`
+    ),
+
+  deleteVersion: (versionId: string) =>
+    fetchApi<{ success: boolean }>(`/mockup/version/${versionId}`, {
+      method: "DELETE",
+    }),
 };
+
+export interface MockupVersion {
+  id: string;
+  userId: string;
+  mockupSessionId: string;
+  imageUrl: string;
+  thumbnailUrl?: string | null;
+  prompt?: string | null;
+  productName?: string | null;
+  productColor?: string | null;
+  productSize?: string | null;
+  angle?: string | null;
+  versionNumber: number;
+  metadata?: Record<string, unknown> | null;
+  createdAt: string;
+}
 
 // Background Removal API Types
 export type BackgroundOutputType = 'transparent' | 'white' | 'color' | 'blur';
