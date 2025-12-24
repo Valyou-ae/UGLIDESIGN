@@ -2586,47 +2586,84 @@ export default function ImageGenerator() {
                       </div>
                     )}
 
-                    {/* Version History with edit prompts */}
+                    {/* Version History - horizontal row with arrows */}
                     {imageVersions.length > 1 && (
                       <div className="space-y-3">
                         <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
                           <HistoryIcon className="h-3 w-3" />
                           Version History ({imageVersions.length})
                         </label>
-                        <div className="space-y-2">
-                          {imageVersions.map((version, index) => (
-                            <button
-                              key={version.id}
-                              onClick={() => selectImageVersion(version)}
-                              className={cn(
-                                "w-full flex items-center gap-3 p-2 rounded-lg border transition-all hover:bg-muted/50",
-                                selectedImage.id === version.id 
-                                  ? "border-[#ed5387] bg-[#ed5387]/10" 
-                                  : "border-border opacity-80 hover:opacity-100"
-                              )}
-                              data-testid={`version-thumbnail-${index}`}
+                        <div className="relative">
+                          {/* Left arrow */}
+                          {imageVersions.length > 5 && (
+                            <button 
+                              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-6 h-6 rounded-full bg-background/90 border border-border flex items-center justify-center hover:bg-muted transition-colors"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const container = e.currentTarget.parentElement?.querySelector('.version-scroll-container');
+                                if (container) container.scrollBy({ left: -200, behavior: 'smooth' });
+                              }}
                             >
-                              <div className="relative shrink-0 w-12 h-12 rounded-md overflow-hidden border border-border">
+                              <ChevronLeft className="h-4 w-4" />
+                            </button>
+                          )}
+                          
+                          {/* Thumbnails row */}
+                          <div className="version-scroll-container flex gap-2 overflow-x-auto pb-2 px-1 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                            {imageVersions.map((version, index) => (
+                              <button
+                                key={version.id}
+                                onClick={() => selectImageVersion(version)}
+                                className={cn(
+                                  "relative shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 transition-all hover:opacity-100",
+                                  selectedImage.id === version.id 
+                                    ? "border-[#ed5387] ring-2 ring-[#ed5387]/30" 
+                                    : "border-border opacity-70 hover:border-muted-foreground"
+                                )}
+                                data-testid={`version-thumbnail-${index}`}
+                              >
                                 <img 
                                   src={version.imageUrl} 
                                   alt={`Version ${version.versionNumber}`}
                                   className="w-full h-full object-cover"
                                 />
-                              </div>
-                              <div className="flex-1 text-left min-w-0">
-                                <div className="text-xs font-medium text-foreground">
-                                  {version.versionNumber === 0 ? "Original" : `Version ${version.versionNumber}`}
+                                <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-[8px] text-white text-center py-0.5">
+                                  {version.versionNumber === 0 ? "Orig" : `v${version.versionNumber}`}
                                 </div>
-                                <div className="text-[10px] text-muted-foreground truncate">
-                                  {version.editPrompt || (version.versionNumber === 0 ? "Original creation" : "Edit")}
-                                </div>
-                              </div>
-                              {selectedImage.id === version.id && (
-                                <div className="shrink-0 w-2 h-2 rounded-full bg-[#ed5387]" />
-                              )}
+                              </button>
+                            ))}
+                          </div>
+                          
+                          {/* Right arrow */}
+                          {imageVersions.length > 5 && (
+                            <button 
+                              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-6 h-6 rounded-full bg-background/90 border border-border flex items-center justify-center hover:bg-muted transition-colors"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const container = e.currentTarget.parentElement?.querySelector('.version-scroll-container');
+                                if (container) container.scrollBy({ left: 200, behavior: 'smooth' });
+                              }}
+                            >
+                              <ChevronRight className="h-4 w-4" />
                             </button>
-                          ))}
+                          )}
                         </div>
+                        
+                        {/* Selected version info below thumbnails */}
+                        {(() => {
+                          const selectedVersion = imageVersions.find(v => v.id === selectedImage.id);
+                          if (!selectedVersion) return null;
+                          return (
+                            <div className="bg-muted/30 rounded-lg p-3 border border-border">
+                              <div className="text-xs font-medium text-foreground mb-1">
+                                {selectedVersion.versionNumber === 0 ? "Original" : `Version ${selectedVersion.versionNumber}`}
+                              </div>
+                              <div className="text-[11px] text-muted-foreground">
+                                {selectedVersion.editPrompt || (selectedVersion.versionNumber === 0 ? "Original creation" : "Edited version")}
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
                     )}
 
