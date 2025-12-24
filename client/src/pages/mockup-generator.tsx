@@ -2582,15 +2582,15 @@ export default function MockupGenerator() {
                               <div className="flex-1 overflow-y-auto">
                                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                                   {generatedMockups.map((mockup, index) => (
-                                    <motion.div
-                                      key={index}
-                                      initial={{ opacity: 0, scale: 0.9 }}
-                                      animate={{ opacity: 1, scale: 1 }}
-                                      className="relative aspect-square rounded-xl overflow-hidden border border-border bg-muted/30 group cursor-pointer"
-                                      onClick={() => setSelectedMockupDetails({ ...mockup, index })}
-                                      data-testid={`mockup-${index}`}
-                                    >
-                                      <img src={mockup.src} alt={`Mockup ${index + 1}`} className="w-full h-full object-cover" />
+                                    <div key={index} className="flex flex-col gap-1.5">
+                                      <motion.div
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="relative aspect-square rounded-xl overflow-hidden border border-border bg-muted/30 group cursor-pointer"
+                                        onClick={() => setSelectedMockupDetails({ ...mockup, index })}
+                                        data-testid={`mockup-${index}`}
+                                      >
+                                        <img src={mockup.src} alt={`Mockup ${index + 1}`} className="w-full h-full object-cover" />
                                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 flex items-end justify-between">
                                         <p className="text-[10px] text-white truncate flex-1">{mockup.color} • {mockup.angle}</p>
                                         <DropdownMenu>
@@ -2681,6 +2681,16 @@ export default function MockupGenerator() {
                                         </DropdownMenu>
                                       </div>
                                     </motion.div>
+                                      <div className="relative">
+                                        <input
+                                          type="text"
+                                          placeholder="Edit with prompt..."
+                                          className="w-full text-xs px-2 py-1.5 rounded-lg border border-border bg-background/80 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                                          onClick={(e) => e.stopPropagation()}
+                                          data-testid={`mockup-edit-prompt-${index}`}
+                                        />
+                                      </div>
+                                    </div>
                                   ))}
                                   
                                   {/* Placeholder for generating */}
