@@ -767,8 +767,17 @@ export const mockupApi = {
       body: JSON.stringify(data),
     }),
 
-  getVersions: (sessionId: string) =>
-    fetchApi<{ versions: MockupVersion[] }>(`/mockup/versions/${sessionId}`),
+  getVersions: (sessionId: string, filters?: { angle?: string; color?: string; size?: string; productName?: string }) => {
+    const params = new URLSearchParams();
+    if (filters?.angle) params.set('angle', filters.angle);
+    if (filters?.color) params.set('color', filters.color);
+    if (filters?.size) params.set('size', filters.size);
+    if (filters?.productName) params.set('productName', filters.productName);
+    const queryString = params.toString();
+    return fetchApi<{ versions: MockupVersion[] }>(
+      `/mockup/versions/${sessionId}${queryString ? `?${queryString}` : ''}`
+    );
+  },
 
   getVersion: (versionId: string) =>
     fetchApi<{ version: MockupVersion }>(`/mockup/version/${versionId}`),

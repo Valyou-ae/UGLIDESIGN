@@ -206,7 +206,7 @@ export interface IStorage {
   
   // Mockup Version History
   saveMockupVersion(version: InsertMockupVersion): Promise<MockupVersion>;
-  getMockupVersions(userId: string, sessionId: string): Promise<MockupVersion[]>;
+  getMockupVersions(userId: string, sessionId: string, filters?: { angle?: string; color?: string; size?: string; productName?: string }): Promise<MockupVersion[]>;
   getMockupVersion(userId: string, versionId: string): Promise<MockupVersion | undefined>;
   getLatestVersionNumber(userId: string, sessionId: string): Promise<number>;
   deleteMockupVersion(userId: string, versionId: string): Promise<void>;
@@ -1840,11 +1840,29 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
-  async getMockupVersions(userId: string, sessionId: string): Promise<MockupVersion[]> {
+  async getMockupVersions(userId: string, sessionId: string, filters?: { angle?: string; color?: string; size?: string; productName?: string }): Promise<MockupVersion[]> {
+    const conditions = [
+      eq(mockupVersions.userId, userId),
+      eq(mockupVersions.mockupSessionId, sessionId)
+    ];
+    
+    if (filters?.angle) {
+      conditions.push(eq(mockupVersions.angle, filters.angle));
+    }
+    if (filters?.color) {
+      conditions.push(eq(mockupVersions.productColor, filters.color));
+    }
+    if (filters?.size) {
+      conditions.push(eq(mockupVersions.productSize, filters.size));
+    }
+    if (filters?.productName) {
+      conditions.push(eq(mockupVersions.productName, filters.productName));
+    }
+    
     return await db
       .select()
       .from(mockupVersions)
-      .where(and(eq(mockupVersions.userId, userId), eq(mockupVersions.mockupSessionId, sessionId)))
+      .where(and(...conditions))
       .orderBy(desc(mockupVersions.versionNumber));
   }
 

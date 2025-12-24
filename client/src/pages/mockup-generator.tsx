@@ -117,7 +117,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getTransferredImage, clearTransferredImage, fetchImageAsDataUrl, transferImageToTool } from "@/lib/image-transfer";
 import { useLocation } from "wouter";
 import { Input } from "@/components/ui/input";
-import { mockupApi, MockupEvent, TextToMockupProgressEvent, TextToMockupParsedPrompt } from "@/lib/api";
+import { mockupApi, MockupEvent, TextToMockupProgressEvent, TextToMockupParsedPrompt, MockupVersion } from "@/lib/api";
 import {
   Collapsible,
   CollapsibleContent,
@@ -286,11 +286,12 @@ const OUTPUT_QUALITY_OPTIONS: { id: OutputQuality; name: string; resolution: str
   { id: "ultra", name: "Ultra", resolution: "2048px", credits: 4, bestFor: "Print-ready, large format, professional catalogs" }
 ];
 
-interface MockupVersion {
+interface LocalMockupVersion {
   id: string;
   src: string;
   prompt?: string;
   timestamp: Date;
+  backendVersionId?: string;
 }
 
 interface MockupDetails {
@@ -299,8 +300,10 @@ interface MockupDetails {
   color: string;
   size: string;
   index: number;
-  versions?: MockupVersion[];
+  versions?: LocalMockupVersion[];
   currentVersionIndex?: number;
+  sessionId?: string;
+  productName?: string;
 }
 
 interface GeneratedMockupData {
@@ -309,8 +312,10 @@ interface GeneratedMockupData {
   color: string;
   size: string;
   isLiked?: boolean;
-  versions?: MockupVersion[];
+  versions?: LocalMockupVersion[];
   currentVersionIndex?: number;
+  sessionId?: string;
+  productName?: string;
 }
 
 const DTG_STEPS: WizardStep[] = ["design", "product", "customize", "output"];
@@ -883,6 +888,7 @@ export default function MockupGenerator() {
   const [selectedMockupDetails, setSelectedMockupDetails] = useState<MockupDetails | null>(null);
   const [popupEditPrompt, setPopupEditPrompt] = useState("");
   const [isEditingMockup, setIsEditingMockup] = useState(false);
+  const [isLoadingVersions, setIsLoadingVersions] = useState(false);
   const [summaryOpen, setSummaryOpen] = useState(true);
   const [previewMinimized, setPreviewMinimized] = useState(true);
   const [showTransferBanner, setShowTransferBanner] = useState(false);
@@ -893,6 +899,9 @@ export default function MockupGenerator() {
   const [isDownloadingZip, setIsDownloadingZip] = useState(false);
   const [availableSizes, setAvailableSizes] = useState<{code: string; label: string}[]>([]);
   const [isLoadingSizes, setIsLoadingSizes] = useState(false);
+
+  // Session ID for version tracking
+  const [currentMockupSessionId, setCurrentMockupSessionId] = useState<string>("");
 
   // Text-to-Mockup state
   const [textToMockupPrompt, setTextToMockupPrompt] = useState("");
@@ -1236,6 +1245,67 @@ export default function MockupGenerator() {
     };
   }, []);
 
+  // Fetch versions when popup opens (scoped to specific mockup variant)
+  useEffect(() => {
+    const fetchVersions = async () => {
+      if (!selectedMockupDetails?.sessionId) return;
+      
+      setIsLoadingVersions(true);
+      try {
+        const response = await mockupApi.getVersions(
+          selectedMockupDetails.sessionId,
+          {
+            angle: selectedMockupDetails.angle,
+            color: selectedMockupDetails.color,
+            size: selectedMockupDetails.size,
+            productName: selectedMockupDetails.productName
+          }
+        );
+        
+        // Convert backend versions to local format (or empty array if none)
+        const localVersions: LocalMockupVersion[] = (response.versions || []).map(v => ({
+          id: v.id,
+          src: v.imageUrl,
+          prompt: v.prompt || undefined,
+          timestamp: new Date(v.createdAt),
+          backendVersionId: v.id
+        }));
+        
+        // Update the selected mockup details with fetched versions
+        setSelectedMockupDetails(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            versions: localVersions,
+            currentVersionIndex: localVersions.length > 0 ? 0 : undefined
+          };
+        });
+        
+        // Also update the generatedMockups array to persist the versions
+        setGeneratedMockups(prev => prev.map((m, i) =>
+          i === selectedMockupDetails.index
+            ? { ...m, versions: localVersions, currentVersionIndex: localVersions.length > 0 ? 0 : undefined }
+            : m
+        ));
+      } catch (err) {
+        console.error('Failed to fetch versions:', err);
+        // Clear versions on error to avoid stale data in both states
+        setSelectedMockupDetails(prev => prev ? { ...prev, versions: [], currentVersionIndex: undefined } : null);
+        setGeneratedMockups(prev => prev.map((m, i) =>
+          i === selectedMockupDetails.index
+            ? { ...m, versions: [], currentVersionIndex: undefined }
+            : m
+        ));
+      } finally {
+        setIsLoadingVersions(false);
+      }
+    };
+
+    if (selectedMockupDetails) {
+      fetchVersions();
+    }
+  }, [selectedMockupDetails?.sessionId, selectedMockupDetails?.angle, selectedMockupDetails?.color, selectedMockupDetails?.size, selectedMockupDetails?.productName, selectedMockupDetails?.index]);
+
   // Restore state from URL
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -1399,6 +1469,10 @@ export default function MockupGenerator() {
       : baseScene;
     const totalExpected = Math.max(1, angles.length * colors.length);
 
+    // Generate a new session ID for this generation batch
+    const sessionId = `mockup-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    setCurrentMockupSessionId(sessionId);
+
     setIsGenerating(true);
     setGenerationProgress(0);
     setGenerationStage("Initializing...");
@@ -1478,16 +1552,50 @@ export default function MockupGenerator() {
             case "image":
               if (event.data.imageData && event.data.mimeType) {
                 const imageUrl = `data:${event.data.mimeType};base64,${event.data.imageData}`;
+                const versionId = `v-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
                 const mockupData: GeneratedMockupData = {
                   src: imageUrl,
                   angle: event.data.angle || 'front',
                   color: event.data.color || 'White',
-                  size: event.data.size || 'M'
+                  size: event.data.size || 'M',
+                  sessionId: sessionId,
+                  productName: productName,
+                  versions: [{
+                    id: versionId,
+                    src: imageUrl,
+                    timestamp: new Date()
+                  }],
+                  currentVersionIndex: 0
                 };
                 generatedImages.push(mockupData);
                 setGeneratedMockups([...generatedImages]);
                 const progress = 10 + Math.round((generatedImages.length / totalExpected) * 85);
                 setGenerationProgress(Math.min(progress, 95));
+                
+                // Save version to backend (fire and forget)
+                mockupApi.saveVersion({
+                  sessionId: sessionId,
+                  imageUrl: imageUrl,
+                  productName: productName,
+                  productColor: event.data.color || 'White',
+                  productSize: event.data.size || 'M',
+                  angle: event.data.angle || 'front',
+                  metadata: {
+                    journey: journey || 'DTG',
+                    scene: scene,
+                    outputQuality: outputQuality
+                  }
+                }).then(response => {
+                  if (response.version) {
+                    setGeneratedMockups(prev => prev.map(m => 
+                      m.sessionId === sessionId && m.versions?.[0]?.id === versionId
+                        ? { ...m, versions: m.versions?.map((v, i) => 
+                            i === 0 ? { ...v, backendVersionId: response.version.id } : v
+                          )}
+                        : m
+                    ));
+                  }
+                }).catch(err => console.error('Failed to save version:', err));
                 
                 setBatchJobs(prev => prev.map(job => 
                   job.color === mockupData.color && job.angle === mockupData.angle
@@ -3292,9 +3400,14 @@ export default function MockupGenerator() {
                     </div>
 
                     {/* Version History */}
-                    {selectedMockupDetails.versions && selectedMockupDetails.versions.length > 1 && (
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Version History</label>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Version History</label>
+                      {isLoadingVersions ? (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Loading versions...</span>
+                        </div>
+                      ) : selectedMockupDetails.versions && selectedMockupDetails.versions.length > 0 ? (
                         <div className="flex gap-2 overflow-x-auto pb-2">
                           {selectedMockupDetails.versions.map((version, vIndex) => (
                             <button
@@ -3308,7 +3421,7 @@ export default function MockupGenerator() {
                               onClick={() => {
                                 const mockupIndex = selectedMockupDetails.index;
                                 setGeneratedMockups(prev => prev.map((m, i) =>
-                                  i === mockupIndex ? { ...m, currentVersionIndex: vIndex } : m
+                                  i === mockupIndex ? { ...m, currentVersionIndex: vIndex, src: version.src } : m
                                 ));
                                 setSelectedMockupDetails(prev => prev ? { ...prev, currentVersionIndex: vIndex } : null);
                               }}
@@ -3321,8 +3434,10 @@ export default function MockupGenerator() {
                             </button>
                           ))}
                         </div>
-                      </div>
-                    )}
+                      ) : (
+                        <p className="text-sm text-muted-foreground">No versions yet. Edit the mockup to create new versions.</p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </motion.div>
