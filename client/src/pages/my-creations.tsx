@@ -496,6 +496,10 @@ export default function MyCreations() {
       try {
         await apiDeleteImage(itemToDelete);
         toast({ title: "Item Deleted", description: "The item has been permanently deleted." });
+        // Close the detail popup if the deleted item was being viewed
+        if (selectedItem?.id === itemToDelete || rootImageId === itemToDelete) {
+          closeItemPopup();
+        }
       } catch (error) {
         toast({ variant: "destructive", title: "Error", description: "Failed to delete item." });
       }
@@ -1571,9 +1575,8 @@ export default function MyCreations() {
                       size="sm"
                       className="h-9 gap-1.5 text-red-500 border-red-500/30 hover:bg-red-500/10"
                       onClick={() => {
-                        if (rootImageId) {
-                          const rootItem = items.find(i => i.id === rootImageId);
-                          if (rootItem) handleAction("Delete", rootItem);
+                        if (selectedItem) {
+                          handleAction("Delete", selectedItem);
                         }
                       }}
                       data-testid="button-delete-detail"
