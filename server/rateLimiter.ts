@@ -8,12 +8,12 @@ interface RateLimitEntry {
 
 // Configurable limits via environment variables
 const RATE_LIMITS = {
-  // Generation limits per minute
-  GENERATION_AUTH: parseInt(process.env.RATE_LIMIT_GENERATION_AUTH || '60'),     // 60/min for authenticated users
-  GENERATION_GUEST: parseInt(process.env.RATE_LIMIT_GENERATION_GUEST || '10'),   // 10/hour for guests
-  // API limits
-  API_GENERAL: parseInt(process.env.RATE_LIMIT_API_GENERAL || '200'),            // 200/min for general API
-  API_ADMIN: parseInt(process.env.RATE_LIMIT_API_ADMIN || '200'),                // 200/min for admin
+  // Generation limits per minute (scaled for 1000+ users)
+  GENERATION_AUTH: parseInt(process.env.RATE_LIMIT_GENERATION_AUTH || '120'),    // 120/min for authenticated users (2x increase)
+  GENERATION_GUEST: parseInt(process.env.RATE_LIMIT_GENERATION_GUEST || '10'),   // 10/hour for guests (unchanged)
+  // API limits (scaled for 1000+ users)
+  API_GENERAL: parseInt(process.env.RATE_LIMIT_API_GENERAL || '1000'),           // 1000/min for general API (5x increase)
+  API_ADMIN: parseInt(process.env.RATE_LIMIT_API_ADMIN || '500'),                // 500/min for admin (2.5x increase)
   // Auth limits
   AUTH_ATTEMPTS: parseInt(process.env.RATE_LIMIT_AUTH || '20'),                  // 20 attempts per 15 min
   PASSWORD_RESET: parseInt(process.env.RATE_LIMIT_PASSWORD_RESET || '5'),        // 5 per hour

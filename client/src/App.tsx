@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthGuard, AdminGuard, SuperAdminGuard } from "@/components/auth-guard";
 import { LoginPopupProvider } from "@/components/login-popup";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { CookieConsent } from "@/components/cookie-consent";
 import PublicHome from "@/pages/public-home";
 import Discover from "@/pages/discover";
 import ImageGenerator from "@/pages/image-generator";
@@ -35,6 +36,8 @@ import AdminDeals from "@/pages/admin/deals";
 import AdminAnalytics from "@/pages/admin/analytics";
 import SuperAdminDashboard from "@/pages/super-admin/index";
 import ShareImage from "@/pages/share-image";
+import PrivacyPolicy from "@/pages/privacy-policy";
+import TermsOfService from "@/pages/terms-of-service";
 
 function Router() {
   return (
@@ -48,6 +51,8 @@ function Router() {
       <Route path="/forgot-password" component={ForgotPassword} />
       <Route path="/reset-password" component={ResetPassword} />
       <Route path="/help" component={HelpSupport} />
+      <Route path="/privacy-policy" component={PrivacyPolicy} />
+      <Route path="/terms-of-service" component={TermsOfService} />
       <Route path="/share/:id" component={ShareImage} />
 
       {/* Protected routes (require authentication) */}
@@ -178,6 +183,7 @@ function App() {
         <TooltipProvider>
           <LoginPopupProvider>
             <Toaster />
+            <CookieConsent />
             <Router />
           </LoginPopupProvider>
         </TooltipProvider>
