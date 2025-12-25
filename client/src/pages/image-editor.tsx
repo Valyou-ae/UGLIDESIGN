@@ -6,6 +6,7 @@ import {
   Sparkles, 
   Download, 
   ChevronLeft,
+  Coins,
   ChevronRight,
   RotateCcw,
   Loader2,
@@ -386,7 +387,7 @@ export default function ImageEditor() {
           <div className="flex items-center gap-3">
             {credits !== null && (
               <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted text-sm">
-                <Sparkles className="h-3.5 w-3.5 text-primary" />
+                <Coins className="h-3.5 w-3.5 text-primary" />
                 <span className="font-medium">{credits}</span>
               </div>
             )}
