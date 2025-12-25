@@ -215,7 +215,12 @@ export function registerAuthRoutes(app: Express, middleware: Middleware) {
       const demoEmail = "demo@example.com";
       const demoId = "demo-user-123";
       
-      let user = await storage.getUserByEmail(demoEmail);
+      let user;
+      try {
+        user = await storage.getUserByEmail(demoEmail);
+      } catch (e) {
+        user = undefined;
+      }
       
       if (!user) {
         user = await storage.upsertUser({
@@ -226,6 +231,10 @@ export function registerAuthRoutes(app: Express, middleware: Middleware) {
           profileImageUrl: null,
           role: 'user',
         });
+      }
+
+      if (!user) {
+        return res.status(500).json({ message: "Failed to create demo user" });
       }
 
       const userSession = {
