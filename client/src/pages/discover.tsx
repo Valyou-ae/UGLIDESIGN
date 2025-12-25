@@ -108,6 +108,7 @@ const LazyMasonryCard = memo(function LazyMasonryCard({ item, index, onLike, onU
       "image-editor": "Image Editor",
       "mockup": "Mockup Generator",
       "bg-remover": "Background Remover",
+      "image-generator": "Image Generator",
     };
     
     toast({
@@ -421,6 +422,14 @@ const LazyMasonryCard = memo(function LazyMasonryCard({ item, index, onLike, onU
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48" onClick={(e) => e.stopPropagation()}>
+                  <DropdownMenuItem
+                    onClick={() => handleSendToTool("image-generator")}
+                    className="flex items-center gap-2 cursor-pointer"
+                    data-testid={`menu-remix-generator-${item.id}`}
+                  >
+                    <Wand2 className="h-4 w-4" />
+                    <span>Remix in Generator</span>
+                  </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => handleSendToTool("image-editor")}
                     className="flex items-center gap-2 cursor-pointer"
