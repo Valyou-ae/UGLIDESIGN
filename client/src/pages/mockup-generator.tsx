@@ -880,7 +880,6 @@ export default function MockupGenerator() {
   const [expectedMockupsCount, setExpectedMockupsCount] = useState(0);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [generationStage, setGenerationStage] = useState("");
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -1046,28 +1045,6 @@ export default function MockupGenerator() {
 
     fetchSizes();
   }, [selectedProductType]);
-
-  // Timer for generation progress
-  useEffect(() => {
-    let timer: NodeJS.Timeout | null = null;
-    if (isGenerating) {
-      setElapsedSeconds(0);
-      timer = setInterval(() => {
-        setElapsedSeconds((prev) => prev + 1);
-      }, 1000);
-    } else {
-      setElapsedSeconds(0);
-    }
-    return () => {
-      if (timer) clearInterval(timer);
-    };
-  }, [isGenerating]);
-
-  const formatElapsedTime = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return mins > 0 ? `${mins}:${secs.toString().padStart(2, '0')}` : `${secs}s`;
-  };
 
   const downloadImage = (url: string, filename: string) => {
     const link = document.createElement('a');
@@ -3168,10 +3145,7 @@ export default function MockupGenerator() {
                                 <div className="mb-4 shrink-0">
                                   <div className="flex items-center justify-between mb-2">
                                     <p className="text-sm text-primary font-medium">{generationStage}</p>
-                                    <div className="flex items-center gap-3">
-                                      <p className="text-xs text-muted-foreground font-mono">{formatElapsedTime(elapsedSeconds)}</p>
-                                      <p className="text-xs text-muted-foreground">{generationProgress}%</p>
-                                    </div>
+                                    <p className="text-xs text-muted-foreground">{generationProgress}%</p>
                                   </div>
                                   <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
                                     <motion.div 
