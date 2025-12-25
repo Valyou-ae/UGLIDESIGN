@@ -23,8 +23,8 @@ export const db = drizzle(sql, { schema });
 // Sized for production concurrent user load
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  max: parseInt(process.env.DB_POOL_MAX || '20'),  // Default 20 connections for production
-  min: parseInt(process.env.DB_POOL_MIN || '2'),   // Keep minimum connections warm
+  max: parseInt(process.env.DB_POOL_MAX || '50'),  // Increased to 50 for 1000+ concurrent users
+  min: parseInt(process.env.DB_POOL_MIN || '5'),   // Keep 5 minimum connections warm
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 30000,
   ssl: { rejectUnauthorized: false },

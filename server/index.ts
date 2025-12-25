@@ -1,5 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
+import { registerHealthRoutes } from "./routes/health";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 import { runMigrations } from 'stripe-replit-sync';
@@ -316,6 +317,9 @@ async function initStripe() {
     next();
   });
 
+  // Register health check routes (no auth required)
+  registerHealthRoutes(app);
+  
   await registerRoutes(httpServer, app);
 
   // Global error handler with Sentry integration

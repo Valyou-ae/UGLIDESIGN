@@ -65,8 +65,8 @@ const PLANS: PricingPlan[] = [
     id: "starter",
     name: "Starter",
     description: "Perfect for side projects",
-    price: 9,
-    priceYearly: 90,
+    price: 6.99,
+    priceYearly: 67,
     credits: 500,
     features: [
       { text: "~100 AI images per month", included: true },
@@ -81,9 +81,9 @@ const PLANS: PricingPlan[] = [
   {
     id: "pro",
     name: "Pro",
-    description: "For serious creators & businesses",
-    price: 29,
-    priceYearly: 290,
+    description: "For serious creators",
+    price: 19.99,
+    priceYearly: 192,
     credits: 2000,
     popular: true,
     features: [
@@ -93,12 +93,29 @@ const PLANS: PricingPlan[] = [
       { text: "Unlimited background removal", included: true },
       { text: "Product mockup generator", included: true },
       { text: "Priority generation (2x faster)", included: true },
-      { text: "Priority support", included: true },
+      { text: "Commercial license", included: true },
+    ],
+  },
+  {
+    id: "business",
+    name: "Business",
+    description: "For teams & agencies",
+    price: 49.99,
+    priceYearly: 480,
+    credits: 10000,
+    features: [
+      { text: "~2000 AI images per month", included: true },
+      { text: "4K quality (2160p)", included: true },
+      { text: "API access", included: true },
+      { text: "5 team seats", included: true },
+      { text: "Dedicated account manager", included: true },
+      { text: "Custom branding", included: true },
+      { text: "Analytics dashboard", included: true },
     ],
   },
 ];
 
-const PLAN_ORDER = ["free", "starter", "pro"];
+const PLAN_ORDER = ["free", "starter", "pro", "business"];
 
 const TESTIMONIALS = [
   {
