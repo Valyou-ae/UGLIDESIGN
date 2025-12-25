@@ -229,6 +229,17 @@ export const galleryImageLikes = pgTable("gallery_image_likes", {
   index("idx_gallery_image_likes_unique").on(table.imageId, table.userId),
 ]);
 
+export const userFollows = pgTable("user_follows", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  followerId: varchar("follower_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  followingId: varchar("following_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_user_follows_follower_id").on(table.followerId),
+  index("idx_user_follows_following_id").on(table.followingId),
+  index("idx_user_follows_unique").on(table.followerId, table.followingId),
+]);
+
 export const galleryImages = pgTable("gallery_images", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   sourceImageId: varchar("source_image_id"),
@@ -464,6 +475,14 @@ export type InsertMoodBoardItem = z.infer<typeof insertMoodBoardItemSchema>;
 export type ImageLike = typeof imageLikes.$inferSelect;
 export type GalleryImage = typeof galleryImages.$inferSelect;
 export type GalleryImageLike = typeof galleryImageLikes.$inferSelect;
+export type UserFollow = typeof userFollows.$inferSelect;
+
+export const insertUserFollowSchema = createInsertSchema(userFollows).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertUserFollow = z.infer<typeof insertUserFollowSchema>;
 export type DailyInspiration = typeof dailyInspirations.$inferSelect;
 export type ChatSession = typeof chatSessions.$inferSelect;
 export type ChatMessage = typeof chatMessages.$inferSelect;
