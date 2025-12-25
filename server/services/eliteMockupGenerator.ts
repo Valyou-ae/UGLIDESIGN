@@ -473,13 +473,6 @@ ${materialPreset.promptAddition}
 - If the design does NOT have a border/outline, do NOT add one
 - The design must look IDENTICAL across all angle shots (front, side, three-quarter, close-up)
 - The ONLY acceptable changes: fabric distortion from body contours, lighting/shadow integration
-
-ANTI-STYLIZATION (CRITICAL - PRESERVE DESIGN MEDIUM):
-- If the design is a PHOTOGRAPH or photorealistic image - keep it PHOTOREALISTIC on the garment
-- DO NOT convert photographs to illustrations, sketches, or line art
-- DO NOT apply artistic filters or cartoon effects
-- The design must look like a DIRECT PHOTO PRINT on fabric
-- Preserve the EXACT artistic medium of the original (photo stays photo, illustration stays illustration)
 ===== END IMMUTABILITY =====
 
 - Design style: ${designAnalysis.style}
@@ -537,37 +530,6 @@ DTG PRINT METHOD:
 - Maintains original colors and proportions
 - Slight texture integration with fabric
 - Design follows natural fabric contours and folds
-
-===== PROFESSIONAL MOCKUP REALISM (CRITICAL) =====
-[THIS IS NOT A FLAT COPY-PASTE - CREATE A REALISTIC PRINTED GARMENT]
-
-FABRIC INTEGRATION (MANDATORY):
-- The design must CONFORM to the 3D shape of the body and garment
-- Apply PERSPECTIVE WARPING based on the body's curvature (chest, torso contours)
-- The design should appear EMBEDDED INTO the fabric, not floating on top
-- Add subtle FABRIC TEXTURE showing through the printed design
-- The print must follow the natural DRAPE and FOLDS of the fabric
-
-LIGHTING ON THE PRINT:
-- The printed design must have the SAME lighting as the garment
-- Add subtle SHADOWS where fabric folds create valleys
-- Add subtle HIGHLIGHTS where fabric stretches over body contours
-- The design brightness should vary naturally with the garment's lighting
-- NO flat, uniform appearance - the print must react to light realistically
-
-PROFESSIONAL PRINT APPEARANCE:
-- The design should look like it was PROFESSIONALLY SCREEN-PRINTED or DTG printed
-- Slight color absorption into fabric fibers (colors are not perfectly crisp on fabric)
-- The design edges blend naturally with the fabric texture
-- The print has the same surface finish as the fabric (matte on cotton, slight sheen on polyester)
-- This should look like a REAL PRODUCT PHOTO, not a digital composite
-
-DEPTH AND DIMENSION:
-- The design must curve with the body contours (chest, shoulders, torso)
-- Parts of the design closer to the camera appear slightly larger (perspective)
-- Parts of the design on the sides of the body show natural foreshortening
-- The print appears as a 3D surface on a 3D body, NOT a 2D sticker
-===== END PROFESSIONAL MOCKUP REALISM =====
 
 CRITICAL PLACEMENT RULES FOR DTG:
 - The design/graphic MUST be placed CENTERED on the chest area
@@ -1006,34 +968,11 @@ STRICT DESIGN FIDELITY REQUIREMENTS:
 5. NO REDRAWING: Do NOT redraw, recreate, or reinterpret the design - project it directly onto the garment
 6. NO FILTERS: Do NOT apply artistic filters, effects, or style changes to the design
 
-===== ANTI-STYLIZATION RULES (CRITICAL) =====
-[NEVER CONVERT BETWEEN STYLES]
-- If the design is PHOTOREALISTIC - keep it PHOTOREALISTIC. Do NOT convert to illustration, sketch, cartoon, or any other style.
-- If the design is a PHOTOGRAPH - keep it as a PHOTOGRAPH. Do NOT convert to line art, watercolor, drawing, or vector style.
-- If the design is an ILLUSTRATION - keep it as an ILLUSTRATION. Maintain the original artistic style exactly.
-- ABSOLUTELY NO ARTISTIC REINTERPRETATION - the printed design must match the input design style EXACTLY
-- DO NOT add illustration effects, sketch lines, halftone patterns, or any stylization
-- The design on the garment must look like a DIRECT PRINT of the original image, not an artist's rendition
-
 WHAT TO DO:
 - Place this EXACT image onto the product's print area
 - Scale it proportionally to fit the designated area
 - Apply natural fabric distortion based on body contours
 - Adjust lighting/shadows to match the scene
-- Treat this as a PHOTO PRINT on fabric - the design is literally printed on the garment
-
-===== PROFESSIONAL MOCKUP QUALITY (CRITICAL) =====
-[CREATE A REALISTIC PRINTED GARMENT - NOT A FLAT PASTE]
-
-1. 3D INTEGRATION: The design must WARP and CURVE to match the body's 3D shape (chest curvature, torso contours)
-2. FABRIC TEXTURE: Subtle fabric weave/texture should be visible THROUGH the printed design
-3. LIGHTING INTEGRATION: Add realistic shadows in fabric folds and highlights on stretched areas OF THE PRINT ITSELF
-4. PERSPECTIVE: Apply proper perspective distortion - design curves around the body, not flat
-5. DEPTH: Parts of design closer to camera slightly larger, sides show foreshortening
-6. PROFESSIONAL LOOK: This should be indistinguishable from a real product photo shoot
-
-DO NOT create a flat 2D rectangle pasted on the shirt. The design must look PHYSICALLY PRINTED on real fabric.
-===== END PROFESSIONAL QUALITY =====
 
 WHAT NOT TO DO:
 - DO NOT add borders, outlines, or strokes that aren't in the original
@@ -1041,9 +980,6 @@ WHAT NOT TO DO:
 - DO NOT change any colors (even slightly)
 - DO NOT simplify or "clean up" the design
 - DO NOT recreate the design from scratch
-- DO NOT convert photorealistic images to illustrations or sketches
-- DO NOT add cartoon/illustration effects to photographs
-- DO NOT change the artistic medium or style of the design
 
 The design on the final mockup MUST be pixel-perfect identical to this reference (except for natural fabric distortion and lighting).
 

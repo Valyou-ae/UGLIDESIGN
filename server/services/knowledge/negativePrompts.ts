@@ -344,41 +344,6 @@ export const DESIGN_MODIFICATION_NEGATIVES: NegativePromptCategory = {
   ]
 };
 
-export const FLAT_PASTE_NEGATIVES: NegativePromptCategory = {
-  id: 'flat-paste',
-  name: 'Flat Paste Prevention',
-  description: 'Prevents unrealistic flat pasted appearance in mockups',
-  severity: 'critical',
-  applicableFor: ['mockups', 'product-photography'],
-  prompts: [
-    'flat pasted design',
-    'design floating on top',
-    'sticker on shirt',
-    'decal on shirt',
-    'flat 2D design',
-    'no fabric distortion',
-    'no perspective on design',
-    'design not following body contours',
-    'uniform flat design',
-    'paper cutout on shirt',
-    'photoshopped design',
-    'digitally composited',
-    'design without shadows',
-    'design without highlights',
-    'design not integrated with fabric',
-    'design not curved with body',
-    'perfectly rectangular design',
-    'design with sharp edges on fabric',
-    'design not warped to body shape',
-    'copy paste appearance',
-    'unprofessional mockup',
-    'amateur composite',
-    'design lacking depth',
-    'design lacking dimension',
-    'flat lighting on print'
-  ]
-};
-
 export function getNegativePrompts(productType?: string, includesHuman?: boolean): string {
   let negatives: string[] = [];
 
@@ -386,7 +351,6 @@ export function getNegativePrompts(productType?: string, includesHuman?: boolean
   negatives.push(...AI_ARTIFACTS.prompts);
   negatives.push(...UNWANTED_STYLES.prompts);
   negatives.push(...DESIGN_MODIFICATION_NEGATIVES.prompts);
-  negatives.push(...FLAT_PASTE_NEGATIVES.prompts);
 
   if (productType === 'apparel' || productType === 't-shirt' || productType === 'clothing' || productType === 'dtg-apparel' || productType === 'aop-apparel') {
     negatives.push(...APPAREL_NEGATIVES.prompts);
