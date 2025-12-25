@@ -15,9 +15,20 @@ const MOCKUP_CREDIT_COSTS = {
 // Helper function to check and deduct credits
 async function checkAndDeductCredits(userId: string, credits: number): Promise<boolean> {
   try {
+    logger.info("Checking credits", { source: "mockup", userId, creditsRequired: credits });
+    const user = await storage.getUser(userId);
+    logger.info("User lookup result", { source: "mockup", userId, userFound: !!user, currentCredits: user?.credits });
+    
+    if (!user) {
+      logger.error("User not found for credit check", { source: "mockup", userId });
+      return false;
+    }
+    
     const result = await storage.deductCredits(userId, credits);
+    logger.info("Credits deducted successfully", { source: "mockup", userId, creditsDeducted: credits });
     return result !== undefined;
-  } catch {
+  } catch (error) {
+    logger.error("Credit deduction failed", error, { source: "mockup", userId, creditsRequired: credits });
     return false;
   }
 }
