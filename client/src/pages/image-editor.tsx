@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sidebar } from "@/components/sidebar";
+import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
   TooltipContent,
@@ -415,58 +416,95 @@ export default function ImageEditor() {
       <Sidebar />
       
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        {/* Compact Header */}
-        <div className="flex-shrink-0 h-14 px-4 border-b border-border flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#ed5387] to-[#9C27B0] flex items-center justify-center">
-              <Wand2 className="h-4 w-4 text-white" />
+        {/* Professional Header */}
+        <div className="flex-shrink-0 px-4 md:px-8 py-4 md:py-6 border-b border-border">
+          {/* Breadcrumb */}
+          <div className="flex items-center text-[13px] text-muted-foreground mb-2">
+            <span>Home</span>
+            <span className="mx-2">/</span>
+            <span>Image Editor</span>
+          </div>
+          
+          <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-8">
+            {/* Title with icon and badge */}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">
+                  Image Editor
+                </h1>
+                <Wand2 className="h-5 w-5 md:h-6 md:w-6 text-primary" />
+              </div>
+              <Badge className="bg-primary hover:bg-[#C2185B] text-white rounded-full px-2 py-0.5 text-[11px]">
+                AI Powered
+              </Badge>
             </div>
-            <h1 className="text-lg font-semibold text-foreground">Image Editor</h1>
-          </div>
-          <div className="flex items-center gap-3">
-            {credits !== null && (
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted text-sm">
-                <Coins className="h-3.5 w-3.5 text-primary" />
-                <span className="font-medium">{credits}</span>
+
+            {/* Feature highlights - desktop only */}
+            <div className="flex items-center gap-8 opacity-0 lg:opacity-100 animate-fade-in hidden lg:flex">
+              <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
+                <Sparkles className="h-3.5 w-3.5 text-primary" />
+                <span>Smart AI Editing</span>
               </div>
-            )}
-            {currentImage && (
-              <div className="flex items-center gap-1">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={handleDownload}
-                        className="h-8 w-8"
-                        data-testid="button-download"
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Download</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={resetEditor}
-                        className="h-8 w-8"
-                        data-testid="button-reset"
-                      >
-                        <RotateCcw className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Start over</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+              <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
+                <Layers className="h-3.5 w-3.5 text-secondary" />
+                <span>Version History</span>
               </div>
-            )}
+              <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
+                <Zap className="h-3.5 w-3.5 text-[#E3B436]" />
+                <span>Instant Results</span>
+              </div>
+            </div>
+
+            {/* Actions - right side */}
+            <div className="flex items-center gap-3 lg:ml-auto">
+              {credits !== null && (
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted text-sm">
+                  <Coins className="h-3.5 w-3.5 text-primary" />
+                  <span className="font-medium">{credits}</span>
+                </div>
+              )}
+              {currentImage && (
+                <div className="flex items-center gap-1">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={handleDownload}
+                          className="h-8 w-8"
+                          data-testid="button-download"
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Download</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={resetEditor}
+                          className="h-8 w-8"
+                          data-testid="button-reset"
+                        >
+                          <RotateCcw className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Start over</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              )}
+            </div>
           </div>
+          
+          <p className="text-sm md:text-[15px] text-muted-foreground mt-1 md:mt-2">
+            Transform your images with AI-powered editing in seconds
+          </p>
         </div>
 
         {/* Main Content - Fixed Height */}
