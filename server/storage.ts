@@ -20,6 +20,7 @@ import {
   chatMessages,
   userPreferences,
   imageFolders,
+  userFollows,
   type User, 
   type InsertUser, 
   type UpdateProfile, 
@@ -53,6 +54,7 @@ import {
   type InsertImageFolder,
   type MockupVersion,
   type InsertMockupVersion,
+  type UserFollow,
   mockupVersions
 } from "@shared/schema";
 import { db } from "./db";
@@ -219,6 +221,15 @@ export interface IStorage {
   getLatestVersionNumber(userId: string, sessionId: string): Promise<number>;
   deleteMockupVersion(userId: string, versionId: string): Promise<void>;
   getUserMockupSessions(userId: string, limit?: number): Promise<{ sessionId: string; latestVersion: MockupVersion; versionCount: number }[]>;
+  
+  // User Follows
+  followUser(followerId: string, followingId: string): Promise<UserFollow | undefined>;
+  unfollowUser(followerId: string, followingId: string): Promise<boolean>;
+  isFollowing(followerId: string, followingId: string): Promise<boolean>;
+  getFollowers(userId: string, limit?: number, offset?: number): Promise<{ followers: (User & { followedAt: Date })[]; total: number }>;
+  getFollowing(userId: string, limit?: number, offset?: number): Promise<{ following: (User & { followedAt: Date })[]; total: number }>;
+  getFollowCounts(userId: string): Promise<{ followers: number; following: number }>;
+  getFollowingFeed(userId: string, limit?: number, offset?: number): Promise<{ images: (GeneratedImage & { username?: string; displayName?: string; profileImageUrl?: string })[]; total: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2042,6 +2053,152 @@ export class DatabaseStorage implements IStorage {
     );
 
     return results.filter(r => r.latestVersion);
+  }
+
+  async followUser(followerId: string, followingId: string): Promise<UserFollow | undefined> {
+    if (followerId === followingId) return undefined;
+    
+    const existing = await db
+      .select()
+      .from(userFollows)
+      .where(and(eq(userFollows.followerId, followerId), eq(userFollows.followingId, followingId)));
+    
+    if (existing.length > 0) return existing[0];
+    
+    const [follow] = await db
+      .insert(userFollows)
+      .values({ followerId, followingId })
+      .returning();
+    return follow;
+  }
+
+  async unfollowUser(followerId: string, followingId: string): Promise<boolean> {
+    const result = await db
+      .delete(userFollows)
+      .where(and(eq(userFollows.followerId, followerId), eq(userFollows.followingId, followingId)))
+      .returning();
+    return result.length > 0;
+  }
+
+  async isFollowing(followerId: string, followingId: string): Promise<boolean> {
+    const [result] = await db
+      .select()
+      .from(userFollows)
+      .where(and(eq(userFollows.followerId, followerId), eq(userFollows.followingId, followingId)));
+    return !!result;
+  }
+
+  async getFollowers(userId: string, limit = 50, offset = 0): Promise<{ followers: (User & { followedAt: Date })[]; total: number }> {
+    const [countResult] = await db
+      .select({ total: count() })
+      .from(userFollows)
+      .where(eq(userFollows.followingId, userId));
+    
+    const results = await db
+      .select({
+        user: users,
+        followedAt: userFollows.createdAt
+      })
+      .from(userFollows)
+      .innerJoin(users, eq(userFollows.followerId, users.id))
+      .where(eq(userFollows.followingId, userId))
+      .orderBy(desc(userFollows.createdAt))
+      .limit(limit)
+      .offset(offset);
+    
+    return {
+      followers: results.map(r => ({ ...r.user, followedAt: r.followedAt })),
+      total: countResult?.total || 0
+    };
+  }
+
+  async getFollowing(userId: string, limit = 50, offset = 0): Promise<{ following: (User & { followedAt: Date })[]; total: number }> {
+    const [countResult] = await db
+      .select({ total: count() })
+      .from(userFollows)
+      .where(eq(userFollows.followerId, userId));
+    
+    const results = await db
+      .select({
+        user: users,
+        followedAt: userFollows.createdAt
+      })
+      .from(userFollows)
+      .innerJoin(users, eq(userFollows.followingId, users.id))
+      .where(eq(userFollows.followerId, userId))
+      .orderBy(desc(userFollows.createdAt))
+      .limit(limit)
+      .offset(offset);
+    
+    return {
+      following: results.map(r => ({ ...r.user, followedAt: r.followedAt })),
+      total: countResult?.total || 0
+    };
+  }
+
+  async getFollowCounts(userId: string): Promise<{ followers: number; following: number }> {
+    const [followersCount] = await db
+      .select({ count: count() })
+      .from(userFollows)
+      .where(eq(userFollows.followingId, userId));
+    
+    const [followingCount] = await db
+      .select({ count: count() })
+      .from(userFollows)
+      .where(eq(userFollows.followerId, userId));
+    
+    return {
+      followers: followersCount?.count || 0,
+      following: followingCount?.count || 0
+    };
+  }
+
+  async getFollowingFeed(userId: string, limit = 50, offset = 0): Promise<{ images: (GeneratedImage & { username?: string; displayName?: string; profileImageUrl?: string })[]; total: number }> {
+    const followingIds = await db
+      .select({ id: userFollows.followingId })
+      .from(userFollows)
+      .where(eq(userFollows.followerId, userId));
+    
+    if (followingIds.length === 0) {
+      return { images: [], total: 0 };
+    }
+    
+    const ids = followingIds.map(f => f.id);
+    
+    const [countResult] = await db
+      .select({ total: count() })
+      .from(generatedImages)
+      .where(and(
+        inArray(generatedImages.userId, ids),
+        eq(generatedImages.isPublic, true)
+      ));
+    
+    const results = await db
+      .select({
+        image: generatedImages,
+        username: users.username,
+        displayName: users.displayName,
+        profileImageUrl: users.profileImageUrl
+      })
+      .from(generatedImages)
+      .innerJoin(users, eq(generatedImages.userId, users.id))
+      .where(and(
+        inArray(generatedImages.userId, ids),
+        eq(generatedImages.isPublic, true)
+      ))
+      .orderBy(desc(generatedImages.createdAt))
+      .limit(limit)
+      .offset(offset);
+    
+    return {
+      images: results.map(r => ({
+        ...r.image,
+        username: r.username || undefined,
+        displayName: r.displayName || undefined,
+        profileImageUrl: r.profileImageUrl || undefined
+      })),
+      total: countResult?.total || 0
+    };
   }
 }
 
