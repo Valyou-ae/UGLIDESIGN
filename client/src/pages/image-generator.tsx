@@ -118,7 +118,7 @@ import { generateApi, imagesApi, GenerationEvent, promptFavoritesApi, PromptFavo
 import { useAuth } from "@/hooks/use-auth";
 import { Label } from "@/components/ui/label";
 import { useLocation } from "wouter";
-import { transferImageToTool } from "@/lib/image-transfer";
+import { transferImageToTool, getTransferredImage, clearTransferredImage } from "@/lib/image-transfer";
 import { TutorialOverlay, useTutorial } from "@/components/tutorial-overlay";
 import { useCredits } from "@/hooks/use-credits";
 
@@ -351,6 +351,42 @@ export default function ImageGenerator() {
     };
     fetchFavorites();
   }, [user]);
+
+  // Handle transferred images from other tools (mockup, etc.)
+  useEffect(() => {
+    const handleTransferredImage = async () => {
+      const transferred = getTransferredImage();
+      if (transferred) {
+        try {
+          // Fetch the image and create a File object
+          const response = await fetch(transferred.src);
+          const blob = await response.blob();
+          const file = new File([blob], 'transferred-image.png', { type: blob.type || 'image/png' });
+          
+          // Set as reference image
+          setReferenceImage({ file, previewUrl: transferred.src });
+          setImageMode("reference");
+          
+          toast({
+            title: "Image loaded",
+            description: "Image set as reference. Describe what you want to create!",
+          });
+          
+          clearTransferredImage();
+        } catch (error) {
+          console.error("Failed to load transferred image:", error);
+          toast({
+            title: "Failed to load image",
+            description: "Could not load the transferred image. Please try uploading manually.",
+            variant: "destructive",
+          });
+          clearTransferredImage();
+        }
+      }
+    };
+    
+    handleTransferredImage();
+  }, [toast]);
 
   const handleSavePromptFavorite = async () => {
     if (!user) {
