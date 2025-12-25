@@ -42,7 +42,7 @@ export const users = pgTable("users", {
 
 export const imageFolders = pgTable("image_folders", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id).notNull(),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
   name: text("name").notNull(),
   color: text("color").default("#6366f1"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -52,8 +52,8 @@ export const imageFolders = pgTable("image_folders", {
 
 export const generatedImages = pgTable("generated_images", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id).notNull(),
-  folderId: varchar("folder_id").references(() => imageFolders.id),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  folderId: varchar("folder_id").references(() => imageFolders.id, { onDelete: 'set null' }),
   imageUrl: text("image_url").notNull(),
   prompt: text("prompt").notNull(),
   style: text("style"),
@@ -62,9 +62,11 @@ export const generatedImages = pgTable("generated_images", {
   isFavorite: boolean("is_favorite").default(false),
   isPublic: boolean("is_public").default(false),
   viewCount: integer("view_count").default(0).notNull(),
+  // Self-reference for version chains - set null on delete to preserve history
   parentImageId: varchar("parent_image_id"),
   editPrompt: text("edit_prompt"),
-  versionNumber: integer("version_number").default(1).notNull(),
+  // Version 0 = original image, 1+ = edited versions
+  versionNumber: integer("version_number").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => [
   index("idx_generated_images_user_id").on(table.userId),
@@ -77,8 +79,8 @@ export const generatedImages = pgTable("generated_images", {
 
 export const affiliateCommissions = pgTable("affiliate_commissions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  affiliateUserId: varchar("affiliate_user_id").references(() => users.id).notNull(),
-  referredUserId: varchar("referred_user_id").references(() => users.id).notNull(),
+  affiliateUserId: varchar("affiliate_user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  referredUserId: varchar("referred_user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
   amount: integer("amount").notNull(),
   status: text("status").notNull().default("pending"),
   stripeSessionId: text("stripe_session_id").unique(),
@@ -90,7 +92,7 @@ export const affiliateCommissions = pgTable("affiliate_commissions", {
 
 export const withdrawalRequests = pgTable("withdrawal_requests", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id).notNull(),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
   amount: integer("amount").notNull(),
   accountHolderName: text("account_holder_name").notNull(),
   bankName: text("bank_name").notNull(),
@@ -105,7 +107,7 @@ export const withdrawalRequests = pgTable("withdrawal_requests", {
 
 export const crmContacts = pgTable("crm_contacts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'set null' }),
   name: text("name").notNull(),
   email: text("email"),
   phone: text("phone"),
@@ -124,7 +126,7 @@ export const crmContacts = pgTable("crm_contacts", {
 
 export const crmDeals = pgTable("crm_deals", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  contactId: varchar("contact_id").references(() => crmContacts.id),
+  contactId: varchar("contact_id").references(() => crmContacts.id, { onDelete: 'cascade' }),
   title: text("title").notNull(),
   value: integer("value").default(0),
   stage: text("stage").default("lead").notNull(),
@@ -141,8 +143,8 @@ export const crmDeals = pgTable("crm_deals", {
 
 export const crmActivities = pgTable("crm_activities", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  contactId: varchar("contact_id").references(() => crmContacts.id),
-  dealId: varchar("deal_id").references(() => crmDeals.id),
+  contactId: varchar("contact_id").references(() => crmContacts.id, { onDelete: 'cascade' }),
+  dealId: varchar("deal_id").references(() => crmDeals.id, { onDelete: 'cascade' }),
   type: text("type").notNull(),
   subject: text("subject").notNull(),
   description: text("description"),
@@ -157,7 +159,7 @@ export const crmActivities = pgTable("crm_activities", {
 
 export const promptFavorites = pgTable("prompt_favorites", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id).notNull(),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
   name: text("name").notNull(),
   prompt: text("prompt").notNull(),
   style: text("style").notNull(),
@@ -172,7 +174,7 @@ export const promptFavorites = pgTable("prompt_favorites", {
 
 export const moodBoards = pgTable("mood_boards", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id).notNull(),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
   name: text("name").notNull(),
   description: text("description"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -184,8 +186,8 @@ export const moodBoards = pgTable("mood_boards", {
 
 export const moodBoardItems = pgTable("mood_board_items", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  boardId: varchar("board_id").references(() => moodBoards.id).notNull(),
-  imageId: varchar("image_id").references(() => generatedImages.id).notNull(),
+  boardId: varchar("board_id").references(() => moodBoards.id, { onDelete: 'cascade' }).notNull(),
+  imageId: varchar("image_id").references(() => generatedImages.id, { onDelete: 'cascade' }).notNull(),
   positionX: integer("position_x").default(0).notNull(),
   positionY: integer("position_y").default(0).notNull(),
   width: integer("width").default(200).notNull(),
@@ -205,22 +207,26 @@ export const guestGenerations = pgTable("guest_generations", {
 
 export const imageLikes = pgTable("image_likes", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  imageId: varchar("image_id").references(() => generatedImages.id).notNull(),
-  userId: varchar("user_id").references(() => users.id).notNull(),
+  imageId: varchar("image_id").references(() => generatedImages.id, { onDelete: 'cascade' }).notNull(),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => [
   index("idx_image_likes_image_id").on(table.imageId),
   index("idx_image_likes_user_id").on(table.userId),
+  // Unique constraint to prevent duplicate likes
+  index("idx_image_likes_unique").on(table.imageId, table.userId),
 ]);
 
 export const galleryImageLikes = pgTable("gallery_image_likes", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   imageId: varchar("image_id").notNull(),
-  userId: varchar("user_id").references(() => users.id).notNull(),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => [
   index("idx_gallery_image_likes_image_id").on(table.imageId),
   index("idx_gallery_image_likes_user_id").on(table.userId),
+  // Unique constraint to prevent duplicate likes
+  index("idx_gallery_image_likes_unique").on(table.imageId, table.userId),
 ]);
 
 export const galleryImages = pgTable("gallery_images", {
@@ -263,8 +269,8 @@ export const dailyInspirations = pgTable("daily_inspirations", {
 
 export const chatSessions = pgTable("chat_sessions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id).notNull(),
-  projectId: varchar("project_id").references(() => moodBoards.id),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  projectId: varchar("project_id").references(() => moodBoards.id, { onDelete: 'set null' }),
   name: text("name").notNull(),
   nameLocked: boolean("name_locked").default(false),
   preferences: jsonb("preferences").$type<{
@@ -288,11 +294,11 @@ export const chatSessions = pgTable("chat_sessions", {
 
 export const chatMessages = pgTable("chat_messages", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  sessionId: varchar("session_id").references(() => chatSessions.id).notNull(),
+  sessionId: varchar("session_id").references(() => chatSessions.id, { onDelete: 'cascade' }).notNull(),
   role: text("role").notNull(),
   content: text("content").notNull(),
   options: jsonb("options").$type<{ label: string; icon?: string; value: string; type: string }[]>(),
-  imageId: varchar("image_id").references(() => generatedImages.id),
+  imageId: varchar("image_id").references(() => generatedImages.id, { onDelete: 'set null' }),
   originalPrompt: text("original_prompt"),
   enhancedPrompt: text("enhanced_prompt"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -303,7 +309,7 @@ export const chatMessages = pgTable("chat_messages", {
 
 export const userPreferences = pgTable("user_preferences", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id).notNull().unique(),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull().unique(),
   industry: text("industry"),
   role: text("user_role"),
   preferredStyles: text("preferred_styles").array().default([]),
@@ -492,7 +498,7 @@ export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 
 export const mockupVersions = pgTable("mockup_versions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id).notNull(),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
   mockupSessionId: varchar("mockup_session_id").notNull(),
   imageUrl: text("image_url").notNull(),
   thumbnailUrl: text("thumbnail_url"),
