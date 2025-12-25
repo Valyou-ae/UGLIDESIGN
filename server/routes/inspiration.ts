@@ -74,7 +74,8 @@ export async function registerInspirationRoutes(app: Express, middleware: Middle
     }
   });
 
-  app.post("/api/style-transfer/preset", generationRateLimiter, async (req: Request, res: Response) => {
+  // Style transfer requires authentication to prevent abuse and track credits
+  app.post("/api/style-transfer/preset", requireAuth, generationRateLimiter, async (req: Request, res: Response) => {
     try {
       const { contentImage, presetId, options } = req.body;
 
@@ -106,7 +107,7 @@ export async function registerInspirationRoutes(app: Express, middleware: Middle
     }
   });
 
-  app.post("/api/style-transfer/custom", generationRateLimiter, async (req: Request, res: Response) => {
+  app.post("/api/style-transfer/custom", requireAuth, generationRateLimiter, async (req: Request, res: Response) => {
     try {
       const { contentImage, styleImage, options } = req.body;
 
