@@ -126,6 +126,7 @@ export function Sidebar({ className }: SidebarProps) {
     { name: "Home", shortName: "Home", icon: Home, href: "/" },
     { name: "Discover", shortName: "Discover", icon: Compass, href: "/discover", badge: "New" },
     { name: "Image Generator", shortName: "Image", icon: ImageIcon, href: "/image-gen", badge: "5 agents" },
+    { name: "Image Editor", shortName: "Editor", icon: Sparkles, href: "/image-editor", badge: "New" },
     { name: "Style Transfer", shortName: "Style", icon: Palette, href: "/style-transfer", badge: "New" },
     { name: "Mockup Generator", shortName: "Mockup", icon: Shirt, href: "/mockup", badge: "New" },
     { name: "Background Remover", shortName: "BG", icon: Scissors, href: "/bg-remover" },
