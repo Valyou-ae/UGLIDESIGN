@@ -45,8 +45,9 @@ export function FollowButton({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["isFollowing", userId] });
-      queryClient.invalidateQueries({ queryKey: ["followCounts", userId] });
+      queryClient.invalidateQueries({ queryKey: ["followCounts"] });
       queryClient.invalidateQueries({ queryKey: ["social", "feed"] });
+      queryClient.invalidateQueries({ queryKey: ["following"] });
       onFollowChange?.(true);
       toast({
         title: "Following",
@@ -70,8 +71,9 @@ export function FollowButton({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["isFollowing", userId] });
-      queryClient.invalidateQueries({ queryKey: ["followCounts", userId] });
+      queryClient.invalidateQueries({ queryKey: ["followCounts"] });
       queryClient.invalidateQueries({ queryKey: ["social", "feed"] });
+      queryClient.invalidateQueries({ queryKey: ["following"] });
       onFollowChange?.(false);
       toast({
         title: "Unfollowed",

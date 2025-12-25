@@ -38,6 +38,7 @@ import SuperAdminDashboard from "@/pages/super-admin/index";
 import ShareImage from "@/pages/share-image";
 import PrivacyPolicy from "@/pages/privacy-policy";
 import TermsOfService from "@/pages/terms-of-service";
+import Feed from "@/pages/feed";
 
 function Router() {
   return (
@@ -59,6 +60,11 @@ function Router() {
       <Route path="/discover">
         <AuthGuard>
           <Discover />
+        </AuthGuard>
+      </Route>
+      <Route path="/feed">
+        <AuthGuard>
+          <Feed />
         </AuthGuard>
       </Route>
       <Route path="/image-gen">
