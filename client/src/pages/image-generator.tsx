@@ -2300,6 +2300,16 @@ export default function ImageGenerator() {
                               >
                                 <Scissors className="h-4 w-4 mr-2" /> Remove Background
                               </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={(e) => { 
+                                  e.stopPropagation(); 
+                                  const route = transferImageToTool({ src: gen.src, name: gen.prompt, id: gen.id }, "image-editor");
+                                  setLocation(route);
+                                }} 
+                                className="hover:bg-[#2A2A30] cursor-pointer"
+                              >
+                                <Edit className="h-4 w-4 mr-2" /> Move to Image Editor
+                              </DropdownMenuItem>
                               <DropdownMenuSeparator className="bg-[#2A2A30]" />
                               <DropdownMenuItem 
                                 onClick={(e) => { e.stopPropagation(); setImageToDelete(gen); }} 
