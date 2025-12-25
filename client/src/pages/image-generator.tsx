@@ -118,7 +118,7 @@ import { generateApi, imagesApi, GenerationEvent, promptFavoritesApi, PromptFavo
 import { useAuth } from "@/hooks/use-auth";
 import { Label } from "@/components/ui/label";
 import { useLocation } from "wouter";
-import { transferImageToTool, getTransferredImage, clearTransferredImage, fetchImageAsDataUrl } from "@/lib/image-transfer";
+import { transferImageToTool } from "@/lib/image-transfer";
 import { TutorialOverlay, useTutorial } from "@/components/tutorial-overlay";
 import { useCredits } from "@/hooks/use-credits";
 
@@ -351,54 +351,6 @@ export default function ImageGenerator() {
     };
     fetchFavorites();
   }, [user]);
-
-  // Handle transferred images from Discovery/My Creations pages
-  useEffect(() => {
-    const loadTransferredImage = async () => {
-      const transferred = getTransferredImage();
-      if (!transferred) return;
-      
-      try {
-        // Convert the image URL to a data URL if needed, then to a File
-        let dataUrl = transferred.src;
-        if (!transferred.src.startsWith('data:')) {
-          dataUrl = await fetchImageAsDataUrl(transferred.src);
-        }
-        
-        // Convert data URL to File
-        const response = await fetch(dataUrl);
-        const blob = await response.blob();
-        const fileName = `transferred-image-${Date.now()}.png`;
-        const file = new File([blob], fileName, { type: blob.type || 'image/png' });
-        
-        // Create preview URL and set reference image
-        const previewUrl = URL.createObjectURL(file);
-        setReferenceImage({ file, previewUrl });
-        
-        // Set prompt if available
-        if (transferred.prompt) {
-          setPrompt(transferred.prompt);
-        }
-        
-        toast({
-          title: "Image loaded",
-          description: "Your image is ready. Enter a prompt and generate!",
-        });
-        
-        clearTransferredImage();
-      } catch (error) {
-        console.error("Failed to load transferred image:", error);
-        toast({
-          title: "Failed to load image",
-          description: "There was an error loading the transferred image.",
-          variant: "destructive",
-        });
-        clearTransferredImage();
-      }
-    };
-    
-    loadTransferredImage();
-  }, [toast]);
 
   const handleSavePromptFavorite = async () => {
     if (!user) {
