@@ -1094,7 +1094,7 @@ export default function MyCreations() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 md:space-y-8">
-                  {/* Actions */}
+                  {/* Actions - Row 1 */}
                   <div className="grid grid-cols-5 gap-2">
                     <Button 
                       variant="ghost" 
@@ -1152,22 +1152,54 @@ export default function MyCreations() {
                     </Button>
                   </div>
 
+                  {/* Actions - Row 2 */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button 
+                      variant="ghost" 
+                      className="flex items-center justify-center gap-2 h-10 bg-gradient-to-r from-[#ed5387]/10 to-[#9C27B0]/10 hover:from-[#ed5387]/20 hover:to-[#9C27B0]/20 text-foreground rounded-xl border border-[#ed5387]/30"
+                      onClick={() => {
+                        const route = transferImageToTool(selectedItem, "image-editor");
+                        setLocation(route);
+                      }}
+                      data-testid="button-edit-detail"
+                    >
+                      <Wand2 className="h-4 w-4 text-[#ed5387]" />
+                      <span className="text-xs font-medium">Edit in Editor</span>
+                    </Button>
+                    
+                    <Button 
+                      variant="ghost" 
+                      className="flex items-center justify-center gap-2 h-10 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl border border-red-500/30"
+                      onClick={() => handleAction("Delete", selectedItem)}
+                      data-testid="button-delete-detail"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      <span className="text-xs font-medium">Delete</span>
+                    </Button>
+                  </div>
+
                   {/* Prompt */}
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Prompt</label>
-                    <div className="bg-muted/30 rounded-xl p-4 text-sm text-muted-foreground leading-relaxed border border-border relative group">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Prompt</label>
+                      {selectedItem.prompt && (
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground gap-1"
+                          onClick={() => {
+                             navigator.clipboard.writeText(selectedItem.prompt);
+                             toast({ title: "Prompt Copied!" });
+                          }}
+                          data-testid="button-copy-prompt"
+                        >
+                          <Copy className="h-3 w-3" />
+                          Copy
+                        </Button>
+                      )}
+                    </div>
+                    <div className="bg-muted/30 rounded-xl p-4 text-sm text-muted-foreground leading-relaxed border border-border">
                       {selectedItem.prompt || "No prompt available"}
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
-                        className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => {
-                           navigator.clipboard.writeText(selectedItem.prompt);
-                           toast({ title: "Copied" });
-                        }}
-                      >
-                        <Copy className="h-3 w-3" />
-                      </Button>
                     </div>
                   </div>
 

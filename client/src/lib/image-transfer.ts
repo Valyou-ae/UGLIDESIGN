@@ -9,7 +9,7 @@ export interface ImageTransferPayload {
   timestamp: number;
 }
 
-export type TransferDestination = "mockup" | "bg-remover" | "style-transfer";
+export type TransferDestination = "mockup" | "bg-remover" | "style-transfer" | "image-editor";
 
 export function transferImageToTool(
   image: { id: string; src: string; name?: string; aspectRatio?: string; type?: string },
@@ -30,6 +30,7 @@ export function transferImageToTool(
     "mockup": "/mockup",
     "bg-remover": "/bg-remover",
     "style-transfer": "/style-transfer",
+    "image-editor": "/image-editor",
   };
 
   return routes[destination];

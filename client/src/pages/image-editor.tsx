@@ -41,6 +41,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useCredits } from "@/hooks/use-credits";
+import { getTransferredImage, clearTransferredImage } from "@/lib/image-transfer";
 
 type EditVersion = {
   id: string;
@@ -127,15 +128,26 @@ export default function ImageEditor() {
   }, []);
 
   useEffect(() => {
+    if (!user) return;
+    
     const params = new URLSearchParams(searchString);
     const imageIdFromUrl = params.get("imageId");
     
-    if (!imageIdFromUrl || !user) return;
-    if (loadedImageIdRef.current === imageIdFromUrl) return;
+    if (imageIdFromUrl) {
+      if (loadedImageIdRef.current === imageIdFromUrl) return;
+      loadedImageIdRef.current = imageIdFromUrl;
+      setRootImageId(imageIdFromUrl);
+      fetchVersions(imageIdFromUrl);
+      return;
+    }
     
-    loadedImageIdRef.current = imageIdFromUrl;
-    setRootImageId(imageIdFromUrl);
-    fetchVersions(imageIdFromUrl);
+    const transferred = getTransferredImage();
+    if (transferred && loadedImageIdRef.current !== transferred.id) {
+      loadedImageIdRef.current = transferred.id;
+      setRootImageId(transferred.id);
+      fetchVersions(transferred.id);
+      clearTransferredImage();
+    }
   }, [searchString, user, fetchVersions]);
 
   const handleFileSelect = useCallback(async (file: File) => {
