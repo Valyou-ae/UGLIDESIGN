@@ -12,15 +12,27 @@ import {
   Search,
   X,
   Share2,
-  Link2
+  Link2,
+  MoreVertical,
+  Pencil,
+  Shirt,
+  Eraser
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Sidebar } from "@/components/sidebar";
 import { galleryApi } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
+import { transferImageToTool, type TransferDestination } from "@/lib/image-transfer";
 
 function formatCount(num: number): string {
   if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
@@ -78,6 +90,33 @@ const LazyMasonryCard = memo(function LazyMasonryCard({ item, index, onLike, onU
   const [linkCopied, setLinkCopied] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
+
+  const handleSendToTool = (destination: TransferDestination) => {
+    const route = transferImageToTool(
+      {
+        id: String(item.id),
+        src: item.image,
+        name: item.prompt,
+        aspectRatio: item.aspectRatio,
+        type: item.isGalleryImage ? "gallery" : "inspiration",
+      },
+      destination
+    );
+    
+    const toolNames: Record<TransferDestination, string> = {
+      "image-editor": "Image Editor",
+      "mockup": "Mockup Generator",
+      "bg-remover": "Background Remover",
+    };
+    
+    toast({
+      title: `Opening ${toolNames[destination]}`,
+      description: "Image is being loaded...",
+    });
+    
+    setLocation(route);
+  };
 
   const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/share/${item.id}` : '';
 
@@ -370,6 +409,44 @@ const LazyMasonryCard = memo(function LazyMasonryCard({ item, index, onLike, onU
               >
                 {copied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
               </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center gap-1 text-xs text-[#71717A] dark:text-[#52525B] hover:text-[#ed5387] transition-colors"
+                    data-testid={`button-more-${item.id}`}
+                    title="More options"
+                  >
+                    <MoreVertical className="h-3.5 w-3.5" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48" onClick={(e) => e.stopPropagation()}>
+                  <DropdownMenuItem
+                    onClick={() => handleSendToTool("image-editor")}
+                    className="flex items-center gap-2 cursor-pointer"
+                    data-testid={`menu-edit-${item.id}`}
+                  >
+                    <Pencil className="h-4 w-4" />
+                    <span>Edit in Editor</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleSendToTool("mockup")}
+                    className="flex items-center gap-2 cursor-pointer"
+                    data-testid={`menu-mockup-${item.id}`}
+                  >
+                    <Shirt className="h-4 w-4" />
+                    <span>Create Mockup</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleSendToTool("bg-remover")}
+                    className="flex items-center gap-2 cursor-pointer"
+                    data-testid={`menu-bg-remover-${item.id}`}
+                  >
+                    <Eraser className="h-4 w-4" />
+                    <span>Remove Background</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
