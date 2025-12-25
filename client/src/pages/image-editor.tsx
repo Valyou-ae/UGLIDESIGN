@@ -13,7 +13,19 @@ import {
   Check,
   AlertCircle,
   Wand2,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Palette,
+  Sun,
+  Eraser,
+  Zap,
+  Brush,
+  Focus,
+  Contrast,
+  Droplets,
+  Layers,
+  Scissors,
+  Maximize,
+  Minimize
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -714,18 +726,123 @@ export default function ImageEditor() {
                       </TooltipProvider>
                     </div>
                     
-                    {/* Quick Suggestions */}
-                    <div className="flex flex-wrap gap-1.5">
-                      {["Remove background", "Vintage look", "Brighter", "Add blur"].map((suggestion) => (
-                        <button
-                          key={suggestion}
-                          onClick={() => setEditPrompt(suggestion)}
-                          className="px-2 py-1 text-xs rounded-md bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors"
-                          disabled={status === "editing"}
-                        >
-                          {suggestion}
-                        </button>
-                      ))}
+                    {/* Quick Actions - Categorized */}
+                    <div className="flex-1 overflow-y-auto space-y-3 pr-1" style={{ scrollbarWidth: 'thin' }}>
+                      {/* Style */}
+                      <div>
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <Palette className="h-3 w-3 text-pink-400" />
+                          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Style</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {[
+                            { label: "Vintage", icon: Brush },
+                            { label: "Cinematic", icon: Layers },
+                            { label: "Pop art", icon: Zap },
+                            { label: "Watercolor", icon: Droplets },
+                          ].map(({ label, icon: Icon }) => (
+                            <motion.button
+                              key={label}
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              onClick={() => setEditPrompt(`Make it look ${label.toLowerCase()}`)}
+                              className="group flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-lg bg-gradient-to-r from-pink-500/10 to-purple-500/10 hover:from-pink-500/20 hover:to-purple-500/20 border border-pink-500/20 hover:border-pink-500/40 text-foreground transition-all"
+                              disabled={status === "editing"}
+                              data-testid={`quick-action-${label.toLowerCase()}`}
+                            >
+                              <Icon className="h-3 w-3 text-pink-400 group-hover:text-pink-300 transition-colors" />
+                              {label}
+                            </motion.button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Lighting */}
+                      <div>
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <Sun className="h-3 w-3 text-amber-400" />
+                          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Lighting</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {[
+                            { label: "Brighter", icon: Sun },
+                            { label: "Darker", icon: Contrast },
+                            { label: "Golden hour", icon: Sparkles },
+                            { label: "Dramatic shadows", icon: Layers },
+                          ].map(({ label, icon: Icon }) => (
+                            <motion.button
+                              key={label}
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              onClick={() => setEditPrompt(`Make it ${label.toLowerCase()}`)}
+                              className="group flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-lg bg-gradient-to-r from-amber-500/10 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 border border-amber-500/20 hover:border-amber-500/40 text-foreground transition-all"
+                              disabled={status === "editing"}
+                              data-testid={`quick-action-${label.toLowerCase().replace(' ', '-')}`}
+                            >
+                              <Icon className="h-3 w-3 text-amber-400 group-hover:text-amber-300 transition-colors" />
+                              {label}
+                            </motion.button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Effects */}
+                      <div>
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <Focus className="h-3 w-3 text-blue-400" />
+                          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Effects</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {[
+                            { label: "Blur background", icon: Focus },
+                            { label: "Sharpen", icon: Zap },
+                            { label: "Add grain", icon: Droplets },
+                            { label: "Vignette", icon: Minimize },
+                          ].map(({ label, icon: Icon }) => (
+                            <motion.button
+                              key={label}
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              onClick={() => setEditPrompt(label)}
+                              className="group flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-lg bg-gradient-to-r from-blue-500/10 to-cyan-500/10 hover:from-blue-500/20 hover:to-cyan-500/20 border border-blue-500/20 hover:border-blue-500/40 text-foreground transition-all"
+                              disabled={status === "editing"}
+                              data-testid={`quick-action-${label.toLowerCase().replace(' ', '-')}`}
+                            >
+                              <Icon className="h-3 w-3 text-blue-400 group-hover:text-blue-300 transition-colors" />
+                              {label}
+                            </motion.button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Fix & Enhance */}
+                      <div>
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <Eraser className="h-3 w-3 text-emerald-400" />
+                          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Fix & Enhance</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {[
+                            { label: "Remove background", icon: Eraser },
+                            { label: "Upscale quality", icon: Maximize },
+                            { label: "Fix colors", icon: Palette },
+                            { label: "Remove objects", icon: Scissors },
+                          ].map(({ label, icon: Icon }) => (
+                            <motion.button
+                              key={label}
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              onClick={() => setEditPrompt(label)}
+                              className="group flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-lg bg-gradient-to-r from-emerald-500/10 to-teal-500/10 hover:from-emerald-500/20 hover:to-teal-500/20 border border-emerald-500/20 hover:border-emerald-500/40 text-foreground transition-all"
+                              disabled={status === "editing"}
+                              data-testid={`quick-action-${label.toLowerCase().replace(' ', '-')}`}
+                            >
+                              <Icon className="h-3 w-3 text-emerald-400 group-hover:text-emerald-300 transition-colors" />
+                              {label}
+                            </motion.button>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                     
                     {errorMessage && (
