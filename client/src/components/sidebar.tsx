@@ -15,11 +15,11 @@ import {
   Coins,
   Layers,
   User,
+  Users,
   LogIn,
   CreditCard,
   Sparkles,
-  Wand2,
-  Eye
+  Wand2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -133,7 +133,7 @@ export function Sidebar({ className }: SidebarProps) {
   ];
 
   const privateNavigation: NavItem[] = [
-    { name: "Following", shortName: "Following", icon: Eye, href: "/feed" },
+    { name: "Following", shortName: "Following", icon: Users, href: "/feed" },
     { name: "My Creations", shortName: "Creations", icon: Layers, href: "/my-creations", count: totalCreations > 0 ? totalCreations.toString() : undefined, dataTutorial: "my-creations-link" },
   ];
 
