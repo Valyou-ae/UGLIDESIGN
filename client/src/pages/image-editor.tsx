@@ -1,5 +1,6 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useSearch } from "wouter";
 import { 
   Upload, 
   Sparkles, 
@@ -45,8 +46,9 @@ type EditStatus = "idle" | "uploading" | "editing" | "complete" | "error";
 export default function ImageEditor() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { credits, refreshCredits } = useCredits();
+  const { credits, invalidate: refreshCredits } = useCredits();
   const queryClient = useQueryClient();
+  const searchString = useSearch();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const versionScrollRef = useRef<HTMLDivElement>(null);
   
@@ -58,6 +60,49 @@ export default function ImageEditor() {
   const [selectedVersionIndex, setSelectedVersionIndex] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isLoadingVersions, setIsLoadingVersions] = useState(false);
+  const loadedImageIdRef = useRef<string | null>(null);
+
+  const fetchVersions = useCallback(async (imageId: string, selectLatest = true) => {
+    setIsLoadingVersions(true);
+    try {
+      const response = await fetch(`/api/images/${imageId}/versions`, {
+        credentials: "include",
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const fetchedVersions: EditVersion[] = data.versions.map((v: any) => ({
+          id: v.id,
+          imageUrl: `/api/images/${v.id}/image`,
+          prompt: v.editPrompt || "Original",
+          versionNumber: v.versionNumber ?? 0,
+          createdAt: v.createdAt,
+        }));
+        setVersions(fetchedVersions);
+        if (fetchedVersions.length > 0 && selectLatest) {
+          setSelectedVersionIndex(fetchedVersions.length - 1);
+          const latestVersion = fetchedVersions[fetchedVersions.length - 1];
+          setCurrentImage(latestVersion.imageUrl);
+          setCurrentImageId(latestVersion.id);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch versions:", error);
+    } finally {
+      setIsLoadingVersions(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchString);
+    const imageIdFromUrl = params.get("imageId");
+    
+    if (!imageIdFromUrl || !user) return;
+    if (loadedImageIdRef.current === imageIdFromUrl) return;
+    
+    loadedImageIdRef.current = imageIdFromUrl;
+    fetchVersions(imageIdFromUrl);
+  }, [searchString, user, fetchVersions]);
 
   const handleFileSelect = useCallback(async (file: File) => {
     if (!file.type.startsWith("image/")) {
@@ -102,15 +147,12 @@ export default function ImageEditor() {
         }
 
         const data = await response.json();
+        const imageApiUrl = `/api/images/${data.imageId}/image`;
         setCurrentImageId(data.imageId);
-        setVersions([{
-          id: data.imageId,
-          imageUrl: data.imageUrl,
-          prompt: "Original",
-          versionNumber: 0,
-          createdAt: new Date().toISOString(),
-        }]);
-        setSelectedVersionIndex(0);
+        setCurrentImage(imageApiUrl);
+        
+        await fetchVersions(data.imageId);
+        
         setStatus("idle");
         
         toast({
@@ -128,7 +170,7 @@ export default function ImageEditor() {
         variant: "destructive",
       });
     }
-  }, [toast]);
+  }, [toast, fetchVersions]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -187,21 +229,16 @@ export default function ImageEditor() {
 
       const data = await response.json();
       
-      const newVersion: EditVersion = {
-        id: data.imageId,
-        imageUrl: data.imageUrl,
-        prompt: editPrompt.trim(),
-        versionNumber: versions.length,
-        createdAt: new Date().toISOString(),
-      };
-      
-      setVersions(prev => [...prev, newVersion]);
       setCurrentImage(data.imageUrl);
       setCurrentImageId(data.imageId);
-      setSelectedVersionIndex(versions.length);
       setEditPrompt("");
       setStatus("complete");
       refreshCredits();
+      
+      if (versions.length > 0 && versions[0].id) {
+        const rootId = versions[0].id;
+        await fetchVersions(rootId);
+      }
       
       toast({
         title: "Edit complete",
@@ -239,10 +276,14 @@ export default function ImageEditor() {
   };
 
   const handleDownload = async () => {
-    if (!currentImage) return;
+    if (!currentImageId) return;
     
     try {
-      const response = await fetch(currentImage);
+      const response = await fetch(`/api/images/${currentImageId}/image`, {
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Download failed");
+      
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -463,7 +504,13 @@ export default function ImageEditor() {
                       className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide"
                       style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
                     >
-                      {versions.map((version, index) => (
+                      {isLoadingVersions && (
+                        <div className="flex items-center justify-center w-full py-4">
+                          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                          <span className="ml-2 text-sm text-muted-foreground">Loading versions...</span>
+                        </div>
+                      )}
+                      {!isLoadingVersions && versions.map((version, index) => (
                         <motion.div
                           key={version.id}
                           initial={{ opacity: 0, scale: 0.9 }}
