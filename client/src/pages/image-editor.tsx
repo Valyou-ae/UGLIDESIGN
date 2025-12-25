@@ -140,6 +140,8 @@ export default function ImageEditor() {
       if (loadedImageIdRef.current === imageIdFromUrl) return;
       loadedImageIdRef.current = imageIdFromUrl;
       setRootImageId(imageIdFromUrl);
+      setCurrentImageId(imageIdFromUrl);
+      setCurrentImage(`/api/images/${imageIdFromUrl}/image`);
       fetchVersions(imageIdFromUrl);
       return;
     }
@@ -148,6 +150,8 @@ export default function ImageEditor() {
     if (transferred && loadedImageIdRef.current !== transferred.id) {
       loadedImageIdRef.current = transferred.id;
       setRootImageId(transferred.id);
+      setCurrentImageId(transferred.id);
+      setCurrentImage(transferred.src);
       fetchVersions(transferred.id);
       clearTransferredImage();
     }
