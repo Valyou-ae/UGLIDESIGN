@@ -6,7 +6,6 @@ import {
   Loader2, 
   Users, 
   Image as ImageIcon,
-  Eye,
   Clock,
   ExternalLink
 } from "lucide-react";
@@ -110,7 +109,7 @@ export default function Feed() {
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2" data-testid="text-feed-title">
-              <Eye className="inline h-8 w-8 mr-2 text-primary" />
+              <Users className="inline h-8 w-8 mr-2 text-primary" />
               Following
             </h1>
             <p className="text-muted-foreground">
