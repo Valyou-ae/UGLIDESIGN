@@ -8,6 +8,68 @@ import { logger } from "../logger";
 
 const GUEST_GALLERY_USER_ID = "guest-gallery-user";
 
+// Credit costs for different generation types
+const CREDIT_COSTS = {
+  draft: {
+    '1:1': 1,
+    '16:9': 1,
+    '9:16': 1,
+    '4:3': 1,
+    '3:4': 1,
+  },
+  premium: {
+    '1:1': 2,
+    '16:9': 3,
+    '9:16': 3,
+    '4:3': 2,
+    '3:4': 2,
+  },
+  batch_discount: 0.75, // 25% discount for batch (4 images cost 3x single)
+};
+
+// Helper to calculate credit cost
+function calculateCreditCost(quality: 'draft' | 'premium', aspectRatio: string, count: number): number {
+  const baseCost = CREDIT_COSTS[quality][aspectRatio as keyof typeof CREDIT_COSTS.draft] || CREDIT_COSTS[quality]['1:1'];
+  if (count === 1) return baseCost;
+  // Batch discount: 4 images cost 3x single price (25% discount)
+  return Math.ceil(baseCost * count * CREDIT_COSTS.batch_discount);
+}
+
+// Helper to check and deduct credits atomically
+async function checkAndDeductCredits(
+  userId: string,
+  cost: number,
+  operationType: string
+): Promise<{ success: boolean; credits?: number; error?: string }> {
+  if (cost === 0) return { success: true };
+  
+  const currentCredits = await storage.getUserCredits(userId);
+  
+  if (currentCredits < cost) {
+    return {
+      success: false,
+      credits: currentCredits,
+      error: `Insufficient credits. You need ${cost} credits for ${operationType}, but only have ${currentCredits}.`
+    };
+  }
+  
+  const updatedUser = await storage.deductCredits(userId, cost);
+  return {
+    success: true,
+    credits: updatedUser?.credits ?? currentCredits - cost
+  };
+}
+
+// Helper to refund credits on failure
+async function refundCredits(userId: string, amount: number, reason: string): Promise<void> {
+  try {
+    await storage.addCredits(userId, amount);
+    logger.info(`Refunded ${amount} credits to user ${userId}: ${reason}`, { source: 'generation' });
+  } catch (error) {
+    logger.error(`Failed to refund ${amount} credits to user ${userId}`, error, { source: 'generation' });
+  }
+}
+
 async function ensureGuestGalleryUser() {
   let guestUser = await storage.getUser(GUEST_GALLERY_USER_ID);
   if (!guestUser) {
@@ -131,6 +193,21 @@ export async function registerGenerationRoutes(app: Express, middleware: Middlew
 
       const count = Math.min(Math.max(1, parseInt(imageCount) || 1), 4);
 
+      // Calculate and check credits before generation
+      const creditCost = calculateCreditCost('draft', aspectRatio, count);
+      const creditCheck = await checkAndDeductCredits(userId, creditCost, `draft generation (${count} image${count > 1 ? 's' : ''})`);
+      
+      if (!creditCheck.success) {
+        return res.status(402).json({ 
+          message: creditCheck.error,
+          credits: creditCheck.credits,
+          required: creditCost
+        });
+      }
+
+      // Track credits deducted for potential refund
+      let creditsDeducted = creditCost;
+
       res.setHeader("Content-Type", "text/event-stream");
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Connection", "keep-alive");
@@ -242,14 +319,24 @@ export async function registerGenerationRoutes(app: Express, middleware: Middlew
       const promises = Array.from({ length: count }, (_, i) => generateImage(i));
       const results = await Promise.all(promises);
       const successCount = results.filter(r => r.success).length;
+      const failedCount = count - successCount;
+
+      // Refund credits for failed images (proportional refund)
+      if (failedCount > 0 && successCount < count) {
+        const refundAmount = Math.ceil((creditCost / count) * failedCount);
+        await refundCredits(userId, refundAmount, `${failedCount} of ${count} draft images failed`);
+        sendEvent("credit_refund", { refunded: refundAmount, reason: `${failedCount} image(s) failed` });
+      }
 
       sendEvent("status", { agent: "Visual Synthesizer", status: "complete", message: "Generation complete" });
-      sendEvent("complete", { message: "Draft generation complete", totalImages: successCount });
+      sendEvent("complete", { message: "Draft generation complete", totalImages: successCount, creditsUsed: creditCost });
 
       res.end();
     } catch (error) {
+      // Full refund on catastrophic failure
+      await refundCredits(userId, creditsDeducted, "Draft generation failed completely");
       logger.error("Draft generation error", error, { source: "generation" });
-      res.write(`event: error\ndata: ${JSON.stringify({ message: "Generation failed" })}\n\n`);
+      res.write(`event: error\ndata: ${JSON.stringify({ message: "Generation failed", creditsRefunded: creditsDeducted })}\n\n`);
       res.end();
     }
   });
@@ -273,6 +360,21 @@ export async function registerGenerationRoutes(app: Express, middleware: Middlew
       }
 
       const count = Math.min(Math.max(1, parseInt(imageCount) || 1), 4);
+
+      // Calculate and check credits before generation
+      const creditCost = calculateCreditCost('premium', aspectRatio, count);
+      const creditCheck = await checkAndDeductCredits(userId, creditCost, `premium generation (${count} image${count > 1 ? 's' : ''})`);
+      
+      if (!creditCheck.success) {
+        return res.status(402).json({ 
+          message: creditCheck.error,
+          credits: creditCheck.credits,
+          required: creditCost
+        });
+      }
+
+      // Track credits deducted for potential refund
+      let creditsDeducted = creditCost;
 
       // SSE headers with anti-buffering settings
       res.setHeader("Content-Type", "text/event-stream");
@@ -398,17 +500,28 @@ export async function registerGenerationRoutes(app: Express, middleware: Middlew
       const promises = Array.from({ length: count }, (_, i) => generateImage(i));
       const results = await Promise.all(promises);
       const successCount = results.filter(r => r.success).length;
+      const failedCount = count - successCount;
+
+      // Refund credits for failed images (proportional refund)
+      if (failedCount > 0 && successCount < count) {
+        const refundAmount = Math.ceil((creditCost / count) * failedCount);
+        await refundCredits(userId, refundAmount, `${failedCount} of ${count} premium images failed`);
+        sendEvent("credit_refund", { refunded: refundAmount, reason: `${failedCount} image(s) failed` });
+      }
 
       sendEvent("status", { agent: "Visual Synthesizer", status: "complete", message: "Generation complete" });
       sendEvent("complete", {
         message: "Final generation complete",
         totalImages: successCount,
+        creditsUsed: creditCost,
       });
 
       res.end();
     } catch (error) {
+      // Full refund on catastrophic failure
+      await refundCredits(userId, creditsDeducted, "Premium generation failed completely");
       logger.error("Final generation error", error, { source: "generation" });
-      res.write(`event: error\ndata: ${JSON.stringify({ message: "Generation failed" })}\n\n`);
+      res.write(`event: error\ndata: ${JSON.stringify({ message: "Generation failed", creditsRefunded: creditsDeducted })}\n\n`);
       res.end();
     }
   });

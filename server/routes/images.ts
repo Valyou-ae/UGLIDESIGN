@@ -8,6 +8,44 @@ import type { AuthenticatedRequest } from "../types";
 import { parsePagination } from "./utils";
 import { logger } from "../logger";
 
+// Credit cost for image editing
+const IMAGE_EDIT_CREDIT_COST = 2;
+
+// Helper to check and deduct credits
+async function checkAndDeductCredits(
+  userId: string,
+  cost: number,
+  operationType: string
+): Promise<{ success: boolean; credits?: number; error?: string }> {
+  if (cost === 0) return { success: true };
+  
+  const currentCredits = await storage.getUserCredits(userId);
+  
+  if (currentCredits < cost) {
+    return {
+      success: false,
+      credits: currentCredits,
+      error: `Insufficient credits. You need ${cost} credits for ${operationType}, but only have ${currentCredits}.`
+    };
+  }
+  
+  const updatedUser = await storage.deductCredits(userId, cost);
+  return {
+    success: true,
+    credits: updatedUser?.credits ?? currentCredits - cost
+  };
+}
+
+// Helper to refund credits on failure
+async function refundCredits(userId: string, amount: number, reason: string): Promise<void> {
+  try {
+    await storage.addCredits(userId, amount);
+    logger.info(`Refunded ${amount} credits to user ${userId}: ${reason}`, { source: 'images' });
+  } catch (error) {
+    logger.error(`Failed to refund ${amount} credits to user ${userId}`, error, { source: 'images' });
+  }
+}
+
 export function registerImageRoutes(app: Express, middleware: Middleware) {
   const { requireAuth, getUserId } = middleware;
 
@@ -429,6 +467,16 @@ export function registerImageRoutes(app: Express, middleware: Middleware) {
         return res.status(400).json({ message: "Edit prompt is required" });
       }
 
+      // Check and deduct credits before editing
+      const creditCheck = await checkAndDeductCredits(userId, IMAGE_EDIT_CREDIT_COST, 'image editing');
+      if (!creditCheck.success) {
+        return res.status(402).json({
+          message: creditCheck.error,
+          credits: creditCheck.credits,
+          required: IMAGE_EDIT_CREDIT_COST
+        });
+      }
+
       // Get the original image
       const originalImage = await storage.getImageById(id, userId);
       if (!originalImage) {
@@ -450,7 +498,9 @@ export function registerImageRoutes(app: Express, middleware: Middleware) {
       const result = await editImage(imageBase64, editPrompt.trim());
 
       if (!result) {
-        return res.status(500).json({ message: "Failed to edit image. Please try again." });
+        // Refund credits on edit failure
+        await refundCredits(userId, IMAGE_EDIT_CREDIT_COST, 'Image edit failed');
+        return res.status(500).json({ message: "Failed to edit image. Please try again.", creditsRefunded: IMAGE_EDIT_CREDIT_COST });
       }
 
       // Determine root image - walk the ENTIRE parent chain and verify ownership
@@ -495,8 +545,10 @@ export function registerImageRoutes(app: Express, middleware: Middleware) {
         }
       });
     } catch (error) {
+      // Refund credits on unexpected error
+      await refundCredits(userId, IMAGE_EDIT_CREDIT_COST, 'Image edit error');
       logger.error("Image edit error", error, { source: "images" });
-      res.status(500).json({ message: "Failed to edit image. Please try again." });
+      res.status(500).json({ message: "Failed to edit image. Please try again.", creditsRefunded: IMAGE_EDIT_CREDIT_COST });
     }
   });
 
