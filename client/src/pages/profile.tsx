@@ -19,7 +19,9 @@ import {
   Copy,
   Check,
   Users,
-  Sparkles
+  Sparkles,
+  UserPlus,
+  UserCheck
 } from "lucide-react";
 import { Sidebar } from "@/components/sidebar";
 import { Button } from "@/components/ui/button";
@@ -30,7 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
-import { imagesApi } from "@/lib/api";
+import { imagesApi, socialApi } from "@/lib/api";
 import { useLocation } from "wouter";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
@@ -70,6 +72,19 @@ export default function Profile() {
       return res.json();
     },
     enabled: isAuthenticated,
+  });
+
+  const { data: followCounts } = useQuery({
+    queryKey: ["followCounts", user?.id],
+    queryFn: () => socialApi.getFollowCounts(user!.id),
+    enabled: isAuthenticated && !!user?.id,
+    staleTime: 60000,
+  });
+
+  const { data: followingData, isLoading: followingLoading } = useQuery({
+    queryKey: ["following", user?.id],
+    queryFn: () => socialApi.getFollowing(user!.id, 50, 0),
+    enabled: isAuthenticated && !!user?.id && activeTab === "following",
   });
 
   const generateCodeMutation = useMutation({
@@ -270,12 +285,13 @@ export default function Profile() {
           </div>
 
           {/* Stats Row */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-10">
             {[
               { label: "Credits", value: (stats.credits ?? 0).toString(), icon: Coins, highlight: true },
+              { label: "Followers", value: (followCounts?.followers || 0).toString(), icon: Users },
+              { label: "Following", value: (followCounts?.following || 0).toString(), icon: UserCheck },
               { label: "Images", value: (stats.images || 0).toString(), icon: ImageIcon },
               { label: "Mockups", value: (stats.mockups || 0).toString(), icon: Layers },
-              { label: "Backgrounds", value: (stats.bgRemoved || 0).toString(), icon: Grid },
               { label: "Favorites", value: favoriteCount.toString(), icon: Heart },
             ].map((stat: { label: string; value: string; icon: any; highlight?: boolean }, i) => (
               <div 
@@ -304,6 +320,7 @@ export default function Profile() {
               <TabsList className="bg-muted/50 p-1 rounded-xl">
                 <TabsTrigger value="projects" className="rounded-lg px-6" data-testid="tab-projects">Projects</TabsTrigger>
                 <TabsTrigger value="favorites" className="rounded-lg px-6" data-testid="tab-favorites">Favorites</TabsTrigger>
+                <TabsTrigger value="following" className="rounded-lg px-6" data-testid="tab-following">Following</TabsTrigger>
                 <TabsTrigger value="referral" className="rounded-lg px-6" data-testid="tab-referral">Referral</TabsTrigger>
                 <TabsTrigger value="about" className="rounded-lg px-6" data-testid="tab-about">About</TabsTrigger>
               </TabsList>
@@ -410,6 +427,50 @@ export default function Profile() {
                       </motion.div>
                     ))
                   )}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="following" className="mt-0">
+              {followingLoading ? (
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : followingData?.following?.length === 0 ? (
+                <div className="text-center py-20 text-muted-foreground">
+                  <Users className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                  <h3 className="text-xl font-semibold mb-2">Not following anyone yet</h3>
+                  <p className="mb-4">Explore the Discover page to find amazing creators!</p>
+                  <Button onClick={() => setLocation("/discover")} data-testid="button-explore-creators">
+                    Explore Creators
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {followingData?.following?.map((followedUser) => (
+                    <motion.div
+                      key={followedUser.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-card border border-border rounded-xl p-4 flex items-center gap-4 hover:border-primary/50 transition-colors"
+                      data-testid={`card-following-${followedUser.id}`}
+                    >
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={followedUser.profileImageUrl || ""} />
+                        <AvatarFallback className="bg-gradient-to-br from-[#ed5387] to-[#9C27B0] text-white">
+                          {(followedUser.displayName || followedUser.username || "U").slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-foreground truncate">
+                          {followedUser.displayName || followedUser.username}
+                        </p>
+                        {followedUser.username && (
+                          <p className="text-sm text-muted-foreground truncate">@{followedUser.username}</p>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))}
                 </div>
               )}
             </TabsContent>
