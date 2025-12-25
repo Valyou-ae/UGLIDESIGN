@@ -4,25 +4,21 @@ import { useSearch } from "wouter";
 import { 
   Upload, 
   Sparkles, 
-  Image as ImageIcon, 
   Download, 
-  X, 
   Rocket,
   ChevronLeft,
   ChevronRight,
-  History as HistoryIcon,
-  Trash2,
   RotateCcw,
   Loader2,
   Check,
-  AlertCircle
+  AlertCircle,
+  Wand2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Sidebar } from "@/components/sidebar";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Tooltip,
   TooltipContent,
@@ -55,6 +51,7 @@ export default function ImageEditor() {
   const [status, setStatus] = useState<EditStatus>("idle");
   const [currentImage, setCurrentImage] = useState<string | null>(null);
   const [currentImageId, setCurrentImageId] = useState<string | null>(null);
+  const [rootImageId, setRootImageId] = useState<string | null>(null);
   const [editPrompt, setEditPrompt] = useState("");
   const [versions, setVersions] = useState<EditVersion[]>([]);
   const [selectedVersionIndex, setSelectedVersionIndex] = useState(0);
@@ -101,6 +98,7 @@ export default function ImageEditor() {
     if (loadedImageIdRef.current === imageIdFromUrl) return;
     
     loadedImageIdRef.current = imageIdFromUrl;
+    setRootImageId(imageIdFromUrl);
     fetchVersions(imageIdFromUrl);
   }, [searchString, user, fetchVersions]);
 
@@ -150,6 +148,7 @@ export default function ImageEditor() {
         const imageApiUrl = `/api/images/${data.imageId}/image`;
         setCurrentImageId(data.imageId);
         setCurrentImage(imageApiUrl);
+        setRootImageId(data.imageId);
         
         await fetchVersions(data.imageId);
         
@@ -235,9 +234,8 @@ export default function ImageEditor() {
       setStatus("complete");
       refreshCredits();
       
-      if (versions.length > 0 && versions[0].id) {
-        const rootId = versions[0].id;
-        await fetchVersions(rootId);
+      if (rootImageId) {
+        await fetchVersions(rootImageId);
       }
       
       toast({
@@ -267,7 +265,7 @@ export default function ImageEditor() {
 
   const scrollVersions = (direction: "left" | "right") => {
     if (versionScrollRef.current) {
-      const scrollAmount = 120;
+      const scrollAmount = 80;
       versionScrollRef.current.scrollBy({
         left: direction === "left" ? -scrollAmount : scrollAmount,
         behavior: "smooth",
@@ -310,113 +308,156 @@ export default function ImageEditor() {
   const resetEditor = () => {
     setCurrentImage(null);
     setCurrentImageId(null);
+    setRootImageId(null);
     setVersions([]);
     setSelectedVersionIndex(0);
     setEditPrompt("");
     setStatus("idle");
     setErrorMessage(null);
+    loadedImageIdRef.current = null;
   };
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       <Sidebar />
       
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="flex-shrink-0 px-6 py-4 border-b border-border">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-semibold text-foreground">Image Editor</h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                Upload an image and edit it with natural language prompts
-              </p>
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+        {/* Compact Header */}
+        <div className="flex-shrink-0 h-14 px-4 border-b border-border flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#ed5387] to-[#9C27B0] flex items-center justify-center">
+              <Wand2 className="h-4 w-4 text-white" />
             </div>
+            <h1 className="text-lg font-semibold text-foreground">Image Editor</h1>
+          </div>
+          <div className="flex items-center gap-3">
             {credits !== null && (
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted">
-                <Sparkles className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium">{credits} credits</span>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted text-sm">
+                <Sparkles className="h-3.5 w-3.5 text-primary" />
+                <span className="font-medium">{credits}</span>
+              </div>
+            )}
+            {currentImage && (
+              <div className="flex items-center gap-1">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleDownload}
+                        className="h-8 w-8"
+                        data-testid="button-download"
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Download</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={resetEditor}
+                        className="h-8 w-8"
+                        data-testid="button-reset"
+                      >
+                        <RotateCcw className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Start over</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             )}
           </div>
         </div>
 
-        <div className="flex-1 flex overflow-hidden">
-          <div className="flex-1 flex flex-col p-6 overflow-auto">
-            {!currentImage ? (
-              <div
-                className={cn(
-                  "flex-1 flex flex-col items-center justify-center rounded-2xl border-2 border-dashed transition-all cursor-pointer",
-                  isDragging
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:border-primary/50 hover:bg-muted/50"
-                )}
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onClick={() => fileInputRef.current?.click()}
-                data-testid="upload-zone"
+        {/* Main Content - Fixed Height */}
+        <div className="flex-1 flex min-h-0">
+          {!currentImage ? (
+            /* Upload State - Full Area */
+            <div
+              className={cn(
+                "flex-1 m-4 flex flex-col items-center justify-center rounded-xl border-2 border-dashed transition-all cursor-pointer",
+                isDragging
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/50 hover:bg-muted/30"
+              )}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onClick={() => fileInputRef.current?.click()}
+              data-testid="upload-zone"
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleFileSelect(file);
+                }}
+                data-testid="input-file"
+              />
+              
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="flex flex-col items-center gap-3"
               >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) handleFileSelect(file);
-                  }}
-                  data-testid="input-file"
-                />
-                
-                <motion.div
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  className="flex flex-col items-center gap-4"
-                >
-                  <div className="h-20 w-20 rounded-full bg-gradient-to-br from-[#ed5387]/20 to-[#9C27B0]/20 flex items-center justify-center">
-                    <Upload className="h-10 w-10 text-primary" />
-                  </div>
-                  <div className="text-center">
-                    <h3 className="text-lg font-medium text-foreground">
-                      Drop your image here
-                    </h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      or click to browse (PNG, JPG, WEBP up to 10MB)
-                    </p>
-                  </div>
-                </motion.div>
-                
-                {status === "uploading" && (
-                  <div className="mt-6 flex items-center gap-2">
-                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                    <span className="text-sm text-muted-foreground">Uploading...</span>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="flex-1 flex flex-col gap-6">
-                <div className="flex-1 flex items-center justify-center bg-muted/30 rounded-2xl overflow-hidden relative min-h-[400px]">
+                <div className="h-16 w-16 rounded-full bg-gradient-to-br from-[#ed5387]/20 to-[#9C27B0]/20 flex items-center justify-center">
+                  <Upload className="h-8 w-8 text-primary" />
+                </div>
+                <div className="text-center">
+                  <h3 className="text-base font-medium text-foreground">
+                    Drop your image here
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    or click to browse (PNG, JPG, WEBP up to 10MB)
+                  </p>
+                </div>
+              </motion.div>
+              
+              {status === "uploading" && (
+                <div className="mt-4 flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  <span className="text-sm text-muted-foreground">Uploading...</span>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Editor State - Two Column Layout */
+            <div className="flex-1 flex min-h-0">
+              {/* Left: Image Preview */}
+              <div className="flex-1 p-4 flex flex-col min-h-0">
+                <div className="flex-1 relative bg-muted/30 rounded-xl overflow-hidden flex items-center justify-center min-h-0">
                   <AnimatePresence mode="wait">
                     <motion.img
                       key={currentImage}
                       src={currentImage}
                       alt="Current edit"
                       className="max-w-full max-h-full object-contain"
-                      initial={{ opacity: 0, scale: 0.95 }}
+                      initial={{ opacity: 0, scale: 0.98 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ duration: 0.2 }}
+                      exit={{ opacity: 0, scale: 0.98 }}
+                      transition={{ duration: 0.15 }}
                       data-testid="img-current"
                     />
                   </AnimatePresence>
                   
                   {status === "editing" && (
-                    <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
-                      <div className="flex flex-col items-center gap-3">
+                    <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center">
+                      <div className="flex flex-col items-center gap-2">
                         <div className="relative">
-                          <div className="h-16 w-16 rounded-full bg-gradient-to-br from-[#ed5387] to-[#9C27B0] animate-pulse" />
-                          <Sparkles className="h-8 w-8 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-[#ed5387] to-[#9C27B0] animate-pulse" />
+                          <Sparkles className="h-6 w-6 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
                         </div>
-                        <span className="text-sm font-medium text-foreground">Editing your image...</span>
+                        <span className="text-sm font-medium">Editing...</span>
                       </div>
                     </div>
                   )}
@@ -426,171 +467,163 @@ export default function ImageEditor() {
                       initial={{ scale: 0, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       exit={{ scale: 0, opacity: 0 }}
-                      className="absolute top-4 right-4 h-10 w-10 rounded-full bg-green-500 flex items-center justify-center"
+                      className="absolute top-3 right-3 h-8 w-8 rounded-full bg-green-500 flex items-center justify-center"
                     >
-                      <Check className="h-6 w-6 text-white" />
+                      <Check className="h-4 w-4 text-white" />
                     </motion.div>
                   )}
-                  
-                  <div className="absolute top-4 left-4 flex gap-2">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="secondary"
-                            size="icon"
-                            onClick={resetEditor}
-                            className="h-9 w-9 rounded-full"
-                            data-testid="button-reset"
-                          >
-                            <RotateCcw className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Start over</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                    
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="secondary"
-                            size="icon"
-                            onClick={handleDownload}
-                            className="h-9 w-9 rounded-full"
-                            data-testid="button-download"
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Download</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
                 </div>
+              </div>
 
+              {/* Right: Controls Panel */}
+              <div className="w-80 border-l border-border flex flex-col min-h-0">
+                {/* Version History */}
                 {versions.length > 0 && (
-                  <div className="flex-shrink-0">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <HistoryIcon className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium text-foreground">Version History</span>
-                        <span className="text-xs text-muted-foreground">({versions.length})</span>
-                      </div>
-                      <div className="flex gap-1">
+                  <div className="flex-shrink-0 p-3 border-b border-border">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Versions ({versions.length})
+                      </span>
+                      <div className="flex gap-0.5">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7"
+                          className="h-6 w-6"
                           onClick={() => scrollVersions("left")}
                           data-testid="button-scroll-left"
                         >
-                          <ChevronLeft className="h-4 w-4" />
+                          <ChevronLeft className="h-3.5 w-3.5" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7"
+                          className="h-6 w-6"
                           onClick={() => scrollVersions("right")}
                           data-testid="button-scroll-right"
                         >
-                          <ChevronRight className="h-4 w-4" />
+                          <ChevronRight className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                     </div>
                     
                     <div
                       ref={versionScrollRef}
-                      className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide"
+                      className="flex gap-2 overflow-x-auto pb-1"
                       style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
                     >
-                      {isLoadingVersions && (
-                        <div className="flex items-center justify-center w-full py-4">
-                          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                          <span className="ml-2 text-sm text-muted-foreground">Loading versions...</span>
+                      {isLoadingVersions ? (
+                        <div className="flex items-center justify-center w-full py-2">
+                          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                         </div>
-                      )}
-                      {!isLoadingVersions && versions.map((version, index) => (
-                        <motion.div
-                          key={version.id}
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: index * 0.05 }}
-                          className={cn(
-                            "flex-shrink-0 w-24 cursor-pointer group",
-                            selectedVersionIndex === index && "ring-2 ring-primary ring-offset-2 ring-offset-background rounded-lg"
-                          )}
-                          onClick={() => selectVersion(index)}
-                          data-testid={`version-${index}`}
-                        >
-                          <div className="aspect-square rounded-lg overflow-hidden bg-muted">
-                            <img
-                              src={version.imageUrl}
-                              alt={`Version ${version.versionNumber}`}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <div className="mt-1.5">
-                            <p className="text-xs font-medium text-foreground truncate">
+                      ) : (
+                        versions.map((version, index) => (
+                          <motion.div
+                            key={version.id}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: index * 0.03 }}
+                            className={cn(
+                              "flex-shrink-0 w-14 cursor-pointer transition-all",
+                              selectedVersionIndex === index 
+                                ? "ring-2 ring-primary ring-offset-1 ring-offset-background rounded-md" 
+                                : "opacity-60 hover:opacity-100"
+                            )}
+                            onClick={() => selectVersion(index)}
+                            data-testid={`version-${index}`}
+                          >
+                            <div className="aspect-square rounded-md overflow-hidden bg-muted">
+                              <img
+                                src={version.imageUrl}
+                                alt={`V${version.versionNumber}`}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <p className="text-[10px] text-center mt-1 text-muted-foreground truncate">
                               V{version.versionNumber}
                             </p>
-                            <p className="text-[10px] text-muted-foreground truncate">
-                              {version.prompt}
-                            </p>
-                          </div>
-                        </motion.div>
-                      ))}
+                          </motion.div>
+                        ))
+                      )}
                     </div>
                   </div>
                 )}
 
-                <div className="flex-shrink-0 rounded-2xl bg-gradient-to-r from-[#ed5387]/10 via-[#9C27B0]/10 to-[#ed5387]/10 p-4">
-                  <div className="flex gap-3">
-                    <Textarea
-                      value={editPrompt}
-                      onChange={(e) => setEditPrompt(e.target.value)}
-                      placeholder="Describe how you want to edit the image... (e.g., 'Remove the background', 'Add a sunset sky', 'Make it look vintage')"
-                      className="flex-1 min-h-[60px] max-h-[120px] resize-none bg-background/80 border-0 focus-visible:ring-1 focus-visible:ring-primary"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault();
-                          handleEdit();
-                        }
-                      }}
-                      disabled={status === "editing"}
-                      data-testid="input-edit-prompt"
-                    />
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            onClick={handleEdit}
-                            disabled={!editPrompt.trim() || status === "editing"}
-                            className="h-auto px-6 bg-gradient-to-r from-[#ed5387] to-[#9C27B0] hover:from-[#ed5387]/90 hover:to-[#9C27B0]/90 text-white"
-                            data-testid="button-edit"
-                          >
-                            {status === "editing" ? (
-                              <Loader2 className="h-5 w-5 animate-spin" />
-                            ) : (
-                              <Rocket className="h-5 w-5" />
-                            )}
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Apply edit (1 credit)</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
+                {/* Edit Prompt Section */}
+                <div className="flex-1 p-3 flex flex-col min-h-0">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+                    Edit Prompt
+                  </span>
                   
-                  {errorMessage && (
-                    <div className="mt-3 flex items-center gap-2 text-destructive">
-                      <AlertCircle className="h-4 w-4" />
-                      <span className="text-sm">{errorMessage}</span>
+                  <div className="flex-1 flex flex-col gap-2">
+                    <div className="relative">
+                      <Input
+                        value={editPrompt}
+                        onChange={(e) => setEditPrompt(e.target.value)}
+                        placeholder="Describe your edit..."
+                        className="pr-10 bg-muted/50 border-0 focus-visible:ring-1 focus-visible:ring-primary"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleEdit();
+                          }
+                        }}
+                        disabled={status === "editing"}
+                        data-testid="input-edit-prompt"
+                      />
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              onClick={handleEdit}
+                              disabled={!editPrompt.trim() || status === "editing"}
+                              size="icon"
+                              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 bg-gradient-to-r from-[#ed5387] to-[#9C27B0] hover:from-[#ed5387]/90 hover:to-[#9C27B0]/90 text-white"
+                              data-testid="button-edit"
+                            >
+                              {status === "editing" ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <Rocket className="h-3.5 w-3.5" />
+                              )}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Apply edit (1 credit)</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
-                  )}
+                    
+                    {/* Quick Suggestions */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {["Remove background", "Vintage look", "Brighter", "Add blur"].map((suggestion) => (
+                        <button
+                          key={suggestion}
+                          onClick={() => setEditPrompt(suggestion)}
+                          className="px-2 py-1 text-xs rounded-md bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors"
+                          disabled={status === "editing"}
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                    
+                    {errorMessage && (
+                      <div className="flex items-center gap-1.5 text-destructive text-xs">
+                        <AlertCircle className="h-3.5 w-3.5" />
+                        <span>{errorMessage}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Tips Footer */}
+                <div className="flex-shrink-0 p-3 border-t border-border bg-muted/30">
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Tip: Be specific with your edits. For example, "Make the sky more vibrant" works better than "Change the sky".
+                  </p>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
