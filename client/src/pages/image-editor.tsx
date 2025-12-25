@@ -5,7 +5,6 @@ import {
   Upload, 
   Sparkles, 
   Download, 
-  Rocket,
   ChevronLeft,
   ChevronRight,
   RotateCcw,
@@ -589,7 +588,7 @@ export default function ImageEditor() {
                       <div className="flex flex-col items-center gap-2">
                         <div className="relative">
                           <div className="h-12 w-12 rounded-full bg-gradient-to-br from-[#ed5387] to-[#9C27B0] animate-pulse" />
-                          <Sparkles className="h-6 w-6 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                          <Wand2 className="h-6 w-6 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
                         </div>
                         <span className="text-sm font-medium">Editing...</span>
                       </div>
@@ -743,7 +742,7 @@ export default function ImageEditor() {
                               {status === "editing" ? (
                                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
                               ) : (
-                                <Rocket className="h-3.5 w-3.5" />
+                                <Wand2 className="h-3.5 w-3.5" />
                               )}
                             </Button>
                           </TooltipTrigger>
