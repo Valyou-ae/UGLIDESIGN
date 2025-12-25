@@ -14,12 +14,12 @@ const MOCKUP_CREDIT_COSTS = {
 
 // Helper function to check and deduct credits
 async function checkAndDeductCredits(userId: string, credits: number): Promise<boolean> {
-  const user = await storage.getUserById(userId);
-  if (!user || user.credits < credits) {
+  try {
+    const result = await storage.deductCredits(userId, credits);
+    return result !== undefined;
+  } catch {
     return false;
   }
-  await storage.updateUserCredits(userId, user.credits - credits);
-  return true;
 }
 
 export async function registerMockupRoutes(app: Express, middleware: Middleware) {
@@ -155,6 +155,7 @@ export async function registerMockupRoutes(app: Express, middleware: Middleware)
   });
 
   app.post("/api/mockup/generate-batch", requireAuth, generationRateLimiter, async (req: Request, res: Response) => {
+    let keepaliveInterval: ReturnType<typeof setInterval> | undefined;
     try {
       const authReq = req as any;
       const userId = authReq.user?.claims?.sub;
@@ -230,7 +231,7 @@ export async function registerMockupRoutes(app: Express, middleware: Middleware)
 
       // Send keepalive comments every 8 seconds to prevent proxy/browser timeout
       let connectionClosed = false;
-      const keepaliveInterval = setInterval(() => {
+      keepaliveInterval = setInterval(() => {
         if (connectionClosed) return;
         try {
           res.write(`:keepalive ${Date.now()}\n\n`);
@@ -531,7 +532,7 @@ export async function registerMockupRoutes(app: Express, middleware: Middleware)
     } catch (error) {
       logger.error("Batch mockup generation error", error, { source: "mockup" });
       res.write(`event: error\ndata: ${JSON.stringify({ message: "Batch generation failed" })}\n\n`);
-      clearInterval(keepaliveInterval);
+      if (keepaliveInterval) clearInterval(keepaliveInterval);
       res.end();
     }
   });
