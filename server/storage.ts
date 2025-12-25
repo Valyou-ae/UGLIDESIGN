@@ -905,7 +905,7 @@ export class DatabaseStorage implements IStorage {
       throw new Error('Insufficient credits');
     }
     
-    const [updated] = await db
+    const result = await db
       .update(users)
       .set({ 
         credits: currentCredits - amount,
@@ -913,7 +913,16 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(users.id, userId))
       .returning();
-    return updated || undefined;
+    
+    // Handle both array and single object returns from different Drizzle versions
+    const updated = Array.isArray(result) ? result[0] : result;
+    
+    // If returning didn't work, fetch the updated user
+    if (!updated) {
+      return await this.getUser(userId);
+    }
+    
+    return updated;
   }
 
   async getImagesByDateRange(userId: string, startDate: Date, endDate: Date): Promise<GeneratedImage[]> {
