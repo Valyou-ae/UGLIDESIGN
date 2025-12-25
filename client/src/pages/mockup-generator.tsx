@@ -89,7 +89,8 @@ import {
   Ghost,
   Leaf,
   PartyPopper,
-  Rocket
+  Rocket,
+  Pencil
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -3197,6 +3198,38 @@ export default function MockupGenerator() {
                                             >
                                               <Scissors className="h-4 w-4 mr-2" />
                                               BG Remover
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem 
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                const route = transferImageToTool({
+                                                  id: `mockup-${Date.now()}`,
+                                                  src: mockup.src,
+                                                  name: `${selectedProductType} mockup`,
+                                                  type: "mockup"
+                                                }, "image-editor");
+                                                setLocation(route);
+                                              }}
+                                              data-testid={`mockup-menu-image-editor-${index}`}
+                                            >
+                                              <Pencil className="h-4 w-4 mr-2" />
+                                              Image Editor
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem 
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                const route = transferImageToTool({
+                                                  id: `mockup-${Date.now()}`,
+                                                  src: mockup.src,
+                                                  name: `${selectedProductType} mockup`,
+                                                  type: "mockup"
+                                                }, "image-generator");
+                                                setLocation(route);
+                                              }}
+                                              data-testid={`mockup-menu-image-generator-${index}`}
+                                            >
+                                              <Wand2 className="h-4 w-4 mr-2" />
+                                              Image Generator
                                             </DropdownMenuItem>
                                             <DropdownMenuItem 
                                               onClick={(e) => {
