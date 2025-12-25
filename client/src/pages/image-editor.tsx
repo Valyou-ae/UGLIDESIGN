@@ -650,48 +650,61 @@ export default function ImageEditor() {
                           <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                         </div>
                       ) : (
-                        versions.map((version, index) => (
-                          <TooltipProvider key={version.id}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <motion.div
-                                  initial={{ opacity: 0, scale: 0.9 }}
-                                  animate={{ opacity: 1, scale: 1 }}
-                                  transition={{ delay: index * 0.03 }}
-                                  className={cn(
-                                    "flex-shrink-0 w-16 cursor-pointer transition-all",
-                                    selectedVersionIndex === index 
-                                      ? "ring-2 ring-primary ring-offset-2 ring-offset-background rounded-lg" 
-                                      : "opacity-60 hover:opacity-100"
-                                  )}
-                                  onClick={() => selectVersion(index)}
-                                  data-testid={`version-${index}`}
-                                >
-                                  <div className="aspect-square rounded-lg overflow-hidden bg-muted">
-                                    <img
-                                      src={version.imageUrl}
-                                      alt={`V${version.versionNumber}`}
-                                      className="w-full h-full object-cover"
-                                    />
-                                  </div>
-                                  <p className="text-[10px] text-center mt-1.5 text-muted-foreground truncate font-medium">
-                                    V{version.versionNumber}
-                                  </p>
-                                </motion.div>
-                              </TooltipTrigger>
-                              <TooltipContent side="bottom" className="max-w-[280px]">
-                                <p className="text-xs font-medium mb-1">
-                                  {version.versionNumber === 0 ? "Original" : `Edit ${version.versionNumber}`}
-                                </p>
-                                <p className="text-xs text-muted-foreground whitespace-normal break-words">
-                                  {version.prompt === "Original" ? "Uploaded image" : version.prompt}
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        ))
+                        versions.map((version, index) => {
+                          const promptPreview = version.versionNumber === 0 
+                            ? "Original" 
+                            : version.prompt.length > 18 
+                              ? version.prompt.slice(0, 18) + "..." 
+                              : version.prompt;
+                          return (
+                            <motion.div
+                              key={version.id}
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: index * 0.03 }}
+                              className={cn(
+                                "flex-shrink-0 w-16 cursor-pointer transition-all",
+                                selectedVersionIndex === index 
+                                  ? "ring-2 ring-primary ring-offset-2 ring-offset-background rounded-lg" 
+                                  : "opacity-60 hover:opacity-100"
+                              )}
+                              onClick={() => selectVersion(index)}
+                              data-testid={`version-${index}`}
+                            >
+                              <div className="aspect-square rounded-lg overflow-hidden bg-muted">
+                                <img
+                                  src={version.imageUrl}
+                                  alt={`V${version.versionNumber}`}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <p className="text-[9px] text-center mt-1 text-muted-foreground truncate" title={version.prompt}>
+                                {promptPreview}
+                              </p>
+                            </motion.div>
+                          );
+                        })
                       )}
                     </div>
+                    
+                    {/* Selected Version Details */}
+                    {selectedVersionIndex !== null && versions[selectedVersionIndex] && (
+                      <div className="mt-3 p-2 bg-muted/50 rounded-lg" data-testid="selected-version-details">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[10px] font-semibold text-foreground">
+                            V{versions[selectedVersionIndex].versionNumber}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {versions[selectedVersionIndex].versionNumber === 0 ? "Original upload" : "Edit"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground break-words leading-relaxed">
+                          {versions[selectedVersionIndex].versionNumber === 0 
+                            ? "This is the original uploaded image" 
+                            : versions[selectedVersionIndex].prompt}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 
