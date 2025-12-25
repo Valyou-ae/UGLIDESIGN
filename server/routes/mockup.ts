@@ -24,9 +24,20 @@ async function checkAndDeductCredits(userId: string, credits: number): Promise<b
       return false;
     }
     
+    if ((user.credits || 0) < credits) {
+      logger.error("Insufficient credits", { source: "mockup", userId, currentCredits: user.credits, required: credits });
+      return false;
+    }
+    
     const result = await storage.deductCredits(userId, credits);
-    logger.info("Credits deducted successfully", { source: "mockup", userId, creditsDeducted: credits });
-    return result !== undefined;
+    logger.info("Credits deducted", { source: "mockup", userId, creditsDeducted: credits, resultDefined: result !== undefined, newCredits: result?.credits });
+    
+    if (!result) {
+      logger.error("Deduction returned undefined", { source: "mockup", userId });
+      return false;
+    }
+    
+    return true;
   } catch (error) {
     logger.error("Credit deduction failed", error, { source: "mockup", userId, creditsRequired: credits });
     return false;
