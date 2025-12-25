@@ -1217,7 +1217,16 @@ export default function MyCreations() {
               <div className="w-full md:w-[400px] bg-card border-t md:border-t-0 md:border-l border-border flex flex-col h-[50vh] md:h-auto">
                 <div className="p-4 md:p-6 border-b border-border flex justify-between items-center shrink-0">
                   <h3 className="font-bold text-foreground">Creation Details</h3>
-                  <Button variant="ghost" size="icon" onClick={() => closeItemPopup()} className="text-muted-foreground hover:text-foreground">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      closeItemPopup();
+                    }} 
+                    className="text-muted-foreground hover:text-foreground z-10"
+                    data-testid="button-close-popup"
+                  >
                     <X className="h-5 w-5" />
                   </Button>
                 </div>
@@ -1552,7 +1561,10 @@ export default function MyCreations() {
                       variant="outline"
                       size="sm"
                       className="flex-1 h-9 gap-1.5"
-                      onClick={() => handleAction("Download", selectedItem)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAction("Download", selectedItem);
+                      }}
                       data-testid="button-download-detail"
                     >
                       <Download className="h-3.5 w-3.5" />
@@ -1565,7 +1577,10 @@ export default function MyCreations() {
                         "h-9 gap-1.5",
                         selectedItem.favorite && "text-yellow-500 border-yellow-500/30"
                       )}
-                      onClick={() => rootImageId && toggleFavorite(rootImageId)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (rootImageId) toggleFavorite(rootImageId);
+                      }}
                       data-testid="button-like-detail"
                     >
                       <Star className={cn("h-3.5 w-3.5", selectedItem.favorite && "fill-current")} />
@@ -1574,7 +1589,8 @@ export default function MyCreations() {
                       variant="outline"
                       size="sm"
                       className="h-9 gap-1.5 text-red-500 border-red-500/30 hover:bg-red-500/10"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         if (selectedItem) {
                           handleAction("Delete", selectedItem);
                         }
@@ -1592,7 +1608,7 @@ export default function MyCreations() {
       </AnimatePresence>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-[#18181B] border-[#2A2A30] text-[#FAFAFA]">
+        <AlertDialogContent className="bg-[#18181B] border-[#2A2A30] text-[#FAFAFA] z-[200]">
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription className="text-[#A1A1AA]">
