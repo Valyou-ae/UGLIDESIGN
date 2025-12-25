@@ -51,13 +51,9 @@ export async function registerMockupRoutes(app: Express, middleware: Middleware)
   });
 
   app.post("/api/mockup/generate", requireAuth, generationRateLimiter, async (req: Request, res: Response) => {
-    // Declare variables outside try block for error handler access
-    let userId: string | undefined;
-    let creditCost: number = 0;
-
     try {
       const authReq = req as any;
-      userId = authReq.user?.claims?.sub;
+      const userId = authReq.user?.claims?.sub;
       
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
@@ -78,7 +74,7 @@ export async function registerMockupRoutes(app: Express, middleware: Middleware)
       }
 
       // Determine credit cost based on quality
-      creditCost = MOCKUP_CREDIT_COSTS[quality as keyof typeof MOCKUP_CREDIT_COSTS] || MOCKUP_CREDIT_COSTS.high;
+      const creditCost = MOCKUP_CREDIT_COSTS[quality as keyof typeof MOCKUP_CREDIT_COSTS] || MOCKUP_CREDIT_COSTS.high;
       
       // Check and deduct credits
       const hasCredits = await checkAndDeductCredits(userId, creditCost);
@@ -144,13 +140,10 @@ export async function registerMockupRoutes(app: Express, middleware: Middleware)
       res.end();
     } catch (error) {
       // Refund credits on error
-      if (userId && creditCost > 0) {
-        try {
-          await storage.addCredits(userId, creditCost);
-          logger.info(`Refunded ${creditCost} credits to user ${userId}`, { source: "mockup" });
-        } catch (refundError) {
-          logger.error("Failed to refund credits", refundError, { source: "mockup", userId, amount: creditCost });
-        }
+      try {
+        await storage.addCredits(userId, creditCost);
+      } catch (refundError) {
+        logger.error("Failed to refund credits", refundError, { source: "mockup" });
       }
       logger.error("Mockup generation error", error, { source: "mockup" });
       const errorMessage = (error as Error).message === 'Generation timeout' 
@@ -162,14 +155,9 @@ export async function registerMockupRoutes(app: Express, middleware: Middleware)
   });
 
   app.post("/api/mockup/generate-batch", requireAuth, generationRateLimiter, async (req: Request, res: Response) => {
-    // Declare variables outside try block for error handler access
-    let userId: string | undefined;
-    let totalCreditCost: number = 0;
-    let creditCostPerMockup: number = 0;
-
     try {
       const authReq = req as any;
-      userId = authReq.user?.claims?.sub;
+      const userId = authReq.user?.claims?.sub;
       
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
@@ -211,8 +199,8 @@ export async function registerMockupRoutes(app: Express, middleware: Middleware)
         ? rawOutputQuality as 'standard' | 'high' | 'ultra'
         : 'high';
       
-      creditCostPerMockup = MOCKUP_CREDIT_COSTS[outputQuality];
-      totalCreditCost = creditCostPerMockup * totalMockups;
+      const creditCostPerMockup = MOCKUP_CREDIT_COSTS[outputQuality];
+      const totalCreditCost = creditCostPerMockup * totalMockups;
       
       // Check and deduct credits
       const hasCredits = await checkAndDeductCredits(userId, totalCreditCost);
@@ -242,7 +230,7 @@ export async function registerMockupRoutes(app: Express, middleware: Middleware)
 
       // Send keepalive comments every 8 seconds to prevent proxy/browser timeout
       let connectionClosed = false;
-      keepaliveInterval = setInterval(() => {
+      const keepaliveInterval = setInterval(() => {
         if (connectionClosed) return;
         try {
           res.write(`:keepalive ${Date.now()}\n\n`);
@@ -699,17 +687,8 @@ export async function registerMockupRoutes(app: Express, middleware: Middleware)
       sendEvent("stream_end", { success: batchCompleted && !personaLockFailed, timestamp: Date.now() });
       res.end();
     } catch (error) {
-      // Refund credits on error
-      if (userId && totalCreditCost > 0) {
-        try {
-          await storage.addCredits(userId, totalCreditCost);
-          logger.info(`Refunded ${totalCreditCost} credits to user ${userId}`, { source: "mockup" });
-        } catch (refundError) {
-          logger.error("Failed to refund credits", refundError, { source: "mockup", userId, amount: totalCreditCost });
-        }
-      }
       logger.error("Elite mockup generation error", error, { source: "mockup" });
-      res.write(`event: error\ndata: ${JSON.stringify({ message: "Elite mockup generation failed. Credits refunded.", type: "system_error" })}\n\n`);
+      res.write(`event: error\ndata: ${JSON.stringify({ message: "Elite mockup generation failed", type: "system_error" })}\n\n`);
       res.end();
     }
   });
@@ -805,14 +784,9 @@ export async function registerMockupRoutes(app: Express, middleware: Middleware)
   const { orchestrateTextToMockup, parseTextToMockupPrompt } = await import("../services/textToMockupOrchestrator");
 
   app.post("/api/mockup/text-to-mockup", requireAuth, generationRateLimiter, async (req: Request, res: Response) => {
-    // Declare variables outside try block for error handler access
-    let userId: string | undefined;
-    let creditCost: number = 0;
-    let keepaliveInterval: NodeJS.Timeout | undefined;
-
     try {
       const authReq = req as any;
-      userId = authReq.user?.claims?.sub;
+      const userId = authReq.user?.claims?.sub;
       
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
@@ -833,7 +807,7 @@ export async function registerMockupRoutes(app: Express, middleware: Middleware)
       }
 
       // Text-to-mockup is premium AI feature - costs 4 credits
-      creditCost = MOCKUP_CREDIT_COSTS.textToMockup;
+      const creditCost = MOCKUP_CREDIT_COSTS.textToMockup;
       const hasCredits = await checkAndDeductCredits(userId, creditCost);
       if (!hasCredits) {
         return res.status(402).json({ 
@@ -903,21 +877,11 @@ export async function registerMockupRoutes(app: Express, middleware: Middleware)
         });
       }
 
-      if (keepaliveInterval) clearInterval(keepaliveInterval);
+      clearInterval(keepaliveInterval);
       res.end();
     } catch (error) {
-      // Refund credits on error
-      if (userId && creditCost > 0) {
-        try {
-          await storage.addCredits(userId, creditCost);
-          logger.info(`Refunded ${creditCost} credits to user ${userId}`, { source: "mockup" });
-        } catch (refundError) {
-          logger.error("Failed to refund credits", refundError, { source: "mockup", userId, amount: creditCost });
-        }
-      }
-      if (keepaliveInterval) clearInterval(keepaliveInterval);
       logger.error("Text-to-mockup generation error", error, { source: "mockup" });
-      res.write(`event: error\ndata: ${JSON.stringify({ message: "Text-to-mockup generation failed. Credits refunded." })}\n\n`);
+      res.write(`event: error\ndata: ${JSON.stringify({ message: "Text-to-mockup generation failed" })}\n\n`);
       res.end();
     }
   });
