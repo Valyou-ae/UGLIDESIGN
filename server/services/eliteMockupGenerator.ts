@@ -538,6 +538,37 @@ DTG PRINT METHOD:
 - Slight texture integration with fabric
 - Design follows natural fabric contours and folds
 
+===== PROFESSIONAL MOCKUP REALISM (CRITICAL) =====
+[THIS IS NOT A FLAT COPY-PASTE - CREATE A REALISTIC PRINTED GARMENT]
+
+FABRIC INTEGRATION (MANDATORY):
+- The design must CONFORM to the 3D shape of the body and garment
+- Apply PERSPECTIVE WARPING based on the body's curvature (chest, torso contours)
+- The design should appear EMBEDDED INTO the fabric, not floating on top
+- Add subtle FABRIC TEXTURE showing through the printed design
+- The print must follow the natural DRAPE and FOLDS of the fabric
+
+LIGHTING ON THE PRINT:
+- The printed design must have the SAME lighting as the garment
+- Add subtle SHADOWS where fabric folds create valleys
+- Add subtle HIGHLIGHTS where fabric stretches over body contours
+- The design brightness should vary naturally with the garment's lighting
+- NO flat, uniform appearance - the print must react to light realistically
+
+PROFESSIONAL PRINT APPEARANCE:
+- The design should look like it was PROFESSIONALLY SCREEN-PRINTED or DTG printed
+- Slight color absorption into fabric fibers (colors are not perfectly crisp on fabric)
+- The design edges blend naturally with the fabric texture
+- The print has the same surface finish as the fabric (matte on cotton, slight sheen on polyester)
+- This should look like a REAL PRODUCT PHOTO, not a digital composite
+
+DEPTH AND DIMENSION:
+- The design must curve with the body contours (chest, shoulders, torso)
+- Parts of the design closer to the camera appear slightly larger (perspective)
+- Parts of the design on the sides of the body show natural foreshortening
+- The print appears as a 3D surface on a 3D body, NOT a 2D sticker
+===== END PROFESSIONAL MOCKUP REALISM =====
+
 CRITICAL PLACEMENT RULES FOR DTG:
 - The design/graphic MUST be placed CENTERED on the chest area
 - Design should be horizontally centered between left and right edges of shirt front
@@ -990,6 +1021,19 @@ WHAT TO DO:
 - Apply natural fabric distortion based on body contours
 - Adjust lighting/shadows to match the scene
 - Treat this as a PHOTO PRINT on fabric - the design is literally printed on the garment
+
+===== PROFESSIONAL MOCKUP QUALITY (CRITICAL) =====
+[CREATE A REALISTIC PRINTED GARMENT - NOT A FLAT PASTE]
+
+1. 3D INTEGRATION: The design must WARP and CURVE to match the body's 3D shape (chest curvature, torso contours)
+2. FABRIC TEXTURE: Subtle fabric weave/texture should be visible THROUGH the printed design
+3. LIGHTING INTEGRATION: Add realistic shadows in fabric folds and highlights on stretched areas OF THE PRINT ITSELF
+4. PERSPECTIVE: Apply proper perspective distortion - design curves around the body, not flat
+5. DEPTH: Parts of design closer to camera slightly larger, sides show foreshortening
+6. PROFESSIONAL LOOK: This should be indistinguishable from a real product photo shoot
+
+DO NOT create a flat 2D rectangle pasted on the shirt. The design must look PHYSICALLY PRINTED on real fabric.
+===== END PROFESSIONAL QUALITY =====
 
 WHAT NOT TO DO:
 - DO NOT add borders, outlines, or strokes that aren't in the original
