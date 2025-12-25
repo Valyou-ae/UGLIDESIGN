@@ -10,7 +10,7 @@ import {
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Mail, User } from "lucide-react";
+import { Loader2, Mail } from "lucide-react";
 import ugliLogo from "@assets/Ugli_Logo_(1)_1766145410500.png";
 import {
   initializeGoogleAuth,
@@ -75,7 +75,6 @@ function LoginPopupDialog({ isOpen, onClose, returnTo }: LoginPopupDialogProps) 
   const [email, setEmail] = useState("");
   const [emailSent, setEmailSent] = useState(false);
   const [googleButtonReady, setGoogleButtonReady] = useState(false);
-  const [isDemoLoading, setIsDemoLoading] = useState(false);
   const googleButtonRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -154,36 +153,6 @@ function LoginPopupDialog({ isOpen, onClose, returnTo }: LoginPopupDialogProps) 
       if (unregister) unregister();
     };
   }, [isOpen, onClose, queryClient, setLocation, returnTo]);
-
-  const handleDemoLogin = async () => {
-    setIsDemoLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch("/api/auth/demo-login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        await queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
-        onClose();
-        setTimeout(() => {
-          setLocation(returnTo || "/discover");
-        }, 100);
-      } else {
-        const errorData = await response.json();
-        setError(errorData.message || "Demo login failed");
-      }
-    } catch (err) {
-      setError("Demo login failed. Please try again.");
-    } finally {
-      setIsDemoLoading(false);
-    }
-  };
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -302,21 +271,6 @@ function LoginPopupDialog({ isOpen, onClose, returnTo }: LoginPopupDialogProps) 
                   data-testid="google-signin-button"
                 />
               </div>
-
-              {/* Demo Login Button */}
-              <Button
-                onClick={handleDemoLogin}
-                disabled={isDemoLoading}
-                className="w-full h-12 bg-[#2a2a2a] hover:bg-[#3a3a3a] text-white font-medium rounded-xl shadow-sm transition-all border border-[#444]"
-                data-testid="button-demo-login"
-              >
-                {isDemoLoading ? (
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                ) : (
-                  <User className="mr-2 h-5 w-5" />
-                )}
-                Try Demo Account
-              </Button>
 
               {/* Divider */}
               <div className="relative">
