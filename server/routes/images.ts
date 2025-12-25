@@ -149,6 +149,39 @@ export function registerImageRoutes(app: Express, middleware: Middleware) {
     }
   });
 
+  // Get recent images by generation types (for Image Editor recent creations)
+  app.get("/api/images/recent", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req as AuthenticatedRequest);
+      const sourcesParam = req.query.sources as string;
+      const limitParam = parseInt(req.query.limit as string) || 12;
+      
+      // Default sources if not specified
+      const sources = sourcesParam 
+        ? sourcesParam.split(',').map(s => s.trim())
+        : ['image', 'mockup', 'background_removal'];
+      
+      // Limit to max 24 images
+      const limit = Math.min(limitParam, 24);
+      
+      const images = await storage.getRecentImagesByTypes(userId, sources, limit);
+      
+      // Return images with URL paths for efficient loading
+      const optimizedImages = images.map(img => ({
+        id: img.id,
+        imageUrl: `/api/images/${img.id}/image`,
+        prompt: img.prompt,
+        generationType: img.generationType,
+        createdAt: img.createdAt
+      }));
+
+      res.json({ images: optimizedImages });
+    } catch (error) {
+      logger.error("Failed to fetch recent images", error, { source: "images" });
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   // Serve actual image data by ID (lazy loading for performance)
   // Supports both authenticated users and guests via session
   // SECURITY FIX: Added ownership validation with public image fallback
