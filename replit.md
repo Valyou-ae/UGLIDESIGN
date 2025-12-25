@@ -51,8 +51,10 @@ Preferred communication style: Simple, everyday language.
 -   **Background Remover**: Replicate API integration (`bria/remove-background`) supporting various background options.
 -   **Password Reset Flow**: Secure token-based reset - tokens are bcrypt-hashed before storage, verified via bcrypt.compare, reset links include email+token parameters, tokens never returned to frontend.
 -   **Voice Input**: Uses Web Speech API for image generator prompt input with graceful fallback for unsupported browsers.
--   **Profile Page**: Connected to real user data from auth context and database (username, email, join date, stats, creations).
+-   **Profile Page**: Connected to real user data from auth context and database (username, email, join date, stats, creations). Includes follower/following counts and a "Following" tab.
 -   **Image Sharing**: Public images can be shared via unique URL (`/share/:imageId`). Share page displays image, prompt, style, aspect ratio, creation date, and creator info. Dynamic Open Graph meta tags are injected server-side for rich social media previews. "Copy Link" buttons appear in Image Generator and My Creations detail panels when images are set to public.
+-   **Social Follow System**: Users can follow other creators. `user_follows` table tracks follower/following relationships with CASCADE delete. FollowButton component with optimistic UI updates. Privacy enforced - only public images appear in following feed.
+-   **Feed Page**: `/feed` route shows public creations from followed users. Infinite scroll pagination with accumulated results. Cache invalidation on follow/unfollow actions refreshes feed. Sidebar navigation includes "My Feed" link for authenticated users.
 
 ## Admin Dashboard & CRM
 
