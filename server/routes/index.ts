@@ -12,5 +12,6 @@ export { registerMoodBoardRoutes } from "./moodboard";
 export { registerBillingRoutes } from "./billing";
 export { registerAffiliateRoutes } from "./affiliate";
 export { registerInspirationRoutes } from "./inspiration";
+export { registerSocialRoutes } from "./social";
 export { createMiddleware, type Middleware } from "./middleware";
 export { parsePagination } from "./utils";
