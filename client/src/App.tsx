@@ -28,6 +28,7 @@ import AffiliateProgram from "@/pages/affiliate-program";
 import Pricing from "@/pages/pricing";
 import Landing from "@/pages/landing";
 import StyleTransfer from "@/pages/style-transfer";
+import ImageEditor from "@/pages/image-editor";
 import AdminDashboard from "@/pages/admin/index";
 import AdminUsers from "@/pages/admin/users";
 import AdminCRM from "@/pages/admin/crm";
@@ -84,6 +85,11 @@ function Router() {
       <Route path="/style-transfer">
         <AuthGuard>
           <StyleTransfer />
+        </AuthGuard>
+      </Route>
+      <Route path="/image-editor">
+        <AuthGuard>
+          <ImageEditor />
         </AuthGuard>
       </Route>
       <Route path="/my-creations">
