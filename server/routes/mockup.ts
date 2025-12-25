@@ -173,6 +173,7 @@ export async function registerMockupRoutes(app: Express, middleware: Middleware)
     let userId: string | undefined;
     let totalCreditCost: number = 0;
     let creditCostPerMockup: number = 0;
+    let keepaliveInterval: NodeJS.Timeout | undefined;
 
     try {
       const authReq = req as any;
