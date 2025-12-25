@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearch } from "wouter";
 import { 
   Upload, 
@@ -12,7 +12,8 @@ import {
   Loader2,
   Check,
   AlertCircle,
-  Wand2
+  Wand2,
+  Image as ImageIcon
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,14 @@ type EditVersion = {
   imageUrl: string;
   prompt: string;
   versionNumber: number;
+  createdAt: string;
+};
+
+type RecentImage = {
+  id: string;
+  imageUrl: string;
+  prompt: string;
+  generationType: string;
   createdAt: string;
 };
 
@@ -59,6 +68,21 @@ export default function ImageEditor() {
   const [isDragging, setIsDragging] = useState(false);
   const [isLoadingVersions, setIsLoadingVersions] = useState(false);
   const loadedImageIdRef = useRef<string | null>(null);
+  const recentScrollRef = useRef<HTMLDivElement>(null);
+
+  const { data: recentImages, isLoading: isLoadingRecent } = useQuery<RecentImage[]>({
+    queryKey: ["recent-images-for-editor"],
+    queryFn: async () => {
+      const response = await fetch("/api/images/recent?sources=image,mockup,background_removal&limit=12", {
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to fetch recent images");
+      const data = await response.json();
+      return data.images;
+    },
+    enabled: !!user,
+    staleTime: 30000,
+  });
 
   const fetchVersions = useCallback(async (imageId: string, selectLatest = true) => {
     setIsLoadingVersions(true);
@@ -317,6 +341,24 @@ export default function ImageEditor() {
     loadedImageIdRef.current = null;
   };
 
+  const selectRecentImage = async (image: RecentImage) => {
+    setRootImageId(image.id);
+    setCurrentImageId(image.id);
+    setCurrentImage(image.imageUrl);
+    loadedImageIdRef.current = image.id;
+    await fetchVersions(image.id);
+  };
+
+  const scrollRecent = (direction: "left" | "right") => {
+    if (recentScrollRef.current) {
+      const scrollAmount = 200;
+      recentScrollRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
+
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       <Sidebar />
@@ -379,54 +421,134 @@ export default function ImageEditor() {
         {/* Main Content - Fixed Height */}
         <div className="flex-1 flex min-h-0">
           {!currentImage ? (
-            /* Upload State - Full Area */
-            <div
-              className={cn(
-                "flex-1 m-4 flex flex-col items-center justify-center rounded-xl border-2 border-dashed transition-all cursor-pointer",
-                isDragging
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/50 hover:bg-muted/30"
-              )}
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onClick={() => fileInputRef.current?.click()}
-              data-testid="upload-zone"
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleFileSelect(file);
-                }}
-                data-testid="input-file"
-              />
-              
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="flex flex-col items-center gap-3"
+            /* Upload State with Recent Images */
+            <div className="flex-1 flex flex-col p-4 gap-4 overflow-hidden">
+              {/* Upload Zone */}
+              <div
+                className={cn(
+                  "flex-1 flex flex-col items-center justify-center rounded-xl border-2 border-dashed transition-all cursor-pointer min-h-0",
+                  isDragging
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:border-primary/50 hover:bg-muted/30"
+                )}
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onClick={() => fileInputRef.current?.click()}
+                data-testid="upload-zone"
               >
-                <div className="h-16 w-16 rounded-full bg-gradient-to-br from-[#ed5387]/20 to-[#9C27B0]/20 flex items-center justify-center">
-                  <Upload className="h-8 w-8 text-primary" />
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleFileSelect(file);
+                  }}
+                  data-testid="input-file"
+                />
+                
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="flex flex-col items-center gap-3"
+                >
+                  <div className="h-16 w-16 rounded-full bg-gradient-to-br from-[#ed5387]/20 to-[#9C27B0]/20 flex items-center justify-center">
+                    <Upload className="h-8 w-8 text-primary" />
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-base font-medium text-foreground">
+                      Drop your image here
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      or click to browse (PNG, JPG, WEBP up to 10MB)
+                    </p>
+                  </div>
+                </motion.div>
+                
+                {status === "uploading" && (
+                  <div className="mt-4 flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                    <span className="text-sm text-muted-foreground">Uploading...</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Recent Creations Strip */}
+              {recentImages && recentImages.length > 0 && (
+                <div className="flex-shrink-0">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium text-foreground">Recent Creations</span>
+                      <span className="text-xs text-muted-foreground">({recentImages.length})</span>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => scrollRecent("left")}
+                        data-testid="button-recent-scroll-left"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => scrollRecent("right")}
+                        data-testid="button-recent-scroll-right"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div
+                    ref={recentScrollRef}
+                    className="flex gap-2 overflow-x-auto scrollbar-hide pb-1"
+                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                  >
+                    {recentImages.map((img) => (
+                      <button
+                        key={img.id}
+                        onClick={() => selectRecentImage(img)}
+                        className="flex-shrink-0 group relative rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all"
+                        data-testid={`recent-image-${img.id}`}
+                      >
+                        <img
+                          src={img.imageUrl}
+                          alt={img.prompt || "Recent image"}
+                          className="h-20 w-20 object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
+                          <Wand2 className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-1 py-0.5">
+                          <span className="text-[10px] text-white/90 capitalize truncate block">
+                            {img.generationType === "background_removal" ? "BG Remove" : img.generationType}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className="text-center">
-                  <h3 className="text-base font-medium text-foreground">
-                    Drop your image here
-                  </h3>
-                  <p className="text-sm text-muted-foreground mt-0.5">
-                    or click to browse (PNG, JPG, WEBP up to 10MB)
-                  </p>
+              )}
+
+              {/* Loading state for recent images */}
+              {isLoadingRecent && (
+                <div className="flex-shrink-0 flex items-center gap-2 text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="text-sm">Loading recent creations...</span>
                 </div>
-              </motion.div>
-              
-              {status === "uploading" && (
-                <div className="mt-4 flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                  <span className="text-sm text-muted-foreground">Uploading...</span>
+              )}
+
+              {/* Empty state for recent images */}
+              {!isLoadingRecent && recentImages && recentImages.length === 0 && (
+                <div className="flex-shrink-0 flex items-center gap-2 text-muted-foreground" data-testid="empty-recent-images">
+                  <ImageIcon className="h-4 w-4" />
+                  <span className="text-sm">No recent creations yet. Generate some images first!</span>
                 </div>
               )}
             </div>
