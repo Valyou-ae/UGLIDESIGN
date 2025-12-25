@@ -80,6 +80,9 @@ export default function ImageEditor() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isLoadingVersions, setIsLoadingVersions] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [previewImageId, setPreviewImageId] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
   const loadedImageIdRef = useRef<string | null>(null);
   const recentScrollRef = useRef<HTMLDivElement>(null);
 
@@ -176,7 +179,7 @@ export default function ImageEditor() {
       const reader = new FileReader();
       reader.onload = async (e) => {
         const imageUrl = e.target?.result as string;
-        setCurrentImage(imageUrl);
+        setPreviewImage(imageUrl);
         
         const formData = new FormData();
         formData.append("image", file);
@@ -194,22 +197,22 @@ export default function ImageEditor() {
 
         const data = await response.json();
         const imageApiUrl = `/api/images/${data.imageId}/image`;
-        setCurrentImageId(data.imageId);
-        setCurrentImage(imageApiUrl);
-        setRootImageId(data.imageId);
-        
-        await fetchVersions(data.imageId);
-        
+        setPreviewImageId(data.imageId);
+        setPreviewImage(imageApiUrl);
+        setShowPreview(true);
         setStatus("idle");
         
         toast({
           title: "Image uploaded",
-          description: "You can now edit your image with prompts",
+          description: "Click Next to start editing",
         });
       };
       reader.readAsDataURL(file);
     } catch (error) {
       setStatus("error");
+      setPreviewImage(null);
+      setPreviewImageId(null);
+      setShowPreview(false);
       setErrorMessage(error instanceof Error ? error.message : "Upload failed");
       toast({
         title: "Upload failed",
@@ -217,7 +220,7 @@ export default function ImageEditor() {
         variant: "destructive",
       });
     }
-  }, [toast, fetchVersions]);
+  }, [toast]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -362,15 +365,35 @@ export default function ImageEditor() {
     setEditPrompt("");
     setStatus("idle");
     setErrorMessage(null);
+    setPreviewImage(null);
+    setPreviewImageId(null);
+    setShowPreview(false);
     loadedImageIdRef.current = null;
   };
 
   const selectRecentImage = async (image: RecentImage) => {
-    setRootImageId(image.id);
-    setCurrentImageId(image.id);
-    setCurrentImage(image.imageUrl);
+    setPreviewImage(image.imageUrl);
+    setPreviewImageId(image.id);
+    setShowPreview(true);
     loadedImageIdRef.current = image.id;
-    await fetchVersions(image.id);
+  };
+
+  const confirmPreviewAndProceed = async () => {
+    if (!previewImageId || !previewImage) return;
+    
+    setCurrentImage(previewImage);
+    setCurrentImageId(previewImageId);
+    setRootImageId(previewImageId);
+    setShowPreview(false);
+    setPreviewImage(null);
+    setPreviewImageId(null);
+    await fetchVersions(previewImageId);
+  };
+
+  const cancelPreview = () => {
+    setPreviewImage(null);
+    setPreviewImageId(null);
+    setShowPreview(false);
   };
 
   const scrollRecent = (direction: "left" | "right") => {
@@ -447,18 +470,20 @@ export default function ImageEditor() {
           {!currentImage ? (
             /* Upload State with Recent Images */
             <div className="flex-1 flex flex-col p-4 gap-4 overflow-hidden">
-              {/* Upload Zone */}
+              {/* Upload Zone - Shows preview when image is selected */}
               <div
                 className={cn(
-                  "flex-1 flex flex-col items-center justify-center rounded-xl border-2 border-dashed transition-all cursor-pointer min-h-0",
-                  isDragging
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:border-primary/50 hover:bg-muted/30"
+                  "flex-1 flex flex-col items-center justify-center rounded-xl border-2 border-dashed transition-all min-h-0",
+                  showPreview && previewImage
+                    ? "border-primary bg-muted/30"
+                    : isDragging
+                      ? "border-primary bg-primary/5 cursor-pointer"
+                      : "border-border hover:border-primary/50 hover:bg-muted/30 cursor-pointer"
                 )}
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onClick={() => fileInputRef.current?.click()}
+                onDrop={!showPreview ? handleDrop : undefined}
+                onDragOver={!showPreview ? handleDragOver : undefined}
+                onDragLeave={!showPreview ? handleDragLeave : undefined}
+                onClick={!showPreview ? () => fileInputRef.current?.click() : undefined}
                 data-testid="upload-zone"
               >
                 <input
@@ -473,29 +498,67 @@ export default function ImageEditor() {
                   data-testid="input-file"
                 />
                 
-                <motion.div
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  className="flex flex-col items-center gap-3"
-                >
-                  <div className="h-16 w-16 rounded-full bg-gradient-to-br from-[#ed5387]/20 to-[#9C27B0]/20 flex items-center justify-center">
-                    <Upload className="h-8 w-8 text-primary" />
+                {showPreview && previewImage ? (
+                  /* Preview State - Image loaded, waiting for Next */
+                  <div className="flex flex-col items-center gap-4 w-full h-full p-4">
+                    <div className="flex-1 flex items-center justify-center w-full min-h-0">
+                      <motion.img
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        src={previewImage}
+                        alt="Preview"
+                        className="max-w-full max-h-full object-contain rounded-lg"
+                        data-testid="img-preview"
+                      />
+                    </div>
+                    <div className="flex gap-3">
+                      <Button
+                        variant="outline"
+                        onClick={cancelPreview}
+                        className="px-6"
+                        data-testid="button-cancel-preview"
+                      >
+                        <RotateCcw className="h-4 w-4 mr-2" />
+                        Choose Different
+                      </Button>
+                      <Button
+                        onClick={confirmPreviewAndProceed}
+                        className="px-6 bg-gradient-to-r from-[#ed5387] to-[#9C27B0] hover:from-[#d94777] hover:to-[#8B1FA8]"
+                        data-testid="button-next"
+                      >
+                        Next
+                        <ChevronRight className="h-4 w-4 ml-2" />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <h3 className="text-base font-medium text-foreground">
-                      Drop your image here
-                    </h3>
-                    <p className="text-sm text-muted-foreground mt-0.5">
-                      or click to browse (PNG, JPG, WEBP up to 10MB)
-                    </p>
-                  </div>
-                </motion.div>
-                
-                {status === "uploading" && (
-                  <div className="mt-4 flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                    <span className="text-sm text-muted-foreground">Uploading...</span>
-                  </div>
+                ) : (
+                  /* Empty Upload State */
+                  <>
+                    <motion.div
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="flex flex-col items-center gap-3"
+                    >
+                      <div className="h-16 w-16 rounded-full bg-gradient-to-br from-[#ed5387]/20 to-[#9C27B0]/20 flex items-center justify-center">
+                        <Upload className="h-8 w-8 text-primary" />
+                      </div>
+                      <div className="text-center">
+                        <h3 className="text-base font-medium text-foreground">
+                          Drop your image here
+                        </h3>
+                        <p className="text-sm text-muted-foreground mt-0.5">
+                          or click to browse (PNG, JPG, WEBP up to 10MB)
+                        </p>
+                      </div>
+                    </motion.div>
+                    
+                    {status === "uploading" && (
+                      <div className="mt-4 flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                        <span className="text-sm text-muted-foreground">Uploading...</span>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
 
