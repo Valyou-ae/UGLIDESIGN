@@ -14,12 +14,17 @@ const MOCKUP_CREDIT_COSTS = {
 
 // Helper function to check and deduct credits
 async function checkAndDeductCredits(userId: string, credits: number): Promise<boolean> {
-  const user = await storage.getUserById(userId);
-  if (!user || user.credits < credits) {
+  try {
+    const currentCredits = await storage.getUserCredits(userId);
+    if (currentCredits < credits) {
+      return false;
+    }
+    const result = await storage.deductCredits(userId, credits);
+    return result !== undefined;
+  } catch (error) {
+    logger.error("Credit deduction error", error, { source: "mockup", userId, credits });
     return false;
   }
-  await storage.updateUserCredits(userId, user.credits - credits);
-  return true;
 }
 
 export async function registerMockupRoutes(app: Express, middleware: Middleware) {
