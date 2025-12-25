@@ -473,6 +473,13 @@ ${materialPreset.promptAddition}
 - If the design does NOT have a border/outline, do NOT add one
 - The design must look IDENTICAL across all angle shots (front, side, three-quarter, close-up)
 - The ONLY acceptable changes: fabric distortion from body contours, lighting/shadow integration
+
+ANTI-STYLIZATION (CRITICAL - PRESERVE DESIGN MEDIUM):
+- If the design is a PHOTOGRAPH or photorealistic image - keep it PHOTOREALISTIC on the garment
+- DO NOT convert photographs to illustrations, sketches, or line art
+- DO NOT apply artistic filters or cartoon effects
+- The design must look like a DIRECT PHOTO PRINT on fabric
+- Preserve the EXACT artistic medium of the original (photo stays photo, illustration stays illustration)
 ===== END IMMUTABILITY =====
 
 - Design style: ${designAnalysis.style}
@@ -968,11 +975,21 @@ STRICT DESIGN FIDELITY REQUIREMENTS:
 5. NO REDRAWING: Do NOT redraw, recreate, or reinterpret the design - project it directly onto the garment
 6. NO FILTERS: Do NOT apply artistic filters, effects, or style changes to the design
 
+===== ANTI-STYLIZATION RULES (CRITICAL) =====
+[NEVER CONVERT BETWEEN STYLES]
+- If the design is PHOTOREALISTIC - keep it PHOTOREALISTIC. Do NOT convert to illustration, sketch, cartoon, or any other style.
+- If the design is a PHOTOGRAPH - keep it as a PHOTOGRAPH. Do NOT convert to line art, watercolor, drawing, or vector style.
+- If the design is an ILLUSTRATION - keep it as an ILLUSTRATION. Maintain the original artistic style exactly.
+- ABSOLUTELY NO ARTISTIC REINTERPRETATION - the printed design must match the input design style EXACTLY
+- DO NOT add illustration effects, sketch lines, halftone patterns, or any stylization
+- The design on the garment must look like a DIRECT PRINT of the original image, not an artist's rendition
+
 WHAT TO DO:
 - Place this EXACT image onto the product's print area
 - Scale it proportionally to fit the designated area
 - Apply natural fabric distortion based on body contours
 - Adjust lighting/shadows to match the scene
+- Treat this as a PHOTO PRINT on fabric - the design is literally printed on the garment
 
 WHAT NOT TO DO:
 - DO NOT add borders, outlines, or strokes that aren't in the original
@@ -980,6 +997,9 @@ WHAT NOT TO DO:
 - DO NOT change any colors (even slightly)
 - DO NOT simplify or "clean up" the design
 - DO NOT recreate the design from scratch
+- DO NOT convert photorealistic images to illustrations or sketches
+- DO NOT add cartoon/illustration effects to photographs
+- DO NOT change the artistic medium or style of the design
 
 The design on the final mockup MUST be pixel-perfect identical to this reference (except for natural fabric distortion and lighting).
 
