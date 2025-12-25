@@ -1011,6 +1011,15 @@ export default function MyCreations() {
                           >
                             <Scissors className="h-4 w-4 mr-2" /> Remove Background
                           </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => {
+                              const route = transferImageToTool(item, "image-editor");
+                              setLocation(route);
+                            }} 
+                            className="hover:bg-[#2A2A30] cursor-pointer"
+                          >
+                            <Pencil className="h-4 w-4 mr-2" /> Move to Image Editor
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -1125,6 +1134,15 @@ export default function MyCreations() {
                                     className="hover:bg-[#2A2A30] cursor-pointer"
                                   >
                                     <Scissors className="h-4 w-4 mr-2" /> Remove Background
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem 
+                                    onClick={() => {
+                                      const route = transferImageToTool(item, "image-editor");
+                                      setLocation(route);
+                                    }} 
+                                    className="hover:bg-[#2A2A30] cursor-pointer"
+                                  >
+                                    <Pencil className="h-4 w-4 mr-2" /> Move to Image Editor
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
