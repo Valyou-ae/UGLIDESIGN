@@ -209,6 +209,9 @@ export interface IStorage {
   // Image Version History
   getImageVersionHistory(rootImageId: string, userId: string): Promise<GeneratedImage[]>;
   
+  // Recent images by generation type for Image Editor
+  getRecentImagesByTypes(userId: string, types: string[], limit?: number): Promise<GeneratedImage[]>;
+  
   // Mockup Version History
   saveMockupVersion(version: InsertMockupVersion): Promise<MockupVersion>;
   getMockupVersions(userId: string, sessionId: string, filters?: { angle?: string; color?: string; size?: string; productName?: string }): Promise<MockupVersion[]>;
@@ -1930,6 +1933,25 @@ export class DatabaseStorage implements IStorage {
       .orderBy(generatedImages.versionNumber);
     
     return versions;
+  }
+
+  // Recent images by generation type for Image Editor
+  async getRecentImagesByTypes(userId: string, types: string[], limit = 12): Promise<GeneratedImage[]> {
+    // Get recent original images (not edited versions) filtered by generation type
+    const images = await db
+      .select()
+      .from(generatedImages)
+      .where(
+        and(
+          eq(generatedImages.userId, userId),
+          sql`${generatedImages.parentImageId} IS NULL`,
+          inArray(generatedImages.generationType, types)
+        )
+      )
+      .orderBy(desc(generatedImages.createdAt))
+      .limit(limit);
+    
+    return images;
   }
 
   // Mockup Version History
