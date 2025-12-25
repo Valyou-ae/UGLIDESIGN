@@ -1148,3 +1148,58 @@ export const foldersApi = {
       body: JSON.stringify({ folderId }),
     }),
 };
+
+// Social/Follow API
+export interface FollowUser {
+  id: string;
+  username: string | null;
+  displayName: string | null;
+  profileImageUrl: string | null;
+  followedAt: string;
+}
+
+export interface FeedImage {
+  id: string;
+  imageUrl: string;
+  prompt: string;
+  style: string | null;
+  aspectRatio: string | null;
+  createdAt: string;
+  username?: string;
+  displayName?: string;
+  profileImageUrl?: string;
+}
+
+export const socialApi = {
+  follow: (userId: string) =>
+    fetchApi<{ success: boolean; following: boolean }>("/social/follow", {
+      method: "POST",
+      body: JSON.stringify({ userId }),
+    }),
+
+  unfollow: (userId: string) =>
+    fetchApi<{ success: boolean; following: boolean }>(`/social/follow/${userId}`, {
+      method: "DELETE",
+    }),
+
+  isFollowing: (userId: string) =>
+    fetchApi<{ isFollowing: boolean }>(`/social/is-following/${userId}`),
+
+  getFollowCounts: (userId: string) =>
+    fetchApi<{ followers: number; following: number }>(`/social/counts/${userId}`),
+
+  getFollowers: (userId: string, limit = 50, offset = 0) =>
+    fetchApi<{ followers: FollowUser[]; total: number; limit: number; offset: number }>(
+      `/social/followers/${userId}?limit=${limit}&offset=${offset}`
+    ),
+
+  getFollowing: (userId: string, limit = 50, offset = 0) =>
+    fetchApi<{ following: FollowUser[]; total: number; limit: number; offset: number }>(
+      `/social/following/${userId}?limit=${limit}&offset=${offset}`
+    ),
+
+  getFeed: (limit = 50, offset = 0) =>
+    fetchApi<{ images: FeedImage[]; total: number; limit: number; offset: number }>(
+      `/social/feed?limit=${limit}&offset=${offset}`
+    ),
+};
