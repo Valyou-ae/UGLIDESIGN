@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, createContext, useContext, ReactNode } from "react";
+import { useState, useEffect, useRef, createContext, useContext, ReactNode, useCallback } from "react";
 import { useLocation } from "wouter";
 import { fetchWithCsrf } from '@/lib/fetch-with-csrf';
 import { useQueryClient } from "@tanstack/react-query";

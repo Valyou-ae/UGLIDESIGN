@@ -7,7 +7,10 @@ import { metaImagesPlugin } from "./vite-plugin-meta-images";
 
 export default defineConfig({
   plugins: [
-    react(),
+    react({
+      jsxRuntime: 'automatic',
+      jsxImportSource: 'react',
+    }),
     runtimeErrorOverlay(),
     tailwindcss(),
     metaImagesPlugin(),
