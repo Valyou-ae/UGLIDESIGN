@@ -178,7 +178,12 @@ async function initStripe() {
 }
 
 (async () => {
-  await initStripe();
+  try {
+    await initStripe();
+  } catch (error: any) {
+    stripeLogger.error('Failed to initialize Stripe', { error: error?.message, stack: error?.stack });
+    stripeLogger.warn('Continuing without Stripe - payment features will be disabled');
+  }
   
   // Initialize R2 storage if configured
   try {
