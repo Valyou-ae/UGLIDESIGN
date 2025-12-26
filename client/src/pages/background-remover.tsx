@@ -1,4 +1,6 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/use-auth";
 import { 
   Scissors, 
   Upload, 
@@ -196,10 +198,65 @@ export default function BackgroundRemover() {
   const mode: ProcessingMode = batchImages.length > 0 ? "batch" : "single";
   
   const { toast } = useToast();
+  const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const comparisonRef = useRef<HTMLDivElement>(null);
+  const recentScrollRef = useRef<HTMLDivElement>(null);
 
   const currentCredits = QUALITY_LEVELS.find(q => q.id === quality)?.credits || 1;
+
+  // Fetch recent images for logged-in users
+  type RecentImage = {
+    id: string;
+    imageUrl: string;
+    prompt: string;
+    generationType: string;
+    createdAt: string;
+  };
+
+  const { data: recentImages, isLoading: isLoadingRecent } = useQuery<RecentImage[]>({
+    queryKey: ["recent-images-for-bg-remover"],
+    queryFn: async () => {
+      const response = await fetch("/api/images/recent?sources=image,mockup,background_removal&limit=12", {
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to fetch recent images");
+      const data = await response.json();
+      return data.images;
+    },
+    enabled: !!user,
+    staleTime: 30000,
+  });
+
+  const selectRecentImage = async (img: RecentImage) => {
+    try {
+      const imageUrl = img.imageUrl.startsWith('/') ? img.imageUrl : `/api/images/${img.id}/image`;
+      const dataUrl = await fetchImageAsDataUrl(imageUrl);
+      setSelectedImage(dataUrl);
+      setState("configuring");
+      toast({
+        title: "Image loaded",
+        description: "Your image is ready for background removal.",
+      });
+    } catch (error) {
+      console.error("Failed to load recent image:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load the selected image.",
+      });
+    }
+  };
+
+  const scrollRecent = (direction: "left" | "right") => {
+    if (recentScrollRef.current) {
+      const scrollAmount = 200;
+      recentScrollRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
   const totalBatchCredits = batchImages.length * currentCredits;
 
   // Check for transferred image from My Creations on mount
@@ -796,21 +853,93 @@ export default function BackgroundRemover() {
           </Dialog>
         </div>
 
-        <div className="mt-6 md:mt-10">
-          <p className="text-[13px] text-muted-foreground font-medium mb-3 md:mb-4 text-center">Try with a sample</p>
-          <div className="flex flex-wrap justify-center gap-2 md:gap-3 px-2">
-            {[samplePortrait, sampleProduct, sampleAnimal, sampleCar, sampleLogo, sampleFood].map((img, i) => (
-              <button 
-                key={i}
-                onClick={() => handleSampleSelect(img)}
-                className="h-10 w-10 md:h-14 md:w-14 rounded-full border-2 border-transparent hover:border-primary hover:scale-110 transition-all overflow-hidden shadow-sm"
-                data-testid={`sample-image-${i}`}
-              >
-                <img src={img} alt="Sample" className="h-full w-full object-cover" />
-              </button>
-            ))}
+        {/* Recent Creations Section */}
+        {user && recentImages && recentImages.length > 0 && (
+          <div className="mt-6 md:mt-10 w-full max-w-2xl">
+            <div className="flex items-center justify-between mb-3 md:mb-4 px-2">
+              <div className="flex items-center gap-2">
+                <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                <span className="text-[13px] text-muted-foreground font-medium">Recent Creations</span>
+                <span className="text-xs text-muted-foreground">({recentImages.length})</span>
+              </div>
+              <div className="flex gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => scrollRecent("left")}
+                  data-testid="button-recent-scroll-left"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => scrollRecent("right")}
+                  data-testid="button-recent-scroll-right"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <div
+              ref={recentScrollRef}
+              className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 px-2"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {recentImages.map((img) => (
+                <button
+                  key={img.id}
+                  onClick={() => selectRecentImage(img)}
+                  className="flex-shrink-0 group relative rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all"
+                  data-testid={`recent-image-${img.id}`}
+                >
+                  <img
+                    src={img.imageUrl}
+                    alt={img.prompt || "Recent image"}
+                    className="h-16 w-16 md:h-20 md:w-20 object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
+                    <Scissors className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-1 py-0.5">
+                    <span className="text-[10px] text-white/90 capitalize truncate block">
+                      {img.generationType === "background_removal" ? "BG Remove" : img.generationType}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Loading state for recent images */}
+        {user && isLoadingRecent && (
+          <div className="mt-6 md:mt-10 flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span className="text-sm">Loading recent creations...</span>
+          </div>
+        )}
+
+        {/* Sample images for non-logged in users or when no recent images */}
+        {(!user || (recentImages && recentImages.length === 0)) && !isLoadingRecent && (
+          <div className="mt-6 md:mt-10">
+            <p className="text-[13px] text-muted-foreground font-medium mb-3 md:mb-4 text-center">Try with a sample</p>
+            <div className="flex flex-wrap justify-center gap-2 md:gap-3 px-2">
+              {[samplePortrait, sampleProduct, sampleAnimal, sampleCar, sampleLogo, sampleFood].map((img, i) => (
+                <button 
+                  key={i}
+                  onClick={() => handleSampleSelect(img)}
+                  className="h-10 w-10 md:h-14 md:w-14 rounded-full border-2 border-transparent hover:border-primary hover:scale-110 transition-all overflow-hidden shadow-sm"
+                  data-testid={`sample-image-${i}`}
+                >
+                  <img src={img} alt="Sample" className="h-full w-full object-cover" />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
