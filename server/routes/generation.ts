@@ -461,7 +461,7 @@ export async function registerGenerationRoutes(app: Express, middleware: Middlew
       
       // Validate input
       const validated = generateFinalSchema.parse(req.body);
-      const { prompt, aspectRatio, style, selectedDraftIndex, enhancedPrompt } = validated;
+      const { prompt, aspectRatio, style, selectedDraftIndex, enhancedPrompt: inputEnhancedPrompt } = validated;
       
       // Legacy fields for backward compatibility
       const {
