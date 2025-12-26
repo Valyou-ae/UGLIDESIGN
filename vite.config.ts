@@ -39,6 +39,13 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+      },
+    },
+    minify: 'esbuild',
+    target: 'es2020',
   },
   server: {
     host: "0.0.0.0",
