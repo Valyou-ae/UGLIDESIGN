@@ -37,8 +37,15 @@ RUN npm prune --omit=dev
 # Final stage for app image
 FROM base
 
-# Copy built application
-COPY --from=build /app /app
+# Create non-root user and group
+RUN groupadd -g 1001 nodejs && \
+    useradd -r -u 1001 -g nodejs nodejs
+
+# Copy built application with correct ownership
+COPY --from=build --chown=nodejs:nodejs /app /app
+
+# Switch to non-root user
+USER nodejs
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000

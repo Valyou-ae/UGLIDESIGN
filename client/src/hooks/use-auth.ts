@@ -1,4 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { logger } from '@/lib/logger';
+import { clearCsrfToken } from '@/lib/csrf';
 
 async function fetchUser() {
   // Add timestamp to completely bypass any caching (fixes 304 empty body issue in production)
@@ -17,7 +19,7 @@ async function fetchUser() {
       return null;
     }
     // For any other non-OK status (including 304), return null to avoid parse errors
-    console.error('Auth fetch error:', response.status, response.statusText);
+    logger.error('Auth fetch error', { status: response.status, statusText: response.statusText });
     return null;
   }
   
@@ -29,8 +31,8 @@ async function fetchUser() {
   try {
     const data = JSON.parse(text);
     return data.user;
-  } catch {
-    console.error('Failed to parse auth response');
+  } catch (error) {
+    logger.error('Failed to parse auth response', error);
     return null;
   }
 }
@@ -59,8 +61,10 @@ export function useAuth() {
         credentials: "include" 
       });
     } catch (error) {
-      console.error("Logout error:", error);
+      logger.error("Logout error", error);
     }
+    // Clear CSRF token cache
+    clearCsrfToken();
     // Redirect first - the page reload will naturally clear the cache
     window.location.href = "/";
   };

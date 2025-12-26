@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { logger } from '@/lib/logger';
 import { Link } from "wouter";
 import { motion, useAnimationControls } from "framer-motion";
 import { useLoginPopup } from "@/components/login-popup";
@@ -404,7 +405,7 @@ function ImageScroller({ generatedImage, onLogin }: ImageScrollerProps) {
           setDisplayImages(merged.length > 0 ? merged : SAMPLE_IMAGES);
         }
       })
-      .catch((err) => console.warn('Failed to fetch gallery images:', err));
+      .catch((err) => logger.warn('Failed to fetch gallery images:', err));
   }, []);
 
   useEffect(() => {

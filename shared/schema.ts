@@ -67,6 +67,9 @@ export const generatedImages = pgTable("generated_images", {
   editPrompt: text("edit_prompt"),
   // Version 0 = original image, 1+ = edited versions
   versionNumber: integer("version_number").default(0).notNull(),
+  // Storage metadata for R2 migration
+  storageType: text("storage_type").default("base64"), // 'base64' or 'r2'
+  r2Key: text("r2_key"), // R2 object key (if storageType = 'r2')
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => [
   index("idx_generated_images_user_id").on(table.userId),

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo, memo } from "react";
+import { logger } from '@/lib/logger';
 import { 
   TrendingUp, 
   BadgeCheck, 
@@ -164,7 +165,7 @@ const LazyMasonryCard = memo(function LazyMasonryCard({ item, index, onLike, onU
             setViewTracked(true);
             galleryApi.viewImage(String(item.id))
               .then(result => setViewCount(result.viewCount))
-              .catch((err) => console.warn('Failed to track view:', err));
+              .catch((err) => logger.warn('Failed to track view:', err));
           }
           observer.disconnect();
         }
@@ -201,7 +202,7 @@ const LazyMasonryCard = memo(function LazyMasonryCard({ item, index, onLike, onU
     setTimeout(() => setCopied(false), 2000);
     
     if (item.isGalleryImage) {
-      galleryApi.useImage(String(item.id)).catch((err) => console.warn('Failed to track use:', err));
+      galleryApi.useImage(String(item.id)).catch((err) => logger.warn('Failed to track use:', err));
       onUse?.(String(item.id));
     }
     
@@ -2102,7 +2103,7 @@ export default function Discover() {
         }));
         setCommunityImages(galleryItems);
       } catch (error) {
-        console.error('Failed to fetch gallery images:', error);
+        logger.error('Failed to fetch gallery images:', error);
       } finally {
         setIsLoadingCommunity(false);
       }

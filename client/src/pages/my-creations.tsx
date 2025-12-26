@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { logger } from '@/lib/logger';
 import { 
   Search, 
   Filter, 
@@ -231,7 +232,7 @@ export default function MyCreations() {
         })));
       }
     } catch (error) {
-      console.error("Failed to fetch versions:", error);
+      logger.error("Failed to fetch versions:", error);
     }
   };
 
@@ -260,7 +261,7 @@ export default function MyCreations() {
         })));
       }
     } catch (error) {
-      console.error("Failed to fetch versions:", error);
+      logger.error("Failed to fetch versions:", error);
     }
   };
 
@@ -349,7 +350,7 @@ export default function MyCreations() {
         description: "Image saved to your device.",
       });
     } catch (error) {
-      console.error("Download failed:", error);
+      logger.error("Download failed:", error);
       
       // Fallback for simple download if fetch fails (e.g. CORS)
       const link = document.createElement('a');
@@ -421,7 +422,7 @@ export default function MyCreations() {
         description: "You can now paste it anywhere.",
       });
     } catch (error) {
-      console.error("Copy to clipboard failed:", error);
+      logger.error("Copy to clipboard failed:", error);
       toast({
         variant: "destructive",
         title: "Copy Failed",

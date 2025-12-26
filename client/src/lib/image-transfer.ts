@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 const TRANSFER_KEY = "ugli_image_transfer";
 
 export interface ImageTransferPayload {
@@ -70,7 +72,7 @@ export async function fetchImageAsDataUrl(imageUrl: string): Promise<string> {
       reader.readAsDataURL(blob);
     });
   } catch (error) {
-    console.error("Failed to fetch image as data URL:", error);
+    logger.error("Failed to fetch image as data URL:", error);
     throw error;
   }
 }

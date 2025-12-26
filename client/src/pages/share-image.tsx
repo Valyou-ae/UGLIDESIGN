@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useRoute, Link, useLocation } from "wouter";
+import { fetchWithCsrf } from '@/lib/fetch-with-csrf';
 import { motion } from "framer-motion";
 import { ArrowLeft, Download, Sparkles, Lock, ExternalLink, Heart, RefreshCw, Eye, Share2, Check, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -152,7 +153,7 @@ export default function ShareImage() {
     }
     // Track remix
     try {
-      await fetch(`/api/images/${image.id}/remix`, { method: 'POST', credentials: 'include' });
+      await fetchWithCsrf(`/api/images/${image.id}/remix`, { method: 'POST', credentials: 'include' });
     } catch (e) {
       // Ignore tracking errors
     }

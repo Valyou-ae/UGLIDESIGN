@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { logger } from '@/lib/logger';
 import { 
   MapPin, 
   Link as LinkIcon, 
@@ -141,7 +142,7 @@ export default function Profile() {
       await logout();
       setLocation("/");
     } catch (error) {
-      console.error("Logout failed:", error);
+      logger.error("Logout failed:", error);
     }
   };
 

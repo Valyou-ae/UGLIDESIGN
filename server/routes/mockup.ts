@@ -1,8 +1,17 @@
 import type { Express, Request, Response } from "express";
+import { ZodError } from "zod";
 import type { Middleware } from "./middleware";
 import { logger } from "../logger";
 import { storage } from "../storage";
 import { generationRateLimiter } from "../rateLimiter";
+import {
+  analyzeMockupSchema,
+  generateMockupSchema,
+  generateBatchMockupSchema,
+  generateEliteMockupSchema,
+  textToMockupSchema,
+  seamlessPatternSchema,
+} from "../validation/mockup";
 
 // Credit costs for mockup generation
 const MOCKUP_CREDIT_COSTS = {
@@ -81,19 +90,9 @@ export async function registerMockupRoutes(app: Express, middleware: Middleware)
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      const {
-        designImage,
-        productType = "t-shirt",
-        productColor = "white",
-        scene = "studio",
-        angle = "front",
-        style = "minimal",
-        quality = "high",
-      } = req.body;
-
-      if (!designImage || typeof designImage !== "string") {
-        return res.status(400).json({ message: "Design image is required" });
-      }
+      // Validate input
+      const validated = generateMockupSchema.parse(req.body);
+      const { designImage, productType, productColor, scene, angle, style, quality } = validated;
 
       // Determine credit cost based on quality
       const creditCost = MOCKUP_CREDIT_COSTS[quality as keyof typeof MOCKUP_CREDIT_COSTS] || MOCKUP_CREDIT_COSTS.high;
@@ -161,6 +160,9 @@ export async function registerMockupRoutes(app: Express, middleware: Middleware)
 
       res.end();
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: "Invalid input", errors: error.errors });
+      }
       // Refund credits on error
       try {
         await storage.addCredits(userId, creditCost);
@@ -815,19 +817,9 @@ export async function registerMockupRoutes(app: Express, middleware: Middleware)
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      const { prompt, outputQuality = "high", overrides } = req.body;
-
-      if (!prompt || typeof prompt !== "string") {
-        return res.status(400).json({ message: "Prompt is required" });
-      }
-
-      if (prompt.length < 5) {
-        return res.status(400).json({ message: "Please provide a more detailed description" });
-      }
-
-      if (prompt.length > 2000) {
-        return res.status(400).json({ message: "Prompt is too long. Please keep it under 2000 characters" });
-      }
+      // Validate input
+      const validated = textToMockupSchema.parse(req.body);
+      const { prompt, outputQuality, overrides } = validated;
 
       // Text-to-mockup is premium AI feature - costs 4 credits
       const creditCost = MOCKUP_CREDIT_COSTS.textToMockup;
@@ -903,6 +895,9 @@ export async function registerMockupRoutes(app: Express, middleware: Middleware)
       clearInterval(keepaliveInterval);
       res.end();
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: "Invalid input", errors: error.errors });
+      }
       logger.error("Text-to-mockup generation error", error, { source: "mockup" });
       res.write(`event: error\ndata: ${JSON.stringify({ message: "Text-to-mockup generation failed" })}\n\n`);
       res.end();

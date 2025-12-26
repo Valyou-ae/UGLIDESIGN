@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { logger } from '@/lib/logger';
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { 
@@ -239,7 +240,7 @@ export default function BackgroundRemover() {
         description: "Your image is ready for background removal.",
       });
     } catch (error) {
-      console.error("Failed to load recent image:", error);
+      logger.error("Failed to load recent image:", error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -278,7 +279,7 @@ export default function BackgroundRemover() {
             description: "Your image is ready for background removal.",
           });
         } catch (error) {
-          console.error("Failed to load transferred image:", error);
+          logger.error("Failed to load transferred image:", error);
           clearTransferredImage();
         }
       };
@@ -546,7 +547,7 @@ export default function BackgroundRemover() {
         throw new Error(response.message || response.result?.error || "Processing failed");
       }
     } catch (error) {
-      console.error("Background removal error:", error);
+      logger.error("Background removal error:", error);
       setState("error");
       const errorMsg = error instanceof Error ? error.message : "Failed to remove background";
       setErrorMessage(errorMsg);
@@ -651,7 +652,7 @@ export default function BackgroundRemover() {
         }
       );
     } catch (error) {
-      console.error("Batch processing error:", error);
+      logger.error("Batch processing error:", error);
       setState("error");
       const errorMsg = error instanceof Error ? error.message : "Failed to process batch";
       setErrorMessage(errorMsg);
@@ -712,7 +713,7 @@ export default function BackgroundRemover() {
         description: `${successfulImages.length} images packaged as ZIP.`,
       });
     } catch (error) {
-      console.error("ZIP creation error:", error);
+      logger.error("ZIP creation error:", error);
       toast({
         title: "Download failed",
         description: "Failed to create ZIP file.",

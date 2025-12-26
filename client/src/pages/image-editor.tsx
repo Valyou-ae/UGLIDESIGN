@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { logger } from '@/lib/logger';
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearch } from "wouter";
 import { 
@@ -125,7 +126,7 @@ export default function ImageEditor() {
         }
       }
     } catch (error) {
-      console.error("Failed to fetch versions:", error);
+      logger.error("Failed to fetch versions:", error);
     } finally {
       setIsLoadingVersions(false);
     }

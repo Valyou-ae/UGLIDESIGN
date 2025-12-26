@@ -340,7 +340,7 @@ export class DatabaseStorage implements IStorage {
       );
       
       if (!result.rows || !result.rows[0]) {
-        console.error("Image insert returned no result for userId:", image.userId);
+        logger.error("Image insert returned no result", undefined, { source: "storage", userId: image.userId });
         throw new Error("Failed to insert image into database");
       }
       
@@ -363,7 +363,7 @@ export class DatabaseStorage implements IStorage {
         createdAt: row.created_at
       };
     } catch (error) {
-      console.error("Database error in createImage:", error);
+      logger.error("Database error in createImage", error as Error, { source: "storage" });
       throw error;
     }
   }
@@ -498,12 +498,20 @@ export class DatabaseStorage implements IStorage {
     return this.withTransaction(async (client) => {
       // First get the image to check ownership and get details for gallery cleanup
       const checkResult = await client.query(
-        `SELECT id, image_url, prompt FROM generated_images WHERE id = $1 AND user_id = $2`,
+        `SELECT id, image_url, prompt, storage_type, r2_key FROM generated_images WHERE id = $1 AND user_id = $2`,
         [imageId, userId]
       );
       
       if (checkResult.rows.length === 0) return false;
       const image = checkResult.rows[0];
+      
+      // Delete from R2 if stored there (async, don't block deletion)
+      if (image.storage_type === 'r2' && image.r2_key) {
+        const { deleteImageFromStorage } = await import('./imageStorageHelper');
+        deleteImageFromStorage(image.storage_type, image.r2_key).catch(err => {
+          logger.error('Failed to delete image from R2 (non-blocking)', err);
+        });
+      }
       
       // Delete from gallery first (if exists)
       await client.query(

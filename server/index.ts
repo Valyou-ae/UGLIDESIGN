@@ -8,6 +8,7 @@ import { getStripeSync } from './stripeClient';
 import { WebhookHandlers } from './webhookHandlers';
 import helmet from 'helmet';
 import cors from 'cors';
+import csrf from 'csurf';
 import { logger } from './logger';
 import { pool } from './db';
 import * as Sentry from '@sentry/node';
@@ -175,6 +176,20 @@ async function initStripe() {
 
 (async () => {
   await initStripe();
+  
+  // Initialize R2 storage if configured
+  try {
+    const { initR2Storage, isR2Configured } = await import('./r2Storage');
+    if (isR2Configured()) {
+      initR2Storage();
+      logger.info('R2 object storage initialized', { source: 'r2' });
+    } else {
+      logger.warn('R2 not configured - images will be stored as base64', { source: 'r2' });
+    }
+  } catch (error: any) {
+    logger.error('R2 initialization failed', { error: error?.message, source: 'r2' });
+    logger.warn('Falling back to base64 image storage', { source: 'r2' });
+  }
 
   // CORS Configuration
   // Supports: ALLOWED_ORIGINS (comma-separated), REPLIT_DOMAINS, and localhost for dev
@@ -290,6 +305,42 @@ async function initStripe() {
   );
 
   app.use(express.urlencoded({ extended: false, limit: '15mb' }));
+
+  // CSRF Protection (session-based tokens)
+  // Protects against Cross-Site Request Forgery attacks
+  const csrfProtection = csrf({ 
+    cookie: false, // Use session-based tokens instead of cookies
+    ignoreMethods: ['GET', 'HEAD', 'OPTIONS'], // Only protect state-changing methods
+  });
+
+  // CSRF token endpoint (apply CSRF middleware to generate token)
+  app.get('/api/csrf-token', csrfProtection, (req, res) => {
+    // Generate and return CSRF token
+    const token = (req as any).csrfToken();
+    res.json({ csrfToken: token });
+  });
+
+  // Apply CSRF protection to all API routes except:
+  // - GET/HEAD/OPTIONS (read-only)
+  // - Webhooks (external services)
+  // - Auth callbacks (OAuth flows)
+  app.use('/api', (req, res, next) => {
+    // Skip CSRF for webhooks and auth callbacks
+    if (
+      req.path.startsWith('/stripe/webhook') ||
+      req.path.startsWith('/auth/google/callback') ||
+      req.path.startsWith('/auth/replit/callback')
+    ) {
+      return next();
+    }
+    
+    // Apply CSRF protection to state-changing methods
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
+      return csrfProtection(req, res, next);
+    }
+    
+    next();
+  });
 
   // Disable ETags for API routes to prevent 304 responses with empty bodies
   // This fixes production issues where browser caching breaks JSON parsing

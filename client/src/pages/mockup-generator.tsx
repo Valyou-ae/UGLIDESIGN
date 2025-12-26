@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { logger } from '@/lib/logger';
 import JSZip from "jszip";
 import { 
   generateAllPatternVariations, 
@@ -942,7 +943,7 @@ export default function MockupGenerator() {
           // Auto-hide banner after 5 seconds
           setTimeout(() => setShowTransferBanner(false), 5000);
         } catch (error) {
-          console.error("Failed to load transferred image:", error);
+          logger.error("Failed to load transferred image:", error);
           clearTransferredImage();
         }
       };
@@ -965,7 +966,7 @@ export default function MockupGenerator() {
           setRecentImages(recent);
         }
       } catch (error) {
-        console.error("Failed to fetch recent images:", error);
+        logger.error("Failed to fetch recent images:", error);
       }
     };
     fetchRecentImages();
@@ -1029,7 +1030,7 @@ export default function MockupGenerator() {
           setSelectedSizes(["M"]);
         }
       } catch (error) {
-        console.error("Failed to fetch product sizes:", error);
+        logger.error("Failed to fetch product sizes:", error);
         setAvailableSizes([
           { code: "XS", label: "XS" },
           { code: "S", label: "S" },
@@ -1084,7 +1085,7 @@ export default function MockupGenerator() {
             folder.file(filename, blob);
           }
         } catch (err) {
-          console.error(`Failed to add ${mockup.angle} to zip:`, err);
+          logger.error(`Failed to add ${mockup.angle} to zip:`, err);
         }
       });
 
@@ -1110,7 +1111,7 @@ export default function MockupGenerator() {
         description: `${generatedMockups.length} mockups saved as ZIP file`,
       });
     } catch (error) {
-      console.error('ZIP download failed:', error);
+      logger.error('ZIP download failed:', error);
       toast({
         title: "Download Failed",
         description: "Could not create ZIP file. Please try downloading individually.",
@@ -1204,7 +1205,7 @@ export default function MockupGenerator() {
         setSelectedVariationId(recommended.id);
       }
     } catch (error) {
-      console.error('Failed to generate patterns:', error);
+      logger.error('Failed to generate patterns:', error);
       toast({
         title: "Pattern Generation Failed",
         description: "Could not generate seamless patterns. Please try again.",
@@ -1256,7 +1257,7 @@ export default function MockupGenerator() {
         throw new Error(data.message || 'Failed to generate AI pattern');
       }
     } catch (error) {
-      console.error('AI pattern generation failed:', error);
+      logger.error('AI pattern generation failed:', error);
       toast({
         title: "AI Pattern Failed",
         description: "Could not generate AI-enhanced pattern. Please try again.",
@@ -1317,7 +1318,7 @@ export default function MockupGenerator() {
             : m
         ));
       } catch (err) {
-        console.error('Failed to fetch versions:', err);
+        logger.error('Failed to fetch versions:', err);
         // Clear versions on error to avoid stale data in both states
         setSelectedMockupDetails(prev => prev ? { ...prev, versions: [], currentVersionIndex: undefined } : null);
         setGeneratedMockups(prev => prev.map((m, i) =>
@@ -1375,7 +1376,7 @@ export default function MockupGenerator() {
             setUploadedImage(dataUrl);
             setPreviewMinimized(false);
           } catch (error) {
-            console.error("Failed to load selected recent image:", error);
+            logger.error("Failed to load selected recent image:", error);
           }
         }
       }
@@ -1426,7 +1427,7 @@ export default function MockupGenerator() {
         }
       );
     } catch (error: any) {
-      console.error("Text-to-mockup generation failed:", error);
+      logger.error("Text-to-mockup generation failed:", error);
       toast({
         title: "Generation Failed",
         description: error.message || "Failed to generate mockup. Please try again.",
@@ -1585,7 +1586,7 @@ export default function MockupGenerator() {
               }
               break;
             case "persona_lock_failed":
-              console.error("Persona lock failed:", event.data.message);
+              logger.error("Persona lock failed:", event.data.message);
               toast({
                 title: "Model Generation Issue",
                 description: event.data.suggestion || "Could not generate consistent model. Trying alternative approach.",
@@ -1638,7 +1639,7 @@ export default function MockupGenerator() {
                         : m
                     ));
                   }
-                }).catch(err => console.error('Failed to save version:', err));
+                }).catch(err => logger.error('Failed to save version:', err));
                 
                 setBatchJobs(prev => prev.map(job => 
                   job.color === mockupData.color && job.angle === mockupData.angle
@@ -1649,7 +1650,7 @@ export default function MockupGenerator() {
               }
               break;
             case "image_error":
-              console.error(`Failed to generate ${event.data.angle} ${event.data.color || ''} view`);
+              logger.error(`Failed to generate ${event.data.angle} ${event.data.color || ''} view`);
               setBatchJobs(prev => prev.map(job => 
                 job.color === event.data.color && job.angle === event.data.angle
                   ? { ...job, status: 'failed' as BatchJobStatus, error: event.data.error || 'Generation failed' }
@@ -1673,7 +1674,7 @@ export default function MockupGenerator() {
               }
               break;
             case "batch_error":
-              console.error("Batch error:", event.data.message);
+              logger.error("Batch error:", event.data.message);
               break;
             case "error":
               throw new Error(event.data.message || "Generation failed");
@@ -1692,7 +1693,7 @@ export default function MockupGenerator() {
         throw new Error("No images were generated");
       }
     } catch (error: any) {
-      console.error("Mockup generation failed:", error);
+      logger.error("Mockup generation failed:", error);
       setIsGenerating(false);
       setGenerationProgress(0);
       toast({
@@ -1848,7 +1849,7 @@ export default function MockupGenerator() {
                               setUploadedImage(dataUrl);
                               setPreviewMinimized(false);
                             } catch (error) {
-                              console.error("Failed to load recent image:", error);
+                              logger.error("Failed to load recent image:", error);
                             }
                           }
                         }}

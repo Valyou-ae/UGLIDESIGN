@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { logger } from '@/lib/logger';
 import { 
   Eye, 
   Heart, 
@@ -537,7 +538,7 @@ export default function PublicHome() {
         
         // Handle other non-OK responses
         if (!response.ok) {
-          console.error('Gallery API error:', response.status, response.statusText);
+          logger.error('Gallery API error:', response.status, response.statusText);
           const cached = queryClient.getQueryData<{ images: any[] }>(['/api/gallery']);
           if (cached && cached.images.length > 0) {
             return cached;
@@ -547,7 +548,7 @@ export default function PublicHome() {
         
         const text = await response.text();
         if (!text) {
-          console.error('Gallery API returned empty response');
+          logger.error('Gallery API returned empty response');
           return { images: [] };
         }
         
@@ -560,7 +561,7 @@ export default function PublicHome() {
         }
         return data;
       } catch (error) {
-        console.error('Gallery fetch error:', error);
+        logger.error('Gallery fetch error:', error);
         return { images: [] };
       }
     },

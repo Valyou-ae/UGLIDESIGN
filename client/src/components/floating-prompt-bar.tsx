@@ -1,4 +1,6 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { logger } from '@/lib/logger';
+import { fetchWithCsrf } from '@/lib/fetch-with-csrf';
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Sparkles, 
@@ -159,7 +161,7 @@ export function FloatingPromptBar({ onImageGenerated }: FloatingPromptBarProps =
             try {
               // Add timestamp to bypass CDN caching
               const timestamp = Date.now();
-              const authResponse = await fetch(`/api/auth/google?_t=${timestamp}`, {
+              const authResponse = await fetchWithCsrf(`/api/auth/google?_t=${timestamp}`, {
                 method: "POST",
                 headers: { 
                   "Content-Type": "application/json",
@@ -174,11 +176,11 @@ export function FloatingPromptBar({ onImageGenerated }: FloatingPromptBarProps =
               if (authResponse.ok) {
                 window.location.reload();
               } else {
-                console.error("Google auth failed:", authResponse.status);
+                logger.error("Google auth failed", { status: authResponse.status });
                 alert(`Login failed (${authResponse.status}). Please try again.`);
               }
             } catch (error) {
-              console.error("Google auth error:", error);
+              logger.error("Google auth error", error);
               alert("Login error. Please try again.");
             }
           },
@@ -192,7 +194,7 @@ export function FloatingPromptBar({ onImageGenerated }: FloatingPromptBarProps =
       window.google.accounts.id.prompt();
       return true;
     } catch (error) {
-      console.error("Failed to initialize Google Sign-In:", error);
+      logger.error("Failed to initialize Google Sign-In", error);
       return false;
     }
   };
@@ -212,7 +214,7 @@ export function FloatingPromptBar({ onImageGenerated }: FloatingPromptBarProps =
           localStorage.setItem("ugli_guest_id", guestId);
         }
 
-        const response = await fetch("/api/guest/generate-image", {
+        const response = await fetchWithCsrf("/api/guest/generate-image", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -223,7 +225,7 @@ export function FloatingPromptBar({ onImageGenerated }: FloatingPromptBarProps =
 
         if (!response.ok) {
           const error = await response.json();
-          console.error("Guest generation failed:", error);
+          logger.error("Guest generation failed", error);
           if (response.status === 403) {
             openLoginPopup();
           } else {
@@ -246,7 +248,7 @@ export function FloatingPromptBar({ onImageGenerated }: FloatingPromptBarProps =
         }
       } else {
         // Authenticated generation
-        const generateResponse = await fetch("/api/generate/single", {
+        const generateResponse = await fetchWithCsrf("/api/generate/single", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -258,14 +260,14 @@ export function FloatingPromptBar({ onImageGenerated }: FloatingPromptBarProps =
 
         if (!generateResponse.ok) {
           const error = await generateResponse.json();
-          console.error("Generation failed:", error);
+          logger.error("Generation failed", error);
           alert("Image generation failed. Please try again.");
           return;
         }
 
         const { image } = await generateResponse.json();
 
-        const saveResponse = await fetch("/api/images", {
+        const saveResponse = await fetchWithCsrf("/api/images", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -295,7 +297,7 @@ export function FloatingPromptBar({ onImageGenerated }: FloatingPromptBarProps =
         }
       }
     } catch (error) {
-      console.error("Generation error:", error);
+      logger.error("Generation error", error);
       alert("An error occurred. Please try again.");
     } finally {
       setIsGenerating(false);

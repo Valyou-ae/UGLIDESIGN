@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { logger } from '@/lib/logger';
+import { fetchWithCsrf } from '@/lib/fetch-with-csrf';
 import {
   initializeGoogleAuth,
   registerCredentialCallback,
@@ -89,7 +91,7 @@ export function GoogleAutoSignIn({ onSuccess, onError }: GoogleAutoSignInProps) 
         };
 
         try {
-          console.log("Google sign-in triggered, method:", response.select_by);
+          logger.info("Google sign-in triggered", { method: response.select_by });
           const loadingToast = document.createElement('div');
           loadingToast.id = 'google-auth-loading';
           loadingToast.style.cssText = 'position:fixed;top:20px;right:20px;background:#333;color:#fff;padding:16px 24px;border-radius:8px;z-index:99999;font-family:sans-serif;';
@@ -98,7 +100,7 @@ export function GoogleAutoSignIn({ onSuccess, onError }: GoogleAutoSignInProps) 
 
           const attemptAuth = async (retryCount = 0): Promise<{ok: boolean; status: number; body: string}> => {
             const timestamp = Date.now();
-            const authResponse = await fetch(`/api/auth/google?_t=${timestamp}`, {
+            const authResponse = await fetchWithCsrf(`/api/auth/google?_t=${timestamp}`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -115,7 +117,7 @@ export function GoogleAutoSignIn({ onSuccess, onError }: GoogleAutoSignInProps) 
             if (authResponse.status >= 500 && retryCount < 3) {
               if (responseBody.includes('EAI_AGAIN') || responseBody.includes('helium') || responseBody.includes('DNS')) {
                 updateLoadingToast(`Connection issue, retrying... (${retryCount + 1}/3)`);
-                console.log(`DNS error, retrying in ${(retryCount + 1) * 2}s... (attempt ${retryCount + 1}/3)`);
+                logger.info(`DNS error, retrying`, { retryCount: retryCount + 1, delaySeconds: (retryCount + 1) * 2 });
                 await new Promise(resolve => setTimeout(resolve, (retryCount + 1) * 2000));
                 return attemptAuth(retryCount + 1);
               }
@@ -124,10 +126,10 @@ export function GoogleAutoSignIn({ onSuccess, onError }: GoogleAutoSignInProps) 
           };
 
           const authResponse = await attemptAuth();
-          console.log("Auth response status:", authResponse.status);
+          logger.info("Auth response received", { status: authResponse.status });
 
           if (authResponse.ok) {
-            console.log("Google sign-in successful");
+            logger.info("Google sign-in successful");
             updateLoadingToast("Login successful! Redirecting...");
             onSuccess?.();
             isAuthenticatingRef.current = false;
@@ -145,7 +147,7 @@ export function GoogleAutoSignIn({ onSuccess, onError }: GoogleAutoSignInProps) 
             } catch (e) {
               errorMessage = `Login failed (${authResponse.status})`;
             }
-            console.error("Google auth failed:", errorMessage);
+            logger.error("Google auth failed", { errorMessage });
             if (errorMessage.includes('EAI_AGAIN') || errorMessage.includes('helium')) {
               alert("Connection issue - please try again in a few seconds. The server is warming up.");
             } else {
@@ -156,7 +158,7 @@ export function GoogleAutoSignIn({ onSuccess, onError }: GoogleAutoSignInProps) 
           }
         } catch (error) {
           removeLoadingToast();
-          console.error("Google auth error:", error);
+          logger.error("Google auth error", error);
           const errorMsg = error instanceof Error ? error.message : "Authentication failed";
           alert(`Login error: ${errorMsg}`);
           onError?.(errorMsg);
@@ -169,21 +171,21 @@ export function GoogleAutoSignIn({ onSuccess, onError }: GoogleAutoSignInProps) 
       showOneTapPrompt((notification) => {
         if (notification.isNotDisplayed()) {
           const reason = notification.getNotDisplayedReason();
-          console.log("One Tap not displayed:", reason);
+          logger.info("One Tap not displayed", { reason });
 
           if (reason === "opt_out_or_no_session") {
-            console.log("User not logged into Google or opted out");
+            logger.info("User not logged into Google or opted out");
           } else if (reason === "suppressed_by_user") {
-            console.log("User previously dismissed, will retry after cooldown");
+            logger.info("User previously dismissed, will retry after cooldown");
           }
         }
 
         if (notification.isSkippedMoment()) {
           const reason = notification.getSkippedReason();
-          console.log("One Tap skipped:", reason);
+          logger.info("One Tap skipped", { reason });
 
           if (reason === "auto_cancel") {
-            console.log("Auto-cancelled, will retry");
+            logger.info("Auto-cancelled, will retry");
             setTimeout(() => {
               if (!isAuthenticatingRef.current) {
                 showOneTapPrompt();
@@ -193,7 +195,7 @@ export function GoogleAutoSignIn({ onSuccess, onError }: GoogleAutoSignInProps) 
         }
 
         if (notification.isDismissedMoment()) {
-          console.log("One Tap dismissed:", notification.getDismissedReason());
+          logger.info("One Tap dismissed", { reason: notification.getDismissedReason() });
         }
       });
     };

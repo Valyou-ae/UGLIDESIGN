@@ -1,4 +1,5 @@
 import type { Express, Request, Response } from "express";
+import { ZodError } from "zod";
 import { storage } from "../storage";
 import { invalidateCache, getFromCache } from "../cache";
 import { isSimplePrompt, classifyPrompt } from "../utils/prompt-classifier";
@@ -6,6 +7,13 @@ import { generationRateLimiter, guestGenerationLimiter } from "../rateLimiter";
 import type { Middleware } from "./middleware";
 import type { AuthenticatedRequest } from "../types";
 import { logger } from "../logger";
+import {
+  guestGenerateImageSchema,
+  analyzePromptSchema,
+  generateDraftSchema,
+  generateFinalSchema,
+  generateSingleSchema,
+} from "../validation/generation";
 
 const GUEST_GALLERY_USER_ID = "guest-gallery-user";
 
@@ -96,10 +104,8 @@ export async function registerGenerationRoutes(app: Express, middleware: Middlew
 
   app.post("/api/guest/generate-image", guestGenerationLimiter, async (req: Request, res: Response) => {
     try {
-      const { prompt, guestId } = req.body;
-      if (!prompt || !guestId) {
-        return res.status(400).json({ message: "Missing prompt or guestId" });
-      }
+      // Validate input
+      const { prompt, guestId } = guestGenerateImageSchema.parse(req.body);
 
       // Use direct SQL via pool to avoid Neon HTTP driver null response issues
       const { pool } = await import("../db");
@@ -159,6 +165,9 @@ export async function registerGenerationRoutes(app: Express, middleware: Middlew
 
       return res.json({ imageData: result.imageData, mimeType: result.mimeType });
     } catch (error: unknown) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: "Invalid input", errors: error.errors });
+      }
       logger.error("Guest generation error", error, { source: "generation" });
       const err = error as { message?: string };
       const message = err?.message?.includes('generation') ? err.message : "Generation failed. Please try again.";
@@ -170,14 +179,15 @@ export async function registerGenerationRoutes(app: Express, middleware: Middlew
 
   app.post("/api/generate/analyze", requireAuth, async (req: Request, res: Response) => {
     try {
-      const { prompt } = req.body;
-      if (!prompt || typeof prompt !== "string") {
-        return res.status(400).json({ message: "Prompt is required" });
-      }
+      // Validate input
+      const { prompt } = analyzePromptSchema.parse(req.body);
 
       const analysis = await analyzePrompt(prompt);
       res.json({ analysis });
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: "Invalid input", errors: error.errors });
+      }
       logger.error("Analysis error", error, { source: "generation" });
       res.status(500).json({ message: "Analysis failed" });
     }
@@ -186,12 +196,13 @@ export async function registerGenerationRoutes(app: Express, middleware: Middlew
   app.post("/api/generate/draft", requireAuth, async (req: Request, res: Response) => {
     try {
       const userId = getUserId(req as AuthenticatedRequest);
-      const { prompt, stylePreset = "auto", aspectRatio = "1:1", detail = "medium", speed = "quality", imageCount = 1, isPublic = false } = req.body;
-      if (!prompt || typeof prompt !== "string") {
-        return res.status(400).json({ message: "Prompt is required" });
-      }
-
-      const count = Math.min(Math.max(1, parseInt(imageCount) || 1), 4);
+      
+      // Validate input
+      const validated = generateDraftSchema.parse(req.body);
+      const { prompt, aspectRatio, style, count } = validated;
+      
+      // Legacy fields for backward compatibility
+      const { stylePreset = "auto", detail = "medium", speed = "quality", isPublic = false } = req.body;
 
       // Calculate and check credits before generation
       const creditCost = calculateCreditCost('draft', aspectRatio, count);
@@ -447,21 +458,21 @@ export async function registerGenerationRoutes(app: Express, middleware: Middlew
   app.post("/api/generate/final", requireAuth, generationRateLimiter, async (req: Request, res: Response) => {
     try {
       const userId = getUserId(req as AuthenticatedRequest);
+      
+      // Validate input
+      const validated = generateFinalSchema.parse(req.body);
+      const { prompt, aspectRatio, style, selectedDraftIndex, enhancedPrompt } = validated;
+      
+      // Legacy fields for backward compatibility
       const {
-        prompt,
         stylePreset = "auto",
         qualityLevel = "premium",
-        aspectRatio = "1:1",
         detail = "medium",
         speed = "quality",
         imageCount = 1,
         isPublic = false,
       } = req.body;
-
-      if (!prompt || typeof prompt !== "string") {
-        return res.status(400).json({ message: "Prompt is required" });
-      }
-
+      
       const count = Math.min(Math.max(1, parseInt(imageCount) || 1), 4);
 
       // Calculate and check credits before generation
@@ -732,10 +743,12 @@ export async function registerGenerationRoutes(app: Express, middleware: Middlew
 
   app.post("/api/generate/single", requireAuth, generationRateLimiter, async (req: Request, res: Response) => {
     try {
-      const { prompt, stylePreset = "auto" } = req.body;
-      if (!prompt || typeof prompt !== "string") {
-        return res.status(400).json({ message: "Prompt is required" });
-      }
+      // Validate input
+      const validated = generateSingleSchema.parse(req.body);
+      const { prompt, aspectRatio, style, quality, skipEnhancement } = validated;
+      
+      // Legacy fields for backward compatibility
+      const { stylePreset = "auto" } = req.body;
 
       // Phase 2: Use caching for analysis and enhancement
       const analysisCacheKey = `analysis:${prompt}`;
@@ -769,6 +782,9 @@ export async function registerGenerationRoutes(app: Express, middleware: Middlew
         res.status(500).json({ message: "Image generation failed" });
       }
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: "Invalid input", errors: error.errors });
+      }
       logger.error("Single generation error", error, { source: "generation" });
       res.status(500).json({ message: "Generation failed" });
     }

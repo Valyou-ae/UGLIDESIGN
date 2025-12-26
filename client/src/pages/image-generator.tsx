@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { logger } from '@/lib/logger';
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { 
   Wand2, 
@@ -344,7 +345,7 @@ export default function ImageGenerator() {
         const response = await promptFavoritesApi.getAll();
         setSavedPrompts(response.favorites || []);
       } catch (error) {
-        console.error("Failed to fetch favorites:", error);
+        logger.error("Failed to fetch favorites:", error);
       } finally {
         setIsLoadingFavorites(false);
       }
@@ -374,7 +375,7 @@ export default function ImageGenerator() {
           
           clearTransferredImage();
         } catch (error) {
-          console.error("Failed to load transferred image:", error);
+          logger.error("Failed to load transferred image:", error);
           toast({
             title: "Failed to load image",
             description: "Could not load the transferred image. Please try uploading manually.",
@@ -522,7 +523,7 @@ export default function ImageGenerator() {
         description: "You can now paste it anywhere.",
       });
     } catch (error) {
-      console.error("Copy to clipboard failed:", error);
+      logger.error("Copy to clipboard failed:", error);
       toast({
         variant: "destructive",
         title: "Copy Failed",
@@ -868,7 +869,7 @@ export default function ImageGenerator() {
         setImageVersions(versions || []);
       }
     } catch (error) {
-      console.error("Failed to fetch image versions:", error);
+      logger.error("Failed to fetch image versions:", error);
     }
   };
 
@@ -1067,7 +1068,7 @@ export default function ImageGenerator() {
 
     const handleEvent = (event: GenerationEvent) => {
       const { type, data } = event;
-      console.log("SSE Event:", type, data);
+      logger.info("SSE Event:", type, data);
 
       if (type === "status" && data.agent && data.status) {
         setAgents(prev => {
@@ -1225,7 +1226,7 @@ export default function ImageGenerator() {
                   });
                   savedCount++;
                 } catch (error) {
-                  console.error("Failed to save image:", error);
+                  logger.error("Failed to save image:", error);
                 }
               });
               
@@ -1455,7 +1456,7 @@ export default function ImageGenerator() {
             return;
           }
         } catch (error) {
-          console.error("Failed to load images:", error);
+          logger.error("Failed to load images:", error);
         }
       }
       

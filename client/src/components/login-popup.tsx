@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, createContext, useContext, ReactNode, useCallback } from "react";
+import { useState, useEffect, useRef, createContext, useContext, ReactNode } from "react";
 import { useLocation } from "wouter";
+import { fetchWithCsrf } from '@/lib/fetch-with-csrf';
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
@@ -101,7 +102,7 @@ function LoginPopupDialog({ isOpen, onClose, returnTo }: LoginPopupDialogProps) 
           setError(null);
 
           try {
-            const authResponse = await fetch("/api/auth/google", {
+            const authResponse = await fetchWithCsrf("/api/auth/google", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -162,7 +163,7 @@ function LoginPopupDialog({ isOpen, onClose, returnTo }: LoginPopupDialogProps) 
     setError(null);
 
     try {
-      const response = await fetch("/api/auth/forgot-password", {
+      const response = await fetchWithCsrf("/api/auth/forgot-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

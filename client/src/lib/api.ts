@@ -1,4 +1,6 @@
 // API client for backend communication
+import { logger } from './logger';
+import { withCsrfToken } from './csrf';
 
 type ApiResponse<T> = {
   data?: T;
@@ -9,11 +11,14 @@ async function fetchApi<T>(
   endpoint: string,
   options?: RequestInit
 ): Promise<T> {
+  // Add CSRF token for state-changing requests
+  const optionsWithCsrf = await withCsrfToken(options || {});
+  
   const response = await fetch(`/api${endpoint}`, {
-    ...options,
+    ...optionsWithCsrf,
     headers: {
       "Content-Type": "application/json",
-      ...options?.headers,
+      ...optionsWithCsrf.headers,
     },
     credentials: "include",
   });
@@ -258,7 +263,7 @@ function parseSSEStream(
             const data = JSON.parse(jsonStr);
             onEvent({ type: currentEventType, data });
           } catch (e) {
-            console.error("Failed to parse SSE data:", line, e);
+            logger.error("Failed to parse SSE data", { line, error: e });
           }
         }
       }
@@ -316,7 +321,7 @@ export const generateApi = {
 
       await parseSSEStream(response, onEvent);
     } catch (error) {
-      console.error("Draft generation error:", error);
+      logger.error("Draft generation error", error);
       throw error;
     }
   },
@@ -350,7 +355,7 @@ export const generateApi = {
 
       await parseSSEStream(response, onEvent);
     } catch (error) {
-      console.error("Final generation error:", error);
+      logger.error("Final generation error", error);
       throw error;
     }
   },
@@ -472,13 +477,13 @@ function parseMockupSSEStream(
             eventsReceived++;
             if (eventType === "image") {
               imageEventReceived = true;
-              console.log("SSE Image Event received:", { imageDataLength: data.imageData?.length, mimeType: data.mimeType, angle: data.angle, color: data.color });
+              logger.info("SSE Image Event received", { imageDataLength: data.imageData?.length, mimeType: data.mimeType, angle: data.angle, color: data.color });
             } else {
-              console.log("SSE Event received:", eventType, data);
+              logger.info("SSE Event received", { eventType, data });
             }
             onEvent({ type: eventType, data });
           } catch (e) {
-            console.error("Failed to parse mockup SSE data:", dataStr.substring(0, 100) + "...", e);
+            logger.error("Failed to parse mockup SSE data", { preview: dataStr.substring(0, 100) + "...", error: e });
           }
         }
       }
@@ -490,14 +495,14 @@ function parseMockupSSEStream(
         while (true) {
           const { done, value } = await reader.read();
           if (done) {
-            console.log(`SSE Stream ended. Chunks: ${chunkCount}, Events: ${eventsReceived}, ImageReceived: ${imageEventReceived}, BufferRemaining: ${buffer.length}`);
+            logger.info("SSE Stream ended", { chunks: chunkCount, events: eventsReceived, imageReceived: imageEventReceived, bufferRemaining: buffer.length });
             // Process any remaining complete events in buffer
             if (buffer.trim()) {
               processCompleteEvents();
             }
             // Log if there's still unprocessed data (incomplete event)
             if (buffer.length > 0) {
-              console.warn("SSE Stream ended with incomplete data in buffer:", buffer.substring(0, 200) + (buffer.length > 200 ? "..." : ""));
+              logger.warn("SSE Stream ended with incomplete data in buffer", { preview: buffer.substring(0, 200) + (buffer.length > 200 ? "..." : "") });
             }
             break;
           }
@@ -508,14 +513,14 @@ function parseMockupSSEStream(
           
           // Log large chunks (image data)
           if (chunk.length > 10000) {
-            console.log(`SSE Received large chunk #${chunkCount}: ${chunk.length} bytes, buffer now: ${buffer.length} bytes`);
+            logger.info("SSE Received large chunk", { chunkNumber: chunkCount, chunkSize: chunk.length, bufferSize: buffer.length });
           }
           
           processCompleteEvents();
         }
         resolve();
       } catch (error: any) {
-        console.error("SSE Stream read error:", error?.message || error?.name || error, "Type:", typeof error);
+        logger.error("SSE Stream read error", { message: error?.message, name: error?.name, type: typeof error, error });
         reject(error instanceof Error ? error : new Error(String(error) || "Stream read failed"));
       }
     };
@@ -621,7 +626,7 @@ async function parseTextToMockupSSEStream(
               onEvent(data as TextToMockupProgressEvent);
             }
           } catch (e) {
-            console.warn("Failed to parse SSE data:", trimmedLine);
+            logger.warn("Failed to parse SSE data", { line: trimmedLine });
           }
         }
       }
@@ -661,7 +666,7 @@ export const mockupApi = {
 
       await parseTextToMockupSSEStream(response, onEvent);
     } catch (error) {
-      console.error("Text-to-mockup generation error:", error);
+      logger.error("Text-to-mockup generation error", error);
       throw error;
     }
   },
@@ -698,7 +703,7 @@ export const mockupApi = {
 
       await parseMockupSSEStream(response, onEvent);
     } catch (error) {
-      console.error("Mockup generation error:", error);
+      logger.error("Mockup generation error", error);
       throw error;
     }
   },
@@ -745,7 +750,7 @@ export const mockupApi = {
 
       await parseMockupSSEStream(response, onEvent);
     } catch (error) {
-      console.error("Batch mockup generation error:", error);
+      logger.error("Batch mockup generation error", error);
       throw error;
     }
   },
@@ -926,7 +931,7 @@ function parseBackgroundRemovalSSEStream(
             const data = JSON.parse(jsonStr);
             onEvent({ type: currentEventType, data });
           } catch (e) {
-            console.error("Failed to parse batch SSE data:", line, e);
+            logger.error("Failed to parse batch SSE data", { line, error: e });
           }
         }
       }
@@ -1103,7 +1108,7 @@ export const backgroundRemovalApi = {
 
       await parseBackgroundRemovalSSEStream(response, onEvent);
     } catch (error) {
-      console.error("Batch background removal error:", error);
+      logger.error("Batch background removal error", error);
       throw error;
     }
   },

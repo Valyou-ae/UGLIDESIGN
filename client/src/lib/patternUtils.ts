@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 /**
  * Client-side seamless pattern generation utilities
  * Implements multiple tiling algorithms for AOP (All-Over Print) designs
@@ -324,7 +326,7 @@ export async function generateAllPatternVariations(imageSrc: string): Promise<Pa
       }
     ];
   } catch (error) {
-    console.error('Failed to generate pattern variations:', error);
+    logger.error('Failed to generate pattern variations:', error);
     throw error;
   }
 }

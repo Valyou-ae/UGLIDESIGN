@@ -1,3 +1,5 @@
+import { logger } from './logger';
+
 type CredentialCallback = (response: { credential: string; select_by?: string }) => void;
 
 interface GoogleAuthState {
@@ -55,14 +57,14 @@ export async function initializeGoogleAuth(): Promise<boolean> {
     try {
       const configResponse = await fetch("/api/auth/google-client-id");
       if (!configResponse.ok) {
-        console.log("Google Sign-In not configured");
+        logger.info("Google Sign-In not configured");
         state.readyPromise = null;
         return false;
       }
 
       const { clientId } = await configResponse.json();
       if (!clientId) {
-        console.log("Google Client ID not available");
+        logger.info("Google Client ID not available");
         state.readyPromise = null;
         return false;
       }
@@ -71,7 +73,7 @@ export async function initializeGoogleAuth(): Promise<boolean> {
 
       const googleReady = await waitForGoogleLib();
       if (!googleReady) {
-        console.log("Google Identity Services not loaded");
+        logger.info("Google Identity Services not loaded");
         state.readyPromise = null;
         return false;
       }
@@ -83,7 +85,7 @@ export async function initializeGoogleAuth(): Promise<boolean> {
             try {
               state.priorityCallback(response);
             } catch (e) {
-              console.error("Error in priority callback:", e);
+              logger.error("Error in priority callback", e);
             }
             return;
           }
@@ -92,7 +94,7 @@ export async function initializeGoogleAuth(): Promise<boolean> {
             try {
               cb(response);
             } catch (e) {
-              console.error("Error in credential callback:", e);
+              logger.error("Error in credential callback", e);
             }
           });
         },
@@ -103,14 +105,14 @@ export async function initializeGoogleAuth(): Promise<boolean> {
         use_fedcm_for_prompt: false,
         ux_mode: "popup",
         intermediate_iframe_close_callback: () => {
-          console.log("Google One Tap closed");
+          logger.info("Google One Tap closed");
         },
       });
 
       state.initialized = true;
       return true;
     } catch (error) {
-      console.error("Failed to initialize Google Sign-In:", error);
+      logger.error("Failed to initialize Google Sign-In", error);
       state.readyPromise = null;
       return false;
     } finally {

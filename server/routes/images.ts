@@ -7,6 +7,8 @@ import type { Middleware } from "./middleware";
 import type { AuthenticatedRequest } from "../types";
 import { parsePagination } from "./utils";
 import { logger } from "../logger";
+import { processImageForStorage, deleteImageFromStorage } from "../imageStorageHelper";
+import { initR2Storage, isR2Configured } from "../r2Storage";
 
 // Credit cost for image editing
 const IMAGE_EDIT_CREDIT_COST = 2;
@@ -87,6 +89,17 @@ export function registerImageRoutes(app: Express, middleware: Middleware) {
       // Strip out version-related fields from client - these are only set by the edit endpoint
       const { parentImageId, editPrompt, versionNumber, ...safeBody } = req.body;
       
+      // Process image for storage (upload to R2 if configured)
+      const processedImage = await processImageForStorage(
+        safeBody.imageUrl,
+        userId,
+        {
+          prompt: safeBody.prompt,
+          style: safeBody.style,
+          generationType: safeBody.generationType,
+        }
+      );
+      
       const imageData = insertImageSchema.parse({
         ...safeBody,
         userId,
@@ -95,12 +108,16 @@ export function registerImageRoutes(app: Express, middleware: Middleware) {
         parentImageId: null,
         editPrompt: null,
         versionNumber: 0,
+        // Add R2 storage metadata
+        imageUrl: processedImage.imageUrl,
+        storageType: processedImage.storageType,
+        r2Key: processedImage.r2Key,
       });
 
       const image = await storage.createImage(imageData);
       
       if (!image) {
-        console.error("Failed to create image - storage returned undefined");
+        logger.error("Failed to create image - storage returned undefined", undefined, { source: "images" });
         return res.status(500).json({ message: "Failed to save image to database." });
       }
 
