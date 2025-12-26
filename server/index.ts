@@ -150,6 +150,13 @@ async function initStripe() {
     return;
   }
 
+  // Skip Stripe initialization on non-Replit platforms
+  // stripe-replit-sync only works on Replit
+  if (!process.env.REPL_ID) {
+    stripeLogger.info('Not running on Replit, skipping Stripe sync initialization');
+    return;
+  }
+
   try {
     stripeLogger.info('Initializing Stripe schema...');
     await runMigrations({ 
