@@ -90,6 +90,11 @@ export async function getStripeSecretKey(): Promise<string | null> {
 let stripeSync: any = null;
 
 export async function getStripeSync(): Promise<any | null> {
+  // StripeSync only works on Replit - disable on other platforms
+  if (!process.env.REPL_ID) {
+    return null;
+  }
+  
   if (!stripeSync) {
     const secretKey = await getStripeSecretKey();
     if (!secretKey) return null;
