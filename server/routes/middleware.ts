@@ -1,15 +1,20 @@
 import type { Request, Response, NextFunction } from "express";
 import type { AuthenticatedRequest } from "../types";
-import { isAuthenticated } from "../replitAuth";
 import { storage } from "../storage";
 import { logger } from "../logger";
 
 export function createMiddleware() {
   const requireAuth = (req: Request, res: Response, next: NextFunction) => {
-    return isAuthenticated(req, res, next);
+    // Check if user is authenticated via Passport session (Google OAuth or Replit)
+    const authReq = req as AuthenticatedRequest;
+    if (!authReq.user?.claims?.sub) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    next();
   };
 
   const getUserId = (req: AuthenticatedRequest): string => {
+    // Get user ID from Passport session (works for both Google OAuth and Replit)
     return req.user?.claims?.sub || '';
   };
 

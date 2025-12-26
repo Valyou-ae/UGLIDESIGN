@@ -104,7 +104,10 @@ export async function registerRoutes(
   // Serve attached_assets folder for user-uploaded images
   app.use('/attached_assets', express.static(path.resolve(process.cwd(), 'attached_assets')));
 
-  await setupAuth(app);
+  // Only setup Replit auth if running on Replit
+  if (process.env.REPL_ID) {
+    await setupAuth(app);
+  }
 
   // Create shared middleware for route modules
   const sharedMiddleware = createMiddleware();

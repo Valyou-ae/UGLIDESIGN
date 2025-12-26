@@ -14,6 +14,9 @@ import { pool } from './db';
 import * as Sentry from '@sentry/node';
 import { stopCacheCleanup } from './cache';
 import { stopRateLimiterCleanup } from './rateLimiter';
+import passport from 'passport';
+import session from 'express-session';
+import connectPg from 'connect-pg-simple';
 
 // ============== SENTRY ERROR MONITORING ==============
 // Initialize Sentry early for comprehensive error tracking
@@ -305,6 +308,37 @@ async function initStripe() {
   );
 
   app.use(express.urlencoded({ extended: false, limit: '15mb' }));
+
+  // ============== SESSION & PASSPORT SETUP ==============
+  // Initialize session store and Passport for authentication
+  const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
+  const pgStore = connectPg(session);
+  const sessionStore = new pgStore({
+    pool: pool,
+    createTableIfMissing: false,
+    ttl: sessionTtl,
+    tableName: "sessions",
+  });
+
+  app.use(session({
+    secret: process.env.SESSION_SECRET!,
+    store: sessionStore,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: "lax",
+      maxAge: sessionTtl,
+    },
+  }));
+
+  app.use(passport.initialize());
+  app.use(passport.session());
+
+  // Passport serialization for session management
+  passport.serializeUser((user: Express.User, cb) => cb(null, user));
+  passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   // CSRF Protection (session-based tokens)
   // Protects against Cross-Site Request Forgery attacks
