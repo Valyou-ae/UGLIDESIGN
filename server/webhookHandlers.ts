@@ -16,7 +16,11 @@ export class WebhookHandlers {
 
     // First, let stripe-replit-sync process the webhook (this verifies the signature internally)
     const sync = await getStripeSync();
-    await sync.processWebhook(payload, signature, uuid);
+    if (sync) {
+      await sync.processWebhook(payload, signature, uuid);
+    } else {
+      logger.info('StripeSync not available (not on Replit), skipping sync webhook processing');
+    }
 
     // Then handle commission tracking for completed payments
     // The signature has been verified by stripe-replit-sync above, so we can trust the payload
