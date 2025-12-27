@@ -3,7 +3,7 @@ import { registerRoutes } from "./routes";
 import { registerHealthRoutes } from "./routes/health";
 import { serveStatic } from "./static";
 import { createServer } from "http";
-import { runMigrations } from 'stripe-replit-sync';
+// Dynamic import for stripe-replit-sync to avoid initialization on non-Replit platforms
 import { getStripeSync } from './stripeClient';
 import { WebhookHandlers } from './webhookHandlers';
 import helmet from 'helmet';
@@ -159,6 +159,7 @@ async function initStripe() {
 
   try {
     stripeLogger.info('Initializing Stripe schema...');
+    const { runMigrations } = await import('stripe-replit-sync');
     await runMigrations({ 
       databaseUrl
     });
