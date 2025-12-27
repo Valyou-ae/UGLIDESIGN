@@ -328,7 +328,7 @@ async function initStripe() {
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
     pool: pool,
-    createTableIfMissing: false,
+    createTableIfMissing: true,
     ttl: sessionTtl,
     tableName: "sessions",
   });
