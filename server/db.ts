@@ -12,16 +12,15 @@ if (!process.env.DATABASE_URL) {
 }
 
 // Connection pool for session store and direct queries
-// Optimized for Railway PostgreSQL with SSL
+// Optimized for Railway PostgreSQL - SSL handled by DATABASE_URL query params
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  max: parseInt(process.env.DB_POOL_MAX || '20'),  // Reduced to 20 for Railway
-  min: parseInt(process.env.DB_POOL_MIN || '2'),   // Keep 2 minimum connections warm
-  idleTimeoutMillis: 60000,  // Increased to 60 seconds
-  connectionTimeoutMillis: 10000,  // Reduced to 10 seconds for faster failure detection
-  keepAlive: true,  // Enable TCP keep-alive
-  keepAliveInitialDelayMillis: 10000,  // Send keep-alive after 10 seconds
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  max: parseInt(process.env.DB_POOL_MAX || '20'),
+  min: parseInt(process.env.DB_POOL_MIN || '2'),
+  idleTimeoutMillis: 60000,
+  connectionTimeoutMillis: 10000,
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 10000,
 });
 
 // Use standard pg driver for Railway PostgreSQL (not Neon serverless)
