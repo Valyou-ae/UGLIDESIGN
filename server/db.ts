@@ -1,5 +1,4 @@
-import { neon, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import pg from "pg";
 import * as schema from "@shared/schema";
 import { logger } from './logger';
@@ -11,13 +10,6 @@ if (!process.env.DATABASE_URL) {
     "DATABASE_URL must be set. Did you forget to provision a database?",
   );
 }
-
-// Configure Neon for better connection handling
-neonConfig.fetchConnectionCache = true;
-
-// Use Neon serverless driver for better cloud database connectivity
-const sql = neon(process.env.DATABASE_URL);
-export const db = drizzle(sql, { schema });
 
 // Connection pool for session store and direct queries
 // Optimized for Railway PostgreSQL with SSL
@@ -31,6 +23,9 @@ export const pool = new Pool({
   keepAliveInitialDelayMillis: 10000,  // Send keep-alive after 10 seconds
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
+
+// Use standard pg driver for Railway PostgreSQL (not Neon serverless)
+export const db = drizzle(pool, { schema });
 
 // Handle pool errors
 pool.on("error", (err) => {
